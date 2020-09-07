@@ -16,7 +16,7 @@ Exasim is available in Julia, Python, and Matlab.
 
 # Partial Differential Equations
 
-Exasim can solve a wide variety of parametrized partial differential equations from first-order PDEs, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs.
+Exasim solves a wide variety of parametrized partial differential equations from first-order PDEs, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs.
 
 # Applications
 
