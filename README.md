@@ -20,4 +20,4 @@ Exasim produces C++ Code to solve a wide variety of parametrized partial differe
 
 # Applications
 
-Exasim provides many examples that illustrate how to build executable applications for solving a wide variety of PDEs including Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and magnetohydrodynamics equations. To try out any of the provided examples, please go to any folder under Exasim/Applications and run pdeapp.jl in Julia REPL session, pdeapp.py in Python REPL session, or pdeapp.m in Matlab Command Window.
+Many examples are provided to illustrate how to build executable applications for solving a wide variety of PDEs including Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and magnetohydrodynamics equations. To try out any of the provided examples, please go to any folder under Exasim/Applications and run pdeapp.jl in Julia REPL session, pdeapp.py in Python REPL session, or pdeapp.m in Matlab Command Window.
