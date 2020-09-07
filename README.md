@@ -10,7 +10,7 @@ Exasim does not require installation.
 
 # Dependency  
 
-Exasim automatically generates and compiles stand-alone C++ code on the fly. To do that, Exasim requires a C++ compiler and Blas/Lapack libraries for building serial applications. An MPI library is required to build parallel applications. CUDA Tookit is required to build applications on Nvidia GPUs. Gmesh is used for mesh generation. METIS is needed for mesh partitioning. And Paraview is used for visualization. Please see the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.1.pdf for installation of these required packages.
+Exasim automatically generates and compiles stand-alone C++ code on the fly. To do that, Exasim requires a C++ compiler and Blas/Lapack libraries for building serial applications. An MPI library is required to build parallel applications. CUDA Tookit is required to build applications on Nvidia GPUs. Gmesh is used for mesh generation. METIS is needed for mesh partitioning. And Paraview is used for visualization. Please see the documentation https://github.com/exapde/Exasim/Documentation/Exasim0.1.pdf for installation of these required packages.
 
 # Language Support
 
