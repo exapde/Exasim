@@ -14,7 +14,7 @@ Exasim automatically generates and compiles stand-alone C++ code on the fly. To 
 
 Exasim is available in Julia, Python, and Matlab. 
 
-# Parametrized PDEs
+# Partial Differential Equations
 
 Exasim can solve a wide variety of parametrized partial differential equations from first-order, second-order, elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs.
 
