@@ -1,5 +1,5 @@
 <p align="center">
-<img width="240" height="50" src="Documentation/exasimlogosmall.png">
+<img src="Documentation/exasimlogosmall.png">
 </p>
 
 # Partial Differential Equation Application Builder For Extreme Scalable Simulations
