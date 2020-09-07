@@ -1,2 +1,3 @@
 # exasim
-Exasim 0.1
+
+\texttt{Exasim} is an open-source software for generating discontinuous Galerkin codes and building executable applications to numerically solve {\em parametrized} partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages  and low-level languages to easily create {\em parametrized} PDE models and automatically produce high-performance applications. The construction of {\em parametrized} PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with both CPU and GPU processors. Figure 1 illustrates  the intended use of \texttt{Exasim} for solving PDEs.
