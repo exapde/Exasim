@@ -30,7 +30,7 @@ pde['RBdim'] = 1;
 pde['NLiter'] = 8;
 
 # Choose computing platform and set number of processors
-#pde['platform = "gpu";   # choose this option if NVIDIA GPUs are available
+#pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
 pde['mpiprocs'] = 4;        # number of MPI processors
 
 # create a mesh of 8 by 8 by 8 hexes for a unit cube

@@ -453,10 +453,10 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     if (nc>0) {
         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
         ArraySetValue(sol.udg, zero, npe*nc*ne, 0);
-        if (app.flag[1]==0) {            
+        if (app.flag[1]==0) { //            
             InituDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);    
         }
-        else 
+        else // wave problem
             InitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);            
     }
     if (nco>0) {

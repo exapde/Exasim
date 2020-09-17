@@ -99,6 +99,8 @@ mutable struct PDEStruct
     visscalars;
     visvectors;
     viselem;
+    soltime;
+    visdt::FloatP;
     PDEStruct() = new();
 end
 
@@ -183,7 +185,7 @@ function initializepde(version)
     pde.NLparam = 0.0;
     pde.NLtol = 1e-6;
     pde.linearsolvertol = 1e-3;
-    pde.matvectol = 1e-6;
+    pde.matvectol = 1e-8;
 
     pde.flag = [0 0];
     pde.problem = [0 0];
@@ -204,5 +206,8 @@ function initializepde(version)
     pde.visscalars = [];
     pde.visvectors = [];
     pde.viselem = [];
+    pde.soltime = [1];
+    pde.visdt = 1.0;
     return pde;
 end
+

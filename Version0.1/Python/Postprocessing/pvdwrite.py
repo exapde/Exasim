@@ -1,4 +1,5 @@
 from vtuwrite import vtuwrite
+import sys
 
 def pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields, dt):
 
@@ -23,10 +24,14 @@ def pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
         nt = fields.shape[3];
 
     for i in range(0,nt):
-        vtufile = filename + str(i+1) + ".vtu";
+        vtufile = filename + str(i+1);
         vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields[:,:,:,i]);
+
+        ind = vtufile.find("/");        
+        outfile = vtufile[(ind+1):] + ".vtu";        
+         
         mystr = mystr + "    <DataSet timestep=\"" + str((i+1)*dt) + "\" group=\"\" part=\"0\"\n";
-        mystr = mystr + "             file=\"" + vtufile + "\"/>\n"
+        mystr = mystr + "             file=\"" + outfile + "\"/>\n"
 
     fid.write(mystr);
 

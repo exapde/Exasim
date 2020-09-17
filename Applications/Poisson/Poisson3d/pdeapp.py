@@ -24,7 +24,7 @@ pde['physicsparam'] = numpy.array([1.0, 0.0]);   # unit thermal conductivity
 pde['tau'] = numpy.array([1.0]);            # DG stabilization parameter
 
 # Choose computing platform and set number of processors
-#pde['platform = "gpu";   # choose this option if NVIDIA GPUs are available
+#pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
 pde['mpiprocs'] = 2;        # number of MPI processors
 
 # create a mesh of 8 by 8 by 8 hexes for a unit cube

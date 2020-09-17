@@ -154,7 +154,7 @@ def preprocessing(app,mesh):
             dmd[i]['elemsend'] = dmd[i]['elemsend'] + 1;
 
         ndims = zeros(20);
-        ndims[1-1] = mesh['p'].shape[1];
+        ndims[1-1] = mesh['p'].shape[0];
         ndims[2-1] = size(dmd[i]['elempart']);
         ndims[3-1] = sum(dmd[i]['facepartpts']);
         ndims[4-1] = max(mesh['t'].flatten())+1;

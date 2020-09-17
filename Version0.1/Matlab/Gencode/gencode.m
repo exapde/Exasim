@@ -52,7 +52,11 @@ if isfield(pde, 'mass')
     f = pde.mass(u, q, wdg, odg, xdg, time, param, uinf);
     gencodeelem("Tdfunc", f, xdg, udg, odg, wdg, uinf, param, time);
 else    
-    nocodeelem("Tdfunc");
+    if app.model=="ModelW" || app.model == "modelW" || app.tdep==1
+        error("pde.mass is not defined");
+    else        
+        nocodeelem("Tdfunc");
+    end                
 end
 if isfield(pde, 'avfield')
     %f = pde.avfield(xdg, udg, odg, wdg, uinf, param, time);
@@ -109,23 +113,17 @@ if isfield(pde, 'initu')
     udg = pde.initu(xdg, param, uinf);
     gencodeelem3("Initu", udg, xdg, uinf, param);
 else
-    if app.model == "ModelW" || app.model == "modelW"
-        nocodeelem3("Initu");        
-    else        
-        error("pde.initu is not defined");
-    end
-end 
-if isfield(pde, 'initq')
-    udg = pde.initq(xdg, param, uinf);
-    gencodeelem3("Initq", udg, xdg, uinf, param);
-else
-    nocodeelem3("Initq");
+    error("pde.initu is not defined");
 end 
 if isfield(pde, 'initw')
     wdg = pde.initw(xdg, param, uinf);
     gencodeelem3("Initwdg", wdg, xdg, uinf, param);
 else
-    nocodeelem3("Initwdg");
+    if app.model=="ModelW" || app.model == "modelW"
+        error("pde.initw is not defined");
+    else            
+        nocodeelem3("Initwdg");
+    end
 end
 if isfield(pde, 'initv')
     odg = pde.initv(xdg, param, uinf);
@@ -133,16 +131,37 @@ if isfield(pde, 'initv')
 else
     nocodeelem3("Initodg");
 end
-if isfield(pde, 'inituq')
-    udg = pde.inituq(xdg, param, uinf);
+if isfield(pde, 'initq')
+    u = pde.initu(xdg, param, uinf);
+    q = pde.initq(xdg, param, uinf);
+    udg = [u(:); q(:)];
     gencodeelem3("Initudg", udg, xdg, uinf, param);
+    gencodeelem3("Initq", udg, xdg, uinf, param);
 else
     if app.model=="ModelW" || app.model == "modelW"
-        error("pde.inituq is not defined");
-    else        
+        error("pde.initq is not defined");
+    else
         nocodeelem3("Initudg");
-    end        
+        nocodeelem3("Initq");
+    end
 end 
+
+% if isfield(pde, 'initq')    
+%     udg = pde.initq(xdg, param, uinf);
+%     gencodeelem3("Initq", udg, xdg, uinf, param);
+% else
+%     nocodeelem3("Initq");
+% end 
+% if isfield(pde, 'inituq')
+%     udg = pde.inituq(xdg, param, uinf);
+%     gencodeelem3("Initudg", udg, xdg, uinf, param);
+% else
+%     if app.model=="ModelW" || app.model == "modelW"
+%         error("pde.inituq is not defined");
+%     else        
+%         nocodeelem3("Initudg");
+%     end        
+% end 
 
 % if ~isempty(app.Flux)
 %     Flux = str2func(app.Flux);

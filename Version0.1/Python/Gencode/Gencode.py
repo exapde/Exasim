@@ -72,7 +72,10 @@ def gencode(app):
         f = pde.mass(u, q, wdg, odg, xdg, time, param, uinf);
         gencodeelem("Tdfunc", f, xdg, udg, odg, wdg, uinf, param, time);
     else:
-        nocodeelem("Tdfunc");
+        if app['model']=="ModelW" or app['model']=="modelW" or app['tdep']==1:
+            error("pde.inituq is not defined");
+        else:
+            nocodeelem("Tdfunc");
     if hasattr(pde, 'avfield'):
         #f = pde.avfield(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.avfield(u, q, wdg, odg, xdg, time, param, uinf);
@@ -121,15 +124,7 @@ def gencode(app):
         udg = pde.initu(xdg, param, uinf);
         gencodeelem3("Initu", udg, xdg, uinf, param);
     else:
-        if app['model']=="ModelW" or app['model']=="modelW":
-            nocodeelem3("Initu");
-        else:
-            error("pde.initu is not defined");
-    if hasattr(pde, 'initq'):
-        udg = pde.initq(xdg, param, uinf);
-        gencodeelem3("Initq", udg, xdg, uinf, param);
-    else:
-        nocodeelem3("Initq");
+        error("pde.initu is not defined");
     if hasattr(pde, 'initw'):
         wdg = pde.initw(xdg, param, uinf);
         gencodeelem3("Initwdg", wdg, xdg, uinf, param);
@@ -140,12 +135,34 @@ def gencode(app):
         gencodeelem3("Initodg", odg, xdg, uinf, param);
     else:
         nocodeelem3("Initodg");
-    if hasattr(pde, 'inituq'):
-        udg = pde.inituq(xdg, param, uinf);
+
+    if hasattr(pde, 'initq'):
+        q = pde.initq(xdg, param, uinf);
+        gencodeelem3("Initq", q, xdg, uinf, param);
+
+        u = pde.initu(xdg, param, uinf);
+
+        udg = numpy.concatenate((u.flatten('F'), q.flatten('F')));
         gencodeelem3("Initudg", udg, xdg, uinf, param);
     else:
         if app['model']=="ModelW" or app['model']=="modelW":
-            error("pde.inituq is not defined");
+            error("pde.initq is not defined");
         else:
+            nocodeelem3("Initq");
             nocodeelem3("Initudg");
+
+    # if hasattr(pde, 'initq'):
+    #     udg = pde.initq(xdg, param, uinf);
+    #     gencodeelem3("Initq", udg, xdg, uinf, param);
+    # else:
+    #     nocodeelem3("Initq");
+    # if hasattr(pde, 'inituq'):
+    #     udg = pde.inituq(xdg, param, uinf);
+    #     gencodeelem3("Initudg", udg, xdg, uinf, param);
+    # else:
+    #     if app['model']=="ModelW" or app['model']=="modelW":
+    #         error("pde.inituq is not defined");
+    #     else:
+    #         nocodeelem3("Initudg");
+
     return 0;

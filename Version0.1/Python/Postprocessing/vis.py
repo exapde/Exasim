@@ -48,8 +48,6 @@ def vis(visfields,app,mesh):
             str = app['paraview'] + " --data=" + app['visfilename'] + ".vtu &";
             os.system(str);
     else:
-        if len(app['visdt'])==0:
-            app['visdt'] = 1;
         pvdwrite(app['visfilename'], cgnodes, cgelcon, cgcells, celltype, app['visscalars'], app['visvectors'], visfields[:,:,app['viselem'],:],app['visdt']);
         if len(app['paraview'])>0:
             str = app['paraview'] + " --data=" + app['visfilename'] + ".pvd &";

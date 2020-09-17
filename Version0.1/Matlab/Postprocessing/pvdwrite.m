@@ -16,15 +16,20 @@ fprintf(fid,'         byte_order="%s"\n',byte_order);
 fprintf(fid,'         compressor="vtkZLibDataCompressor">\n');
 fprintf(fid,'  <Collection>\n');
 
+    
 nt = size(fields,4);
 for i = 1:nt
-    vtufile = filename + num2str(i) + ".vtu";
+    vtufile = filename + num2str(i);
     
     vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields(:,:,:,i));
+        
+    ind = strfind(vtufile, "/");
+    ch = char(vtufile);
+    outfile = string(ch((ind(end)+1):end));
     
     % Write pointer to .vtu file in .pvd file
     fprintf(fid,'    <DataSet timestep="%e" group="" part="0"\n',i*dt);
-    fprintf(fid,'             file="%s"/>\n',vtufile);    
+    fprintf(fid,'             file="%s"/>\n', outfile + ".vtu");    
 end
 
 % Finalize and close .pvd file

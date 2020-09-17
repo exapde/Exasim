@@ -92,7 +92,11 @@ if isdefined(Main, Symbol("mass"))
     f = f[:];
     gencodeelem("Tdfunc", f, xdg, udg, odg, wdg, uinf, param, time);
 else
-    nocodeelem("Tdfunc");
+    if app.model=="ModelW" || app.model == "modelW" || app.tdep==1
+        error("pde.mass is not defined");
+    else
+        nocodeelem("Tdfunc");
+    end
 end
 if isdefined(Main, Symbol("avifield"))
     #f = Main.avfield(xdg, udg, odg, wdg, uinf, param, time);
@@ -181,21 +185,7 @@ if isdefined(Main, Symbol("initu"))
     udg = udg[:];
     gencodeelem3("Initu", udg, xdg, uinf, param);
 else
-    if app.model == "ModelW" || app.model == "modelW"
-        nocodeelem3("Initu");
-    else
-        error("initu is not defined");
-    end
-end
-if isdefined(Main, Symbol("initq"))
-    qdg = Main.initq(xdg, uinf, param);
-    if length(qdg)==1
-        qdg = reshape([qdg],1,1);
-    end
-    qdg = qdg[:];
-    gencodeelem3("Initq", qdg, xdg, uinf, param);
-else
-    nocodeelem3("Initq");
+    error("initu is not defined");
 end
 if isdefined(Main, Symbol("initw"))
     wdg = Main.initw(xdg, uinf, param);
@@ -217,20 +207,55 @@ if isdefined(Main, Symbol("initv"))
 else
     nocodeelem3("Initodg");
 end
-if isdefined(Main, Symbol("inituq"))
-    udg = Main.inituq(xdg, uinf, param);
+if isdefined(Main, Symbol("initq"))
+    qdg = Main.initq(xdg, uinf, param);
+    if length(qdg)==1
+        qdg = reshape([qdg],1,1);
+    end
+    qdg = qdg[:];
+    gencodeelem3("Initq", qdg, xdg, uinf, param);
+
+    udg = Main.initu(xdg, uinf, param);
     if length(udg)==1
         udg = reshape([udg],1,1);
     end
     udg = udg[:];
+
+    udg = [udg; qdg];
     gencodeelem3("Initudg", udg, xdg, uinf, param);
 else
     if app.model == "ModelW" || app.model == "modelW"
-        error("inituq is not defined");
+        error("initq is not defined");
     else
+        nocodeelem3("Initq");
         nocodeelem3("Initudg");
     end
 end
+
+# if isdefined(Main, Symbol("initq"))
+#     qdg = Main.initq(xdg, uinf, param);
+#     if length(qdg)==1
+#         qdg = reshape([qdg],1,1);
+#     end
+#     qdg = qdg[:];
+#     gencodeelem3("Initq", qdg, xdg, uinf, param);
+# else
+#     nocodeelem3("Initq");
+# end
+# if isdefined(Main, Symbol("inituq"))
+#     udg = Main.inituq(xdg, uinf, param);
+#     if length(udg)==1
+#         udg = reshape([udg],1,1);
+#     end
+#     udg = udg[:];
+#     gencodeelem3("Initudg", udg, xdg, uinf, param);
+# else
+#     if app.model == "ModelW" || app.model == "modelW"
+#         error("inituq is not defined");
+#     else
+#         nocodeelem3("Initudg");
+#     end
+# end
 
 end
 

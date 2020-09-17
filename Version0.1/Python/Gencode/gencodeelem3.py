@@ -28,7 +28,7 @@ def gencodeelem3(filename, f, xdg, uinf, param):
 
     varname = "xdg";
     for i in range(0, len(xdg)):
-        str1 = varname + str(i);
+        str1 = varname + str(i+1);
         str2 = varname + "[j+npe*" + str(i) + "+npe*ncx*k" + "]";
         mystr = mystr + "\t\tT " + str1 + " = " + str2 + ";\n";
 
@@ -78,7 +78,7 @@ def gencodeelem3(filename, f, xdg, uinf, param):
     iogpu = open(foldername + "/" + gpufile + ".cu", "w");
     iogpu.write(strgpu);
     iogpu.close();
-    
+
     strcpu = stropu.replace("opu", "cpu");
     strcpu.replace("for (int i = 0; i <ng; i++) {", "#pragma omp parallel for\n\tfor (int i = 0; i <ng; i++) {");
 

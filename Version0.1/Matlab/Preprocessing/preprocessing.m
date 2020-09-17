@@ -69,11 +69,11 @@ if app.model=="ModelC" || app.model=="modelC"
     app.nc = app.ncu;
 elseif app.model=="ModelD" || app.model=="modelD"     
     app.wave = 0;
-    app.nc = (app.nc)*(app.nd+1);
+    app.nc = (app.ncu)*(app.nd+1);
 elseif app.model=="ModelW" || app.model=="modelW"
     app.tdep = 1;
     app.wave = 1;
-    app.nc = (app.nc)/(app.nd+1);
+    app.nc = (app.ncu)*(app.nd+1);
 end
 app.ncq = app.nc - app.ncu;
 app.nch  = app.ncu;                
@@ -160,13 +160,13 @@ for i = 1:mpiprocs
             ind = [ind fblks(1,ii):fblks(2,ii)];
         end
     end        
-    
+
     facecon2(:,ind)=[];        
     [rowe2f1,cole2f1,ent2ind1] = mkdge2dgf(facecon1,npe*length(dmd{i}.elempart));                
     [rowe2f2,cole2f2,ent2ind2] = mkdge2dgf(facecon2,npe*length(dmd{i}.elempart));      
     
     %writebin("facecon" + num2str(i) + ".bin",facecon2(:));
-    
+        
     disp(['Writing mesh into file ' num2str(i) '...']); 
     if mpiprocs>1
         fileID2 = fopen(filename + "mesh" + string(i) + ".bin",'w');
@@ -174,7 +174,7 @@ for i = 1:mpiprocs
         fileID2 = fopen(filename + "mesh" + ".bin",'w');
     end
     ndims = zeros(20,1);
-    ndims(1) = size(mesh.p,2);
+    ndims(1) = size(mesh.p,1);
     ndims(2) = length(dmd{i}.elempart);
     ndims(3) = sum(dmd{i}.facepartpts);
     ndims(4) = max(mesh.t(:));
@@ -183,8 +183,8 @@ for i = 1:mpiprocs
     ndims(7) = neb;
     ndims(8) = nbf;
     ndims(9) = nfb;
-
-    nsize = zeros(30,1);
+    
+    nsize = zeros(21,1);
     nsize(1) = length(ndims(:));
     nsize(2) = length(dmd{i}.facecon(:));  
     nsize(3) = length(eblks(:)); 
@@ -206,7 +206,6 @@ for i = 1:mpiprocs
     nsize(19) = length(rowe2f2(:));  
     nsize(20) = length(cole2f2(:));  
     nsize(21) = length(ent2ind2(:));                          
-
     fwrite(fileID2,length(nsize(:)),'double',endian);
     fwrite(fileID2,nsize(:),'double',endian);
     fwrite(fileID2,ndims(:),'double',endian);

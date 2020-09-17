@@ -8,7 +8,7 @@ else
     error("Endian is not valid");
 end
 
-pvdfile = filename + ".pvd";
+pvdfile = filename * ".pvd";
 fid = open(pvdfile, "w");
 mystr = "<?xml version=\"1.0\"?>\n";
 mystr = mystr * "<VTKFile type=\"Collection\" version=\"0.1\"\n";
@@ -18,11 +18,14 @@ mystr = mystr * "  <Collection>\n";
 
 nt = size(fields,4);
 for i = 1:nt
-    vtufile = filename + string(i) + ".vtu";
+    vtufile = filename * string(i);
+
+    ind = findlast("/", vtufile);    
+    outfile = vtufile[(ind[end]+1):end] * ".vtu";
 
     vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields[:,:,:,i]);
     mystr = mystr * "    <DataSet timestep=\"" * string(i*dt) * "\" group=\"\" part=\"0\"\n";
-    mystr = mystr * "             file=\"" * vtufile * "\"/>\n"
+    mystr = mystr * "             file=\"" * outfile * "\"/>\n"
 end
 write(fid,mystr);
 

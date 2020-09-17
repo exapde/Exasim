@@ -28,25 +28,25 @@ def gencodeelem2(filename, f, xdg, udg, odg, wdg, uinf, param, time):
 
     varname = "xdg";
     for i in range(0, len(xdg)):
-        str1 = varname + str(i);
+        str1 = varname + str(i+1);
         str2 = varname + "[j+npe*" + str(i) + "+npe*ncx*k" + "]";
         mystr = mystr + "\t\tT " + str1 + " = " + str2 + ";\n";
 
     varname = "udg";
     for i in range(0, len(udg)):
-        str1 = varname + str(i);
+        str1 = varname + str(i+1);
         str2 = varname + "[j+npe*" + str(i) + "+npe*nc*k" + "]";
         mystr = mystr + "\t\tT " + str1 + " = " + str2 + ";\n";
 
     varname = "odg";
     for i in range(0, len(odg)):
-        str1 = varname + str(i);
+        str1 = varname + str(i+1);
         str2 = varname + "[j+npe*" + str(i) + "+npe*nco*k" + "]";
         mystr = mystr + "\t\tT " + str1 + " = " + str2 + ";\n";
 
     varname = "wdg";
     for i in range(0, len(wdg)):
-        str1 = varname + str(i);
+        str1 = varname + str(i+1);
         str2 = varname + "[j+npe*" + str(i) + "+npe*ncw*k" + "]";
         mystr = mystr + "\t\tT " + str1 + " = " + str2 + ";\n";
 

@@ -7,14 +7,20 @@ def fetchsolution(app,master,dmd):
     if (nt==1):
         Uout = getsolution("dataout/out",dmd,master['npe']);
     else:
-        if len(app['vistime'])==0:
-            app['vistime'] = arange(1,nt);
-        fn = "dataout/out_t" + str(app['vistime'][0]);
+        if len(app['soltime'])==0:
+            app['soltime'] = arange(1,nt+1);
+        fn = "dataout/out_t" + str(app['soltime'][0]);
         tmp = getsolution(fn,dmd,master['npe']);
-        Uout = zeros((tmp.shape[0], tmp.shape[1], tmp.shape[2], len(app['vistime'])));
+        if app['wave']==1:
+            w = getsolution("dataout/out_wdg_t" + str(app['soltime'][0]),dmd,master['npe']);
+            tmp = concatenate((tmp,w),axis=1);
+        Uout = zeros((tmp.shape[0], tmp.shape[1], tmp.shape[2], len(app['soltime'])));
         Uout[:,:,:,0] = tmp;
-        tmp = [];
-        for i in range(1,len(app['vistime'])):
-            fn = "dataout/out_t" + str(app['vistime'][i]);
-            Uout[:,:,:,i] = getsolution(fn,dmd,master['npe']);
+        for i in range(1,len(app['soltime'])):
+            fn = "dataout/out_t" + str(app['soltime'][i]);
+            tmp = getsolution(fn,dmd,master['npe']);
+            if app['wave']==1:
+                w = getsolution("dataout/out_wdg_t" + str(app['soltime'][i]),dmd,master['npe']);
+                tmp = concatenate((tmp,w),axis=1);
+            Uout[:,:,:,i] = tmp;
     return Uout

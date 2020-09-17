@@ -1,5 +1,6 @@
 function dmd = facepartition2(dmd,t,f,bcm,dim,elemtype,porder,nproc)
 
+
 for i = 1:nproc
     disp(['face partition ' num2str(i)]); 
     fi = f(:,dmd{i}.elempart);
@@ -42,7 +43,6 @@ for i = 1:nproc
     end
     % [interior faces, boundary faces]
     f2t = f2t(:,[ina inb(ind)]);
-    
     dmd{i}.facecon = faceconnectivity2(t(:,dmd{i}.elempart),f2t,dim,elemtype,porder);    
 end
 
