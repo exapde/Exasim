@@ -247,7 +247,7 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
             
     Int n0 = max(npe*max(nc,ncx)*neb, npf*(ncu+2*nc)*nfb);                        
     
-    Int n1 = max(ncx+2*nd*nd+1, nc+ncu*nd+ncu);
+    Int n1 = max(ncx+2*nd*nd+1, ncu*nd+ncu+max(nc,ncu*(nd+1)));
     Int n2 = max(ncx+nd+1+nd*(nd-1), ncu+2*ncu*nd+2*nc);    
     Int n3 = max(nge*n1*neb, ngf*n2*nfb);        
         

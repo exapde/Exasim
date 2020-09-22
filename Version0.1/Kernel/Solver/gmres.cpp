@@ -48,40 +48,26 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     cs = &sys.tempmem[2*n1];
     sn = &sys.tempmem[3*n1];
     H = &sys.tempmem[4*n1];
-        
-    //ArraySetValue(sys.x, zero, N, backend);
-//     disc.evalResidual(sys.b, sys.u, backend);
-//     disc.evalMatVec(sys.v, sys.x, sys.u, sys.b, backend);    
-//     ArrayAXPBY(sys.r, sys.b, sys.v, minusone, minusone, N, backend);
-//     if (disc.common.RBcurrentdim>=0)
-//         prec.ApplyPreconditioner(sys.r, sys, disc, backend);
-//     nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
-//     nrmb = nrmr;
-    
+            
     // compute b
     //disc.evalResidual(sys.b, sys.u, backend);            
     nrmb = PNORM(disc.common.cublasHandle, N, sys.b, backend);    
     
-//     ArrayMinus(&prec.precond.R[disc.common.RBremovedind*N], sys.b, N, backend);  
-//     ApplyMatrix(disc.common.cublasHandle, &prec.precond.V[disc.common.RBremovedind*N], prec.precond.Cmat, 
-//                 &prec.precond.R[disc.common.RBremovedind*N], disc.common.npe, disc.common.ncu, disc.common.ne1, 
-//                 disc.common.precMatrixType, disc.common.curvedMesh, backend);                     
-
     scalar = PNORM(disc.common.cublasHandle, N, sys.x, backend);
     
     if (scalar>1e-12) {
-    // r = A*x
-    disc.evalMatVec(sys.r, sys.x, sys.u, sys.b, backend);
-    
-    // compute the new RHS vector: r = -b - A*x
-    ArrayAXPBY(sys.r, sys.b, sys.r, minusone, minusone, N, backend);    
-    
-    // norm of the new RHS vector
-    nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
+        // r = A*x
+        disc.evalMatVec(sys.r, sys.x, sys.u, sys.b, backend);
+
+        // compute the new RHS vector: r = -b - A*x
+        ArrayAXPBY(sys.r, sys.b, sys.r, minusone, minusone, N, backend);    
+
+        // norm of the new RHS vector
+        nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
     }
     else {
-    ArrayAXPBY(sys.r, sys.b, sys.b, minusone, zero, N, backend);
-    nrmr = nrmb;  
+        ArrayAXPBY(sys.r, sys.b, sys.b, minusone, zero, N, backend);
+        nrmr = nrmb;  
     }
 
     if (disc.common.mpiRank==0)
@@ -90,17 +76,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     disc.common.linearSolverTolFactor = nrmb/nrmr;
     tol = min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
         
-//     if (nrmr < nrmb) {        
-//         disc.common.linearSolverTolFactor = nrmb/nrmr;
-//         tol = min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
-//     }
-//     else {
-//         disc.common.linearSolverTolFactor = 1.0;
-//         tol = disc.common.linearSolverTol;
-//         ArraySetValue(sys.x, zero, N, backend);        
-//         ArrayAXPBY(sys.r, sys.b, sys.r, minusone, zero, N, backend);    
-//     }
-
     // compute r = P*r
     if (disc.common.RBcurrentdim>=0)
         prec.ApplyPreconditioner(sys.r, sys, disc, backend);
@@ -108,7 +83,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     // compute ||r||
     nrmb = PNORM(disc.common.cublasHandle, N, sys.r, backend);
     nrmr = nrmb;
-    
+        
     j = 1;
     while (j < maxit) {
         // v = r/||r||
@@ -126,7 +101,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
             START_TIMING;                        
             disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, backend);            
             END_TIMING_DISC(0);    
-                        
+                                    
             START_TIMING;                                    
             // compute v[m] = P*v[m]
             if (disc.common.RBcurrentdim>=0) {
@@ -149,7 +124,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
             disc.common.linearSolverRelError = fabs(s[i+1])/nrmb;
             
             // check convergence and update solution: x = x + v*s
-            if (disc.common.linearSolverRelError < tol) {
+            if (disc.common.linearSolverRelError < tol) {                
                 UpdateSolution(disc.common.cublasHandle, sys.x, y, H, s, sys.v, i, N, n1, backend);
                 return j;
             }            
@@ -176,7 +151,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
         if (disc.common.linearSolverRelError < tol) {
             return j;
         }
-    }
+    }       
     
     if (disc.common.linearSolverRelError > tol) {
         if (disc.common.mpiRank==0) {

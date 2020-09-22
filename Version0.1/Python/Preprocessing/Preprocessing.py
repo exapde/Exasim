@@ -1,5 +1,7 @@
 from initializeexasim import initializeexasim
 from findexec import findexec
+from masternodes import masternodes
+from mkshape import mkshape
 from mkmaster import mkmaster
 from writeapp import writeapp
 from readapp import readapp
@@ -164,7 +166,7 @@ def preprocessing(app,mesh):
         ndims[8-1] = nbf;
         ndims[9-1] = nfb;
 
-        nsize = zeros((30,1));
+        nsize = zeros((21,1));
         nsize[1-1] = size(ndims);
         nsize[2-1] = size(dmd[i]['facecon']);
         nsize[3-1] = size(eblks);

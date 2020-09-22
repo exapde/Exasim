@@ -178,7 +178,7 @@ else
     nocodeface2("Stab");
 end
 if isdefined(Main, Symbol("initu"))
-    udg = Main.initu(xdg, uinf, param);
+    udg = Main.initu(xdg, param, uinf);
     if length(udg)==1
         udg = reshape([udg],1,1);
     end
@@ -188,7 +188,7 @@ else
     error("initu is not defined");
 end
 if isdefined(Main, Symbol("initw"))
-    wdg = Main.initw(xdg, uinf, param);
+    wdg = Main.initw(xdg, param, uinf);
     if length(wdg)==1
         wdg = reshape([wdg],1,1);
     end
@@ -198,7 +198,7 @@ else
     nocodeelem3("Initwdg");
 end
 if isdefined(Main, Symbol("initv"))
-    odg = Main.initv(xdg, uinf, param);
+    odg = Main.initv(xdg, param, uinf);
     if length(odg)==1
         odg = reshape([odg],1,1);
     end
@@ -208,14 +208,14 @@ else
     nocodeelem3("Initodg");
 end
 if isdefined(Main, Symbol("initq"))
-    qdg = Main.initq(xdg, uinf, param);
+    qdg = Main.initq(xdg, param, uinf);
     if length(qdg)==1
         qdg = reshape([qdg],1,1);
     end
     qdg = qdg[:];
     gencodeelem3("Initq", qdg, xdg, uinf, param);
 
-    udg = Main.initu(xdg, uinf, param);
+    udg = Main.initu(xdg, param, uinf);
     if length(udg)==1
         udg = reshape([udg],1,1);
     end

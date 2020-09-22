@@ -17,38 +17,32 @@ def vis(visfields,app,mesh):
         ne = mesh['t'].shape[1];
         app['viselem'] = range(0,ne);
 
-    dgnodes = Preprocessing.createdgnodes(mesh['p'],mesh['t'][:,app['viselem']],mesh['f'][:,app['viselem']],mesh['curvedboundary'],mesh['curvedboundaryexpr'],app['porder']);
-    cgnodes, cgelcon, cgcells, celltype = createcggrid(dgnodes,mesh['telem'])[0:4];
+    if app['porder']>1:
+        visorder = min(2*app['porder'],8);
+    else:
+        visorder = app['porder'];
+
+    mesh['xpe'] = Preprocessing.masternodes(app['porder'],app['nd'],app['elemtype'])[0];
+    xpe,telem = Preprocessing.masternodes(visorder,app['nd'],app['elemtype'])[0:2];
+
+    visshape = Preprocessing.mkshape(app['porder'],mesh['xpe'],xpe,app['elemtype']);
+    visshape = visshape[:,:,0].T;
+
+    dgnodes = Preprocessing.createdgnodes(mesh['p'],mesh['t'][:,app['viselem']],mesh['f'][:,app['viselem']],mesh['curvedboundary'],mesh['curvedboundaryexpr'],visorder);
+    cgnodes, cgelcon, cgcells, celltype = createcggrid(dgnodes,telem)[0:4];
 
     app['paraview'] = Preprocessing.findexec(app['paraview'],app['version']);
-    # paraview = app['paraview'];
-    # paraviewstatus0 = shutil.which(paraview);
-    # paraviewstatus1 = shutil.which("paraview");
-    # paraviewstatus2 = shutil.which("usr/bin/paraview");
-    # paraviewstatus3 = shutil.which("/usr/local/bin/paraview");
-    # paraviewstatus4 = shutil.which("/opt/local/bin/paraview");
-    #
-    # if paraviewstatus0 != None:
-    #     paraview = paraview;
-    # elif paraviewstatus1 != None:
-    #     paraview = "paraview"
-    # elif paraviewstatus2 != None:
-    #     paraview = "/usr/bin/paraview";
-    # elif paraviewstatus3 != None:
-    #     paraview = "/usr/local/bin/paraview";
-    # elif paraviewstatus4 != None:
-    #     paraview = "/opt/local/bin/paraview";
-    # else:
-    #     sys.exit("Exasim search in /usr/bin, /usr/local/bin, and /opt/local/bin and could not find Paraview. Please see the documentation to install it. After installation, please set its path to app['paraview']");
-    # app['paraview'] = paraview;
 
     if nt==1:
-        vtuwrite(app['visfilename'], cgnodes, cgelcon, cgcells, celltype, app['visscalars'], app['visvectors'], visfields[:,:,app['viselem']]);
+        tm = matmul(visshape,reshape(visfields[:,:,app['viselem']],(visshape.shape[1], visfields.shape[1]*len(app['viselem'])), 'F'));
+        tm = reshape(tm,(visshape.shape[0], visfields.shape[1], len(app['viselem'])),'F');
+
+        vtuwrite(app['visfilename'], cgnodes, cgelcon, cgcells, celltype, app['visscalars'], app['visvectors'], tm);
         if len(app['paraview'])>0:
             str = app['paraview'] + " --data=" + app['visfilename'] + ".vtu &";
             os.system(str);
     else:
-        pvdwrite(app['visfilename'], cgnodes, cgelcon, cgcells, celltype, app['visscalars'], app['visvectors'], visfields[:,:,app['viselem'],:],app['visdt']);
+        pvdwrite(app['visfilename'], cgnodes, cgelcon, cgcells, celltype, app['visscalars'], app['visvectors'], visfields[:,:,app['viselem'],:],app['visdt'],visshape);
         if len(app['paraview'])>0:
             str = app['paraview'] + " --data=" + app['visfilename'] + ".pvd &";
             os.system(str);

@@ -1,4 +1,4 @@
-function pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields, dt)
+function pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields, dt, shape)
 
 [~,~,endian] = computer;
 if strcmp(endian,'L')
@@ -21,7 +21,9 @@ nt = size(fields,4);
 for i = 1:nt
     vtufile = filename + num2str(i);
     
-    vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields(:,:,:,i));
+    tm = shape*reshape(fields(:,:,:,i),[size(shape,2) size(fields,2)*size(fields,3)]);
+    tm = reshape(tm,[size(shape,1) size(fields,2) size(fields,3)]);    
+    vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, tm);
         
     ind = strfind(vtufile, "/");
     ch = char(vtufile);

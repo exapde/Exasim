@@ -1,9 +1,9 @@
 function sympyassign(str::String, f)
 
 n = length(f);
-for i=1:n
-    f[i] = sympy.simplify(f[i]);
-end
+# for i=1:n
+#     f[i] = sympy.simplify(f[i]);
+# end
 ts, fs = sympy.cse(f);
 
 m = length(ts);

@@ -70,17 +70,12 @@ void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
         // calculate the source term Source(xdg, udg, odg)
         SourceDriver(&tmp.tempg[n4], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);         
-//         cout<<sol.elemg[nm+20]<<"  "sol.elemg[nm+nge*(e2-e1)+20]<<"  "<<tmp.tempg[n4+20]<<endl;
-//         error("here");
+
     }                
         
     FluxDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
-    
-//     dstype nrm = PNORM(common.cublasHandle, nge*ne*ncu*nd, &tmp.tempg[n5], backend); 
-//     cout<<"Residual norm: "<<nrm<<endl;
-//     error("here");
-    
+        
     // calculate sum_j Flux_j(u) * Xx(:,j,i)  at gauss points on element
     // .       rg = sg, fg, Xx, jac
     ApplyXx4(&tmp.tempg[n3], &tmp.tempg[n4], &tmp.tempg[n5], &sol.elemg[nm+n1], &sol.elemg[nm+n2],
@@ -168,17 +163,7 @@ void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     else { // boundary faces      
         FbouDriver(&tmp.tempg[n8], &sol.faceg[nm+n0], &tmp.tempg[n4], &sol.og1[ngf*nco*f1], 
                 &tmp.tempg[n5], &tmp.tempg[n3], &sol.faceg[nm+n1], mesh, master, app, 
-                sol, tmp, common, ngf, f1, f2, ib, backend);
-        
-// void FbouDriver(dstype *fb, dstype *xg, dstype *udg, dstype * odg, dstype * wdg, dstype *uhg, dstype *nl, 
-//         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
-//         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
-        
-//         if (ib==2) {
-//             printArray3D(&sol.faceg[nm+n0],ngf,nf,ncx,backend);
-//             printArray3D(&tmp.tempg[n8],ngf,nf,ncu,backend);
-//             error("here");
-//         }
+                sol, tmp, common, ngf, f1, f2, ib, backend);        
     }        
             
     // evaluate fhg * jac at gauss points on face

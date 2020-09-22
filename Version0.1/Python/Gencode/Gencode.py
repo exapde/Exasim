@@ -58,6 +58,7 @@ def gencode(app):
     if hasattr(pde, 'flux'):
         #f = pde.flux(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.flux(u, q, wdg, odg, xdg, time, param, uinf);
+        f = f.flatten('F');
         gencodeelem("Flux", f, xdg, udg, odg, wdg, uinf, param, time);
     else:
         sys.exit('pde.flux is not defined')
@@ -91,14 +92,14 @@ def gencode(app):
     if hasattr(pde, 'fbou'):
         #f = pde.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
         f = pde.fbou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
-        f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])));
+        f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])),'F');
         gencodeface("Fbou", f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
     else:
         sys.exit("pde.fbou is not defined");
     if hasattr(pde, 'ubou'):
         #f = pde.ubou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
         f = pde.ubou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
-        f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])));
+        f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])),'F');
         gencodeface("Ubou", f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
     else:
         sys.exit("pde.ubou is not defined");
@@ -138,6 +139,7 @@ def gencode(app):
 
     if hasattr(pde, 'initq'):
         q = pde.initq(xdg, param, uinf);
+        q = q.flatten('F');
         gencodeelem3("Initq", q, xdg, uinf, param);
 
         u = pde.initu(xdg, param, uinf);

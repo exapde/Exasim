@@ -9,35 +9,25 @@ if app.viselem == []
     app.viselem = 1:ne;
 end
 
-dgnodes = Preprocessing.createdgnodes(mesh.p,mesh.t[:,app.viselem],mesh.f[:,app.viselem],mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);
-cgnodes, cgelcon, cgcells, celltype = createcggrid(dgnodes,mesh.telem);
+if app.porder>1
+    visorder = min(2*app.porder,8);
+else
+    visorder = app.porder;
+end
+xpe,telem,~,~,~ = Preprocessing.masternodes(visorder,app.nd,app.elemtype);
+shape = Preprocessing.mkshape(app.porder,mesh.xpe,xpe,app.elemtype);
+shape = shape[:,:,1]';
+
+dgnodes = Preprocessing.createdgnodes(mesh.p,mesh.t[:,app.viselem],mesh.f[:,app.viselem],mesh.curvedboundary,mesh.curvedboundaryexpr,visorder);
+cgnodes, cgelcon, cgcells, celltype = createcggrid(dgnodes,telem);
 
 # find paraview executable
 app.paraview = Preprocessing.findexec(app.paraview, app.version);
 
-# paraview = app.paraview;
-# paraviewstatus0 = Sys.which(paraview);
-# paraviewstatus1 = Sys.which("paraview");
-# paraviewstatus2 = Sys.which("usr/bin/paraview");
-# paraviewstatus3 = Sys.which("/usr/local/bin/paraview");
-# paraviewstatus4 = Sys.which("/opt/local/bin/paraview");
-#
-# if paraviewstatus0 != nothing
-# elseif paraviewstatus1 != nothing
-#     paraview = "paraview"
-# elseif paraviewstatus2 != nothing
-#     paraview = "/usr/bin/paraview";
-# elseif paraviewstatus3 != nothing
-#     paraview = "/usr/local/bin/paraview";
-# elseif paraviewstatus4 != nothing
-#     paraview = "/opt/local/bin/paraview";
-# else
-#     error("Exasim search in /usr/bin, /usr/local/bin, and /opt/local/bin and could not find Paraview. Please see the documentation to install it. After installation, please set its path to app.paraview");
-# end
-# app.paraview = paraview;
-
 if nt==1
-    vtuwrite(app.visfilename, cgnodes, cgelcon, cgcells, celltype, app.visscalars, app.visvectors, visfields[:,:,app.viselem]);
+    tm = shape*reshape(visfields[:,:,app.viselem],(size(shape,2), size(visfields,2)*length(app.viselem)));
+    tm = reshape(tm,(size(shape,1), size(visfields,2), length(app.viselem)));
+    vtuwrite(app.visfilename, cgnodes, cgelcon, cgcells, celltype, app.visscalars, app.visvectors, tm);
     if length(app.paraview)>0
         str = app.paraview * " --data="* app.visfilename * ".vtu";
         run(Gencode.string2cmd(str), wait=false);
@@ -46,7 +36,7 @@ else
     if length(app.visdt)==0
         app.visdt = 1;
     end
-    pvdwrite(app.visfilename, cgnodes, cgelcon, cgcells, celltype, app.visscalars, app.visvectors, visfields[:,:,app.viselem,:],app.visdt);
+    pvdwrite(app.visfilename, cgnodes, cgelcon, cgcells, celltype, app.visscalars, app.visvectors, visfields[:,:,app.viselem,:],app.visdt,shape);
     if length(app.paraview)>0
         str = app.paraview * " --data=" * app.visfilename * ".pvd";
         run(Gencode.string2cmd(str), wait=false);

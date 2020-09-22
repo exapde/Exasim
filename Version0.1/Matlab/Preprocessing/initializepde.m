@@ -76,7 +76,7 @@ pde.time = 0.0;
 pde.NLparam = 0.0;
 pde.NLtol = 1e-6;
 pde.linearsolvertol = 1e-3;
-pde.matvectol = 1e-8;
+pde.matvectol = 1e-3;
 
 pde.flag = [0 0];
 pde.problem = [0 0];

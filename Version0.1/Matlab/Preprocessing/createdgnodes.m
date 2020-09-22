@@ -14,9 +14,9 @@ function [dgnodes,elemtype,perm] = createdgnodes(p,t,f,curvedboundary,curvedboun
 % nfv : number of faces per volume element
 % npf : number of nodes per face element
 
-if porder>4
-    error("app.porder must be less than or equal to 4.");
-end
+% if porder>4
+%     error("app.porder must be less than or equal to 4.");
+% end
 
 [nve,ne]=size(t);
 nd=size(p,1);
@@ -93,7 +93,7 @@ if ~isempty(curvedboundaryexpr) && porder>1 && max(curvedboundary)>0
                     if curvedboundary(k)==1 % if this boundary is curved
                         p = dgnodes(perm(:,j),:,i);
                         deps = sqrt(eps)*max(max(p)-min(p));     
-                        d = (fd{k}(p'))';                        
+                        d = (fd{k}(p'))';
                         dgradx = ((fd{k}([p(:,1)+deps,p(:,2)]'))'-d)/deps;
                         dgrady = ((fd{k}([p(:,1),p(:,2)+deps]'))'-d)/deps;
                         dgrad2 = dgradx.^2+dgrady.^2;

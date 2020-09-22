@@ -54,12 +54,7 @@ void ElemGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct
         Int e2 = common.eblks[3*j+1];    
         ElemGeomBlock(sol, master, mesh, tmp, common, common.cublasHandle, nd, npe, nge, ncx, e1, e2, backend);                
         ArrayCopy(&sol.elemg[nge*e1*(ncx+nd*nd+1)], &tmp.tempg[0], nge*(e2-e1)*(ncx+nd*nd+1), backend);   
-        //printArray2D(&sol.elemg[0],nge,10,backend);
-        //print2darray(&sol.elemg[0], nge, 10);        
     }                     
-    
-    //printArray2D(&sol.elemg[0],nge,10,backend);
-    //error("here");
 }
 
 void FaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 

@@ -51,8 +51,8 @@ def gencodeelem2(filename, f, xdg, udg, odg, wdg, uinf, param, time):
         mystr = mystr + "\t\tT " + str1 + " = " + str2 + ";\n";
 
     n = len(f);
-    for i in range(0,n):
-        f[i] = sympy.simplify(f[i]);
+    #for i in range(0,n):
+    #    f[i] = sympy.simplify(f[i]);
 
     ts, fs = sympy.cse(f);
     m = len(ts);

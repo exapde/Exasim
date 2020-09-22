@@ -112,18 +112,9 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
         //    GetFaceNodes(&tmp.tempg[n5], sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1,backend);       
         //}
                 
-// void UbouDriver(dstype *fb, dstype *xg, dstype *udg, dstype * odg, dstype * wdg, dstype *uhg, dstype *nl, 
-//         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
-//         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)        
         UbouDriver(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n3], 
                  &tmp.tempg[n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
-                       
-//         if (ib==2) {
-//             //printArray3D(&sol.faceg[nm+n0],ngf,nf,ncx,backend);
-//             printArray3D(tmp.tempn,npf,nf,ncu,backend);
-//             error("here");
-//         }
-        
+                               
         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2, backend);                        
     }
 }

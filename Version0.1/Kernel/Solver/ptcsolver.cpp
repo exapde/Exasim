@@ -19,12 +19,7 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, I
 
     // residual norm
     dstype oldnrm = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
-        
-    //dstype nrmu = PNORM(disc.common.cublasHandle, N, sys.u, backend); 
-//     cout<<"Residual norm: "<<oldnrm<<endl;
-//     cout<<"Solution norm: "<<nrmu<<endl;
-//     error("here");
-    
+            
     // construct the preconditioner
     if (disc.common.RBcurrentdim>0) {
         //prec.ConstructPreconditioner(sys, disc, backend);                  
@@ -46,8 +41,6 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, I
             //disc.common.RBremovedind = 1;            
         }
 
-        //if (disc.common.mpiRank==0)
-        //    cout<<"PTC Iteration: "<<0<<", Old Residual Norm: "<<oldnrm<<", New  Residual Norm: "<<nrmr<<endl;                           
         if (nrmr < disc.common.nonlinearSolverTol) 
             return 1;               
     }    
@@ -242,6 +235,10 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, Int
     dstype nrmr, tol;
     tol = disc.common.nonlinearSolverTol; // tolerance for the residual
                         
+    nrmr = PNORM(disc.common.cublasHandle, N, sys.u, backend);
+    if (disc.common.mpiRank==0)
+        cout<<"PTC Iteration: "<<it<<",  PTC Param: "<<disc.common.PTCparam<<",  Solution Norm: "<<nrmr<<endl;                                                    
+    
     // use PTC to solve the system: R(u) = 0
     for (it=1; it<maxit; it++) {                        
         //nrmrold = nrmr;

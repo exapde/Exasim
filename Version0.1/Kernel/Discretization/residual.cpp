@@ -76,12 +76,7 @@ void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
     
     // Element integrals
     RuElem(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
-                
-//     dstype nrm = PNORM(common.cublasHandle, common.ndof1, res.Ru, backend); 
-//     cout<<"Residual norm: "<<nrm<<endl;
-//     error("here");
-//     cout<<"Solution norm: "<<nrmu<<endl;
-    
+                    
     // Face integrals
     RuFace(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
         
@@ -91,7 +86,7 @@ void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
     // assemble face residual vector into element residual vector
     PutFaceNodes(res.Ru, res.Rh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
             mesh.ent2ind2, common.npf, common.npe, common.ncu, e1, e2, 0, backend);
-    
+        
     // change sign 
     //ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);        
 }
@@ -376,11 +371,7 @@ void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
             
     // change sign for matrix-vector product
     ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);      
-    
-//     dstype nrmr = PNORM(common.cublasHandle, common.ndof1, res.Ru, backend);
-//     cout<<nrmr<<endl;
-//     error("here");
-    
+        
     //common.dtfactor
     if (common.tdep==1) 
         ArrayMultiplyScalar(res.Ru, one/common.dtfactor, common.ndof1, backend);                

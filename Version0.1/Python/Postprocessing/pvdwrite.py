@@ -1,7 +1,8 @@
 from vtuwrite import vtuwrite
+from numpy import matmul, reshape
 import sys
 
-def pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields, dt):
+def pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields, dt, visshape):
 
     if sys.byteorder=='little':
         byte_order = "LittleEndian";
@@ -24,12 +25,15 @@ def pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
         nt = fields.shape[3];
 
     for i in range(0,nt):
-        vtufile = filename + str(i+1);
-        vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fields[:,:,:,i]);
+        tm = matmul(visshape,reshape(fields[:,:,:,i],(visshape.shape[1], fields.shape[1]*fields.shape[2]), 'F'));
+        tm = reshape(tm,(visshape.shape[0], fields.shape[1], fields.shape[2]),'F');
 
-        ind = vtufile.find("/");        
-        outfile = vtufile[(ind+1):] + ".vtu";        
-         
+        vtufile = filename + str(i+1);
+        vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, tm);
+
+        ind = vtufile.find("/");
+        outfile = vtufile[(ind+1):] + ".vtu";
+
         mystr = mystr + "    <DataSet timestep=\"" + str((i+1)*dt) + "\" group=\"\" part=\"0\"\n";
         mystr = mystr + "             file=\"" + outfile + "\"/>\n"
 

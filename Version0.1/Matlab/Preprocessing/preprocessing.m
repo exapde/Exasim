@@ -64,6 +64,7 @@ else
     app.ncw = 0;
 end
 
+
 if app.model=="ModelC" || app.model=="modelC"
     app.wave = 0;
     app.nc = app.ncu;

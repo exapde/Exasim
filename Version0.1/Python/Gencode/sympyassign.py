@@ -3,8 +3,8 @@ import sympy
 def sympyassign(mystr, f):
 
     n = len(f);
-    for i in range(0,n):
-        f[i] = sympy.simplify(f[i]);
+    #for i in range(0,n):
+    #    f[i] = sympy.simplify(f[i]);
 
     ts, fs = sympy.cse(f);
     
