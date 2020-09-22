@@ -40,3 +40,6 @@ else
         eval(char("!" + str));
     end    
 end
+
+dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
+
