@@ -1,9 +1,3 @@
-# Poisson equation with homogenous Dirichlet condition on a unit square
-# q + \nabla u = 0 in \Omega
-# \nabla dot flux = source in \Omega
-# u = 0 on \partial Omega
-# flux = 2*param*q
-# source = 2*pi*pi*sin(pi*x1)*sin(pi*x2);
 
 function flux(u, q, w, v, x, t, mu, eta)
     f = mu[1]*q;
