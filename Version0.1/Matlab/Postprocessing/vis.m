@@ -18,6 +18,7 @@ shape = shape(:,:,1)';
 
 dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,visorder);    
 [cgnodes, cgelcon, cgcells, celltype] = createcggrid(dgnodes,telem);
+dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
 
 % find paraview executable
 app.paraview = findexec(app.paraview, app.version);
@@ -40,6 +41,4 @@ else
         eval(char("!" + str));
     end    
 end
-
-dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
 

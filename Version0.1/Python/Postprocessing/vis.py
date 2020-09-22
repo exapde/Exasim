@@ -30,6 +30,7 @@ def vis(visfields,app,mesh):
 
     dgnodes = Preprocessing.createdgnodes(mesh['p'],mesh['t'][:,app['viselem']],mesh['f'][:,app['viselem']],mesh['curvedboundary'],mesh['curvedboundaryexpr'],visorder);
     cgnodes, cgelcon, cgcells, celltype = createcggrid(dgnodes,telem)[0:4];
+    dgnodes = Preprocessing.createdgnodes(mesh['p'],mesh['t'][:,app['viselem']],mesh['f'][:,app['viselem']],mesh['curvedboundary'],mesh['curvedboundaryexpr'],app['porder']);
 
     app['paraview'] = Preprocessing.findexec(app['paraview'],app['version']);
 
