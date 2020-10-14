@@ -10,7 +10,6 @@ def vtuwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
     npoints,nd = shape(cgnodes);
     ncells,nve = shape(cgcells);
 
-    # Preparing output for CG
     if nd==2:
         cgnodes = hstack([cgnodes,zeros((npoints,1))]);
     outputCG = zeros((npoints,3));
@@ -63,10 +62,6 @@ def vtuwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
     mystr = mystr + "  <UnstructuredGrid>\n";
     mystr = mystr + "    <Piece NumberOfPoints=\"" + str(npoints) + "\"" +  " NumberOfCells=\"" + str(ncells) + "\">\n";
 
-    ###########################################################################
-    #                      1 - WRITE VTU METADATA                             #
-    #    (Write all dataset description for the VTU binary-appended format    #
-    ###########################################################################
     offset = 0;
     if (len(sidx)>0) or (len(vidx)>0):
         mystr = mystr + "      <PointData Scalars=\"scalars\">\n";
@@ -110,13 +105,6 @@ def vtuwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
 
     bsize = zeros(1).astype(int64);
 
-    ###########################################################################
-    #                   2 - WRITE UNSTRUCTURED DATA                           #
-    #        (Vectors and Scalars datasets all projected on CG mesh           #
-    ###########################################################################
-    # This part writes the dataset attributes for the mesh nodes or elements.
-    # It is customary to write the dataset before the mesh description.
-
     #  Write all the scalar dataset first
     for ii in range(0,len(sidx)):
         output = fields[:,scalars[sidy[ii]],:];#varargin{ sidx(ii) + 2};
@@ -148,10 +136,6 @@ def vtuwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
         #tmp.astype('float32').tofile(fid);
         outputCG.astype('float32').tofile(fid);
 
-    ###########################################################################
-    #                3 - WRITE UNSTRUCTURED_GRID MESH                         #
-    #       (Mesh nodes coordinates connectivities, offset ant type)          #
-    ###########################################################################
     # Write 3D coordinates of mesh points
     bsize[0] = 3*npoints*fbytesize;
     bsize.astype('int64').tofile(fid);
@@ -159,7 +143,6 @@ def vtuwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
     # output.astype('float32').tofile(fid);
     cgnodes.astype('float32').tofile(fid);
 
-    # Write (sub)-cells connectivities
     cgcells = cgcells.astype(int32);
     bsize[0] = nve*ncells*ibytesize;
     bsize.astype('int64').tofile(fid);
@@ -167,13 +150,11 @@ def vtuwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
     # output.astype('int32').tofile(fid);
     cgcells.astype('int32').tofile(fid);
 
-    # Write (sub)-cells offsets
     bsize[0] = ncells*ibytesize;
     bsize.astype('int64').tofile(fid);
     output = arange(nve, nve*(ncells+1), nve);
     output.astype('int32').tofile(fid);
 
-    # Write (sub)-cells type
     bsize[0] = ncells;
     bsize.astype('int64').tofile(fid);
     output = celltype*(ones(ncells).astype('UInt8'));

@@ -119,43 +119,6 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
     }
 }
 
-// void UhatBlock2(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
-//         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
-//         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
-// {        
-//     Int ncq = ncu*nd;
-//     Int nf = f2-f1;
-//     Int nn = npf*nf; 
-//     Int nga = npf*nf;   
-//     Int n0 = 0;                                 // xg
-//     Int n1 = nga*ncx;                           // nlg
-//     Int n2 = nga*(ncx+nd);                      // jac
-//     Int n3 = nga*(ncx+nd+1);                    // Jg, uhg
-//     Int n4 = nga*(ncx+nd+1+ncu);                // ug
-//     Int n5 = nga*(ncx+nd+1+ncu+nc);             // og
-//     Int nm = ngf*f1*(ncx+nd+1);
-//     
-//     if (ib==0) {        
-//         GetFaceNodes(tmp.tempn, sol.udg, mesh.facecon, npf, ncu, npe, nc, f1, f2, 0, backend);
-//         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2, backend);
-//     }
-//     else {        
-//         //GetElemNodes(&tmp.tempg[n3], sol.uh, npf, ncu, 0, ncu, f1, f2, backend);
-//         
-//         //GetFaceNodes(&tmp.tempg[n4], sol.udg, mesh.facecon, npf, nc, npe, nc, f1, f2, 1, backend);
-//         GetArrayAtIndex(&tmp.tempg[n4], sol.udg, &mesh.findudg1[npf*nc*f1], nn*nc, backend);
-//         
-//         //if (nco>0) {
-//         //    GetFaceNodes(&tmp.tempg[n5], sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1,backend);       
-//         //}
-//         
-//         UbouDriver(tmp.tempn, &sol.faceg[nm+n0], &tmp.tempg[n3], &tmp.tempg[n4], &tmp.tempg[n5], 
-//                 &sol.faceg[nm+n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
-//                         
-//         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2, backend);                        
-//     }
-// }
-
 void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)

@@ -51,7 +51,7 @@ tmp = tmp + "{\n";
 tmp = tmp + "\tint blockDim = 256;\n";
 tmp = tmp + "\tint gridDim = (ng + blockDim - 1) / blockDim;\n";
 tmp = tmp + "\tgridDim = (gridDim>1024)? 1024 : gridDim;\n";
-tmp = tmp + "\tkernel" + gpufile + "<<<gridDim, blockDim>>>(f, xdg, udg1, udg2, uhg, odg1, odg2, wdg1, udg2, nlg, tau, uinf, param, time, ng, nc, ncu, nd, ncx, nco);\n";
+tmp = tmp + "\tkernel" + gpufile + "<<<gridDim, blockDim>>>(f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time, ng, nc, ncu, nd, ncx, nco, ncw);\n";
 tmp = tmp + "}\n\n";
 tmp = tmp + "template void " + gpufile;
 tmp = tmp + "(double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double time, int, int, int, int, int, int, int);\n";

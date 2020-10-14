@@ -36,6 +36,7 @@ master = Master(app);
 writemaster(master,filemaster,'native');        
 
 % obtain the PDE model
+pdemodel = str2func(app.modelfile);
 pde = pdemodel();
 
 app.boundaryconditions = mesh.boundarycondition;

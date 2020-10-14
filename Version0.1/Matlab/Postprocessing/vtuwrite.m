@@ -6,13 +6,11 @@ filename = filename + ".vtu";
 [npoints,nd] = size(cgnodes);
 [ncells,nve] = size(cgcells);
 
-% Preparing output for CG
 if nd==2
     cgnodes = cat(2,cgnodes,zeros(npoints,1));
 end
 outputCG = zeros(npoints,3);
 
-% Get endianness
 [~,~,endian] = computer;
 if strcmp(endian,'L')
     byte_order = 'LittleEndian';
@@ -20,7 +18,7 @@ else
     byte_order = 'BigEndian';
 end
 
-% binary format
+
 formatype = 'appended';
 
 % float and integer byte size
@@ -53,10 +51,6 @@ fprintf(fid,'<VTKFile type="UnstructuredGrid" version="1.0" byte_order="%s" head
 fprintf(fid,'  <UnstructuredGrid>\n');
 fprintf(fid,'    <Piece NumberOfPoints="%d" NumberOfCells="%d">\n',npoints,ncells);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                      1 - WRITE VTU METADATA                             %
-%    (Write all dataset description for the VTU binary-appended format    %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 offset = 0;
 if (~isempty(sidx)) || (~isempty(vidx))
     fprintf(fid,'      <PointData Scalars="scalars">\n');
@@ -96,13 +90,6 @@ fprintf(fid,'  </UnstructuredGrid>\n');
 fprintf(fid,'  <AppendedData encoding="raw">\n');
 fprintf(fid,'   _');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                   2 - WRITE UNSTRUCTURED DATA                           %
-%        (Vectors and Scalars datasets all projected on CG mesh           %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This part writes the dataset attributes for the mesh nodes or elements.
-% It is customary to write the dataset before the mesh description.
-
 %  Write all the scalar dataset first
 for ii = 1:length(sidx)
     output = fields(:,scalars{sidy(ii)},:);%varargin{ sidx(ii) + 2};
@@ -131,26 +118,18 @@ for ii = 1:length(vidx)
     fwrite(fid, outputCG', 'float32');
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                3 - WRITE UNSTRUCTURED_GRID MESH                         %
-%       (Mesh nodes coordinates connectivities, offset ant type)          %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Write 3D coordinates of mesh points
 output = cgnodes';
 fwrite(fid, 3*npoints*fbytesize, 'int64');
 fwrite(fid, output, 'float32');
 
-% Write (sub)-cells connectivities
 output = cgcells';
 fwrite(fid, nve*ncells*ibytesize, 'int64');
 fwrite(fid, output, 'int32');
 
-% Write (sub)-cells offsets
 output = nve:nve:nve*ncells;
 fwrite(fid, ncells*ibytesize, 'int64');
 fwrite(fid, output, 'int32');
 
-% Write (sub)-cells type
 output = celltype*ones(1,ncells);
 fwrite(fid, ncells, 'int64');
 fwrite(fid, output, 'uint8');

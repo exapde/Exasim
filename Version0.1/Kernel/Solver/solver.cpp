@@ -36,12 +36,7 @@ void CSolver::PseudoTransientContinuation(CDiscretization& disc, CPreconditioner
     disc.common.nonlinearSolverIter = PTCsolver(sys, disc, prec, backend); 
     
     // update UDG
-    disc.updateUDG(sys.u, backend);       
-    
-//     printArray2D(&sys.r[disc.common.npe*disc.common.ncu*16], disc.common.npe, disc.common.ncu, backend);
-//     printArray2D(&sys.r[disc.common.npe*disc.common.ncu*20], disc.common.npe, disc.common.ncu, backend);
-//     printArray2D(&sys.r[disc.common.npe*disc.common.ncu*24], disc.common.npe, disc.common.ncu, backend);
-//     printArray2D(&sys.r[disc.common.npe*disc.common.ncu*60], disc.common.npe, disc.common.ncu, backend);    
+    disc.updateUDG(sys.u, backend);           
 }
 
 #endif        

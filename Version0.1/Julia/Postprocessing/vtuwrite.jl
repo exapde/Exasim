@@ -6,13 +6,11 @@ filename = filename * ".vtu";
 npoints,nd = size(cgnodes);
 ncells,nve = size(cgcells);
 
-# Preparing output for CG
 if nd==2
     cgnodes = hcat(cgnodes,zeros(npoints,1));
 end
 outputCG = zeros(npoints,3);
 
-# Get endianness
 if ENDIAN_BOM==0x04030201
     byte_order = "LittleEndian";
 elseif ENDIAN_BOM==0x01020304
@@ -64,10 +62,6 @@ mystr = mystr * "<VTKFile type=\"UnstructuredGrid\" version=\"1.0\" byte_order=\
 mystr = mystr * "  <UnstructuredGrid>\n";
 mystr = mystr * "    <Piece NumberOfPoints=\"" * string(npoints) * "\"" *  " NumberOfCells=\"" * string(ncells) * "\">\n";
 
-###########################################################################
-#                      1 - WRITE VTU METADATA                             #
-#    (Write all dataset description for the VTU binary-appended format    #
-###########################################################################
 offset = 0;
 if (length(sidx)>0) || (length(vidx)>0)
     mystr = mystr * "      <PointData Scalars=\"scalars\">\n";
@@ -110,13 +104,6 @@ mystr = mystr * "   _";
 
 write(fid,mystr);
 
-###########################################################################
-#                   2 - WRITE UNSTRUCTURED DATA                           #
-#        (Vectors and Scalars datasets all projected on CG mesh           #
-###########################################################################
-# This part writes the dataset attributes for the mesh nodes or elements.
-# It is customary to write the dataset before the mesh description.
-
 #  Write all the scalar dataset first
 for ii = 1:length(sidx)
     output = fields[:,scalars[sidy[ii]],:];#varargin{ sidx(ii) + 2};
@@ -145,10 +132,6 @@ for ii = 1:length(vidx)
     write(fid, Float32.(outputCG'));
 end
 
-###########################################################################
-#                3 - WRITE UNSTRUCTURED_GRID MESH                         #
-#       (Mesh nodes coordinates connectivities, offset ant type)          #
-###########################################################################
 # Write 3D coordinates of mesh points
 output = cgnodes';
 write(fid, Int64(3*npoints*fbytesize));

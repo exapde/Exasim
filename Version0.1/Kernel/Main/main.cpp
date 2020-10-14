@@ -53,45 +53,6 @@ using namespace std;
 #include "../Solver/solver.cpp"                 // solver class
 #include "../Solution/solution.cpp"             // solution class
 
-
-void opuStgHomoTurb2D10(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
-{                                 
-    // loop over each grid point
-    for (int m=0; m<M; m++) {    
-        
-        dstype un = 0.0;
-        dstype vn = 0.0;
-
-        // loop over wavenumbers
-        for (int n=0; n<N; n++) {
-            // wavenumber at mode n
-            dstype kn  = stgdata[0*N+n];
-            dstype amp = stgdata[1*N+n];
-
-            // random numbers
-            dstype phi = stgdata[2*N+n]; 
-            dstype dx = stgdata[3*N+n];
-            dstype dy = stgdata[4*N+n]; 
-            dstype sigmax  = stgdata[6*N+n];
-            dstype sigmay  = stgdata[7*N+n]; 
-            dstype omega = stgdata[9*N+n];
-            
-            // angle
-            dstype an = kn*(dx*(xdg[0*M+m]-uc[0]*t) + dy*(xdg[1*M+m]-uc[1]*t)) + phi + omega*t;
-            // Fourier mode
-            dstype bn = amp*cos(an);
-
-            // fluctuating velocity field
-            un = un + sigmax*bn;
-            vn = vn + sigmay*bn;
-        }
-
-        up[0*M+m] = un;
-        up[1*M+m] = vn;          
-    }        
-}
-
-
 int main(int argc, char** argv) 
 {   
     if( argc >= 3 ) {
