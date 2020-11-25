@@ -6,8 +6,7 @@ face = getelemface(dim,elemtype);
 [nvf,nfe] = size(face);
 
 t2fl = reshape(t(face,:),[nvf nfe*ne]);
-pf = reshape(p(:,t2fl),[dim nvf nfe*ne]);
-pf = reshape(sum(pf,2)/nvf,[dim nfe ne]);
+pf = reshape(p(:,t2fl),[dim nvf nfe ne]);
 
 % interior faces are zero
 f = zeros(nfe,ne);
@@ -20,14 +19,15 @@ ind = find(f2t(3,:)==0);
 for i = 1:length(ind) % for each element on the domain boundary    
     e = f2t(1,ind(i)); % element e
     l = f2t(2,ind(i)); % local face index
-    for k = 1:length(bndexpr) % for each boundary expression
-        if bndexpr{k}(pf(:,l,e)) % evaluate the boundary expression and check if element e belong to this boundary            
+    for k = 1:length(bndexpr) % for each boundary expression        
+        if bndexpr{k}(pf(:,1,l,e)) && bndexpr{k}(pf(:,2,l,e)) && bndexpr{k}(pf(:,nvf,l,e)) % evaluate the boundary expression and check if element e belong to this boundary            
             f(l,e) = k; % then set f(l,e) to k    
             break;
         end
     end
 end
 
+pf = reshape(sum(pf,2)/nvf,[dim nfe ne]);
 nprd = size(prdexpr,1);
 if nprd>0
     f = f(:);

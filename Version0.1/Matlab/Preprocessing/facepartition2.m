@@ -19,8 +19,8 @@ for i = 1:nproc
     inb = find(f2t(3,:)==0); % boundary faces
     inc = sub2ind(size(fi), f2t(2,inb), f2t(1,inb));
     fb = fi(inc); % list of boundary indices
-        
-    fa = unique(fb); % boundary indices    
+            
+    fa = unique(fb); % boundary indices        
     bcn = unique(bcm(fa)); % a list of boundary conditions
     nbc = length(bcn);
 

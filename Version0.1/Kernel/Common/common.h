@@ -10,8 +10,11 @@
 #define DDOT ddot_
 #define DGEMV dgemv_
 #define DGEMM dgemm_
+
+#ifndef HAVE_CUDA    
 #define DGETRF dgetrf_
 #define DGETRI dgetri_
+#endif
 
 #ifdef USE_FLOAT
 typedef float dstype;

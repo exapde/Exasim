@@ -16,6 +16,7 @@ compilerstr = compilecode(pde);
 runstr = runcode(pde);
 
 % get solution from output files in dataout folder
+
 sol = fetchsolution(pde,master,dmd);
 
 

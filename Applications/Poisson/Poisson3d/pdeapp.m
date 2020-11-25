@@ -14,7 +14,7 @@ pde.modelfile = "pdemodel"; % name of a file defining the PDE model
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;             % polynomial degree
-pde.physicsparam = [1 0.0]; % unit thermal conductivity and zero boundary data
+pde.physicsparam = [1 0]; % unit thermal conductivity and zero boundary data
 pde.tau = 1.0;              % DG stabilization parameter
 
 % Choose computing platform and set number of processors

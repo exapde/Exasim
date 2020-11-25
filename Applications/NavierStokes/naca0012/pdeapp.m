@@ -42,7 +42,7 @@ pde.linearsolvertol=0.0001;     % GMRES tolerance
 pde.linearsolveriter=31;        % number of GMRES iterations
 pde.precMatrixType=2;           % preconditioning type
 pde.NLtol = 1e-7;               % Newton tolerance
-pde.NLiter=3;                   % Newton iterations
+pde.NLiter = 3;                 % Newton iterations
 
 % read a grid from a file
 [mesh.p,mesh.t] = readmesh('grid.bin',0);

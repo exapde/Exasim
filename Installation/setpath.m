@@ -9,6 +9,7 @@ addpath(versiondir + '/Utilities');
 % Set Matlab's PATH enviroment variable so that Exasim can call external packages    
 setenv('PATH', '/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin');
 % Add more paths if neccesary 
-setenv('PATH', [getenv('PATH') ':/Applications/ParaView-5.8.1.app/Contents/MacOS']);
+setenv('PATH', [getenv('PATH') ':/Applications/ParaView-5.8.1.app/Contents/MacOS' ...
+                               ':/Applications/ParaView-5.8.0.app/Contents/MacOS']);
 
 fprintf("==> Exasim " + version + " ...\n"');

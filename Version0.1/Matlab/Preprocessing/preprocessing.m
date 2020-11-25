@@ -95,7 +95,12 @@ dmd = meshpartition2(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elem
 
 for i = 1:mpiprocs            
     % create DG nodes
-    xdg = createdgnodes(mesh.p,mesh.t(:,dmd{i}.elempart),mesh.f(:,dmd{i}.elempart),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
+    if isfield(mesh, 'dgnodes')
+        xdg = mesh.dgnodes(:,:,dmd{i}.elempart);
+    else
+        xdg = createdgnodes(mesh.p,mesh.t(:,dmd{i}.elempart),mesh.f(:,dmd{i}.elempart),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
+    end
+    
     
     [~,cgelcon,rowent2elem,colent2elem,cgent2dgent] = mkcgent2dgent(xdg,1e-6);
     disp(['Writing initial solution into file ' num2str(i) '...']);

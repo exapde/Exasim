@@ -1,12 +1,12 @@
 function pde = initializepde(version)
 
 pde.cpucompiler = "g++";
-pde.mpicompiler = "mpicxx";
+pde.mpicompiler = "/usr/local/bin/mpicxx";
 pde.gpucompiler = "nvcc";
-pde.mpirun = "mpirun";
-pde.metis = "mpmetis";
-pde.gmsh = "gmsh";
-pde.paraview = "paraview";
+pde.mpirun = "/usr/local/bin/mpirun";
+pde.metis = "/usr/local/bin/mpmetis";
+pde.gmsh = "/usr/local/bin/gmsh";
+pde.paraview = "/Applications/ParaView-5.9.0-RC1.app/Contents/MacOS/paraview";
 
 pde.codename = "Exasim";
 pde.version = version;

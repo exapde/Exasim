@@ -16,6 +16,4 @@ if size(t,2) == 1, t = t'; end  % This lines ensures the function works for one 
 t=reshape(jx,size(t));
 p=p(pix,:);
 
-v = simpvol(p,t);
-flip=v<0;
-t(flip,[1,2])=t(flip,[2,1]);
+

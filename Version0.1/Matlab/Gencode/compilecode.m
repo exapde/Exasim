@@ -50,7 +50,7 @@ if ~isempty(cpucompiler)
 end
 
 if ~isempty(gpucompiler)
-    compilerstr{3} = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
+    compilerstr{3} = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' -w gpuApp.cu";
     compilerstr{4} = "ar -rvs gpuApp.a gpuApp.o";
 end
 

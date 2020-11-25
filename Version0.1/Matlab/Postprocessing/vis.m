@@ -12,13 +12,22 @@ if app.porder>1
 else
     visorder = app.porder;
 end
+if isfield(mesh, 'dgnodes')
+    visorder = app.porder;
+end
+
 [xpe,telem] = masternodes(visorder,app.nd,app.elemtype);
 shape = mkshape(app.porder,mesh.xpe,xpe,app.elemtype);
 shape = shape(:,:,1)';
 
-dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,visorder);    
-[cgnodes, cgelcon, cgcells, celltype] = createcggrid(dgnodes,telem);
-dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
+if isfield(mesh, 'dgnodes')
+    dgnodes = mesh.dgnodes;
+    [cgnodes, cgelcon, cgcells, celltype] = createcggrid(dgnodes,telem);
+else
+    dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,visorder);    
+    [cgnodes, cgelcon, cgcells, celltype] = createcggrid(dgnodes,telem);
+    dgnodes = createdgnodes(mesh.p,mesh.t(:,app.viselem),mesh.f(:,app.viselem),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
+end
 
 % find paraview executable
 app.paraview = findexec(app.paraview, app.version);
@@ -26,6 +35,7 @@ app.paraview = findexec(app.paraview, app.version);
 if nt==1
     tm = shape*reshape(visfields(:,:,app.viselem),[size(shape,2) size(visfields,2)*length(app.viselem)]);
     tm = reshape(tm,[size(shape,1) size(visfields,2) length(app.viselem)]);
+    size(tm)
     vtuwrite(app.visfilename, cgnodes, cgelcon, cgcells, celltype, app.visscalars, app.visvectors, tm);    
     if ~isempty(app.paraview)        
         str = app.paraview + " --data='" + app.visfilename + ".vtu'" + " &";           

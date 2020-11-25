@@ -22,8 +22,9 @@ pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
 pde.dt = 0.003*ones(1,10000);   % time step sizes
 pde.saveSolFreq = 10;          % solution is saved every 10 time steps
-pde.soltime = 10:10:length(pde.dt); % steps at which solution are collected
+pde.soltime = 70000; % steps at which solution are collected
 pde.visdt = pde.dt(1);           % visualization timestep size
+pde.timestepOffset = 70000;
 
 gam = 1.4;              % specific heat ratio
 Minf = 0.5;             % Mach number

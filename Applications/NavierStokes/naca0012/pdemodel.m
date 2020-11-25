@@ -72,7 +72,7 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fw = fi;
     fw(1) = 0.0;   % zero velocity 
     fw(end) = 0.0; % adiabatic wall -> zero heat flux
-    fb = [fw fi]; % wall and freestream boundary conditions    
+    fb = [fw fi fi2]; % wall and freestream boundary conditions    
 end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
