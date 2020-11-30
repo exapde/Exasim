@@ -144,6 +144,9 @@ int main(int argc, char** argv)
        
     CSolution Solobj(filein, fileout, mpiprocs, mpirank, ngpus, gpuid, backend);       
     
+    if (Solobj.disc.common.timestepOffset>0)
+        restart = Solobj.disc.common.timestepOffset;    
+    
     if (restart>0) {
         Solobj.disc.common.timestepOffset = restart;
         Solobj.disc.common.time = restart*Solobj.disc.common.dt[0];

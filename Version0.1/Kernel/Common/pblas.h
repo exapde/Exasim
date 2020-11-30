@@ -107,19 +107,6 @@ static void Gauss2Node1(cublasHandle_t handle, dstype *un, dstype *ug, dstype *s
 #endif             
 }
 
-static void cpuComputeInverse(dstype* A, dstype* work, Int* ipiv, Int n)
-{
-    Int lwork = n*n;
-    Int info;
-#ifdef USE_FLOAT           
-    SGETRF(&n,&n,A,&n,ipiv,&info);
-    SGETRI(&n,A,&n,ipiv,work,&lwork,&info);    
-#else            
-    DGETRF(&n,&n,A,&n,ipiv,&info);
-    DGETRI(&n,A,&n,ipiv,work,&lwork,&info);
-#endif        
-}
-
 #ifdef HAVE_CUDA       
 static void gpuComputeInverse(cublasHandle_t handle, dstype* A, dstype *C, Int n, Int batchSize)
 {
@@ -161,18 +148,31 @@ static void gpuComputeInverse(cublasHandle_t handle, dstype* A, dstype *C, Int n
     cudaFree(Cp_d); free(Cp_h);
     cudaFree(ipiv); cudaFree(info); 
 }
+#else       
+static void cpuComputeInverse(dstype* A, dstype* work, Int* ipiv, Int n)
+{
+    Int lwork = n*n;
+    Int info;
+#ifdef USE_FLOAT           
+    SGETRF(&n,&n,A,&n,ipiv,&info);
+    SGETRI(&n,A,&n,ipiv,work,&lwork,&info);    
+#else            
+    DGETRF(&n,&n,A,&n,ipiv,&info);
+    DGETRI(&n,A,&n,ipiv,work,&lwork,&info);
+#endif        
+}
 #endif        
 
 static void Inverse(cublasHandle_t handle, dstype* A, dstype *C, Int *ipiv, Int n, Int batchSize, Int backend)
-{
-    if (backend <= 1) {        
-        for (int k=0; k<batchSize; k++) 
-            cpuComputeInverse(&A[n*n*k], C, ipiv, n);                
-    }
-    
+{    
 #ifdef HAVE_CUDA        
     if (backend == 2)   
         gpuComputeInverse(handle, A, C, n, batchSize);
+#else       
+    if (backend <= 1) {        
+        for (int k=0; k<batchSize; k++) 
+            cpuComputeInverse(&A[n*n*k], C, ipiv, n);                
+    }    
 #endif              
 }
 

@@ -29,7 +29,7 @@ pde.visdt = 0.05; # visualization timestep size
 gam = 1.4;                      # specific heat ratio
 M_ref = sqrt(1/gam);            # Mach number
 pde.physicsparam = [gam M_ref];
-pde.tau = [1+1/M_ref];            # DG stabilization parameter
+pde.tau = [1+1/M_ref];          # DG stabilization parameter
 
 # Choose computing platform and set number of processors
 #pde.platform = "gpu";           # choose this option if NVIDIA GPUs are available

@@ -38,7 +38,7 @@ mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 % visualize the numerical solution of the PDE model using Paraview
 pde.visscalars = {"temperature", 1};  % list of scalar fields for visualization
 pde.visvectors = {"temperature gradient", [2 3]}; % list of vector fields for visualization
-xdg = vis(sol,pde,mesh); % visualize the numerical solution
+%xdg = vis(sol,pde,mesh); % visualize the numerical solution
 disp("Done!");
 
         

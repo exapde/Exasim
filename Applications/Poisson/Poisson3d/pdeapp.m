@@ -22,7 +22,7 @@ pde.tau = 1.0;              % DG stabilization parameter
 pde.mpiprocs = 2;           % number of MPI processors
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
-[mesh.p,mesh.t] = cubemesh(8,8,8,1);
+[mesh.p,mesh.t] = cubemesh(8,8,8,0);
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(2,:)-1)<1e-8, @(p) abs(p(1,:))<1e-8, @(p) abs(p(3,:))<1e-8, @(p) abs(p(3,:)-1)<1e-8};
 mesh.boundarycondition = [1;1;1;1;1;1]; % Set boundary condition for each boundary

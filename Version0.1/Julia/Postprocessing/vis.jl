@@ -10,7 +10,7 @@ if app.viselem == []
 end
 
 if app.porder>1
-    visorder = min(2*app.porder,8);
+    visorder = min(app.porder,8);
 else
     visorder = app.porder;
 end

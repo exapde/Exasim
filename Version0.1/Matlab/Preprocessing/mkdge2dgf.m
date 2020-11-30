@@ -11,7 +11,7 @@ ndof = length(ent);
 % entity-to-index mapping
 ent2ind = zeros(entmax,1);
 ent2ind(ent) = (1:ndof);
- % store number of nfighboring elements for each entity
+ % store number of neighboring elements for each entity
 rowdge2dgf = zeros(ndof,1);
 for i = 1:ndgf  % for each face entity
     k = facecon(i);     % entities on element i
@@ -22,7 +22,7 @@ for i = 1:ndgf  % for each face entity
 end
 rowdge2dgf=[0; cumsum(rowdge2dgf)];
 
- % store nfighboring-element indices for each entity
+ % store neighboring-element indices for each entity
 coldge2dgf = zeros(rowdge2dgf(end),1); 
 inc = ones(ndof,1);
 for i = 1:ndgf 
