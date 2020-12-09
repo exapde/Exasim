@@ -40,39 +40,17 @@ pde.NLiter=2;                   % Newton iterations
 mesh.p = 4*pi*mesh.p - 2*pi;
 % expressions for domain boundaries: bottom, right, top, left
 mesh.boundaryexpr = {@(p) abs(p(2,:)+2*pi)<1e-8, @(p) abs(p(1,:)-2*pi)<1e-8, @(p) abs(p(2,:)-2*pi)<1e-8, @(p) abs(p(1,:)+2*pi)<1e-8};
-%mesh.boundarycondition = [2;1;2;1]; % wall, perioidic, wall, periodic 
 % Set periodic boundary conditions
-%mesh.periodicexpr = {2, @(p) p(2,:), 4, @(p) p(2,:)};
-mesh.boundarycondition = [1;1;1;1]; % wall, perioidic, wall, periodic 
+mesh.boundarycondition = [1;1;1;1]; 
 mesh.periodicexpr = {2, @(p) p(2,:), 4, @(p) p(2,:); 1, @(p) p(1,:), 3, @(p) p(1,:)};
 
-% search compilers and set options
-% pde = setcompilers(pde);       
-
-% generate input files and store them in datain folder
-[pde,mesh,master,dmd] = preprocessing(pde,mesh);
-
-% % generate source codes and store them in app folder
-% gencode(pde); pause
-% 
-% % compile source codes to build an executable file and store it in app folder
-% compilerstr = compilecode(pde);
-% 
-% % run executable file to compute solution and store it in dataout folder
-runstr = runcode(pde);
-
 % % call exasim to generate and run C++ code to solve the PDE model
-% [sol,pde,mesh] = exasim(pde,mesh);
-% 
+[sol,pde,mesh] = exasim(pde,mesh);
+ 
 % % visualize the numerical solution of the PDE model using Paraview
-sol = fetchsolution(pde,master,dmd);
-%sol(:,2,:,:) = sol(:,2,:,:)./sol(:,1,:,:); 
-%sol(:,3,:,:) = sol(:,3,:,:)./sol(:,1,:,:); 
 pde.visscalars = {"density", 1};  % list of scalar fields for visualization
 pde.visvectors = {"velocity", [2, 3]}; % list of vector fields for visualization
-%pde.visvectors = {}; % list of vector fields for visualization
 xdg = vis(sol,pde,mesh); % visualize the numerical solution
 disp("Done!");
 
-% /home/peraire/ParaView-5.9.0-RC1-egl-MPI-Linux-Python3.8-64bit/bin/pvserver --server-port=11111 
 
