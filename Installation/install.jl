@@ -31,36 +31,36 @@ end
 
 mpi, appinstall = findinstallexec("mpicxx", "openmpi", brew, 0);
 if appinstall==1
-    mpi = findinstallexec("mpicxx", "openmpi", brew, 0);
+    mpi, appinstall = findinstallexec("mpicxx", "openmpi", brew, 0);
 end
 
 nvcc, appinstall = findinstallexec("nvcc", "nvcc", brew, 10);
 if appinstall==1
-    nvcc = findinstallexec("nvcc", "nvcc", brew, 10);
+    nvcc, appinstall = findinstallexec("nvcc", "nvcc", brew, 10);
 end
 
 metis, appinstall = findinstallexec("mpmetis", "metis", brew, 0);
 if appinstall==1
-    metis = findinstallexec("mpmetis", "metis", brew, 0);
+    metis, appinstall = findinstallexec("mpmetis", "metis", brew, 0);
 end
 
 #python = findinstallexec("python", "python", brew, 0);
 gmsh, appinstall = findinstallexec("gmsh", "gmsh", brew, 0);
 if appinstall==1
-    gmsh = findinstallexec("gmsh", "gmsh", brew, 0);
+    gmsh, appinstall = findinstallexec("gmsh", "gmsh", brew, 0);
 end
 
 if Sys.isapple()
     #julia = findinstallexec("julia", "julia", brew, 1);
     paraview,appinstall = findinstallexec("paraview", "paraview", brew, 1);
     if appinstall==1
-        paraview = findinstallexec("paraview", "paraview", brew, 1);
+        paraview, appinstall = findinstallexec("paraview", "paraview", brew, 1);
     end
 else
     #julia = findinstallexec("julia", "julia", brew, 0);
     paraview,appinstall = findinstallexec("paraview", "paraview", brew, 0);
     if appinstall==1
-        paraview = findinstallexec("paraview", "paraview", brew, 0);
+        paraview, appinstall = findinstallexec("paraview", "paraview", brew, 0);
     end
 end
 
