@@ -49,7 +49,25 @@ mesh.boundarycondition = [1 1 1 1]; # Set boundary condition for each disjoint b
 mesh.periodicexpr = [2 p->p[2,:] 4 p->p[2,:]; 1 p->p[1,:] 3 p->p[1,:]];
 
 # call exasim to generate and run C++ code to solve the PDE model
-sol, pde, mesh,~,~,~,~  = Postprocessing.exasim(pde,mesh);
+#sol, pde, mesh,~,~,~,~  = Postprocessing.exasim(pde,mesh);
+
+# search compilers and set options
+pde = Gencode.setcompilers(pde);
+
+# generate input files and store them in datain folder
+pde, mesh, master, dmd = Preprocessing.preprocessing(pde,mesh);
+
+# generate source codes and store them in app folder
+Gencode.gencode(pde);
+
+# compile source codes to build an executable file and store it in app folder
+compilerstr = Gencode.compilecode(pde);
+
+# run executable file to compute solution and store it in dataout folder
+runstr = Gencode.runcode(pde);
+
+# get solution from output files in dataout folder
+sol = Postprocessing.fetchsolution(pde,master,dmd);
 
 # visualize the numerical solution of the PDE model using Paraview
 pde.visscalars = ["density", 1];  # list of scalar fields for visualization
