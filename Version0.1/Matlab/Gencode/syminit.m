@@ -22,9 +22,9 @@ odg = sym('odg',[nco 1]);
 odg1 = sym('odg1',[nco 1]);
 odg2 = sym('odg2',[nco 1]);
 
-wdg = sym('odg',[ncw 1]);
-wdg1 = sym('odg1',[ncw 1]);
-wdg2 = sym('odg2',[ncw 1]);
+wdg = sym('wdg',[ncw 1]);
+wdg1 = sym('wdg1',[ncw 1]);
+wdg2 = sym('wdg2',[ncw 1]);
 
 uhg = sym('uhg',[ncu 1]); % uhg = (uh_1,...,uh_ncu)
 nlg = sym('nlg',[nd 1]); % nlg = (nl_1,...,nl_d)

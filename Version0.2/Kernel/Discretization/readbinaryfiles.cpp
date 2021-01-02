@@ -463,11 +463,11 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     if (nco>0) {        
         sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);    
-        InitwdgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);        
+        InitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);        
     }
     if (ncw>0) {
         sol.wdg = (dstype*) malloc (sizeof (dstype)*npe*ncw*ne);    
-        InitodgDriver(sol.wdg, sol.xdg, app, ncx, nco, npe, ne, 0);        
+        InitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
     }
             
 //     // insert u into udg

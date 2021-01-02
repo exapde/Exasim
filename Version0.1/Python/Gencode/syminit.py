@@ -24,9 +24,9 @@ def syminit(app):
     wdg = array(symbols("wdg1:" + str(ncw+1)));
     wdg1 = array(symbols("wdgp1:" + str(ncw+1)));
     wdg2 = array(symbols("wdgm1:" + str(ncw+1)));
-    odg = array(symbols("wdg1:" + str(ncw+1)));
-    odg1 = array(symbols("wdgp1:" + str(ncw+1)));
-    odg2 = array(symbols("wdgm1:" + str(ncw+1)));
+    odg = array(symbols("odg1:" + str(ncw+1)));
+    odg1 = array(symbols("odgp1:" + str(ncw+1)));
+    odg2 = array(symbols("odgm1:" + str(ncw+1)));
     uhg = array(symbols("uhg1:" + str(ncu+1)));
     nlg = array(symbols("nlg1:" + str(nd+1)));
     tau = array(symbols("tau1:" + str(ntau+1)));
