@@ -3,15 +3,14 @@
 </p>
 
 # Generating Discontinuous Galerkin Codes For Extreme Scalable Simulations
-Exasim is an open-source software for generating implicit discontinuous Galerkin codes to numerically solve parametrized partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages and low-level languages to easily construct parametrized PDE models and automatically produce high-performance C++ codes. The construction of parametrized PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with both CPU and Nvidia GPU processors. 
+Exasim is an open-source software for generating discontinuous Galerkin codes to numerically solve parametrized partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages and low-level languages to easily construct parametrized PDE models and automatically produce high-performance C++ codes. The construction of parametrized PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with both CPU and Nvidia GPU processors. 
 
-\begin{itemize}
-\item \texttt{Exasim} intuitively simplifies  modeling and simulation % with an intuitive interface.
-\item  generates stand-alone C++ production code and gives practitioners  freedom to modify the code and execute it as desired
-\item provides implicit high-order DG solution of parametrized PDE models
-\item provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers are deployed fully on GPUs
-\item and is available in Julia, Python, and Matlab. 
-\end{itemize}
+What make Exasim unique are the following distinctive features:
+
+   - simplifies numerical modeling and simulation with simple scripts
+   - produces implicit high-order DG solutions of a wide variety of PDEs   
+   - generates stand-alone C++ production code and gives practitioners freedom to modify it for particular applications and machines 
+   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers are deployed fully on GPUs   
 
 # Dependency  
 
