@@ -24,22 +24,28 @@ pde['mpiprocs'] = 1;        # number of MPI processors
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['porder'] = 4;         # polynomial degree
-pde['torder'] = 3;          # time-stepping order of accuracy
-pde['nstage'] = 3;          # time-stepping number of stages
-pde['dt'] = 0.05*numpy.ones(200);   # time step sizes
-pde['soltime'] = numpy.arange(1,pde['dt'].size+1); # steps at which solution are collected
-pde['visdt'] = pde['dt'][0]; # visualization timestep size
+pde['torder'] = 2;          # time-stepping order of accuracy
+pde['nstage'] = 2;          # time-stepping number of stages
+pde['dt'] = 0.02*numpy.ones(5000);   # time step sizes
+pde['soltime'] = numpy.arange(50,pde['dt'].size+1,50); # steps at which solution are collected
+pde['visdt'] = 1.0; # visualization timestep size
 
-gam = 1.4;                      # specific heat ratio
-M_ref = numpy.sqrt(1/gam);      # Mach number
-pde['physicsparam'] = [gam, M_ref];
-pde['tau'] = numpy.array([1+1/M_ref]); # DG stabilization parameter
+gam = 10.0;                      # gravity
+pde['physicsparam'] = [gam];
+pde['tau'] = numpy.array([1.0]); # DG stabilization parameter
+pde['GMRESrestart']=15;            # number of GMRES restarts
+pde['linearsolvertol']=1e-12;      # GMRES tolerance
+pde['linearsolveriter']=16;        # number of GMRES iterations
+pde['precMatrixType']=2;           # preconditioning type
+pde['NLtol'] = 1e-12;              # Newton tolerance
+pde['NLiter']=2;                   # Newton iterations
 
 # create a mesh of 10 by 10 quads on a square domain
-mesh['p'], mesh['t'] = Mesh.SquareMesh(10,10,1)[0:2];
-mesh['p'] = 10*mesh['p'] - 5;
+mesh['p'], mesh['t'] = Mesh.SquareMesh(64,64,1)[0:2];
+pi = numpy.pi;
+mesh['p'] = (4*pi)*mesh['p'] - 2*pi;
 # expressions for domain boundaries
-mesh['boundaryexpr'] = [lambda p: (p[1,:] < -5+1e-3), lambda p: (p[0,:] > 5-1e-3), lambda p: (p[1,:] > 5-1e-3), lambda p: (p[0,:] < -5+1e-3)];
+mesh['boundaryexpr'] = [lambda p: (p[1,:] < -2*pi+1e-3), lambda p: (p[0,:] > 2*pi-1e-3), lambda p: (p[1,:] > 2*pi-1e-3), lambda p: (p[0,:] < -2*pi+1e-3)];
 mesh['boundarycondition'] = numpy.array([1, 1, 1, 1]); # Set boundary condition for each boundary
 mesh['periodicexpr'] = [[2, lambda p: p[1,:], 4, lambda p: p[1,:]], [1, lambda p: p[0,:], 3, lambda p: p[0,:]]];
 
@@ -47,7 +53,7 @@ mesh['periodicexpr'] = [[2, lambda p: p[1,:], 4, lambda p: p[1,:]], [1, lambda p
 sol, pde, mesh  = Postprocessing.exasim(pde,mesh)[0:3];
 
 # visualize the numerical solution of the PDE model using Paraview
-pde['visscalars'] = ["density", 0, "energy", 3]; # list of scalar fields for visualization
+pde['visscalars'] = ["density", 0]; # list of scalar fields for visualization
 pde['visvectors'] = ["momentum", [1, 2]]; # list of vector fields for visualization
 Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
 print("Done!");

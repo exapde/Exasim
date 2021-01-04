@@ -11,6 +11,7 @@ mutable struct PDEStruct
     gpuflags::String;    # options for GGU compiler
     model::String;# used to indicate PDE model
     modelfile::String;# PDE model file name
+    modelnumber::IntP;
 
     preprocessmode::IntP; # preprocessing mode
     mpiprocs::IntP; # number of MPI ranks
@@ -81,6 +82,7 @@ mutable struct PDEStruct
     problem::Array{IntP,2};# problem parameters
     boundaryconditions::Array{IntP,2};# a list of boundary condition numbers
     stgib::Array{IntP,2};  # synthetic turbulence
+    vindx;  
 
     dt::Array{FloatP,1};      # time steps
     tau::Array{FloatP,1}; # stabilization parameters
@@ -140,6 +142,8 @@ function initializepde(version)
     pde.elemtype = 1;
     pde.nodetype = 1;
     pde.model="ModelD";
+    pde.modelnumber = 0;
+
     pde.hybrid = 0;
     pde.tdep = 0;
     pde.wave = 0;
@@ -191,6 +195,7 @@ function initializepde(version)
     pde.problem = [0 0];
     pde.boundaryconditions = [0 0];
     pde.stgib = [0 0];
+    pde.vindx = [];
 
     pde.tau = [1.0]; # stabilization parameters
     pde.dt = [0.0];  # time steps

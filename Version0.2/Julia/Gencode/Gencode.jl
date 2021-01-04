@@ -5,7 +5,7 @@ module Gencode
 using SymPy
 
 #export syminit, gencode, compilecode
-export syminit, gencode, compilecode, runcode, checkcompilers, setcompilers, tring2cmd
+export syminit, gencode, gencodeall, compilecode, runcode, checkcompilers, setcompilers, tring2cmd
 
 include("syminit.jl");
 include("varsassign.jl");
@@ -21,6 +21,8 @@ include("nocodeelem2.jl");
 include("nocodeelem3.jl");
 include("nocodeface.jl");
 include("nocodeface2.jl");
+include("gencodeelemface.jl");
+include("gencodeall.jl");
 include("string2cmd.jl");
 include("genlib.jl");
 include("checkcompilers.jl");
@@ -47,6 +49,12 @@ end
 
 xdg, udg, udg1, udg2, wdg, wdg1, wdg2, odg, odg1, odg2, uhg, nlg, tau, uinf, param, time = syminit(app);
 
+if app.modelnumber==0
+    strn = "";
+else
+    strn = string(app.modelnumber);
+end
+
 ncu = app.ncu;
 u = udg[1:ncu];
 u1 = udg1[1:ncu];
@@ -61,179 +69,185 @@ else
     q2 = [];
 end
 
-if isdefined(Main, Symbol("flux"))
-    #f = Main.flux(xdg, udg, odg, wdg, uinf, param, time);
-    f = Main.flux(u, q, wdg, odg, xdg, time, param, uinf);
+if isdefined(Main, Symbol(app.modelfile))
+    pdemodel = getfield(Main, Symbol(app.modelfile))
+else
+    pdemodel = getfield(Main, Symbol("Main"))    
+end
+
+if isdefined(pdemodel, Symbol("flux"))
+    #f = pdemodel.flux(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.flux(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem("Flux", f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem("Flux" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
 else
     error("app.Flux is empty");
 end
-if isdefined(Main, Symbol("source"))
-    #f = Main.source(xdg, udg, odg, wdg, uinf, param, time);
-    f = Main.source(u, q, wdg, odg, xdg, time, param, uinf);
+if isdefined(pdemodel, Symbol("source"))
+    #f = pdemodel.source(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.source(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem("Source", f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem("Source" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
 else
-    nocodeelem("Source");
+    nocodeelem("Source" * strn);
 end
-if isdefined(Main, Symbol("mass"))
-    #f = Main.mass(xdg, udg, odg, wdg, uinf, param, time);
-    f = Main.mass(u, q, wdg, odg, xdg, time, param, uinf);
+if isdefined(pdemodel, Symbol("mass"))
+    #f = pdemodel.mass(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.mass(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem("Tdfunc", f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem("Tdfunc" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
 else
     if app.model=="ModelW" || app.model == "modelW" || app.tdep==1
         error("pde.mass is not defined");
     else
-        nocodeelem("Tdfunc");
+        nocodeelem("Tdfunc" * strn);
     end
 end
-if isdefined(Main, Symbol("avifield"))
-    #f = Main.avfield(xdg, udg, odg, wdg, uinf, param, time);
-    f = Main.avfield(u, q, wdg, odg, xdg, time, param, uinf);
+if isdefined(pdemodel, Symbol("avifield"))
+    #f = pdemodel.avfield(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.avfield(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem2("Avfield", f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem2("Avfield" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
 else
-    nocodeelem2("Avfield");
+    nocodeelem2("Avfield" * strn);
 end
-if isdefined(Main, Symbol("output"))
-    #f = Main.output(xdg, udg, odg, wdg, uinf, param, time);
-    f = Main.output(u, q, wdg, odg, xdg, time, param, uinf);
+if isdefined(pdemodel, Symbol("output"))
+    #f = pdemodel.output(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.output(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem2("Output", f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem2("Output" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
 else
-    nocodeelem2("Output");
+    nocodeelem2("Output" * strn);
 end
-if isdefined(Main, Symbol("fbou"))
-    #f = Main.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
-    f = Main.fbou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
+if isdefined(pdemodel, Symbol("fbou"))
+    #f = pdemodel.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+    f = pdemodel.fbou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
     f = reshape(f,app.ncu,Int(length(f)/app.ncu));
-    gencodeface("Fbou", f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+    gencodeface("Fbou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
 else
     error("app.Fbou is empty");
 end
-if isdefined(Main, Symbol("ubou"))
-    #f = Main.ubou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
-    f = Main.ubou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
+if isdefined(pdemodel, Symbol("ubou"))
+    #f = pdemodel.ubou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+    f = pdemodel.ubou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
     f = reshape(f,app.ncu,Int(length(f)/app.ncu));
-    gencodeface("Ubou", f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+    gencodeface("Ubou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
 else
-    nocodeface("Ubou");
+    nocodeface("Ubou" * strn);
 end
-if isdefined(Main, Symbol("Fhat"))
-    #f = Main.fhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
-    f = Main.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
+if isdefined(pdemodel, Symbol("Fhat"))
+    #f = pdemodel.fhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    f = pdemodel.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeface2("Fhat", f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    gencodeface2("Fhat" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
 else
-    nocodeface2("Fhat");
+    nocodeface2("Fhat" * strn);
 end
-if isdefined(Main, Symbol("uhat"))
-    #f = Main.uhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
-    f = Main.uhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
+if isdefined(pdemodel, Symbol("uhat"))
+    #f = pdemodel.uhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    f = pdemodel.uhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeface2("Uhat", f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    gencodeface2("Uhat" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
 else
-    nocodeface2("Uhat");
+    nocodeface2("Uhat" * strn);
 end
-if isdefined(Main, Symbol("stab"))
-    #f = Main.stab(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
-    f = Main.stab(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
+if isdefined(pdemodel, Symbol("stab"))
+    #f = pdemodel.stab(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    f = pdemodel.stab(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
     if length(f)==1
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeface2("Stab", f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    gencodeface2("Stab" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
 else
-    nocodeface2("Stab");
+    nocodeface2("Stab" * strn);
 end
-if isdefined(Main, Symbol("initu"))
-    udg = Main.initu(xdg, param, uinf);
+if isdefined(pdemodel, Symbol("initu"))
+    udg = pdemodel.initu(xdg, param, uinf);
     if length(udg)==1
         udg = reshape([udg],1,1);
     end
     udg = udg[:];
-    gencodeelem3("Initu", udg, xdg, uinf, param);
+    gencodeelem3("Initu" * strn, udg, xdg, uinf, param);
 else
     error("initu is not defined");
 end
-if isdefined(Main, Symbol("initw"))
-    wdg = Main.initw(xdg, param, uinf);
+if isdefined(pdemodel, Symbol("initw"))
+    wdg = pdemodel.initw(xdg, param, uinf);
     if length(wdg)==1
         wdg = reshape([wdg],1,1);
     end
     wdg = wdg[:];
-    gencodeelem3("Initwdg", wdg, xdg, uinf, param);
+    gencodeelem3("Initwdg" * strn, wdg, xdg, uinf, param);
 else
-    nocodeelem3("Initwdg");
+    nocodeelem3("Initwdg" * strn);
 end
-if isdefined(Main, Symbol("initv"))
-    odg = Main.initv(xdg, param, uinf);
+if isdefined(pdemodel, Symbol("initv"))
+    odg = pdemodel.initv(xdg, param, uinf);
     if length(odg)==1
         odg = reshape([odg],1,1);
     end
     odg = odg[:];
-    gencodeelem3("Initodg", odg, xdg, uinf, param);
+    gencodeelem3("Initodg" * strn, odg, xdg, uinf, param);
 else
-    nocodeelem3("Initodg");
+    nocodeelem3("Initodg" * strn);
 end
-if isdefined(Main, Symbol("initq"))
-    qdg = Main.initq(xdg, param, uinf);
+if isdefined(pdemodel, Symbol("initq"))
+    qdg = pdemodel.initq(xdg, param, uinf);
     if length(qdg)==1
         qdg = reshape([qdg],1,1);
     end
     qdg = qdg[:];
-    gencodeelem3("Initq", qdg, xdg, uinf, param);
+    gencodeelem3("Initq" * strn, qdg, xdg, uinf, param);
 
-    udg = Main.initu(xdg, param, uinf);
+    udg = pdemodel.initu(xdg, param, uinf);
     if length(udg)==1
         udg = reshape([udg],1,1);
     end
     udg = udg[:];
 
     udg = [udg; qdg];
-    gencodeelem3("Initudg", udg, xdg, uinf, param);
+    gencodeelem3("Initudg" * strn, udg, xdg, uinf, param);
 else
     if app.model == "ModelW" || app.model == "modelW"
         error("initq is not defined");
     else
-        nocodeelem3("Initq");
-        nocodeelem3("Initudg");
+        nocodeelem3("Initq" * strn);
+        nocodeelem3("Initudg" * strn);
     end
 end
 
-# if isdefined(Main, Symbol("initq"))
-#     qdg = Main.initq(xdg, uinf, param);
+# if isdefined(pdemodel, Symbol("initq"))
+#     qdg = pdemodel.initq(xdg, uinf, param);
 #     if length(qdg)==1
 #         qdg = reshape([qdg],1,1);
 #     end
@@ -242,8 +256,8 @@ end
 # else
 #     nocodeelem3("Initq");
 # end
-# if isdefined(Main, Symbol("inituq"))
-#     udg = Main.inituq(xdg, uinf, param);
+# if isdefined(pdemodel, Symbol("inituq"))
+#     udg = pdemodel.inituq(xdg, uinf, param);
 #     if length(udg)==1
 #         udg = reshape([udg],1,1);
 #     end

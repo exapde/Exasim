@@ -14,14 +14,15 @@ end
 
 function f = flux(u, q, w, v, x, t, mu, eta)
     g = mu(1);    
-    r = u(1);
-    ru = u(2);
-    rv = u(3);    
+    r = u(1);  % total height: h
+    ru = u(2); % h*u 
+    rv = u(3); % h*v   
     r1 = 1/r;
-    uv = ru*r1;
-    vv = rv*r1;    
-    p = (0.5*g)*(r*r);    
+    uv = ru*r1; % u
+    vv = rv*r1; %v    
+    p = (0.5*g)*(r*r); % 0.5*g*h^2    
     f = [ru, ru*uv+p, rv*uv, rv, ru*vv, rv*vv+p];
+    % [h*u h*u^2 + 0.5*g*h^2  huv h*v h*u*v h*v^2+0.5*g*h^2]
     f = reshape(f,[3,2]);    
 end
 
@@ -65,9 +66,9 @@ function u0 = initu(x, mu, eta)
     uprime =  Psiprime * (k * tan(k * x2) + x2 /(l*l)); 
     vprime = -Psiprime * k * tan(k * x1); 
 
-    u01 = 1.0;
-    u02 = U + epsil * uprime;
-    u03 = epsil * vprime;
+    u01 = 1.0; % h
+    u02 = U + epsil * uprime; % h*u
+    u03 = epsil * vprime;  % h*v
     
     u0 = [u01; u02; u03];
 end

@@ -16,6 +16,7 @@ def initializepde(version):
     pde['version'] = version;
     pde['appname'] = "pde";
     pde['model'] = "ModelD";
+    pde['modelnumber'] = 0;
     pde['modelfile'] = "";
     pde['platform'] = "cpu";
     #pde['cpuflags'] = "-O2 -Wall -ldl -lm -lblas -llapack";
@@ -88,6 +89,7 @@ def initializepde(version):
     pde['problem'] = [0, 0];
     pde['boundaryconditions'] = [0, 0];
     pde['stgib'] = [0, 0];
+    pde['vindx'] = numpy.array([]);
 
     pde['tau'] = 1.0; # stabilization parameters
     pde['uinf'] = numpy.array([0.0, 0.0]); # freestream values

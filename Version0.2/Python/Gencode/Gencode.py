@@ -7,7 +7,9 @@ from checkcompilers import checkcompilers
 from setcompilers import setcompilers
 from compilecode import compilecode
 from runcode import runcode
+from gencodeall import gencodeall
 from syminit import syminit
+from gencodeelemface import gencodeelemface
 from gencodeelem import gencodeelem
 from nocodeelem import nocodeelem
 from gencodeelem2 import gencodeelem2
@@ -41,6 +43,11 @@ def gencode(app):
     # spec.loader.exec_module(pde);
     #import pdemodel as pde
 
+    if app['modelnumber']==0:
+        strn = "";
+    else:
+        strn = str(app['modelnumber']);
+
     nc = app['nc'];
     ncu = app['ncu'];
     u = udg[0:ncu];
@@ -59,99 +66,99 @@ def gencode(app):
         #f = pde.flux(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.flux(u, q, wdg, odg, xdg, time, param, uinf);
         f = f.flatten('F');
-        gencodeelem("Flux", f, xdg, udg, odg, wdg, uinf, param, time);
+        gencodeelem("Flux" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
     else:
         sys.exit('pde.flux is not defined')
     if hasattr(pde, 'source'):
         #f = pde.source(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.source(u, q, wdg, odg, xdg, time, param, uinf);
-        gencodeelem("Source", f, xdg, udg, odg, wdg, uinf, param, time);
+        gencodeelem("Source" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
     else:
-        nocodeelem("Source");
+        nocodeelem("Source" + strn);
     if hasattr(pde, 'mass'):
         #f = pde.mass(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.mass(u, q, wdg, odg, xdg, time, param, uinf);
-        gencodeelem("Tdfunc", f, xdg, udg, odg, wdg, uinf, param, time);
+        gencodeelem("Tdfunc" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
     else:
         if app['model']=="ModelW" or app['model']=="modelW" or app['tdep']==1:
             error("pde.inituq is not defined");
         else:
-            nocodeelem("Tdfunc");
+            nocodeelem("Tdfunc" + strn);
     if hasattr(pde, 'avfield'):
         #f = pde.avfield(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.avfield(u, q, wdg, odg, xdg, time, param, uinf);
-        gencodeelem2("Avfield", f, xdg, udg, odg, wdg, uinf, param, time);
+        gencodeelem2("Avfield" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
     else:
-        nocodeelem2("Avfield");
+        nocodeelem2("Avfield" + strn);
     if hasattr(pde, 'output'):
         #f = pde.output(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.output(u, q, wdg, odg, xdg, time, param, uinf);
-        gencodeelem2("Output", f, xdg, udg, odg, wdg, uinf, param, time);
+        gencodeelem2("Output" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
     else:
-        nocodeelem2("Output");
+        nocodeelem2("Output" + strn);
     if hasattr(pde, 'fbou'):
         #f = pde.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
         f = pde.fbou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
         f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])),'F');
-        gencodeface("Fbou", f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+        gencodeface("Fbou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
     else:
         sys.exit("pde.fbou is not defined");
     if hasattr(pde, 'ubou'):
         #f = pde.ubou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
         f = pde.ubou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
         f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])),'F');
-        gencodeface("Ubou", f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+        gencodeface("Ubou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
     else:
         sys.exit("pde.ubou is not defined");
     if hasattr(pde, 'fhat'):
         #f = pde.fhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
         f = pde.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
-        gencodeface2("Fhat", f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+        gencodeface2("Fhat" + strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
     else:
-        nocodeface2("Fhat");
+        nocodeface2("Fhat" + strn);
     if hasattr(pde, 'uhat'):
         #f = pde.uhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
         f = pde.uhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
-        gencodeface2("Uhat", f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+        gencodeface2("Uhat" + strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
     else:
-        nocodeface2("Uhat");
+        nocodeface2("Uhat" + strn);
     if hasattr(pde, 'stab'):
         #f = pde.stab(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
         f = pde.stab(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
-        gencodeface2("Stab", f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+        gencodeface2("Stab" + strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
     else:
-        nocodeface2("Stab");
+        nocodeface2("Stab" + strn);
     if hasattr(pde, 'initu'):
         udg = pde.initu(xdg, param, uinf);
-        gencodeelem3("Initu", udg, xdg, uinf, param);
+        gencodeelem3("Initu" + strn, udg, xdg, uinf, param);
     else:
         error("pde.initu is not defined");
     if hasattr(pde, 'initw'):
         wdg = pde.initw(xdg, param, uinf);
-        gencodeelem3("Initwdg", wdg, xdg, uinf, param);
+        gencodeelem3("Initwdg" + strn, wdg, xdg, uinf, param);
     else:
-        nocodeelem3("Initwdg");
+        nocodeelem3("Initwdg" + strn);
     if hasattr(pde, 'initv'):
         odg = pde.initv(xdg, param, uinf);
-        gencodeelem3("Initodg", odg, xdg, uinf, param);
+        gencodeelem3("Initodg" + strn, odg, xdg, uinf, param);
     else:
-        nocodeelem3("Initodg");
+        nocodeelem3("Initodg" + strn);
 
     if hasattr(pde, 'initq'):
         q = pde.initq(xdg, param, uinf);
         q = q.flatten('F');
-        gencodeelem3("Initq", q, xdg, uinf, param);
+        gencodeelem3("Initq" + strn, q, xdg, uinf, param);
 
         u = pde.initu(xdg, param, uinf);
 
         udg = numpy.concatenate((u.flatten('F'), q.flatten('F')));
-        gencodeelem3("Initudg", udg, xdg, uinf, param);
+        gencodeelem3("Initudg" + strn, udg, xdg, uinf, param);
     else:
         if app['model']=="ModelW" or app['model']=="modelW":
             error("pde.initq is not defined");
         else:
-            nocodeelem3("Initq");
-            nocodeelem3("Initudg");
+            nocodeelem3("Initq" + strn);
+            nocodeelem3("Initudg" + strn);
 
     # if hasattr(pde, 'initq'):
     #     udg = pde.initq(xdg, param, uinf);

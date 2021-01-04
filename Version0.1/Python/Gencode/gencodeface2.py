@@ -21,18 +21,18 @@ def gencodeface2(filename, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg,
     strgpu = strgpu + "\twhile (i<ng) {\n";
 
     mystr = "";
-    mystr = varsassign(mystr, "param", length(param), 0);
-    mystr = varsassign(mystr, "uinf", length(uinf), 0);
-    mystr = varsassign(mystr, "tau", length(tau), 0);
-    mystr = varsassign(mystr, "xdg", length(xdg), 1);
-    mystr = varsassign(mystr, "udgp", length(udg1), 1);
-    mystr = varsassign(mystr, "udgm", length(udg2), 1);
-    mystr = varsassign(mystr, "uhg", length(uhg), 1);
-    mystr = varsassign(mystr, "odgp", length(odg1), 1);
-    mystr = varsassign(mystr, "odgm", length(odg2), 1);
-    mystr = varsassign(mystr, "wdgp", length(wdg1), 1);
-    mystr = varsassign(mystr, "wdgm", length(wdg2), 1);
-    mystr = varsassign(mystr, "nlg", length(nlg), 1);
+    mystr = varsassign(mystr, "param", len(param), 0);
+    mystr = varsassign(mystr, "uinf", len(uinf), 0);
+    mystr = varsassign(mystr, "tau", len(tau), 0);
+    mystr = varsassign(mystr, "xdg", len(xdg), 1);
+    mystr = varsassign(mystr, "udgp", len(udg1), 1);
+    mystr = varsassign(mystr, "udgm", len(udg2), 1);
+    mystr = varsassign(mystr, "uhg", len(uhg), 1);
+    mystr = varsassign(mystr, "odgp", len(odg1), 1);
+    mystr = varsassign(mystr, "odgm", len(odg2), 1);
+    mystr = varsassign(mystr, "wdgp", len(wdg1), 1);
+    mystr = varsassign(mystr, "wdgm", len(wdg2), 1);
+    mystr = varsassign(mystr, "nlg", len(nlg), 1);
     mystr = sympyassign(mystr, f);
 
     stropu = stropu + mystr + "\t}\n" + "}\n\n";
@@ -41,10 +41,6 @@ def gencodeface2(filename, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg,
     tmp = tmp + "template void " + opufile;
     tmp = tmp + "(float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float, int, int, int, int, int, int, int);\n";
     stropu = stropu + tmp;
-
-    ioopu = open(foldername + "/" + opufile + ".cpp", "w");
-    write(ioopu, stropu);
-    close(ioopu);
 
     strgpu = strgpu + mystr + "\t\ti += blockDim.x * gridDim.x;\n";
     strgpu = strgpu + "\t}\n" + "}\n\n";

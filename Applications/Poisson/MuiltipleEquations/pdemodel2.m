@@ -4,8 +4,8 @@ pde.flux = @flux;
 pde.source = @source;
 pde.fbou = @fbou;
 pde.ubou = @ubou;
-pde.finterface = @finterface;
-pde.uinterface = @uinterface;
+% pde.finterface = @finterface;
+% pde.uinterface = @uinterface;
 pde.initu = @initu;
 pde.initv = @initv;
 end
@@ -29,14 +29,14 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 ub = sym(0.0); 
 end
 
-function fb = finterface(u, q, w, v, x, t, mu, eta, uhat, vhat, n, tau)
-f = flux(u, q, w, v, x, t, mu, eta);
-fb = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
-end
-
-function ub = uinterface(u, q, w, v, x, t, mu, eta, uhat, vhat, n, tau)
-ub = vhat; 
-end
+% function fb = finterface(u, q, w, v, x, t, mu, eta, uhat, vhat, n, tau)
+% f = flux(u, q, w, v, x, t, mu, eta);
+% fb = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
+% end
+% 
+% function ub = uinterface(u, q, w, v, x, t, mu, eta, uhat, vhat, n, tau)
+% ub = vhat; 
+% end
 
 function u0 = initu(x, mu, eta)
 u0 = sym(0.0);

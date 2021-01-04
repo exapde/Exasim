@@ -295,8 +295,8 @@ struct appstruct {
     Int *problem=NULL;// problem parameters    
     Int *comm=NULL;   // communication parameters 
     Int *porder=NULL; // polymnomial degrees
-    Int *stgib;
-    Int *vindx;
+    Int *stgib=NULL;
+    Int *vindx=NULL;
     
     dstype *uinf=NULL;    // boundary data
     dstype *dt=NULL;      // time steps       
@@ -327,6 +327,8 @@ struct appstruct {
             CPUFREE(porder);               
             CPUFREE(flag);    
             CPUFREE(problem);
+            CPUFREE(stgib);
+            CPUFREE(vindx);
             CPUFREE(uinf);
             CPUFREE(dt);
             CPUFREE(factor);
@@ -351,6 +353,8 @@ struct appstruct {
             GPUFREE(porder);   
             GPUFREE(flag);    
             GPUFREE(problem);
+            GPUFREE(stgib);
+            GPUFREE(vindx);
             GPUFREE(uinf);
             GPUFREE(dt);
             GPUFREE(factor);
@@ -999,7 +1003,7 @@ struct commonstruct {
      
     Int* eblks=NULL; // element blocks
     Int* fblks=NULL; // face blocks   
-    Int* ncarray;
+    Int* ncarray=NULL;
     
     Int nstgib;
     Int nnbsd;
@@ -1011,8 +1015,8 @@ struct commonstruct {
     Int* elemrecv=NULL;       
     Int* elemsendpts=NULL;
     Int* elemrecvpts=NULL;        
-    Int* stgib;
-    Int* vindx;
+    Int* stgib=NULL;
+    Int* vindx=NULL;
     
     dstype timing[128];
     dstype* dt=NULL;
@@ -1034,11 +1038,14 @@ struct commonstruct {
     {
         CPUFREE(eblks); 
         CPUFREE(fblks);        
+        CPUFREE(ncarray);        
         CPUFREE(nbsd);         
         CPUFREE(elemsend); 
         CPUFREE(elemrecv); 
         CPUFREE(elemsendpts); 
         CPUFREE(elemrecvpts); 
+        CPUFREE(stgib); 
+        CPUFREE(vindx); 
         CPUFREE(dt); 
         CPUFREE(DIRKcoeff_c); 
         CPUFREE(DIRKcoeff_d); 

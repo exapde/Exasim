@@ -1,9 +1,3 @@
-% Specify an Exasim version to run
-version = "Version0.2";
-
-% Add Exasim to Matlab search path
-cdir = pwd(); ii = strfind(cdir, "Exasim");
-run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % initialize pde{1} structure and mesh{1} structure
 [pde{1},mesh{1}] = initializeexasim(version);
