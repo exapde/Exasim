@@ -10,7 +10,7 @@ What make Exasim unique are the following distinctive features:
    - simplifies numerical modeling and simulation with simple scripts
    - produces implicit high-order DG solutions of a wide variety of PDEs   
    - generates stand-alone C++ production code and gives practitioners freedom to modify it for particular applications and machines 
-   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers are deployed fully on GPUs   
+   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs.   
 
 # Dependency  
 
