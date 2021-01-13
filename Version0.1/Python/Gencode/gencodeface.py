@@ -46,7 +46,7 @@ def gencodeface(filename, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, tim
             tmp = tmp + "\telse if (ib == " + str(k) + ")\n";
         else:
             tmp = tmp + "\telse if (ib == " + str(k) + ")\n";
-        tmp = tmp + "\t\t"  + gpufile + str(k) + "<<<gridDim, blockDim>>>(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, ng, nc, ncu, nd, ncx, nco, ncw);\n";
+        tmp = tmp + "\t\tkernel"  + gpufile + str(k) + "<<<gridDim, blockDim>>>(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, ng, nc, ncu, nd, ncx, nco, ncw);\n";
     tmp = tmp + "}\n\n";
 
     tmp = tmp + "template void " + gpufile;
