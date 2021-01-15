@@ -18,7 +18,7 @@ Exasim automatically generates and compiles stand-alone C++ code on the fly. To 
 
 # Installation  
 
-Exasim itself does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) Gmesh, (optional) Paraview, and (optional) CUDA Toolkit. To install these packages, go to the directory Exasim/Installation and run install.jl in Julia, install.py in Python, or install.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
+Exasim itself does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) METIS, (optional) Gmesh, (optional) Paraview, and (optional) CUDA Toolkit. To install these packages, go to the directory Exasim/Installation and run install.jl in Julia, install.py in Python, or install.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
 
 # Language Support
 
