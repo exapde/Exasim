@@ -19,7 +19,7 @@ Since Exasim automatically generates and compiles stand-alone C++ code on the fl
 
 # Applications
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided to illustrate how to build stand-alone C++ codes for solving a wide variety of PDEs including Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. 
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. 
 
 To try out any of the provided examples, please download the Exasim source code and go to any folder under Exasim/Applications and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See https://github.com/exapde/Exasim/blob/master/Applications/ShallowWater/BickleyJet/BickleyJet.pdf for simulation results of the Bickley Jet problem.
 
