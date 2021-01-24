@@ -21,7 +21,7 @@ Exasim automatically generates and compiles stand-alone C++ code on the fly. To 
 
 Exasim itself does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) METIS, (optional) Gmesh, (optional) Paraview, and (optional) CUDA Toolkit. To install these packages, go to the directory Exasim/Installation and run install.jl in Julia, install.py in Python, or install.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
 
-# Partial Differential Equations
+# Applications
 
 Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided to illustrate how to build stand-alone C++ codes for solving a wide variety of PDEs including Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. 
 
