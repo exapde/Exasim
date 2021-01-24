@@ -32,15 +32,31 @@ void CSolution::SteadyProblem(Int backend)
         START_TIMING;
         // compute AV field at sys.u and store it in sol.odg
         //disc.evalAVfield(disc.sol.odg, solv.sys.u, backend);
+//         if (disc.common.mpiRank==0) 
+//             printf("\nAV: %d\n", disc.common.AVflag);  
+        
         disc.evalAVfield(disc.sol.odg, backend);
         
-        //writearray2file(disc.common.fileout + "udg" + "_np" + NumberToString(disc.common.mpiRank) + ".bin", disc.sol.odg, disc.common.npe*disc.common.nco*disc.common.ne1, backend);
+//         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0) {             
+//             string fn1 = disc.common.fileout + "_udg" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank) + ".bin";     
+//             writearray2file(fn1, disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne, backend);
+// 
+//             string fn2 = disc.common.fileout + "_xdg" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank) + ".bin";     
+//             writearray2file(fn2, disc.sol.xdg, disc.common.npe*disc.common.ncx*disc.common.ne, backend);
+// 
+//             string fn3 = disc.common.fileout + "_odg" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank) + ".bin";     
+//             writearray2file(fn3, disc.sol.odg, disc.common.npe*disc.common.nco*disc.common.ne, backend);            
+//         }        
         
         // smooth AV field
         disc.DG2CG2(disc.sol.odg, disc.sol.odg, solv.sys.x, disc.common.nco, 
                disc.common.nco, disc.common.AVflag, backend);
         
-
+//         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0) {             
+//             string fn4 = disc.common.fileout + "_smoothedodg" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank) + ".bin";     
+//             writearray2file(fn4, disc.sol.odg, disc.common.npe*disc.common.nco*disc.common.ne, backend);            
+//         }        
+        
 #ifdef  HAVE_MPI    
         Int bsz = disc.common.npe*disc.common.AVflag;
         Int nudg = disc.common.npe*disc.common.nco;

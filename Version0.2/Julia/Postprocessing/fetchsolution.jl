@@ -1,4 +1,4 @@
-function fetchsolution(app,master,dmd,dirname)
+function fetchsolution(app,master,dmd,dirname="dataout")
 
 nt = length(app.dt);
 if nt==1

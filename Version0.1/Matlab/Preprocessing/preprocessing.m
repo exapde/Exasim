@@ -29,7 +29,7 @@ end
 if (app.nd==3) && (app.nve==8)
     app.elemtype=1;    
 end
-app.pgauss = 2*app.porder;
+app.pgauss = 2*(app.porder);
 
 % master struct
 master = Master(app);
@@ -55,16 +55,19 @@ end
 if isfield(pde, 'initv')
     odgsym = pde.initv(xdgsym, paramsym, uinfsym);         
     app.nco = length(odgsym(:));
+elseif isfield(mesh, 'vdg')            
+    app.nco = size(mesh.vdg,2);
 else    
     app.nco = 0;
 end
 if isfield(pde, 'initw')
     wdgsym = pde.initw(xdgsym, paramsym, uinfsym);         
     app.ncw = length(wdgsym(:));
+elseif isfield(mesh, 'wdg')            
+    app.ncw = size(mesh.wdg,2);    
 else    
     app.ncw = 0;
 end
-
 
 if app.model=="ModelC" || app.model=="modelC"
     app.wave = 0;
@@ -129,7 +132,16 @@ for i = 1:mpiprocs
     %nsize(3) = length(udg(:)); 
 %     nsize(4) = length(odg(:));    
 %     nsize(5) = length(wdg(:));    
-
+    if isfield(mesh, 'udg')        
+        nsize(3) = numel(mesh.udg(:,:,dmd{i}.elempart));
+    end
+    if isfield(mesh, 'vdg')        
+        nsize(4) = numel(mesh.vdg(:,:,dmd{i}.elempart));
+    end
+    if isfield(mesh, 'wdg')        
+        nsize(5) = numel(mesh.wdg(:,:,dmd{i}.elempart));
+    end
+    
     fwrite(fileID1,length(nsize(:)),'double',endian);
     fwrite(fileID1,nsize(:),'double',endian);
     fwrite(fileID1,ndims(:),'double',endian);
@@ -137,6 +149,15 @@ for i = 1:mpiprocs
     %fwrite(fileID1,udg(:),'double',endian);        
 %     fwrite(fileID1,odg(:),'double',endian);
 %     fwrite(fileID1,wdg(:),'double',endian);
+    if isfield(mesh, 'udg')        
+        fwrite(fileID1,mesh.udg(:,:,dmd{i}.elempart),'double',endian);                
+    end
+    if isfield(mesh, 'vdg')        
+        fwrite(fileID1,mesh.vdg(:,:,dmd{i}.elempart),'double',endian);                
+    end
+    if isfield(mesh, 'wdg')        
+        fwrite(fileID1,mesh.wdg(:,:,dmd{i}.elempart),'double',endian);                
+    end
     fclose(fileID1);         
 
     % divide elements and faces into blocks

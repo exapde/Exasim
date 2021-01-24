@@ -441,38 +441,86 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);  
         
-    sol.nsize[1] = npe*ncx*ne;
-    sol.nsize[2] = npe*nc*ne;
-    sol.nsize[3] = npe*nco*ne;
-    sol.nsize[4] = npe*ncw*ne;
-    
-    readarray(in, &sol.xdg, sol.nsize[1]);
-//    readarray(in, &sol.udg, sol.nsize[2]);
-//     readarray(in, &tmp,     sol.nsize[2]);    
-//     readarray(in, &sol.odg, sol.nsize[3]);  
-//     readarray(in, &sol.wdg, sol.nsize[4]);              
-            
-    if (nc>0) {
+    if (sol.nsize[1] == npe*ncx*ne)
+        readarray(in, &sol.xdg, sol.nsize[1]);
+    else
+        error("Input files are incorrect");
+        
+    if (sol.nsize[2] == npe*nc*ne) {
+        readarray(in, &sol.udg, sol.nsize[2]);    
+    }
+    else if (sol.nsize[2] == npe*ncu*ne) {
+        dstype *tmp;
+        readarray(in, &tmp,     sol.nsize[2]);    
+        sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
+        ArraySetValue(sol.udg, zero, npe*nc*ne, 0);
+        ArrayInsert(sol.udg, tmp, npe, nc, ne, 0, npe, 0, ncu, 0, ne, 0); 
+        sol.nsize[2] = npe*nc*ne;     
+        CPUFREE(tmp);
+    }
+    else if (sol.nsize[2] == 0) {
         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
         ArraySetValue(sol.udg, zero, npe*nc*ne, 0);
         if (app.flag[1]==0) { //            
             InituDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);    
         }
         else // wave problem
-            InitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);            
+            InitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);                    
+        sol.nsize[2] = npe*nc*ne;        
     }
-    if (nco>0) {        
+    else
+        error("Input files are incorrect");
+    
+    if ((sol.nsize[3] >0) && (sol.nsize[3] == npe*nco*ne)) {
+        readarray(in, &sol.odg, sol.nsize[3]);    
+    }
+    else if (nco>0) {
         sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);    
-        InitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);        
+        InitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);       
+        sol.nsize[3] = npe*nco*ne;
+    }    
+    
+    if ((sol.nsize[4] >0) && (sol.nsize[4] == npe*ncw*ne)) {
+        readarray(in, &sol.wdg, sol.nsize[4]);    
     }
-    if (ncw>0) {
+    else if (ncw>0) {
         sol.wdg = (dstype*) malloc (sizeof (dstype)*npe*ncw*ne);    
         InitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
+        sol.nsize[4] = npe*ncw*ne;
     }
-            
-//     // insert u into udg
-//     ArrayInsert(sol.udg, tmp, npe, nc, ne, 0, npe, 0, ncu, 0, ne, 0); 
+    
+//     sol.nsize[1] = npe*ncx*ne;
 //     sol.nsize[2] = npe*nc*ne;
+//     sol.nsize[3] = npe*nco*ne;
+//     sol.nsize[4] = npe*ncw*ne;
+//     
+//     readarray(in, &sol.xdg, sol.nsize[1]);
+// //    readarray(in, &sol.udg, sol.nsize[2]);
+// //     readarray(in, &tmp,     sol.nsize[2]);    
+// //     readarray(in, &sol.odg, sol.nsize[3]);  
+// //     readarray(in, &sol.wdg, sol.nsize[4]);              
+//             
+//     if (nc>0) {
+//         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
+//         ArraySetValue(sol.udg, zero, npe*nc*ne, 0);
+//         if (app.flag[1]==0) { //            
+//             InituDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);    
+//         }
+//         else // wave problem
+//             InitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);            
+//     }
+//     if (nco>0) {        
+//         sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);    
+//         InitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);        
+//     }
+//     if (ncw>0) {
+//         sol.wdg = (dstype*) malloc (sizeof (dstype)*npe*ncw*ne);    
+//         InitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
+//     }
+//             
+// //     // insert u into udg
+// //     ArrayInsert(sol.udg, tmp, npe, nc, ne, 0, npe, 0, ncu, 0, ne, 0); 
+// //     sol.nsize[2] = npe*nc*ne;
     
     //CPUFREE(tmp);
     

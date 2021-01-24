@@ -108,8 +108,6 @@ def compilecode(app):
         else:
             os.system(compilerstr[5]);
     elif app['platform'] == "gpu":
-        os.system(compilerstr[0]);
-        os.system(compilerstr[1]);
         os.system(compilerstr[2]);
         os.system(compilerstr[3]);
         if app['mpiprocs']==1:

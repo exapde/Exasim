@@ -243,7 +243,7 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
 #endif
   
     // compute the av field
-    AvfieldDriver(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);           
+    AvfieldDriver(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);               
 }
 
 void CDiscretization::evalOutput(dstype* output, Int backend)

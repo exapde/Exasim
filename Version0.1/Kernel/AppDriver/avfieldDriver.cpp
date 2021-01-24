@@ -23,19 +23,20 @@ void AvfieldDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg,
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
         opuAvfield(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);                
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, nco, npe, ne);                
     }
 #endif              
 #ifdef HAVE_OPENMP        
     if (backend==1) {
         cpuAvfield(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);                        
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, nco, npe, ne);                        
     }    
 #endif            
 #ifdef HAVE_CUDA             
     if (backend==2) {
         gpuAvfield(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);                        
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, nco, npe, ne);         
+        
     }
 #endif    
 }

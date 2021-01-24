@@ -672,8 +672,7 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     
     // create cublas handle
     CHECK_CUBLAS(cublasCreate(&common.cublasHandle));
-    CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_HOST));                     
-//     CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_DEVICE));    
+    CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_HOST));                     //     CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_DEVICE));    
         
     if (common.ncs>0) {
         // initialize source term

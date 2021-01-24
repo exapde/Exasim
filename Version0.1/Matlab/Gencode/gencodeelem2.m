@@ -138,6 +138,6 @@ iocpu = fopen(foldername + "/" + cpufile + ".cpp", 'w');
 fprintf(fid, char(strcpu));
 fclose(iocpu);
 
-delete("tmp.c");
+delete('tmp.c');
 
 end

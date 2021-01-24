@@ -38,8 +38,8 @@ def writeapp(app,filename):
     ndims[13-1] = app['nce'];
     ndims[14-1] = app['ncw'];
 
-    if app['nco'] != app['vindx'].shape[0]:  #size(app.vindx,1):
-        error("app.nco mus be equal to size(app.vindx,1)");
+    #if app['nco'] != app['vindx'].shape[0]:  #size(app.vindx,1):
+    #    error("app.nco mus be equal to size(app.vindx,1)");
 
     nsize = zeros((20,1));
     nsize[1-1] = size(ndims);

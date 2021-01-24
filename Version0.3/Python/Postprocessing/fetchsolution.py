@@ -1,7 +1,7 @@
 from numpy import *
 from getsolution import getsolution
 
-def fetchsolution(app,master,dmd,dirname):
+def fetchsolution(app,master,dmd,dirname="dataout"):
 
     nt = len(app['dt']);
     if (nt==1):

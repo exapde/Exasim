@@ -52,7 +52,7 @@ for k = 1:nbc
     else
         tmp = tmp * "\telse if (ib == " * string(k) * ")\n";
     end
-    tmp = tmp * "\t\tkernel"  * gpufile * string(k) * "<<<gridDim, blockDim>>>(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, ng, nc, ncu, nd, ncx, nco, ncw);\n";
+    tmp = tmp * "\t\t"  * gpufile * string(k) * "<<<gridDim, blockDim>>>(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, ng, nc, ncu, nd, ncx, nco, ncw);\n";
 end
 tmp = tmp * "}\n\n";
 

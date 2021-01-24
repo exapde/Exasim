@@ -1,5 +1,9 @@
 function Uout = fetchsolution(app,master,dmd,dirname)
 
+if nargin<4
+    dirname = 'dataout';
+end
+
 nt = length(app.dt);
 if nt==1
     Uout = getsolution([dirname '/out'],dmd,master.npe);

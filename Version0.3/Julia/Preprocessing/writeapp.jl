@@ -22,10 +22,6 @@ ndims[12] = app.ncx;
 ndims[13] = app.nce;
 ndims[14] = app.ncw;
 
-if app.nco != size(app.vindx,1)
-    error("app.nco mus be equal to size(app.vindx,1)");
-end
-
 nsize = zeros(20,1);
 nsize[1] = length(ndims[:]);
 nsize[2] = length(app.flag[:]);  # length of flag

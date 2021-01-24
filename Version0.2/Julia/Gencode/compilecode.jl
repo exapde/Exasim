@@ -119,8 +119,6 @@ if app.platform == "cpu"
         run(string2cmd(compilerstr[6]));
     end
 elseif app.platform == "gpu"
-    run(string2cmd(compilerstr[1]));
-    run(string2cmd(compilerstr[2]));
     run(string2cmd(compilerstr[3]));
     run(string2cmd(compilerstr[4]));
     if app.mpiprocs==1
