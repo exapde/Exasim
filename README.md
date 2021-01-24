@@ -13,11 +13,9 @@ What make Exasim unique are the following distinctive features:
    - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs.   
    - can be called from Julia, Python, and Matlab. 
 
-# Dependency  
+# Installation 
 
-Exasim automatically generates and compiles stand-alone C++ code on the fly. To do that, Exasim requires a C++ compiler and Blas/Lapack libraries for generating serial code. An MPI library is required to compile and run parallel code. CUDA Tookit is required to run CUDA code on Nvidia GPUs. Gmesh is used for mesh generation. METIS is needed for mesh partitioning. And Paraview is used for visualization. 
-
-# Installation  
+Exasim automatically generates and compiles stand-alone C++ code on the fly. To do that, Exasim requires a C++ compiler and Blas/Lapack libraries for generating serial code. An MPI library is required to compile and run parallel code. CUDA Tookit is required to run CUDA code on Nvidia GPUs. Gmesh is used for mesh generation. METIS is needed for mesh partitioning. And Paraview is used for visualization.  
 
 Exasim itself does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) METIS, (optional) Gmesh, (optional) Paraview, and (optional) CUDA Toolkit. To install these packages, go to the directory Exasim/Installation and run install.jl in Julia, install.py in Python, or install.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
 
