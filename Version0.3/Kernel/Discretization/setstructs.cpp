@@ -256,10 +256,10 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     Int neb = mesh.ndims[6]; // maximum number of elements per block
     Int nfb = mesh.ndims[8]; // maximum number of faces per block                                            
             
-    Int n0 = max(npe*max(nc+ncw,ncx)*neb, npf*(ncu+2*nc+ncw)*nfb);                        
+    Int n0 = max(npe*max(nc+ncw,ncx)*neb, npf*(ncu+2*nc+2*ncw)*nfb);                        
     
     Int n1 = max(ncx+2*nd*nd+1, ncu*nd+ncu+ncw+max(nc,ncu*(nd+1)));
-    Int n2 = max(ncx+nd+1+nd*(nd-1), ncu+2*ncu*nd+2*nc+ncw);    
+    Int n2 = max(ncx+nd+1+nd*(nd-1), ncu+2*ncu*nd+2*nc+2*ncw);    
     Int n3 = max(nge*n1*neb, ngf*n2*nfb);        
         
     if (cpuMemory==0) { // GPU memory
