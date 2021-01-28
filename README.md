@@ -13,13 +13,11 @@ What make Exasim unique are the following distinctive features:
    - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs.   
    - can be called from Julia, Python, and Matlab. 
    
-See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
+After downloading the Exasim source code, you can immediately run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
 
 # Installation 
 
 As Exasim generates and compiles stand-alone C++ code on the fly, Exasim does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) Gmesh for mesh generation, (optional) METIS for mesh partitioning, (optional) Paraview for visualization, and (optional) CUDA Toolkit for Nvidia GPUs. Although these external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab, it is highly recommended to use Exasim without installing external packages. Exasim will install a required package on the fly if it can not find the package on your system.
-
-After downloading the Exasim source code, you can try numorous examples in Exasim/Applications by running pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
 # Applications
 
