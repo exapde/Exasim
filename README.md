@@ -13,7 +13,7 @@ What make Exasim unique are the following distinctive features:
    - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs   
    - can be called from Julia, Python, and Matlab. 
    
-After downloading the Exasim source code, you can immediately run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
+After downloading the Exasim source code, you can run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
 
 # Installation 
 
