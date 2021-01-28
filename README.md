@@ -10,7 +10,7 @@ What make Exasim unique are the following distinctive features:
    - simplifies numerical modeling and simulation with simple scripts
    - produces implicit high-order discontinuous Galerkin solutions of a wide variety of PDEs   
    - generates stand-alone C++ production code tailored to specific applications on different platforms 
-   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs.   
+   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs   
    - can be called from Julia, Python, and Matlab. 
    
 After downloading the Exasim source code, you can immediately run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
