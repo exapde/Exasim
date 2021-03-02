@@ -10,18 +10,19 @@ What make Exasim unique are the following distinctive features:
    - simplifies numerical modeling and simulation with simple scripts
    - produces implicit high-order discontinuous Galerkin solutions of a wide variety of PDEs   
    - generates stand-alone C++ production code tailored to specific applications on different platforms 
-   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs.   
+   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs   
    - can be called from Julia, Python, and Matlab. 
+   
+After downloading the Exasim source code, you can run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. If Exasim needs external packages, it will install them on the fly. See below and the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
 
 # Installation 
 
-As Exasim generates and compiles stand-alone C++ code on the fly, Exasim does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) Gmesh for mesh generation, (optional) METIS for mesh partitioning, (optional) Paraview for visualization, and (optional) CUDA Toolkit for Nvidia GPUs. To install these packages, go to the directory Exasim/Installation and run install.jl in Julia, install.py in Python, or install.m in Matlab. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
+As Exasim generates and compiles stand-alone C++ code on the fly, Exasim does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) Gmesh for mesh generation, (optional) METIS for mesh partitioning, (optional) Paraview for visualization, and (optional) CUDA Toolkit for Nvidia GPUs. Although these external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab, it is highly recommended to use Exasim without installing external packages. Exasim will install a required package on the fly if it can not find the package on your system.
 
 # Applications
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. 
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in Exasim/Applications to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. See https://github.com/exapde/Exasim/blob/master/Applications/ShallowWater/BickleyJet/BickleyJet.pdf for simulation results of the Bickley Jet problem.
 
-To try out any of the provided examples, please download the Exasim source code and go to any folder under Exasim/Applications and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See https://github.com/exapde/Exasim/blob/master/Applications/ShallowWater/BickleyJet/BickleyJet.pdf for simulation results of the Bickley Jet problem.
 
 # Publications
 [1] A Matrix-Free Implicit Discontinuous Galerkin Method for Large Eddy Simulation of Transonic Buffet at High Reynolds Number on Graphics Processors. https://github.com/exapde/Exasim/tree/master/Documentation/AIAA_Journal_2020_OAT15A.pdf 
