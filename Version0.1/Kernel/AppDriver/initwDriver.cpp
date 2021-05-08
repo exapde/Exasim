@@ -21,6 +21,15 @@ void InitwDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int nc, Int npe
         gpuInitw(f, xg, app.uinf, app.physicsparam, numPoints, ncx, nc, npe, ne);             
     }
 #endif    
+    
+#ifdef CHECK_NAN                
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*nc, f, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", w0 norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 #endif

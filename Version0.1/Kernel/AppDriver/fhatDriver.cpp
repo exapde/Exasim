@@ -89,6 +89,15 @@ void FhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
         exit(-1);
     }            
     }
+    
+#ifdef CHECK_NAN                
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncu, fg, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", fhat norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 #endif

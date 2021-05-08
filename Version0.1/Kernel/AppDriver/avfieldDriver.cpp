@@ -39,6 +39,15 @@ void AvfieldDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg,
         
     }
 #endif    
+    
+#ifdef CHECK_NAN                
+    dstype nrmf = PNORM(common.cublasHandle, numPoints, f, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", avField norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 #endif

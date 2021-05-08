@@ -37,6 +37,15 @@ void SourcewDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg,
                     numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
     }
 #endif    
+    
+#ifdef CHECK_NAN                
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncw, f, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", sourcew norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 #endif

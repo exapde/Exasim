@@ -260,7 +260,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, Int
         disc.evalResidual(sys.r, sys.u, backend);
         nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
 
-        if (nrmr > 1e6) {                        
+        if (nrmr > 1e16) {                        
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             if (disc.common.saveSolOpt==0)
                 writearray2file(filename, sys.u, disc.common.ndof1, backend);

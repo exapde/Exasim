@@ -39,6 +39,15 @@ void UhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
     else {         
         ArrayAXPBY(fg, ug1, ug2, (dstype) 0.5, (dstype) 0.5, ngf*common.ncu*(f2-f1), backend);
     }
+    
+#ifdef CHECK_NAN                
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncu, fg, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", uhat norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 #endif
