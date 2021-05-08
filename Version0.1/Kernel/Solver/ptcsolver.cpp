@@ -268,7 +268,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, Int
                 writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
 
             if (disc.common.mpiRank==0)
-                cout<<"Residual is NaN in file ptcsolver.cpp at line 301"<<endl;                           
+                cout<<"Residual norm is bigger than 1e16 in file ptcsolver.cpp at line 271: "<<nrmr<<endl;                           
             
             #ifdef  HAVE_MPI       
                 MPI_Finalize();    
