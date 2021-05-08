@@ -23,9 +23,9 @@ void InituDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int nc, Int npe
 #endif    
     
 #ifdef CHECK_NAN                
-    dstype nrmf = PNORM(common.cublasHandle, numPoints*nc, f, common.backend);
+    dstype nrmf = PNORM(0, numPoints*nc, f, backend);
     if (isnan(nrmf) || nrmf > 1.0e14) {
-        cout<<"Processor: "<<common.mpiRank<<", u0 norm: "<<nrmf<<endl;
+        cout<<"u0 norm: "<<nrmf<<endl;
         error("here");
     }
 #endif    

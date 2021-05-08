@@ -23,9 +23,9 @@ void InitwdgDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int ncw, Int 
 #endif    
     
 #ifdef CHECK_NAN                
-    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncw, f, common.backend);
+    dstype nrmf = PNORM(0, numPoints*ncw, f, backend);
     if (isnan(nrmf) || nrmf > 1.0e14) {
-        cout<<"Processor: "<<common.mpiRank<<", wdg0 norm: "<<nrmf<<endl;
+        cout<<"wdg0 norm: "<<nrmf<<endl;
         error("here");
     }
 #endif    
