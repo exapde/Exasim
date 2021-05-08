@@ -34,6 +34,15 @@ void FluxDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, me
                     numPoints, nc, ncu, nd, ncx, nco, ncw);                        
     }
 #endif    
+    
+#ifdef CHECK_NAN            
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncu*ncx, f, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", flux norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 #endif

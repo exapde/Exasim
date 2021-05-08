@@ -33,7 +33,16 @@ void FbouDriver(dstype *fb, dstype *xg, dstype *udg, dstype * odg, dstype * wdg,
         gpuFbou(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                          ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
     }
-#endif            
+#endif    
+    
+#ifdef CHECK_NAN                
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncu, fb, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", fbou norm: "<<nrmf<<endl;
+        error("here");
+    }
+#endif    
+    
 }
 
 

@@ -15,6 +15,7 @@ void SourceDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, 
     Int numPoints = nge*(e2-e1);              
     dstype time = common.time;
 
+    
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
@@ -33,7 +34,29 @@ void SourceDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, 
         gpuSource(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
                     numPoints, nc, ncu, nd, ncx, nco, ncw);                        
     }
+#endif
+    
+#ifdef CHECK_NAN            
+    dstype nrmf = PNORM(common.cublasHandle, numPoints*ncu, f, common.backend);
+    if (isnan(nrmf) || nrmf > 1.0e14) {
+        cout<<"Processor: "<<common.mpiRank<<", source norm: "<<nrmf<<endl;
+        error("here");
+    }
 #endif    
+    
+    // add EUV source term to f
+    // if it is simple enough, we can do that in pdemodel file
+    // s = sum_n a_n * f_n(x, u, q, mu)
+    // s = 0
+    // for n = 1:N
+    //  f_n(x, u, q, mu)
+    //  s = s + a_n * f_n
+    // 
+    // alpha*(nabla T dot n - q0(x)) + beta * (T - T0(x)) = 0    
+    /// nabla T dot n = 0
+    
+    // v = 0
+    // rho = rhohat 
 }
 
 #endif
