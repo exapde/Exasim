@@ -1,5 +1,9 @@
-function poly2gmsh(fname, pv)
+function poly2gmsh(fname, pv, elemtype)
     
+    if nargin<3 
+        elemtype = 0;
+    end
+        
     fid = fopen(fname, 'w');
     
     npv = size(pv,1);
@@ -18,8 +22,14 @@ function poly2gmsh(fname, pv)
     str(commapos) = ',';
 
     fprintf(fid, 'Line Loop(%d) = {%s};\n', npv, str);
-    fprintf(fid, 'Plane Surface(1000) = {%d};\n', npv);
+    fprintf(fid, 'Plane Surface(1000) = {%d};\n', npv);    
+    if elemtype==1
+        fprintf(fid, 'Recombine Surface {1000};\n');
+    end
     
     fclose(fid);
 
 end
+
+
+

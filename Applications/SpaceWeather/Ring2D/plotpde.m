@@ -42,3 +42,4 @@ pde.visscalars = {"density", 1, "energy", 4, "temperature", 5};  % list of scala
 pde.visvectors = {"momentum", [2, 3]}; % list of vector fields for visualization
 xdg = vis(sol2,pde,mesh); % visualize the numerical solution
 disp("Done!");
+
