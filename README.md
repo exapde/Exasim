@@ -25,4 +25,4 @@ Exasim produces C++ Code to solve a wide variety of parametrized partial differe
 
 
 # Publications
-[1] A Matrix-Free Implicit Discontinuous Galerkin Method for Large Eddy Simulation of Transonic Buffet at High Reynolds Number on Graphics Processors. https://github.com/exapde/Exasim/tree/master/Documentation/AIAA_Journal_2020_OAT15A.pdf 
+[1] A Matrix-Free Implicit Discontinuous Galerkin Method for Large Eddy Simulation of Transonic Buffet at High Reynolds Number on Graphics Processors. https://github.com/exapde/Exasim/tree/master/Documentation/AIAA_Journal_2020_OAT15A.pdf. The numerical results and the source codes are located at https://github.com/exapde/Exasim/blob/master/Applications/NavierStokes/OAT15A.
