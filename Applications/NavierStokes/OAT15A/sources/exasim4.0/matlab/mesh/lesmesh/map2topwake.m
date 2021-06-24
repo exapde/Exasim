@@ -1,0 +1,43 @@
+function p = map2topwake(pp,xf,yf)
+p = 0*pp;
+nr = 0*pp;
+lt = pp(:,1) > 2;
+xf =[xf, yf];
+%nn = size(xf,1)-1;
+t = 0:length(xf(:,1))-1;
+spf = [spline(t,xf(:,1)),spline(t,xf(:,2))];
+spfder = [fnder(spf(1)),fnder(spf(2))];
+dxf = [fnval(spfder(1),t)', fnval(spfder(2),t)'];
+dsf = sqrt(dxf(:,1).^2+dxf(:,2).^2);
+dxf = [dxf(:,1)./dsf, dxf(:,2)./dsf];
+nf = -[dxf(:,2), -dxf(:,1)];
+
+%TOP WAKE
+tw = 0:6;
+blth = 16;
+xwt = zeros(7,2);
+xwt(1,:) = xf(end,:);
+xwt(2,:) = [xf(end,1) + 0.5, xf(end,2)-0.0+0.02];
+xwt(3,:) = [xf(end,1) + 1.5, xf(end,2)+0.03+0.06];
+xwt(4,:) = [xf(end,1) + 3.0, xf(end,2)+0.03+0.06*1.5*2];
+xwt(5,:) = [xf(end,1) + 5.0, xf(end,2)+0.03+0.06*3.5*2];
+xwt(6,:) = [xf(end,1) + 7.5, xf(end,2)+0.03+0.06*6*2.0];
+xwt(7,:) = [xf(end,1) + 10.0,xf(end,2)+0.03+0.06*8.5*2.0];
+xwt
+spwt = [spline(tw,xwt(:,1)),spline(tw,xwt(:,2))];
+spwtder = [fnder(spwt(1)),fnder(spwt(2))];
+%xwtp = [fnval(spwt(1),twp)', fnval(spwt(2),twp)'];
+%dxwt = [fnval(spwtder(1),twp)', fnval(spwtder(2),twp)'];
+%dswt = sqrt(dxwt(:,1).^2+dxwt(:,2).^2);
+%nt = -[dxwt(:,2)./dswt, -dxwt(:,1)./dswt];
+%nt = 0.5*(nt.*twp' + nf(end,:).*(2-twp'));
+%nts = sqrt(nt(:,1).^2+nt(:,2).^2);
+%nt = 0.1*nt./nts;
+p(lt,:) = [fnval(spwt(1),6*(pp(lt,1)-2)),fnval(spwt(2),6*(pp(lt,1)-2))];
+nr(lt,:) = [fnval(spwtder(1),6*(pp(lt,1)-2)), fnval(spwtder(2),6*(pp(lt,1)-2))];
+nrs = sqrt(nr(lt,1).^2+nr(lt,2).^2);
+nr(lt,:) = -[nr(lt,2)./nrs, -nr(lt,1)./nrs];
+nr(lt,:) = (nr(lt,:).*(pp(lt,1)-2) + nf(end,:).*(3-pp(lt,1)));
+nrs = sqrt(nr(lt,1).^2+nr(lt,2).^2);
+nr(lt,:) = nr(lt,:)./nrs;
+p(lt,:) = p(lt,:) + ((3-pp(lt,1))+(pp(lt,1)-2)*blth).*nr(lt,:).*pp(lt,2);

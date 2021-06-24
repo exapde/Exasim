@@ -1,0 +1,45 @@
+g++ -fPIC -O3 -c commonCore.cpp
+g++ --shared commonCore.o -o libcommonCoreLinux.so
+ar rvs commonCoreLinux.a commonCore.o    
+
+g++ -fPIC -O3 -c opuCore.cpp
+g++ --shared opuCore.o -o libopuCoreLinux.so
+ar rvs opuCoreLinux.a opuCore.o    
+
+g++ -fPIC -O3 -c cpuCore.cpp -fopenmp
+g++ --shared cpuCore.o -o libcpuCoreLinux.so
+ar rvs cpuCoreLinux.a cpuCore.o        
+
+nvcc -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuCore.cu
+g++ --shared gpuCore.o -o libgpuCoreLinux.so    
+ar -rvs gpuCoreLinux.a gpuCore.o    
+
+cp *.so ../../../library/
+cp *.a ../../../library/
+
+g++ -fPIC -O3 -c cpuApp.cpp -fopenmp
+ar -rvs cpuAppLinux.a cpuApp.o
+g++ -fPIC -O3 -c opuApp.cpp
+ar -rvs opuAppLinux.a opuApp.o
+nvcc -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu
+ar -rvs gpuAppLinux.a gpuApp.o
+
+mpicxx -std=c++11 -D _MPI   ../../../../../exasim4.0/kernel/validation/main.cpp -o mpiapp ../../../../../library/commonCoreLinux.a ../../../../../library/opuCoreLinux.a opuAppLinux.a -O2 -pthread -lm -ldl -lblas -llapack
+mpicxx -std=c++11 -D _MPI -D _CUDA   ../../../../../exasim4.0/kernel/validation/main.cpp -o gpumpins ../../../../../library/commonCoreLinux.a ../../../../../library/opuCoreLinux.a ../../../../../library/gpuCoreLinux.a opuAppLinux.a gpuAppLinux.a -O2 -pthread -lm -ldl -lcudart -lcublas -lblas -llapack
+
+g++ -std=c++11 -D _MPI -D _CUDA  ../../../../../exasim4.0/kernel/validation/main.cpp -o gpumpiapp ../../../../../library/commonCoreLinux.a ../../../../../library/opuCoreLinux.a ../../../../../library/gpuCoreLinux.a opuAppLinux.a gpuAppLinux.a -O2 -lm -ldl -lnuma -lblas -llapack -Wl,-rpath,/usr/local/cuda-9.2/lib64 -L/usr/local/cuda-9.2/lib64 -lcudart -lcublas -Wl,-rpath,/apps/OPENMPI/3.1.0/GCC/lib -L/apps/OPENMPI/3.1.0/GCC/lib -lmpi_cxx -lmpi
+g++ -std=c++11 -D _CUDA  ../../../../../exasim4.0/kernel/validation/main.cpp -o gpuapp ../../../../../library/commonCoreLinux.a ../../../../../library/opuCoreLinux.a ../../../../../library/gpuCoreLinux.a opuAppLinux.a gpuAppLinux.a -O2 -lm -ldl -lnuma -lblas -llapack -Wl,-rpath,/usr/local/cuda-9.2/lib64 -L/usr/local/cuda-9.2/lib64 -lcudart -lcublas
+
+g++ -std=c++11 -D _CUDA   ../../../../../exasim4.0/kernel/validation/main.cpp -o gpuns ../../../../../library/commonCoreLinux.a ../../../../../library/opuCoreLinux.a ../../../../../library/gpuCoreLinux.a opuAppLinux.a gpuAppLinux.a -O2 -pthread -lm -ldl -lcudart -lcublas -Wl,-rpath,../../../../../library/ -L../../../../../library/ -lmkl_intel_lp64 -lmkl_sequential -lmkl_core'
+
+pgc++ -std=c++11 -D _MPI -D _CUDA  ../../../../../exasim4.0/kernel/validation/main.cpp -o gpumpiapp2 ../../../../../library/commonCoreLinux.a ../../../../../library/opuCoreLinux.a ../../../../../library/gpuCoreLinux.a opuAppLinux.a gpuAppLinux.a -O2 -lm -ldl -lnuma -Wl,-rpath,/apps/LAPACK/3.8.0/GCC/lib64 -L/apps/LAPACK/3.8.0/GCC/lib64 -lblas -llapack -Wl,-rpath,/usr/local/cuda-9.2/lib64 -L/usr/local/cuda-9.2/lib64 -lcudart -lcublas -Wl,-rpath,/apps/OPENMPI/3.1.0/GCC/lib -L/apps/OPENMPI/3.1.0/GCC/lib -lmpi
+
+#define DDOT ddot_
+#define DGEMV dgemv_
+#define DGEMM dgemm_
+#define DGETRF dgetrf_
+#define DGETRI dgetri_
+
+
+
+
