@@ -567,6 +567,11 @@ void CSolution::ReadSolutions(Int backend)
             }
             else
                 readarrayfromfile(filename, &disc.sol.udg, disc.common.ndofudg1, backend);            
+            
+            if (disc.common.ncw>0) {
+                string fn = disc.common.fileout+"_wdg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+                readarrayfromfile(fn, &disc.sol.wdg, disc.common.ndofw1, backend);     
+            }                                                
         }                                
    }
    else {
@@ -579,6 +584,11 @@ void CSolution::ReadSolutions(Int backend)
         }
         else
             readarrayfromfile(filename, &disc.sol.udg, disc.common.ndofudg1, backend);               
+        
+        if (disc.common.ncw>0) {
+            string fn = disc.common.fileout + "_wdg_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+            readarrayfromfile(fn, &disc.sol.wdg, disc.common.ndofw1, backend);     
+        }                                                    
    }    
 }
  
