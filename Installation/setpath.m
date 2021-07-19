@@ -10,5 +10,6 @@ addpath(char(versiondir + "/Utilities"));
 setenv('PATH', '/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin');
 % Add more paths if neccesary 
 setenv('PATH', [getenv('PATH') ':/Applications/ParaView-5.8.1.app/Contents/MacOS']);
+setenv('LD_LIBRARY_PATH', '/usr/bin/');
 
 fprintf("==> Exasim " + version + " ...\n"');
