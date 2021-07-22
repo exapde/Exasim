@@ -3,7 +3,8 @@ function app = writeapp(app,filename,endian)
 appname = 0;
 %app.stgNmode = size(app.stgdata,1);
 app.flag   = [app.tdep app.wave app.linearproblem app.debugmode app.matvecorder app.GMRESortho...  
-              app.preconditioner app.precMatrixType app.NLMatrixType app.runmode app.tdfunc app.source app.modelnumber app.flag];
+              app.preconditioner app.precMatrixType app.NLMatrixType app.runmode app.tdfunc app.source ...
+              app.modelnumber app.extFhat app.extUhat app.extStab app.flag];
 app.problem  = [app.hybrid appname app.temporalscheme app.torder app.nstage app.convStabMethod...
                app.diffStabMethod app.rotatingFrame app.viscosityModel app.SGSmodel app.ALE app.AV...
                app.linearsolver app.NLiter app.linearsolveriter app.GMRESrestart app.RBdim ...
@@ -26,6 +27,8 @@ ndims(11) = app.nch;
 ndims(12) = app.ncx;
 ndims(13) = app.nce;
 ndims(14) = app.ncw;
+%ndims(15) = 40;
+%ndims(16) = 4;
 
 % if app.nco ~= size(app.vindx,1)
 %     error("app.nco mus be equal to size(app.vindx,1)");

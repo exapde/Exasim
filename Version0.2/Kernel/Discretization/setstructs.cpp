@@ -76,6 +76,9 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.tdfunc = app.flag[10];
     common.source = app.flag[11]; 
     common.modelnumber = app.flag[12]; 
+    common.extFhat = app.flag[13];
+    common.extUhat = app.flag[14];
+    common.extStab = app.flag[15];
     
     common.tsteps = app.nsize[4];  // number of time steps        
     common.spatialScheme = app.problem[0];   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */

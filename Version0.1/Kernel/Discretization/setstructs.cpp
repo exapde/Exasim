@@ -74,7 +74,10 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.ptcMatrixType = app.flag[8];
     common.runmode = app.flag[9];
     common.tdfunc = app.flag[10];
-    common.source = app.flag[11]; 
+    common.source = app.flag[11]; // app.extFhat app.extUhat app.extStab 
+    common.extFhat = app.flag[12];
+    common.extUhat = app.flag[13];
+    common.extStab = app.flag[14];
     
     common.tsteps = app.nsize[4];  // number of time steps        
     common.spatialScheme = app.problem[0];   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */
