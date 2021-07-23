@@ -2,6 +2,7 @@
 versiondir = cdir(1:(ii+5)) + "/"  + version + "/Matlab";
 addpath(char(versiondir + "/Gencode"));
 addpath(char(versiondir + "/Mesh"));
+addpath(char(versiondir + "/Mesh/lesmesh"));
 addpath(char(versiondir + "/Preprocessing"));
 addpath(char(versiondir + "/Postprocessing"));
 addpath(char(versiondir + "/Utilities"));
