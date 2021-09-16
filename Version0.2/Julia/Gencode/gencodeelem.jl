@@ -17,13 +17,14 @@ strgpu = strgpu * tmp * "{\n";
 strgpu = strgpu * "\tint i = threadIdx.x + blockIdx.x * blockDim.x;\n";
 strgpu = strgpu * "\twhile (i<ng) {\n";
 
+fstr = string(f[:]);      
 str = "";
-str = varsassign(str, "param", length(param), 0);
-str = varsassign(str, "uinf", length(uinf), 0);
-str = varsassign(str, "xdg", length(xdg), 1);
-str = varsassign(str, "udg", length(udg), 1);
-str = varsassign(str, "odg", length(odg), 1);
-str = varsassign(str, "wdg", length(wdg), 1);
+str = varsassign(str, "param", length(param), 0, fstr);
+str = varsassign(str, "uinf", length(uinf), 0, fstr);
+str = varsassign(str, "xdg", length(xdg), 1, fstr);
+str = varsassign(str, "udg", length(udg), 1, fstr);
+str = varsassign(str, "odg", length(odg), 1, fstr);
+str = varsassign(str, "wdg", length(wdg), 1, fstr);
 str = sympyassign(str, f);
 
 stropu = stropu * str * "\t}\n" * "}\n\n";

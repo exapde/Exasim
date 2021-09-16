@@ -20,8 +20,9 @@ strgpu = strgpu * "\twhile (i<ng) {\n";
 str = "\t\tint j = i%npe;\n";
 str = str * "\t\tint k = (i-j)/npe;\n";
 
-str = varsassign(str, "param", length(param), 0);
-str = varsassign(str, "uinf", length(uinf), 0);
+fstr = string(f[:]);     
+str = varsassign(str, "param", length(param), 0, fstr);
+str = varsassign(str, "uinf", length(uinf), 0, fstr);
 
 varname = "xdg";
 for i = 1:length(xdg)

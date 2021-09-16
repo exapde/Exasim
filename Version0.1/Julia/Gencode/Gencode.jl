@@ -8,6 +8,7 @@ using SymPy
 export syminit, gencode, compilecode, runcode, checkcompilers, setcompilers, tring2cmd
 
 include("syminit.jl");
+include("contains.jl");
 include("varsassign.jl");
 include("sympyassign.jl");
 include("gencodebou.jl");
