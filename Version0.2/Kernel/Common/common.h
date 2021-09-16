@@ -911,6 +911,7 @@ struct commonstruct {
     Int ndof; // number of degrees of freedom of u
     Int ndofq; // number of degrees of freedom of q
     Int ndofp; // number of degrees of freedom of p
+    Int ndofw; // number of degrees of freedom of w
     Int ndofudg; // number of degrees of freedom of udg
     Int ndofsdg; // number of degrees of freedom of sdg
     Int ndofodg; // number of degrees of freedom of odg
@@ -923,6 +924,7 @@ struct commonstruct {
     Int ndof1; // number of degrees of freedom of u
     Int ndofq1; // number of degrees of freedom of q
     Int ndofp1; // number of degrees of freedom of p
+    Int ndofw1; // number of degrees of freedom of w
     Int ndofudg1; // number of degrees of freedom of udg
     Int ndofsdg1; // number of degrees of freedom of sdg
     Int ndofodg1; // number of degrees of freedom of odg

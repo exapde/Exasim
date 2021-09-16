@@ -19,11 +19,20 @@ if nmodels==1
     % generate source codes and store them in app folder
     gencode(pde);
 
-    % compile source codes to build an executable file and store it in app folder
-    compilerstr = compilecode(pde);
+    if pde.usecmake==1    
+        cmakecompile(pde); % use cmake to compile source codes 
+    else
+        % compile source codes to build an executable file and store it in app folder
+        compilerstr = compilecode(pde);
 
-    % run executable file to compute solution and store it in dataout folder
-    runstr = runcode(pde);
+        % run executable file to compute solution and store it in dataout folder
+        runstr = runcode(pde);
+    end        
+%     % compile source codes to build an executable file and store it in app folder
+%     compilerstr = compilecode(pde);
+% 
+%     % run executable file to compute solution and store it in dataout folder
+%     runstr = runcode(pde);
 
     % get solution from output files in dataout folder
     sol = fetchsolution(pde,master,dmd, 'dataout');
@@ -38,11 +47,20 @@ else
     end        
     gencodeall(nmodels);
 
-    % compile source codes to build an executable file and store it in app folder
-    compilerstr = compilecode(pde{1});
+    if pde{1}.usecmake==1    
+        cmakecompile(pde{1}, nmodels);
+    else
+        % compile source codes to build an executable file and store it in app folder
+        compilerstr = compilecode(pde{1});
 
-    % run executable file to compute solution and store it in dataout folder
-    runstr = runcode(pde{1},nmodels);
+        % run executable file to compute solution and store it in dataout folder
+        runstr = runcode(pde{1}, nmodels);
+    end        
+%     % compile source codes to build an executable file and store it in app folder
+%     compilerstr = compilecode(pde{1});
+% 
+%     % run executable file to compute solution and store it in dataout folder
+%     runstr = runcode(pde{1},nmodels);
 
     % get solution from output files in dataout folder
     for m = 1:nmodels        

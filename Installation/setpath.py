@@ -2,6 +2,7 @@ import sys, os
 
 # Add Exasim to Python search path
 versiondir = cdir[0:(ii+6)] + "/"  + version + "/Python";
+sys.path.append(cdir[0:(ii+6)] + '/Installation');
 sys.path.append(versiondir + '/Gencode');
 sys.path.append(versiondir + '/Mesh');
 sys.path.append(versiondir + '/Preprocessing');

@@ -55,10 +55,10 @@ using namespace std;
 
 int main(int argc, char** argv) 
 {   
-    if( argc >= 3 ) {
+    if( argc >= 4 ) {
     }
-    else {
-      printf("Usage: ./cppfile InputFile OutputFile\n");
+    else {      
+      printf("Usage: ./cppfile nomodels InputFile OutputFile\n");
       return 1;
     }                
     
@@ -152,9 +152,14 @@ int main(int argc, char** argv)
 
     // initialize PDE models
     CSolution** pdemodel = new CSolution*[nomodels];     
+    
+    //pdemodel[i]->disc.app.stgdata; // stgdata is a pointer to an array
+            
     for (int i=0; i<nomodels; i++) {                
         pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, ngpus, gpuid, backend);       
         pdemodel[i]->disc.common.nomodels = nomodels;
+        
+        // can move these to the constructor 
         pdemodel[i]->disc.common.ncarray = new Int[nomodels]; 
         pdemodel[i]->disc.sol.udgarray = new dstype*[nomodels]; // array of pointers pointing to udg
         
@@ -171,7 +176,7 @@ int main(int argc, char** argv)
     for (int i=0; i<nomodels; i++) 
         for (int j=0; j<nomodels; j++) {
             pdemodel[i]->disc.common.ncarray[j] = pdemodel[j]->disc.common.nc;            
-            pdemodel[i]->disc.sol.udgarray[j] = &pdemodel[j]->disc.sol.udg[0];
+            pdemodel[i]->disc.sol.udgarray[j] = &pdemodel[j]->disc.sol.udg[0]; // model[i], model[j]
         }    
     
     // time-dependent problems
@@ -301,6 +306,7 @@ int main(int argc, char** argv)
                 pdemodel[i]->disc.evalQSer(backend);
                 pdemodel[i]->disc.common.saveSolOpt = 1;
                 string filename = pdemodel[i]->disc.common.fileout + "_np" + NumberToString(pdemodel[i]->disc.common.mpiRank) + ".bin";                    
+                //string filename = pdemodel[i]->disc.common.fileout + "_np" + NumberToString(pdemodel[i]->disc.common.mpiRank) + ".bin";
                 writearray2file(filename, pdemodel[i]->disc.sol.udg, pdemodel[i]->disc.common.ndofudg1, backend);   
             }                
         }

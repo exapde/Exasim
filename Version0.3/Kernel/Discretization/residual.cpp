@@ -82,12 +82,12 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
             dstype scalar = one/common.dtfactor;
             ArrayExtract(tmp.tempn, sol.udg, common.npe, common.nc, common.ne1, 0, common.npe, 0, common.ncu, e1, e2, backend);                                                  
             ArrayAXPBY(&sol.wdg[npe*ncw*e1], tmp.tempn, &sol.wsrc[npe*ncw*e1], scalar, scalar, npe*ncw*(e2-e1), backend);                        
-        }
-        else {
+        }        
+        else if (common.wave==0) { // alpha * dw/dt + beta w = sourcew(u,q,v)
             // calculate the source term Sourcew(xdg, udg, odg, wdg)
             SourcewDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
                     &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
-            if (common.dae_steps==0) {
+            if (common.dae_steps==0) { // alpha * dw/dt + beta w = sourcew(u,q,v)
                 // 1.0/(alpha*dirkd/dt + beta)
                 dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta);
                 
@@ -108,7 +108,15 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
                 // calculate w = (1/(alpha*dirkd/dt + beta + gamma))*(gamma*walg + alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
                 ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wdual[npe*ncw*e1], tmp.tempn, common.dae_gamma*scalar, scalar, npe*ncw*(e2-e1), backend);                                    
             }                
-        }                    
+        }
+        else {
+            //printf("Using EoS\n");
+            EosDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                    &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
+                        
+            // calculate w = Sourcew(xdg, udg, odg, wdg)  
+            ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wsrc[npe*ncw*e1], tmp.tempn, zero, one, npe*ncw*(e2-e1), backend);                    
+        }
     }    
 }
 

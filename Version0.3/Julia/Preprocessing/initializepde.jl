@@ -13,6 +13,8 @@ mutable struct PDEStruct
     modelfile::String;# PDE model file name
     modelnumber::IntP;
 
+    usecmake::IntP; 
+    buildexec::IntP; 
     preprocessmode::IntP; # preprocessing mode
     mpiprocs::IntP; # number of MPI ranks
     nd::IntP; # physical dimension
@@ -117,6 +119,8 @@ end
 function initializepde(version)
     pde = PDEStruct();
 
+    pde.usecmake = 0;
+    pde.buildexec = 0;
     pde.cpucompiler = "g++";
     pde.mpicompiler = "mpicxx";
     pde.gpucompiler = "nvcc";

@@ -9,11 +9,16 @@ pde = setcompilers(pde);
 % generate source codes and store them in app folder
 gencode(pde);
 
-% compile source codes to build an executable file and store it in app folder
-compilerstr = compilecode(pde);
+% use cmake to compile source codes 
+if pde.usecmake==1    
+    cmakecompile(pde);
+else
+    % compile source codes to build an executable file and store it in app folder
+    compilerstr = compilecode(pde);
 
-% run executable file to compute solution and store it in dataout folder
-runstr = runcode(pde);
+    % run executable file to compute solution and store it in dataout folder
+    runstr = runcode(pde);
+end
 
 % get solution from output files in dataout folder
 sol = fetchsolution(pde,master,dmd);

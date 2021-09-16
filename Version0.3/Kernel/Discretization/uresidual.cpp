@@ -57,7 +57,7 @@ void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
             ArrayAXY(&tmp.tempg[n4], &tmp.tempg[n4], &tmp.tempg[n5], one, nga*ncu, backend);                
         }
         
-        if (common.source==1) {
+        if (common.source==1) {            
             // calculate the source term Source(xdg, udg, odg, wdg)
             SourceDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
                 &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);

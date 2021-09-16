@@ -1,12 +1,10 @@
 function [p,t] = connectmesh(p1,t1,p2,t2,tol)
 % connect (p1,t1) and (p2,t2) to form (p,t)
 
-if size(p1,1)==2 || size(p1,1)==3
-    p1 = p1';
-    p2 = p2';
-    t1 = t1';
-    t2 = t2';
-end
+p1 = p1';
+p2 = p2';
+t1 = t1';
+t2 = t2';
 
 if nargin<5
     tol = 1e-8;
@@ -55,8 +53,5 @@ end
 p   = [p1;p2];
 t   = [t1;t2];
 
-if size(p1,1)==2 || size(p1,1)==3
-    p = p';
-    t = t';
-end
-
+p = p';
+t = t';

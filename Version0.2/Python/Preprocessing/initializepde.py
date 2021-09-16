@@ -22,6 +22,9 @@ def initializepde(version):
     #pde['cpuflags'] = "-O2 -Wall -ldl -lm -lblas -llapack";
     pde['cpuflags'] = "-O2 -ldl -lm -lblas -llapack";
     pde['gpuflags'] = "-lcudart -lcublas";
+
+    pde['usecmake'] = 0;
+    pde['buildexec'] = 0;
     pde['preprocessmode'] = 1;
     pde['mpiprocs'] = 1;
     pde['nd'] = 1;

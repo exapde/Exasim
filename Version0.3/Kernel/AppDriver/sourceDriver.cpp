@@ -15,6 +15,11 @@ void SourceDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, 
     Int numPoints = nge*(e2-e1);              
     dstype time = common.time;
 
+    //function app.uinf = (app.stgdata, app.stgparam);
+//     if (common.gitm==1) {
+//         // compute app.uinf
+//     }
+            
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {

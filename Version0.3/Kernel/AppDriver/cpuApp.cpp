@@ -7,6 +7,7 @@
 #include "cpuFlux.cpp"
 #include "cpuSource.cpp"
 #include "cpuSourcew.cpp"
+//#include "cpuEoS.cpp"
 #include "cpuTdfunc.cpp"
 #include "cpuAvfield.cpp"
 #include "cpuOutput.cpp"

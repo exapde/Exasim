@@ -44,7 +44,7 @@ def gencodeelem(filename, f, xdg, udg, odg, wdg, uinf, param, time):
     tmp = tmp + "\tint blockDim = 256;\n";
     tmp = tmp + "\tint gridDim = (ng + blockDim - 1) / blockDim;\n";
     tmp = tmp + "\tgridDim = (gridDim>1024)? 1024 : gridDim;\n";
-    tmp = tmp + "\tkernel" + gpufile + "<<<gridDim, blockDim>>>(f, xdg, udg, odg, wdg, uinf, param, time, ng, nc, ncu, nd, ncx, nco);\n";
+    tmp = tmp + "\tkernel" + gpufile + "<<<gridDim, blockDim>>>(f, xdg, udg, odg, wdg, uinf, param, time, ng, nc, ncu, nd, ncx, nco, ncw);\n";
     tmp = tmp + "}\n\n";
     tmp = tmp + "template void " + gpufile;
     tmp = tmp + "(double *, double *, double *, double *, double *, double *, double *, double, int, int, int, int, int, int, int);\n";

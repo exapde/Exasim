@@ -109,8 +109,9 @@ function gencodeelemface(filename, npm, ncase)
     close(iocpu);
     
     strgpu = replace(stropu, "opu" => "gpu");
+    strgpu = replace(strgpu, "cpp" => "cu");
     iogpu = open(foldername * "/" * gpufile * ".cu", "w");
     write(iogpu, strgpu);
-    close(iogpu);
-        
+    close(iogpu);        
 end
+

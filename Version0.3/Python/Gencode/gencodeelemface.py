@@ -99,6 +99,7 @@ def gencodeelemface(filename, npm, ncase):
     stropu = tmp;
     strcpu = stropu.replace("opu", "cpu");
     strgpu = stropu.replace("opu", "gpu");
+    strgpu = strgpu.replace("cpp", "cu");
 
     ioopu = open(foldername + "/" + opufile + ".cpp", "w");
     ioopu.write(stropu);

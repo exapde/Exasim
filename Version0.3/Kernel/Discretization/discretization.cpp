@@ -35,6 +35,9 @@ CDiscretization::CDiscretization(CDiscretization& hdata)
 CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, Int mpirank, 
         Int ompthreads, Int omprank, Int backend) 
 {
+        //common.ncarray = new Int[nomodels]; 
+        //sol.udgarray = new dstype*[nomodels]; // array of pointers pointing to udg
+    
     if (backend==2) { // GPU
 #ifdef HAVE_CUDA        
         // host structs
@@ -53,15 +56,15 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         // copy data from cpu memory to gpu memory
         gpuInit(sol, res, app, master, mesh, tmp, common, 
             hsol, hres, happ, hmaster, hmesh, htmp, hcommon);                
-        
+                
         // release CPU memory
-        happ.freememory(hcommon.cpuMemory);
-        hmaster.freememory(hcommon.cpuMemory);
-        hmesh.freememory(hcommon.cpuMemory);
-        hsol.freememory(hcommon.cpuMemory);
-        htmp.freememory(hcommon.cpuMemory);
-        hres.freememory(hcommon.cpuMemory);
-        hcommon.freememory();                      
+        happ.freememory(hcommon.cpuMemory);        
+        hmaster.freememory(hcommon.cpuMemory);        
+        hmesh.freememory(hcommon.cpuMemory);        
+        hsol.freememory(hcommon.cpuMemory);        
+        htmp.freememory(hcommon.cpuMemory);        
+        hres.freememory(hcommon.cpuMemory);        
+        hcommon.freememory();             
 #endif        
     }
     else // CPU
@@ -80,6 +83,9 @@ CDiscretization::~CDiscretization()
     res.freememory(common.cpuMemory);
     common.freememory();
            
+    // free ncarray and udgarray
+    
+    
 #ifdef HAVE_CUDA    
     if (common.cpuMemory==0) {
         CHECK(cudaEventDestroy(common.eventHandle));

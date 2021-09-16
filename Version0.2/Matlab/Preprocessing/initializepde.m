@@ -1,5 +1,7 @@
 function pde = initializepde(version)
 
+pde.usecmake = 0;
+pde.buildexec = 0;
 pde.cpucompiler = "g++";
 pde.mpicompiler = "mpicxx";
 pde.gpucompiler = "nvcc";

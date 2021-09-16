@@ -4,6 +4,7 @@
 #include "gpuFlux.cu"
 #include "gpuSource.cu"
 #include "gpuSourcew.cu"
+//#include "gpuEoS.cu"
 #include "gpuTdfunc.cu"
 #include "gpuAvfield.cu"
 #include "gpuOutput.cu"

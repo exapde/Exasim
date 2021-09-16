@@ -109,8 +109,10 @@ fprintf(fid, char(strcpu));
 fclose(iocpu);
 
 strgpu = strrep(stropu, 'opu', "gpu");
+strgpu = strrep(strgpu, 'cpp', "cu");
 iogpu = fopen(foldername + "/" + gpufile + ".cu", 'w');
 fprintf(fid, char(strgpu));
 fclose(iogpu);
 
 end
+

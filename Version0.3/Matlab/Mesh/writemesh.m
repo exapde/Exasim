@@ -12,6 +12,8 @@ if mode==0 % binary
     fwrite(fileID,t,'double',endian);    
 else % text    
     fprintf(fileID,'%d %d %d %d\n',tmp);
+    p = p';
+    t = t';
     if nd==1
         fprintf(fileID,'%.16f\n',p);
     elseif nd==2

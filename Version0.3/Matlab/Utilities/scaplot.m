@@ -15,29 +15,17 @@ function scaplot(mesh,u,clim,nref,pltmesh,surf)
 %                1 - 3D View
 %
 
-nd=mesh.nd;
 nt=size(mesh.dgnodes,3);
-npl=size(mesh.plocal,1);
+[npl,~]=size(mesh.xpe);
 
 u=reshape(u,npl,nt);
 
-porder=mesh.porder;
+porder = mesh.porder;
+plocal = double(mesh.xpe);
+tlocal = double(mesh.telem);
+dgnodes=mesh.dgnodes;
 
-if porder==0
-  nref=0;
-  [plocal,tlocal]=uniformlocalpnts(1);
-  dgnodes=zeros(3,2,nt);
-  dgnodes(:,1,:)=reshape(mesh.p(mesh.t',1),3,1,nt);
-  dgnodes(:,2,:)=reshape(mesh.p(mesh.t',2),3,1,nt);
-  u=repmat(u,[3,1]);
-else
-  plocal=mesh.plocal;
-  tlocal=mesh.tlocal;
-  dgnodes=mesh.dgnodes;
-end
-dgnodes = dgnodes(:,1:nd,:);
-
-if nargin<4 | isempty(nref), nref=ceil(log2(max(porder,1))); end
+if nargin<4 || isempty(nref), nref=ceil(log2(max(porder,1))); end
 
 if nref>0
   if size(tlocal,2)==3  
@@ -46,8 +34,10 @@ if nref>0
     A=koornwinder(plocal(:,1:2),porder)/A0;
   else
     A0=tensorproduct(plocal(:,1:2),porder);
-    m = porder*(nref+1)+1;
-    [plocal,tlocal]=squaremesh(m,m,0,1);
+    m = porder*(nref+1);
+    [plocal,tlocal]=squaremesh(m-1,m-1,0,1);
+    plocal = plocal';
+    tlocal = tlocal';
     A=tensorproduct(plocal(:,1:2),porder)/A0;  
   end
   npln=size(plocal,1);
@@ -60,18 +50,18 @@ npln=size(plocal,1);
 nodesvis=reshape(permute(dgnodes,[1,3,2]),[npln*nt,2]);
 tvis=kron(ones(nt,1),tlocal)+kron(npln*(0:nt-1)',0*tlocal+1);
 
-if nargin>=6 & ~isempty(surf)
+if nargin>=6 && ~isempty(surf)
    nodesvis = [nodesvis,reshape(u,size(nodesvis(:,1)))];
 end
 
 patch('vertices',nodesvis,'faces',tvis,'cdata',u, ...
            'facecol','interp','edgec','none');
       
-if nargin>=3 & ~isempty(clim)
+if nargin>=3 && ~isempty(clim)
   set(gca,'clim',clim);
 end
 
-if nargin>=5 & ~isempty(pltmesh) & pltmesh
+if nargin>=5 && ~isempty(pltmesh) && pltmesh
   if pltmesh==2
     % Plot curved mesh
     e=boundedges(nodesvis,tvis);
@@ -79,14 +69,14 @@ if nargin>=5 & ~isempty(pltmesh) & pltmesh
     dgnodeslty=nodesvis(:,2);
     line(dgnodesltx(e'),dgnodeslty(e'),'color',[0,0,0],'LineWidth',1);    
   else
-    patch('vertices',mesh.p,'faces',mesh.t, ...
+    patch('vertices',mesh.p','faces',mesh.t', ...
           'facecolor','none','edgecolor',[0,0,0],'LineWidth',0.5);
   end
 end
 
 set(gcf,'rend','z');
-colorbar,axis equal,drawnow
-if nargin>=6 & ~isempty(surf)
+colorbar; axis equal; drawnow
+if nargin>=6 && ~isempty(surf)
    cameramenu;
 end
 
@@ -101,7 +91,7 @@ edges=[t(:,[1,2]);
        t(:,[2,3])];
 node3=[t(:,3);t(:,2);t(:,1)];
 edges=sort(edges,2);
-[foo,ix,jx]=unique(edges,'rows');
+[~,ix,jx]=unique(edges,'rows');
 vec=histc(jx,1:max(jx));
 qx=find(vec==1);
 e=edges(ix(qx),:);

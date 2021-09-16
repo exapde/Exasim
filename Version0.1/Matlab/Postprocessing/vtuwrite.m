@@ -113,7 +113,6 @@ for ii = 1:length(vidx)
     outputCG(cgelcon(:),1) = output(:,1);
     outputCG(cgelcon(:),2) = output(:,2);
     outputCG(cgelcon(:),3) = output(:,3);
-    % For a more accurate conversion, use the slower
     fwrite(fid, 3*npoints*fbytesize, 'int64');
     fwrite(fid, outputCG', 'float32');
 end

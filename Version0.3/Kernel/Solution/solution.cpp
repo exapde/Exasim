@@ -253,13 +253,13 @@ void CSolution::TimeStepping(dstype time, Int istep, Int backend)
 #endif            
     }
 
-    if (disc.common.ncw > 0) {
-        SourcewDriver(disc.tmp.tempn, disc.sol.xdg, disc.sol.udg, disc.sol.odg, disc.sol.wdg, disc.mesh, 
-                          disc.master, disc.app, disc.sol, disc.tmp, disc.common, disc.common.npe, 0, disc.common.ne, backend);                                
-        dstype nrm = PNORM(disc.common.cublasHandle, disc.common.ndofw1, disc.tmp.tempn, backend); 
-        dstype nrm2 = PNORM(disc.common.cublasHandle, disc.common.ndofw1, disc.sol.wdg, backend); 
-        printf("\n Norm of the DAE constraint: %g \n", nrm/nrm2);   
-    }
+//     if (disc.common.ncw > 0) {
+//         SourcewDriver(disc.tmp.tempn, disc.sol.xdg, disc.sol.udg, disc.sol.odg, disc.sol.wdg, disc.mesh, 
+//                           disc.master, disc.app, disc.sol, disc.tmp, disc.common, disc.common.npe, 0, disc.common.ne, backend);                                
+//         dstype nrm = PNORM(disc.common.cublasHandle, disc.common.ndofw1, disc.tmp.tempn, backend); 
+//         dstype nrm2 = PNORM(disc.common.cublasHandle, disc.common.ndofw1, disc.sol.wdg, backend); 
+//         printf("\n Norm of the DAE constraint: %g \n", nrm/nrm2);   
+//     }
         
     //compute time-average solution
     if (disc.common.compudgavg == 1) {

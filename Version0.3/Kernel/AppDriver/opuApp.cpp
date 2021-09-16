@@ -6,6 +6,7 @@
 #include "opuFlux.cpp"
 #include "opuSource.cpp"
 #include "opuSourcew.cpp"
+//#include "opuEoS.cpp"
 #include "opuTdfunc.cpp"
 #include "opuAvfield.cpp"
 #include "opuOutput.cpp"

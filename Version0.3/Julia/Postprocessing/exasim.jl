@@ -16,11 +16,16 @@ if nmodels==1
     # generate source codes and store them in app folder
     Gencode.gencode(pde);
 
-    # compile source codes to build an executable file and store it in app folder
-    compilerstr = Gencode.compilecode(pde);
+    if pde.usecmake==1    
+        runstr = Main.cmakecompile(pde, nmodels); # use cmake to compile source codes 
+        compilerstr = "";    
+    else
+        # compile source codes to build an executable file and store it in app folder
+        compilerstr = Gencode.compilecode(pde);
 
-    # run executable file to compute solution and store it in dataout folder
-    runstr = Gencode.runcode(pde, nmodels);
+        # run executable file to compute solution and store it in dataout folder
+        runstr = Gencode.runcode(pde, nmodels);
+    end
 
     # get solution from output files in dataout folder
     sol = Postprocessing.fetchsolution(pde,master,dmd,"dataout");
@@ -35,11 +40,16 @@ else
     end        
     gencodeall(nmodels);
 
-    # # compile source codes to build an executable file and store it in app folder
-    compilerstr = compilecode(pde[1]);
+    if pde.usecmake==1    
+        runstr = Main.cmakecompile(pde[1], nmodels); # use cmake to compile source codes 
+        compilerstr = "";    
+    else
+        # # compile source codes to build an executable file and store it in app folder
+        compilerstr = compilecode(pde[1]);
 
-    # run executable file to compute solution and store it in dataout folder
-    runstr = runcode(pde[1],nmodels);
+        # run executable file to compute solution and store it in dataout folder
+        runstr = runcode(pde[1],nmodels);
+    end
 
     # get solution from output files in dataout folder
     for m = 1:nmodels        

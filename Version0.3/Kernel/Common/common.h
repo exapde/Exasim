@@ -645,6 +645,7 @@ struct solstruct {
             CPUFREE(og1);
             CPUFREE(og2);     
             CPUFREE(udgavg); // time-average solution (u, q, p) 
+            //delete[] udgarray;
         }            
 #ifdef HAVE_CUDA      
        else {
@@ -667,6 +668,7 @@ struct solstruct {
             GPUFREE(og1);
             GPUFREE(og2);        
             GPUFREE(udgavg); // time-average solution (u, q, p) 
+            //delete[] udgarray;
        }
 #endif       
     }            

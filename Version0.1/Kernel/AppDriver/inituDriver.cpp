@@ -26,6 +26,8 @@ void InituDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int nc, Int npe
     dstype nrmf = PNORM(0, numPoints*nc, f, backend);
     if (isnan(nrmf) || nrmf > 1.0e14) {
         cout<<"u0 norm: "<<nrmf<<endl;
+        printArray3D(xg, npe, ncx, 10, backend);
+        printArray3D(f, npe, nc, 10, backend);
         error("here");
     }
 #endif    
