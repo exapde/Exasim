@@ -1,4 +1,4 @@
-function [p,t] = lesmesh3d_box(dlay, dwall, ny, xv, zv, yref)
+function [p,t] = lesmesh3d_boxSymmetric(dlay, dwall, ny, xv, zv, yref)
 
 % xv: grid points along z-direction
 % zv: grid points along z-direction
