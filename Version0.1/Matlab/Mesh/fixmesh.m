@@ -16,6 +16,13 @@ if size(t,2) == 1, t = t'; end  % This lines ensures the function works for one 
 t=reshape(jx,size(t));
 p=p(pix,:);
 
-v = simpvol(p,t);
-flip=v<0;
-t(flip,[1,2])=t(flip,[2,1]);
+nv = size(t,2); % # vertices
+nd = size(p,2); % # dimensions
+
+if ((nd==2) && (nv==3)) || ((nd==3) && (nv==4))
+    v = simpvol(p,t);
+    flip=v<0;
+    t(flip,[1,2])=t(flip,[2,1]);
+end
+
+

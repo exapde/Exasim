@@ -1,5 +1,5 @@
 % Specify an Exasim version to run
-version = "Version0.1";
+version = "Version0.3";
 
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
