@@ -52,7 +52,7 @@ void FhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
     AverageFluxDotNormal(fg, nl, N, M, numPoints, nd, backend);            
 
     // Part 2: Contribution due to tau*(U-UH)
-    if (common.extStab>=10) { 
+    if (common.extStab>=1) { 
         //cout<<"Use external stab"<<endl;
 #ifdef HAVE_ONETHREAD            
         if (backend==0) {
