@@ -1,0 +1,64 @@
+==> Exasim  ...
+Using g++ compiler for CPU source code
+Using mpicxx compiler for MPI source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+Writing input files for METIS...
+******************************************************************************
+METIS 5.0 Copyright 1998-13, Regents of the University of Minnesota
+ (HEAD: , Built on: Oct  1 2019, 00:56:21)
+ size of idx_t: 32bits, real_t: 32bits, idx_t *: 64bits
+
+Mesh Information ------------------------------------------------------------
+ Name: temp.txt, #Elements: 512, #Nodes: 729, #Parts: 2
+
+Options ---------------------------------------------------------------------
+ ptype=kway, objtype=cut, ctype=shem, rtype=greedy, iptype=metisrb
+ dbglvl=0, ufactor=1.030, minconn=NO, contig=NO, nooutput=NO
+ seed=-1, niter=10, ncuts=1
+ gtype=dual, ncommon=1, niter=10, ncuts=1
+
+Direct k-way Partitioning ---------------------------------------------------
+ - Edgecut: 484.
+
+
+Timing Information ----------------------------------------------------------
+  I/O:          		   0.001 sec
+  Partitioning: 		   0.001 sec   (METIS time)
+  Reporting:    		   0.000 sec
+
+Memory Information ----------------------------------------------------------
+  Max memory used:		   0.262 MB
+******************************************************************************
+element partition 1
+element partition 2
+run facepartition...
+face partition 1
+face partition 2
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing initial solution into file 2...
+Writing mesh into file 2...
+Writing app into file...
+generate code...
+compile code...
+ar: creating archive opuApp.a
+a - opuApp.o
+run code...
+datain/
+dataout/out
+datain/
+dataout/out
+Using 2 processors to solve the problem on CPU platform...
+Reading data from binary files 
+Set common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 0
+Old RHS Norm: 0.0930155,  New RHS Norm: 0.0930155
+GMRES converges to the tolerance 0.001 within  46 iterations and 0 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.14294e-05
+Old RHS Norm: 9.14294e-05,  New RHS Norm: 8.56196e-05
+GMRES converges to the tolerance 0.001 within  113 iterations and 1 RB dimensions
+PTC Iteration: 2,  Residual Norm: 8.62614e-08
