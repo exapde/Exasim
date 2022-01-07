@@ -1,6 +1,3 @@
-# specify an Exasim version to run
-version = "Version0.1";
-
 # External packages
 using Revise, DelimitedFiles, SymPy
 
@@ -12,7 +9,7 @@ include(cdir[1:ii[end]] * "/Installation/setpath.jl");
 using Preprocessing, Mesh, Gencode, Postprocessing
 
 # create pde structure and mesh structure
-pde, mesh = Preprocessing.initializeexasim(version);
+pde, mesh = Preprocessing.initializeexasim();
 
 # Define PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelW";            # ModelC, ModelD, ModelW

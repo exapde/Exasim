@@ -1,12 +1,9 @@
-% Specify an Exasim version to run
-version = "Version0.1";
-
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % initialize pde structure and mesh structure
-[pde,mesh] = initializeexasim(version);
+[pde,mesh] = initializeexasim();
 
 % Choose computing platform and set number of processors
 % pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available

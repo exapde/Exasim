@@ -1,5 +1,5 @@
 # Create pde object and mesh object
-pde[0],mesh[0] = Preprocessing.initializeexasim(version);
+pde[0],mesh[0] = Preprocessing.initializeexasim();
 
 # Define a PDE model: governing equations and boundary conditions
 pde[0]['model'] = "ModelD";       # ModelC, ModelD, ModelW

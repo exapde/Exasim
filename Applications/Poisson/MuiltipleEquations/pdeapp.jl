@@ -1,6 +1,3 @@
-# specify an Exasim version to run
-version = "Version0.3";
-
 # External packages
 using Revise, DelimitedFiles, SymPy
 

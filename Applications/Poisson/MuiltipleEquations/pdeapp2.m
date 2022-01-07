@@ -1,5 +1,5 @@
 % initialize pde{2} structure and mesh{2} structure
-[pde{2},mesh{2}] = initializeexasim(version);
+[pde{2},mesh{2}] = initializeexasim();
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde{2}.model = "ModelD";          % ModelC, ModelD, ModelW

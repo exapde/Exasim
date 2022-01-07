@@ -1,12 +1,9 @@
-% Specify an Exasim version to run
-version = "Version0.3";
-
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % initialize pde structure and mesh structure
-[pde,mesh] = initializeexasim(version);
+[pde,mesh] = initializeexasim();
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelD";          % ModelC, ModelD, ModelW 

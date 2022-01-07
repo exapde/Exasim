@@ -1,6 +1,3 @@
-# Specify an Exasim version to run
-version = "Version0.1";
-
 # import external modules
 import numpy, os
 
@@ -12,7 +9,7 @@ exec(open(cdir[0:(ii+6)] + "/Installation/setpath.py").read());
 import Preprocessing, Postprocessing, Gencode, Mesh
 
 # Create pde object and mesh object
-pde,mesh = Preprocessing.initializeexasim(version);
+pde,mesh = Preprocessing.initializeexasim();
 
 # Define a PDE model: governing equations and boundary conditions
 pde['model'] = "ModelC";       # ModelC, ModelD, ModelW

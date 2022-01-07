@@ -1,12 +1,9 @@
-% Specify an Exasim version to run
-version = "Version0.1";
-
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % initialize pde structure and mesh structure
-[pde,mesh] = initializeexasim(version);
+[pde,mesh] = initializeexasim();
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelC";          % ModelC, ModelD, ModelW
@@ -76,5 +73,5 @@ pde.visvectors = {"velocity", [2, 3]}; % list of vector fields for visualization
 xdg = vis(sol,pde,mesh); % visualize the numerical solution
 disp("Done!");
 
-% /home/peraire/ParaView-5.9.0-RC1-egl-MPI-Linux-Python3.8-64bit/bin/pvserver --server-port=11111 
+% /home/peraire/ParaView-5.9.0-RC1-egl-MPI-Linux-Python3.8-64bit/bin/pvserver--server-port=11111
 

@@ -71,7 +71,7 @@ if (length(cpuflags)>0) && (length(cpucompiler)>0)
     str3 = cpuflags;
     #compilerstr[5] = str1 * str2 * str3;
     if (length(enzyme)>0)    
-        str1 = cpucompiler  " -std=c++11 -D _ENZYME " * maindir * "main.cpp " * "-o serial" * appname * " ";
+        str1 = cpucompiler  * " -std=c++11 -D _ENZYME " * maindir * "main.cpp " * "-o serial" * appname * " ";
         compilerstr[5] = str1 * str2 * str3 * " -Xclang -load -Xclang " * coredir * enzyme;
     else
         str1 = cpucompiler * " -std=c++11 " * maindir * "main.cpp " * "-o serial" * appname * " ";
