@@ -1,3 +1,0 @@
-probset;
-probdef;
-probsol;

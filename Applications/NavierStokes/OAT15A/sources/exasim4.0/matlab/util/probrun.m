@@ -1,6 +1,0 @@
-probset;
-probdef;
-probsol;
-probvis;
-
-
