@@ -1,0 +1,18 @@
+
+lsmod | grep nvidia
+sudo rmmod nvidia_drm
+sudo rmmod nvidia_modeset
+sudo rmmod nvidia_uvm
+sudo rmmod nvidia
+lsmod | grep nvidia
+nvidia-smi
+
+
+if you get an error like rmmod: ERROR: Module nvidia is in use, 
+which indicates that the kernel module is in use, 
+you should kill the process that using the kmod:
+
+sudo lsof /dev/nvidia*
+
+and then kill those process, then continue to unload the kmods
+

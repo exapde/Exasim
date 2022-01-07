@@ -1,0 +1,215 @@
+==> Exasim  ...
+Gmsh mesh generator...
+Info    : Running 'gmsh coneincube.geo -3 -format msh3' [Gmsh 4.8.0, 1 node, max. 1 thread]
+Info    : Started on Wed Oct 27 01:17:39 2021
+Info    : Reading 'coneincube.geo'...
+Info    : Done reading 'coneincube.geo'
+Info    : Meshing 1D...
+Info    : [  0%] Meshing curve 1 (Circle)
+Info    : [ 10%] Meshing curve 2 (Circle)
+Info    : [ 10%] Meshing curve 3 (Circle)
+Info    : [ 20%] Meshing curve 4 (Circle)
+Info    : [ 20%] Meshing curve 5 (Line)
+Info    : [ 30%] Meshing curve 6 (Line)
+Info    : [ 30%] Meshing curve 7 (Line)
+Info    : [ 40%] Meshing curve 8 (Line)
+Info    : [ 40%] Meshing curve 31 (Line)
+Info    : [ 50%] Meshing curve 32 (Line)
+Info    : [ 50%] Meshing curve 33 (Line)
+Info    : [ 60%] Meshing curve 34 (Line)
+Info    : [ 60%] Meshing curve 35 (Line)
+Info    : [ 70%] Meshing curve 36 (Line)
+Info    : [ 70%] Meshing curve 37 (Line)
+Info    : [ 80%] Meshing curve 38 (Line)
+Info    : [ 80%] Meshing curve 39 (Line)
+Info    : [ 90%] Meshing curve 40 (Line)
+Info    : [ 90%] Meshing curve 41 (Line)
+Info    : [100%] Meshing curve 42 (Line)
+Info    : Done meshing 1D (Wall 0.0122994s, CPU 0.01035s)
+Info    : Meshing 2D...
+Info    : [  0%] Meshing surface 10 (Surface, Frontal-Delaunay)
+Info    : [ 10%] Meshing surface 12 (Surface, Frontal-Delaunay)
+Info    : [ 20%] Meshing surface 14 (Surface, Frontal-Delaunay)
+Info    : [ 30%] Meshing surface 16 (Surface, Frontal-Delaunay)
+Info    : [ 40%] Meshing surface 18 (Surface, Frontal-Delaunay)
+Info    : [ 50%] Meshing surface 44 (Plane, Frontal-Delaunay)
+Info    : [ 60%] Meshing surface 46 (Plane, Frontal-Delaunay)
+Info    : [ 70%] Meshing surface 48 (Plane, Frontal-Delaunay)
+Info    : [ 80%] Meshing surface 50 (Plane, Frontal-Delaunay)
+Info    : [ 90%] Meshing surface 52 (Plane, Frontal-Delaunay)
+Info    : [100%] Meshing surface 54 (Plane, Frontal-Delaunay)
+Info    : Done meshing 2D (Wall 0.19286s, CPU 0.179594s)
+Info    : Meshing 3D...
+Info    : 3D Meshing 1 volume with 1 connected component
+Info    : Tetrahedrizing 4073 nodes...
+Info    : Done tetrahedrizing 4081 nodes (Wall 0.0620806s, CPU 0.058703s)
+Info    : Reconstructing mesh...
+Info    :  - Creating surface mesh
+Info    :  - Identifying boundary edges
+Info    :  - Recovering boundary
+Info    :  - Added 1 Steiner point
+Info    : Done reconstructing mesh (Wall 0.179151s, CPU 0.161087s)
+Info    : Found volume 56
+Info    : Found void region
+Info    : It. 0 - 0 nodes created - worst tet radius 447.575 (nodes removed 0 0)
+Info    : It. 500 - 499 nodes created - worst tet radius 3.32935 (nodes removed 0 1)
+Info    : It. 1000 - 999 nodes created - worst tet radius 2.5152 (nodes removed 0 1)
+Info    : It. 1500 - 1499 nodes created - worst tet radius 2.20473 (nodes removed 0 1)
+Info    : It. 2000 - 1999 nodes created - worst tet radius 1.96112 (nodes removed 0 1)
+Info    : It. 2500 - 2499 nodes created - worst tet radius 1.80516 (nodes removed 0 1)
+Info    : It. 3000 - 2999 nodes created - worst tet radius 1.68983 (nodes removed 0 1)
+Info    : It. 3500 - 3499 nodes created - worst tet radius 1.60863 (nodes removed 0 1)
+Info    : It. 4000 - 3999 nodes created - worst tet radius 1.53845 (nodes removed 0 1)
+Info    : It. 4500 - 4499 nodes created - worst tet radius 1.47654 (nodes removed 0 1)
+Info    : It. 5000 - 4999 nodes created - worst tet radius 1.4232 (nodes removed 0 1)
+Info    : It. 5500 - 5499 nodes created - worst tet radius 1.37826 (nodes removed 0 1)
+Info    : It. 6000 - 5999 nodes created - worst tet radius 1.33378 (nodes removed 0 1)
+Info    : It. 6500 - 6499 nodes created - worst tet radius 1.29835 (nodes removed 0 1)
+Info    : It. 7000 - 6999 nodes created - worst tet radius 1.26519 (nodes removed 0 1)
+Info    : It. 7500 - 7499 nodes created - worst tet radius 1.23455 (nodes removed 0 1)
+Info    : It. 8000 - 7999 nodes created - worst tet radius 1.20858 (nodes removed 0 1)
+Info    : It. 8500 - 8499 nodes created - worst tet radius 1.183 (nodes removed 0 1)
+Info    : It. 9000 - 8999 nodes created - worst tet radius 1.16088 (nodes removed 0 1)
+Info    : It. 9500 - 9499 nodes created - worst tet radius 1.13986 (nodes removed 0 1)
+Info    : It. 10000 - 9999 nodes created - worst tet radius 1.12034 (nodes removed 0 1)
+Info    : It. 10500 - 10499 nodes created - worst tet radius 1.10272 (nodes removed 0 1)
+Info    : It. 11000 - 10999 nodes created - worst tet radius 1.08659 (nodes removed 0 1)
+Info    : It. 11500 - 11499 nodes created - worst tet radius 1.07073 (nodes removed 0 1)
+Info    : It. 12000 - 11999 nodes created - worst tet radius 1.05578 (nodes removed 0 1)
+Info    : It. 12500 - 12499 nodes created - worst tet radius 1.04038 (nodes removed 0 1)
+Info    : It. 13000 - 12999 nodes created - worst tet radius 1.02678 (nodes removed 0 1)
+Info    : It. 13500 - 13499 nodes created - worst tet radius 1.01443 (nodes removed 0 1)
+Info    : It. 14000 - 13999 nodes created - worst tet radius 1.00186 (nodes removed 0 1)
+Info    : 3D refinement terminated (18157 nodes total):
+Info    :  - 3 Delaunay cavities modified for star shapeness
+Info    :  - 1 nodes could not be inserted
+Info    :  - 102402 tetrahedra created in 1.41956 sec. (72136 tets/s)
+Info    : Done meshing 3D (Wall 1.99471s, CPU 1.90578s)
+Info    : Optimizing mesh...
+Info    : Optimizing volume 56
+Info    : Optimization starts (volume = 7999.92) with worst = 0.00420141 / average = 0.774812:
+Info    : 0.00 < quality < 0.10 :       236 elements
+Info    : 0.10 < quality < 0.20 :       665 elements
+Info    : 0.20 < quality < 0.30 :      1093 elements
+Info    : 0.30 < quality < 0.40 :      1827 elements
+Info    : 0.40 < quality < 0.50 :      2975 elements
+Info    : 0.50 < quality < 0.60 :      5417 elements
+Info    : 0.60 < quality < 0.70 :     10862 elements
+Info    : 0.70 < quality < 0.80 :     23633 elements
+Info    : 0.80 < quality < 0.90 :     36813 elements
+Info    : 0.90 < quality < 1.00 :     18878 elements
+Info    : 1973 edge swaps, 49 node relocations (volume = 7999.92): worst = 0.160581 / average = 0.786878 (Wall 0.10075s, CPU 0.096948s)
+Info    : 1982 edge swaps, 49 node relocations (volume = 7999.92): worst = 0.273502 / average = 0.786937 (Wall 0.127769s, CPU 0.122925s)
+Info    : No ill-shaped tets in the mesh :-)
+Info    : 0.00 < quality < 0.10 :         0 elements
+Info    : 0.10 < quality < 0.20 :         0 elements
+Info    : 0.20 < quality < 0.30 :         4 elements
+Info    : 0.30 < quality < 0.40 :      1806 elements
+Info    : 0.40 < quality < 0.50 :      2892 elements
+Info    : 0.50 < quality < 0.60 :      5223 elements
+Info    : 0.60 < quality < 0.70 :     10759 elements
+Info    : 0.70 < quality < 0.80 :     24083 elements
+Info    : 0.80 < quality < 0.90 :     37131 elements
+Info    : 0.90 < quality < 1.00 :     18721 elements
+Info    : Done optimizing mesh (Wall 0.342588s, CPU 0.321251s)
+Info    : 18157 nodes 109238 elements
+Info    : Writing 'coneincube.msh'...
+Info    : Done writing 'coneincube.msh'
+Info    : Stopped on Wed Oct 27 01:17:41 2021 (From start: Wall 2.76067s, CPU 2.60016s)
+Using g++ compiler for CPU source code
+Using mpicxx compiler for MPI source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+Writing input files for METIS...
+******************************************************************************
+METIS 5.0 Copyright 1998-13, Regents of the University of Minnesota
+ (HEAD: , Built on: Oct  1 2019, 00:56:21)
+ size of idx_t: 32bits, real_t: 32bits, idx_t *: 64bits
+
+Mesh Information ------------------------------------------------------------
+ Name: temp.txt, #Elements: 100622, #Nodes: 18157, #Parts: 4
+
+Options ---------------------------------------------------------------------
+ ptype=kway, objtype=cut, ctype=shem, rtype=greedy, iptype=metisrb
+ dbglvl=0, ufactor=1.030, minconn=NO, contig=NO, nooutput=NO
+ seed=-1, niter=10, ncuts=1
+ gtype=dual, ncommon=1, niter=10, ncuts=1
+
+Direct k-way Partitioning ---------------------------------------------------
+ - Edgecut: 167196.
+
+
+Timing Information ----------------------------------------------------------
+  I/O:          		   0.032 sec
+  Partitioning: 		   0.419 sec   (METIS time)
+  Reporting:    		   0.000 sec
+
+Memory Information ----------------------------------------------------------
+  Max memory used:		  87.807 MB
+******************************************************************************
+element partition 1
+element partition 2
+element partition 3
+element partition 4
+run facepartition...
+face partition 1
+face partition 2
+face partition 3
+face partition 4
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing initial solution into file 2...
+Writing mesh into file 2...
+Writing initial solution into file 3...
+Writing mesh into file 3...
+Writing initial solution into file 4...
+Writing mesh into file 4...
+Writing app into file...
+generate code...
+compile code...
+ar: creating archive opuApp.a
+a - opuApp.o
+run code...
+datain/
+dataout/out
+datain/
+dataout/out
+datain/
+dataout/out
+datain/
+dataout/out
+Using 4 processors to solve the problem on CPU platform...
+Reading data from binary files 
+Set common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 1003.11
+Old RHS Norm: 11.4492,  New RHS Norm: 11.4492
+Warning: GMRES(200) does not converge to the tolerance 0.001 within  400 iterations
+Warning: The current relative error is 0.0200317 
+PTC Iteration: 1,  Residual Norm: 0.229347
+Old RHS Norm: 0.229347,  New RHS Norm: 0.223945
+Warning: GMRES(200) does not converge to the tolerance 0.00102412 within  400 iterations
+Warning: The current relative error is 0.0819973 
+PTC Iteration: 2,  Residual Norm: 0.0183629
+Old RHS Norm: 0.0183629,  New RHS Norm: 0.0168947
+Warning: GMRES(200) does not converge to the tolerance 0.0010869 within  400 iterations
+Warning: The current relative error is 0.219547 
+PTC Iteration: 3,  Residual Norm: 0.00370917
+Old RHS Norm: 0.00370917,  New RHS Norm: 0.00353323
+Warning: GMRES(200) does not converge to the tolerance 0.0010498 within  400 iterations
+Warning: The current relative error is 0.522617 
+PTC Iteration: 4,  Residual Norm: 0.00184652
+Old RHS Norm: 0.00184652,  New RHS Norm: 0.00182009
+Warning: GMRES(200) does not converge to the tolerance 0.00101452 within  400 iterations
+Warning: The current relative error is 0.563537 
+PTC Iteration: 5,  Residual Norm: 0.00102569
+Old RHS Norm: 0.00102569,  New RHS Norm: 0.00102501
+Warning: GMRES(200) does not converge to the tolerance 0.00100066 within  400 iterations
+Warning: The current relative error is 0.94024 
+PTC Iteration: 6,  Residual Norm: 0.000963759
+Old RHS Norm: 0.000963759,  New RHS Norm: 0.000839411
+Warning: GMRES(200) does not converge to the tolerance 0.00114814 within  400 iterations
+Warning: The current relative error is 0.847561 
+PTC Iteration: 7,  Residual Norm: 0.000711453
