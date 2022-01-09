@@ -1,0 +1,2889 @@
+==> Exasim  ...
+Using g++ compiler for CPU source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+run facepartition...
+face partition 1
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing app into file...
+generate code...
+compile code...
+ar: creating archive opuApp.a
+a - opuApp.o
+run code...
+datain/
+dataout/out
+Using 1 processors to solve the problem on CPU platform...
+Reading data from binary files 
+Set common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+Compute solution average = 1
+File exist = 0
+
+Timestep :  1,  Timestage :  1,   Time : 0.00435867
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86259
+Old RHS Norm: 0.000206298,  New RHS Norm: 0.000206298
+GMRES converges to the tolerance 0.001 within  20 iterations and 0 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.89503e-07
+
+Timestep :  1,  Timestage :  2,   Time : 0.00717933
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85347
+Old RHS Norm: 0.00013312,  New RHS Norm: 9.98716e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 1 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.12882e-07
+
+Timestep :  1,  Timestage :  3,   Time : 0.01
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84694
+
+Timestep :  2,  Timestage :  1,   Time : 0.0143587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86132
+
+Timestep :  2,  Timestage :  2,   Time : 0.0171793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85666
+Old RHS Norm: 0.000133104,  New RHS Norm: 1.97148e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 2 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04332e-07
+
+Timestep :  2,  Timestage :  3,   Time : 0.02
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84786
+Old RHS Norm: 0.000135025,  New RHS Norm: 1.06618e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 3 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04648e-07
+
+Timestep :  3,  Timestage :  1,   Time : 0.0243587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86952
+Old RHS Norm: 0.000206258,  New RHS Norm: 1.04556e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 4 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.43806e-08
+
+Timestep :  3,  Timestage :  2,   Time : 0.0271793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85746
+
+Timestep :  3,  Timestage :  3,   Time : 0.03
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84624
+
+Timestep :  4,  Timestage :  1,   Time : 0.0343587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86143
+Old RHS Norm: 0.000206208,  New RHS Norm: 2.22239e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.71861e-07
+
+Timestep :  4,  Timestage :  2,   Time : 0.0371793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8518
+
+Timestep :  4,  Timestage :  3,   Time : 0.04
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84572
+
+Timestep :  5,  Timestage :  1,   Time : 0.0443587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85884
+Old RHS Norm: 0.000206208,  New RHS Norm: 2.70343e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.81221e-07
+
+Timestep :  5,  Timestage :  2,   Time : 0.0471793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85245
+
+Timestep :  5,  Timestage :  3,   Time : 0.05
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84643
+
+Timestep :  6,  Timestage :  1,   Time : 0.0543587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8631
+Old RHS Norm: 0.000206318,  New RHS Norm: 3.14782e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.7321e-07
+
+Timestep :  6,  Timestage :  2,   Time : 0.0571793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85432
+
+Timestep :  6,  Timestage :  3,   Time : 0.06
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84639
+
+Timestep :  7,  Timestage :  1,   Time : 0.0643587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86176
+Old RHS Norm: 0.000206383,  New RHS Norm: 3.08329e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.78637e-07
+
+Timestep :  7,  Timestage :  2,   Time : 0.0671793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85225
+
+Timestep :  7,  Timestage :  3,   Time : 0.07
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8453
+Old RHS Norm: 0.000135146,  New RHS Norm: 1.0138e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.27534e-08
+
+Timestep :  8,  Timestage :  1,   Time : 0.0743587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85951
+Old RHS Norm: 0.000206303,  New RHS Norm: 3.26327e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.80529e-07
+
+Timestep :  8,  Timestage :  2,   Time : 0.0771793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85202
+
+Timestep :  8,  Timestage :  3,   Time : 0.08
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84633
+
+Timestep :  9,  Timestage :  1,   Time : 0.0843587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86155
+Old RHS Norm: 0.000206235,  New RHS Norm: 3.23095e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.80391e-07
+
+Timestep :  9,  Timestage :  2,   Time : 0.0871793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8536
+Old RHS Norm: 0.000133078,  New RHS Norm: 1.05079e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.20455e-08
+
+Timestep :  9,  Timestage :  3,   Time : 0.09
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84613
+
+Timestep :  10,  Timestage :  1,   Time : 0.0943587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86203
+
+Timestep :  10,  Timestage :  2,   Time : 0.0971793
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85265
+Old RHS Norm: 0.000133068,  New RHS Norm: 1.52875e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25524e-07
+
+Timestep :  10,  Timestage :  3,   Time : 0.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84584
+Old RHS Norm: 0.000134974,  New RHS Norm: 1.16115e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.10029e-07
+
+Timestep :  11,  Timestage :  1,   Time : 0.104359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86052
+
+Timestep :  11,  Timestage :  2,   Time : 0.107179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85422
+Old RHS Norm: 0.000133067,  New RHS Norm: 1.71431e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.11463e-08
+
+Timestep :  11,  Timestage :  3,   Time : 0.11
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84708
+Old RHS Norm: 0.000134975,  New RHS Norm: 1.45075e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.00289e-07
+
+Timestep :  12,  Timestage :  1,   Time : 0.114359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86491
+Old RHS Norm: 0.000206209,  New RHS Norm: 1.68945e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.44879e-07
+
+Timestep :  12,  Timestage :  2,   Time : 0.117179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85569
+Old RHS Norm: 0.000133074,  New RHS Norm: 1.27175e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11881e-07
+
+Timestep :  12,  Timestage :  3,   Time : 0.12
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84748
+
+Timestep :  13,  Timestage :  1,   Time : 0.124359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86239
+
+Timestep :  13,  Timestage :  2,   Time : 0.127179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85221
+Old RHS Norm: 0.00013308,  New RHS Norm: 1.97313e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.29894e-07
+
+Timestep :  13,  Timestage :  3,   Time : 0.13
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84436
+Old RHS Norm: 0.000134998,  New RHS Norm: 1.18788e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.47164e-08
+
+Timestep :  14,  Timestage :  1,   Time : 0.134359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85891
+Old RHS Norm: 0.000206215,  New RHS Norm: 1.3486e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21357e-07
+
+Timestep :  14,  Timestage :  2,   Time : 0.137179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85071
+
+Timestep :  14,  Timestage :  3,   Time : 0.14
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84385
+
+Timestep :  15,  Timestage :  1,   Time : 0.144359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85943
+Old RHS Norm: 0.000206211,  New RHS Norm: 3.32373e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.69181e-07
+
+Timestep :  15,  Timestage :  2,   Time : 0.147179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85119
+Old RHS Norm: 0.000133073,  New RHS Norm: 1.05738e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.60999e-08
+
+Timestep :  15,  Timestage :  3,   Time : 0.15
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84368
+
+Timestep :  16,  Timestage :  1,   Time : 0.154359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85943
+
+Timestep :  16,  Timestage :  2,   Time : 0.157179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8501
+Old RHS Norm: 0.000133082,  New RHS Norm: 1.50452e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21736e-07
+
+Timestep :  16,  Timestage :  3,   Time : 0.16
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8434
+
+Timestep :  17,  Timestage :  1,   Time : 0.164359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85726
+Old RHS Norm: 0.000206209,  New RHS Norm: 1.4294e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27309e-07
+
+Timestep :  17,  Timestage :  2,   Time : 0.167179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84974
+Old RHS Norm: 0.000133058,  New RHS Norm: 1.05287e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.65675e-08
+
+Timestep :  17,  Timestage :  3,   Time : 0.17
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84287
+
+Timestep :  18,  Timestage :  1,   Time : 0.174359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85884
+
+Timestep :  18,  Timestage :  2,   Time : 0.177179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85077
+Old RHS Norm: 0.000133027,  New RHS Norm: 1.71172e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16318e-07
+
+Timestep :  18,  Timestage :  3,   Time : 0.18
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84353
+Old RHS Norm: 0.000134948,  New RHS Norm: 1.11056e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.04652e-08
+
+Timestep :  19,  Timestage :  1,   Time : 0.184359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8595
+Old RHS Norm: 0.000206103,  New RHS Norm: 1.00204e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.85745e-08
+
+Timestep :  19,  Timestage :  2,   Time : 0.187179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85143
+
+Timestep :  19,  Timestage :  3,   Time : 0.19
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84439
+
+Timestep :  20,  Timestage :  1,   Time : 0.194359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86024
+Old RHS Norm: 0.000206059,  New RHS Norm: 3.06091e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.7324e-07
+
+Timestep :  20,  Timestage :  2,   Time : 0.197179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85206
+Old RHS Norm: 0.000132982,  New RHS Norm: 1.14981e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.10432e-07
+
+Timestep :  20,  Timestage :  3,   Time : 0.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84489
+
+Timestep :  21,  Timestage :  1,   Time : 0.204359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86062
+
+Timestep :  21,  Timestage :  2,   Time : 0.207179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85252
+Old RHS Norm: 0.000133004,  New RHS Norm: 1.56082e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.32435e-07
+
+Timestep :  21,  Timestage :  3,   Time : 0.21
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84532
+
+Timestep :  22,  Timestage :  1,   Time : 0.214359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86129
+Old RHS Norm: 0.000206139,  New RHS Norm: 1.28583e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.27585e-08
+
+Timestep :  22,  Timestage :  2,   Time : 0.217179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85273
+Old RHS Norm: 0.000133037,  New RHS Norm: 1.05344e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.44292e-08
+
+Timestep :  22,  Timestage :  3,   Time : 0.22
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84504
+
+Timestep :  23,  Timestage :  1,   Time : 0.224359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.86062
+
+Timestep :  23,  Timestage :  2,   Time : 0.227179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85098
+Old RHS Norm: 0.000133056,  New RHS Norm: 1.53438e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.22528e-07
+
+Timestep :  23,  Timestage :  3,   Time : 0.23
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84328
+
+Timestep :  24,  Timestage :  1,   Time : 0.234359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85755
+Old RHS Norm: 0.00020618,  New RHS Norm: 1.01847e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.17611e-08
+
+Timestep :  24,  Timestage :  2,   Time : 0.237179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84882
+Old RHS Norm: 0.000133031,  New RHS Norm: 1.08719e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.05729e-07
+
+Timestep :  24,  Timestage :  3,   Time : 0.24
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84148
+
+Timestep :  25,  Timestage :  1,   Time : 0.244359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85648
+
+Timestep :  25,  Timestage :  2,   Time : 0.247179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8483
+Old RHS Norm: 0.000132996,  New RHS Norm: 1.86368e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.00438e-07
+
+Timestep :  25,  Timestage :  3,   Time : 0.25
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84094
+Old RHS Norm: 0.000134946,  New RHS Norm: 1.09019e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.96945e-08
+
+Timestep :  26,  Timestage :  1,   Time : 0.254359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85661
+Old RHS Norm: 0.000206073,  New RHS Norm: 1.18873e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.43521e-08
+
+Timestep :  26,  Timestage :  2,   Time : 0.257179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84834
+
+Timestep :  26,  Timestage :  3,   Time : 0.26
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84144
+
+Timestep :  27,  Timestage :  1,   Time : 0.264359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85705
+Old RHS Norm: 0.000206051,  New RHS Norm: 3.57617e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.86757e-07
+
+Timestep :  27,  Timestage :  2,   Time : 0.267179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84944
+Old RHS Norm: 0.000132964,  New RHS Norm: 1.29879e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16435e-07
+
+Timestep :  27,  Timestage :  3,   Time : 0.27
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84241
+
+Timestep :  28,  Timestage :  1,   Time : 0.274359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85869
+
+Timestep :  28,  Timestage :  2,   Time : 0.277179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85029
+Old RHS Norm: 0.000132954,  New RHS Norm: 1.6863e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13442e-07
+
+Timestep :  28,  Timestage :  3,   Time : 0.28
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84281
+Old RHS Norm: 0.000134854,  New RHS Norm: 1.10609e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.87132e-08
+
+Timestep :  29,  Timestage :  1,   Time : 0.284359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85865
+Old RHS Norm: 0.000205997,  New RHS Norm: 1.37482e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11646e-07
+
+Timestep :  29,  Timestage :  2,   Time : 0.287179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8499
+
+Timestep :  29,  Timestage :  3,   Time : 0.29
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84232
+
+Timestep :  30,  Timestage :  1,   Time : 0.294359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8578
+Old RHS Norm: 0.000205944,  New RHS Norm: 3.47889e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.84599e-07
+
+Timestep :  30,  Timestage :  2,   Time : 0.297179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84956
+Old RHS Norm: 0.000132904,  New RHS Norm: 1.17511e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.22754e-08
+
+Timestep :  30,  Timestage :  3,   Time : 0.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84259
+
+Timestep :  31,  Timestage :  1,   Time : 0.304359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85802
+
+Timestep :  31,  Timestage :  2,   Time : 0.307179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85052
+Old RHS Norm: 0.00013294,  New RHS Norm: 1.64394e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.18599e-07
+
+Timestep :  31,  Timestage :  3,   Time : 0.31
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84306
+Old RHS Norm: 0.000134798,  New RHS Norm: 1.19799e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.15588e-07
+
+Timestep :  32,  Timestage :  1,   Time : 0.314359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85952
+Old RHS Norm: 0.000206057,  New RHS Norm: 1.91809e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.91597e-07
+
+Timestep :  32,  Timestage :  2,   Time : 0.317179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85052
+Old RHS Norm: 0.000132985,  New RHS Norm: 1.13495e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.02209e-07
+
+Timestep :  32,  Timestage :  3,   Time : 0.32
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84286
+
+Timestep :  33,  Timestage :  1,   Time : 0.324359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8582
+
+Timestep :  33,  Timestage :  2,   Time : 0.327179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84926
+Old RHS Norm: 0.000132999,  New RHS Norm: 1.98515e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1432e-07
+
+Timestep :  33,  Timestage :  3,   Time : 0.33
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84196
+Old RHS Norm: 0.00013495,  New RHS Norm: 1.32708e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.15538e-07
+
+Timestep :  34,  Timestage :  1,   Time : 0.334359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85682
+Old RHS Norm: 0.000206083,  New RHS Norm: 1.41345e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.41311e-07
+
+Timestep :  34,  Timestage :  2,   Time : 0.337179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84813
+
+Timestep :  34,  Timestage :  3,   Time : 0.34
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84089
+
+Timestep :  35,  Timestage :  1,   Time : 0.344359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85551
+Old RHS Norm: 0.000205995,  New RHS Norm: 3.82315e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.65019e-07
+
+Timestep :  35,  Timestage :  2,   Time : 0.347179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84664
+Old RHS Norm: 0.000132918,  New RHS Norm: 1.37497e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.55809e-08
+
+Timestep :  35,  Timestage :  3,   Time : 0.35
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83944
+
+Timestep :  36,  Timestage :  1,   Time : 0.354359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85393
+
+Timestep :  36,  Timestage :  2,   Time : 0.357179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84687
+Old RHS Norm: 0.000132901,  New RHS Norm: 1.83306e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.17807e-07
+
+Timestep :  36,  Timestage :  3,   Time : 0.36
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83991
+Old RHS Norm: 0.000134807,  New RHS Norm: 1.17204e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.01854e-07
+
+Timestep :  37,  Timestage :  1,   Time : 0.364359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8571
+Old RHS Norm: 0.00020598,  New RHS Norm: 1.76532e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.52332e-07
+
+Timestep :  37,  Timestage :  2,   Time : 0.367179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84877
+Old RHS Norm: 0.000132919,  New RHS Norm: 1.03204e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.00438e-07
+
+Timestep :  37,  Timestage :  3,   Time : 0.37
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84141
+
+Timestep :  38,  Timestage :  1,   Time : 0.374359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85692
+
+Timestep :  38,  Timestage :  2,   Time : 0.377179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84824
+Old RHS Norm: 0.000132907,  New RHS Norm: 1.6637e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24198e-07
+
+Timestep :  38,  Timestage :  3,   Time : 0.38
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84097
+Old RHS Norm: 0.000134848,  New RHS Norm: 1.14875e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.67296e-08
+
+Timestep :  39,  Timestage :  1,   Time : 0.384359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85621
+Old RHS Norm: 0.000205926,  New RHS Norm: 1.32385e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.20646e-07
+
+Timestep :  39,  Timestage :  2,   Time : 0.387179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84823
+
+Timestep :  39,  Timestage :  3,   Time : 0.39
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84153
+
+Timestep :  40,  Timestage :  1,   Time : 0.394359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8571
+Old RHS Norm: 0.000205872,  New RHS Norm: 3.45453e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 2.01817e-07
+
+Timestep :  40,  Timestage :  2,   Time : 0.397179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84946
+Old RHS Norm: 0.00013286,  New RHS Norm: 1.36846e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31028e-07
+
+Timestep :  40,  Timestage :  3,   Time : 0.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84229
+
+Timestep :  41,  Timestage :  1,   Time : 0.404359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85855
+
+Timestep :  41,  Timestage :  2,   Time : 0.407179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8494
+Old RHS Norm: 0.000132897,  New RHS Norm: 1.96071e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.29591e-07
+
+Timestep :  41,  Timestage :  3,   Time : 0.41
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84185
+Old RHS Norm: 0.000134799,  New RHS Norm: 1.23839e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.15012e-07
+
+Timestep :  42,  Timestage :  1,   Time : 0.414359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85653
+Old RHS Norm: 0.000205982,  New RHS Norm: 2.12276e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.91114e-07
+
+Timestep :  42,  Timestage :  2,   Time : 0.417179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84821
+Old RHS Norm: 0.000132934,  New RHS Norm: 1.14709e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04308e-07
+
+Timestep :  42,  Timestage :  3,   Time : 0.42
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84102
+
+Timestep :  43,  Timestage :  1,   Time : 0.424359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85713
+
+Timestep :  43,  Timestage :  2,   Time : 0.427179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84881
+Old RHS Norm: 0.000132941,  New RHS Norm: 2.11125e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.0938e-07
+
+Timestep :  43,  Timestage :  3,   Time : 0.43
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84096
+Old RHS Norm: 0.000134864,  New RHS Norm: 1.47483e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.3093e-07
+
+Timestep :  44,  Timestage :  1,   Time : 0.434359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85677
+Old RHS Norm: 0.000205979,  New RHS Norm: 1.58244e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.55677e-07
+
+Timestep :  44,  Timestage :  2,   Time : 0.437179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84663
+Old RHS Norm: 0.000132891,  New RHS Norm: 1.18252e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.95836e-08
+
+Timestep :  44,  Timestage :  3,   Time : 0.44
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83915
+
+Timestep :  45,  Timestage :  1,   Time : 0.444359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85241
+
+Timestep :  45,  Timestage :  2,   Time : 0.447179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84614
+Old RHS Norm: 0.000132844,  New RHS Norm: 1.99025e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14838e-07
+
+Timestep :  45,  Timestage :  3,   Time : 0.45
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83899
+Old RHS Norm: 0.000134745,  New RHS Norm: 1.45874e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.2416e-07
+
+Timestep :  46,  Timestage :  1,   Time : 0.454359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85727
+Old RHS Norm: 0.000205866,  New RHS Norm: 1.44105e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25137e-07
+
+Timestep :  46,  Timestage :  2,   Time : 0.457179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84785
+Old RHS Norm: 0.000132852,  New RHS Norm: 1.05924e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.10408e-08
+
+Timestep :  46,  Timestage :  3,   Time : 0.46
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84016
+
+Timestep :  47,  Timestage :  1,   Time : 0.464359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85399
+
+Timestep :  47,  Timestage :  2,   Time : 0.467179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84614
+Old RHS Norm: 0.000132864,  New RHS Norm: 1.79208e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.29143e-07
+
+Timestep :  47,  Timestage :  3,   Time : 0.47
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83969
+Old RHS Norm: 0.000134772,  New RHS Norm: 1.18546e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.02486e-07
+
+Timestep :  48,  Timestage :  1,   Time : 0.474359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85558
+Old RHS Norm: 0.000205903,  New RHS Norm: 1.32173e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11631e-07
+
+Timestep :  48,  Timestage :  2,   Time : 0.477179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84837
+
+Timestep :  48,  Timestage :  3,   Time : 0.48
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84157
+
+Timestep :  49,  Timestage :  1,   Time : 0.484359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85745
+Old RHS Norm: 0.000205879,  New RHS Norm: 3.41177e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.7158e-07
+
+Timestep :  49,  Timestage :  2,   Time : 0.487179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84836
+Old RHS Norm: 0.000132845,  New RHS Norm: 1.43691e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.42911e-08
+
+Timestep :  49,  Timestage :  3,   Time : 0.49
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84053
+
+Timestep :  50,  Timestage :  1,   Time : 0.494359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8551
+
+Timestep :  50,  Timestage :  2,   Time : 0.497179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84633
+Old RHS Norm: 0.000132817,  New RHS Norm: 1.81606e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24683e-07
+
+Timestep :  50,  Timestage :  3,   Time : 0.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83961
+Old RHS Norm: 0.000134689,  New RHS Norm: 1.19617e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19611e-07
+
+Timestep :  51,  Timestage :  1,   Time : 0.504359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85508
+Old RHS Norm: 0.000205843,  New RHS Norm: 1.54006e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26835e-07
+
+Timestep :  51,  Timestage :  2,   Time : 0.507179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84746
+
+Timestep :  51,  Timestage :  3,   Time : 0.51
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84016
+
+Timestep :  52,  Timestage :  1,   Time : 0.514359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85587
+Old RHS Norm: 0.000205946,  New RHS Norm: 3.7974e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.61102e-07
+
+Timestep :  52,  Timestage :  2,   Time : 0.517179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84686
+Old RHS Norm: 0.000132908,  New RHS Norm: 1.54997e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.22923e-07
+
+Timestep :  52,  Timestage :  3,   Time : 0.52
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83936
+
+Timestep :  53,  Timestage :  1,   Time : 0.524359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8542
+
+Timestep :  53,  Timestage :  2,   Time : 0.527179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84645
+Old RHS Norm: 0.000132901,  New RHS Norm: 1.81677e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.09032e-07
+
+Timestep :  53,  Timestage :  3,   Time : 0.53
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83938
+Old RHS Norm: 0.000134847,  New RHS Norm: 1.03975e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.03107e-07
+
+Timestep :  54,  Timestage :  1,   Time : 0.534359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85595
+Old RHS Norm: 0.000205917,  New RHS Norm: 1.69853e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.49655e-07
+
+Timestep :  54,  Timestage :  2,   Time : 0.537179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84713
+
+Timestep :  54,  Timestage :  3,   Time : 0.54
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83901
+
+Timestep :  55,  Timestage :  1,   Time : 0.544359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85403
+Old RHS Norm: 0.000205803,  New RHS Norm: 3.75147e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.71702e-07
+
+Timestep :  55,  Timestage :  2,   Time : 0.547179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84472
+Old RHS Norm: 0.000132773,  New RHS Norm: 1.36798e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11513e-07
+
+Timestep :  55,  Timestage :  3,   Time : 0.55
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83766
+
+Timestep :  56,  Timestage :  1,   Time : 0.554359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85193
+
+Timestep :  56,  Timestage :  2,   Time : 0.557179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84586
+Old RHS Norm: 0.000132736,  New RHS Norm: 1.89053e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.00773e-07
+
+Timestep :  56,  Timestage :  3,   Time : 0.56
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83867
+Old RHS Norm: 0.000134634,  New RHS Norm: 1.23365e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.0493e-07
+
+Timestep :  57,  Timestage :  1,   Time : 0.564359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85739
+Old RHS Norm: 0.000205747,  New RHS Norm: 1.60371e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.42999e-07
+
+Timestep :  57,  Timestage :  2,   Time : 0.567179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84816
+Old RHS Norm: 0.000132785,  New RHS Norm: 1.03157e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.61116e-08
+
+Timestep :  57,  Timestage :  3,   Time : 0.57
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84037
+
+Timestep :  58,  Timestage :  1,   Time : 0.574359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85461
+
+Timestep :  58,  Timestage :  2,   Time : 0.577179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84612
+Old RHS Norm: 0.000132804,  New RHS Norm: 1.65659e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13699e-07
+
+Timestep :  58,  Timestage :  3,   Time : 0.58
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83898
+Old RHS Norm: 0.000134723,  New RHS Norm: 1.10726e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.47229e-08
+
+Timestep :  59,  Timestage :  1,   Time : 0.584359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85446
+Old RHS Norm: 0.000205804,  New RHS Norm: 1.35938e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16215e-07
+
+Timestep :  59,  Timestage :  2,   Time : 0.587179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84635
+
+Timestep :  59,  Timestage :  3,   Time : 0.59
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83891
+
+Timestep :  60,  Timestage :  1,   Time : 0.594359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85453
+Old RHS Norm: 0.000205766,  New RHS Norm: 3.51952e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.93037e-07
+
+Timestep :  60,  Timestage :  2,   Time : 0.597179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84564
+Old RHS Norm: 0.00013278,  New RHS Norm: 1.35514e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1678e-07
+
+Timestep :  60,  Timestage :  3,   Time : 0.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83807
+
+Timestep :  61,  Timestage :  1,   Time : 0.604359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85289
+
+Timestep :  61,  Timestage :  2,   Time : 0.607179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84441
+Old RHS Norm: 0.00013279,  New RHS Norm: 1.80306e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16883e-07
+
+Timestep :  61,  Timestage :  3,   Time : 0.61
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83785
+Old RHS Norm: 0.00013471,  New RHS Norm: 1.13958e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.62477e-08
+
+Timestep :  62,  Timestage :  1,   Time : 0.614359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85304
+Old RHS Norm: 0.000205799,  New RHS Norm: 1.60116e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.53152e-07
+
+Timestep :  62,  Timestage :  2,   Time : 0.617179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84526
+Old RHS Norm: 0.000132812,  New RHS Norm: 1.06548e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.87068e-08
+
+Timestep :  62,  Timestage :  3,   Time : 0.62
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8383
+
+Timestep :  63,  Timestage :  1,   Time : 0.624359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85391
+
+Timestep :  63,  Timestage :  2,   Time : 0.627179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84598
+Old RHS Norm: 0.000132798,  New RHS Norm: 1.92045e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.02596e-07
+
+Timestep :  63,  Timestage :  3,   Time : 0.63
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83827
+Old RHS Norm: 0.000134757,  New RHS Norm: 1.2865e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.18304e-07
+
+Timestep :  64,  Timestage :  1,   Time : 0.634359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85456
+Old RHS Norm: 0.000205734,  New RHS Norm: 1.53206e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.47625e-07
+
+Timestep :  64,  Timestage :  2,   Time : 0.637179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84602
+Old RHS Norm: 0.000132726,  New RHS Norm: 1.08452e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.19961e-08
+
+Timestep :  64,  Timestage :  3,   Time : 0.64
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83861
+
+Timestep :  65,  Timestage :  1,   Time : 0.644359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85428
+
+Timestep :  65,  Timestage :  2,   Time : 0.647179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84547
+Old RHS Norm: 0.000132668,  New RHS Norm: 1.81996e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1513e-07
+
+Timestep :  65,  Timestage :  3,   Time : 0.65
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83787
+Old RHS Norm: 0.000134545,  New RHS Norm: 1.27449e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.2653e-07
+
+Timestep :  66,  Timestage :  1,   Time : 0.654359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8531
+Old RHS Norm: 0.000205572,  New RHS Norm: 1.49979e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21888e-07
+
+Timestep :  66,  Timestage :  2,   Time : 0.657179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84466
+
+Timestep :  66,  Timestage :  3,   Time : 0.66
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83785
+
+Timestep :  67,  Timestage :  1,   Time : 0.664359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8532
+Old RHS Norm: 0.000205628,  New RHS Norm: 3.78686e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.52896e-07
+
+Timestep :  67,  Timestage :  2,   Time : 0.667179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8454
+Old RHS Norm: 0.000132714,  New RHS Norm: 1.49259e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.23096e-07
+
+Timestep :  67,  Timestage :  3,   Time : 0.67
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83821
+
+Timestep :  68,  Timestage :  1,   Time : 0.674359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85433
+
+Timestep :  68,  Timestage :  2,   Time : 0.677179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84543
+Old RHS Norm: 0.000132759,  New RHS Norm: 1.74452e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.9297e-08
+
+Timestep :  68,  Timestage :  3,   Time : 0.68
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8377
+Old RHS Norm: 0.000134669,  New RHS Norm: 1.20417e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04444e-07
+
+Timestep :  69,  Timestage :  1,   Time : 0.684359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85262
+Old RHS Norm: 0.000205744,  New RHS Norm: 1.73576e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.35578e-07
+
+Timestep :  69,  Timestage :  2,   Time : 0.687179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84381
+Old RHS Norm: 0.00013276,  New RHS Norm: 1.04806e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.39085e-08
+
+Timestep :  69,  Timestage :  3,   Time : 0.69
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83653
+
+Timestep :  70,  Timestage :  1,   Time : 0.694359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85182
+
+Timestep :  70,  Timestage :  2,   Time : 0.697179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84392
+Old RHS Norm: 0.000132743,  New RHS Norm: 1.74863e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.2164e-07
+
+Timestep :  70,  Timestage :  3,   Time : 0.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83653
+Old RHS Norm: 0.000134653,  New RHS Norm: 1.22753e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1896e-07
+
+Timestep :  71,  Timestage :  1,   Time : 0.704359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85262
+Old RHS Norm: 0.000205696,  New RHS Norm: 1.18213e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.07906e-07
+
+Timestep :  71,  Timestage :  2,   Time : 0.707179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84393
+
+Timestep :  71,  Timestage :  3,   Time : 0.71
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8363
+
+Timestep :  72,  Timestage :  1,   Time : 0.714359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85169
+Old RHS Norm: 0.000205706,  New RHS Norm: 3.59179e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.66632e-07
+
+Timestep :  72,  Timestage :  2,   Time : 0.717179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84377
+Old RHS Norm: 0.000132747,  New RHS Norm: 1.47707e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.17792e-07
+
+Timestep :  72,  Timestage :  3,   Time : 0.72
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8371
+
+Timestep :  73,  Timestage :  1,   Time : 0.724359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85307
+
+Timestep :  73,  Timestage :  2,   Time : 0.727179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84617
+Old RHS Norm: 0.000132734,  New RHS Norm: 1.9557e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.56467e-08
+
+Timestep :  73,  Timestage :  3,   Time : 0.73
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83827
+Old RHS Norm: 0.000134668,  New RHS Norm: 1.2452e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.10491e-07
+
+Timestep :  74,  Timestage :  1,   Time : 0.734359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85605
+Old RHS Norm: 0.000205661,  New RHS Norm: 1.75284e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.35314e-07
+
+Timestep :  74,  Timestage :  2,   Time : 0.737179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8462
+
+Timestep :  74,  Timestage :  3,   Time : 0.74
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8374
+
+Timestep :  75,  Timestage :  1,   Time : 0.744359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85306
+Old RHS Norm: 0.00020557,  New RHS Norm: 3.81884e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.53379e-07
+
+Timestep :  75,  Timestage :  2,   Time : 0.747179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84432
+Old RHS Norm: 0.00013264,  New RHS Norm: 1.43309e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13598e-07
+
+Timestep :  75,  Timestage :  3,   Time : 0.75
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8372
+
+Timestep :  76,  Timestage :  1,   Time : 0.754359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85241
+
+Timestep :  76,  Timestage :  2,   Time : 0.757179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84464
+Old RHS Norm: 0.000132643,  New RHS Norm: 1.76833e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.32312e-07
+
+Timestep :  76,  Timestage :  3,   Time : 0.76
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83726
+Old RHS Norm: 0.000134552,  New RHS Norm: 1.07682e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.12073e-08
+
+Timestep :  77,  Timestage :  1,   Time : 0.764359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85333
+Old RHS Norm: 0.000205598,  New RHS Norm: 1.49609e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27647e-07
+
+Timestep :  77,  Timestage :  2,   Time : 0.767179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84425
+
+Timestep :  77,  Timestage :  3,   Time : 0.77
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83662
+
+Timestep :  78,  Timestage :  1,   Time : 0.774359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85152
+Old RHS Norm: 0.000205664,  New RHS Norm: 3.71557e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.89273e-07
+
+Timestep :  78,  Timestage :  2,   Time : 0.777179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84339
+Old RHS Norm: 0.000132722,  New RHS Norm: 1.41556e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.10535e-07
+
+Timestep :  78,  Timestage :  3,   Time : 0.78
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83654
+
+Timestep :  79,  Timestage :  1,   Time : 0.784359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85213
+
+Timestep :  79,  Timestage :  2,   Time : 0.787179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84478
+Old RHS Norm: 0.000132716,  New RHS Norm: 2.06591e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24523e-07
+
+Timestep :  79,  Timestage :  3,   Time : 0.79
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8366
+Old RHS Norm: 0.000134606,  New RHS Norm: 1.29442e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.23436e-07
+
+Timestep :  80,  Timestage :  1,   Time : 0.794359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85377
+Old RHS Norm: 0.00020559,  New RHS Norm: 2.03514e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.53177e-07
+
+Timestep :  80,  Timestage :  2,   Time : 0.797179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84412
+Old RHS Norm: 0.000132654,  New RHS Norm: 1.0958e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.84714e-08
+
+Timestep :  80,  Timestage :  3,   Time : 0.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83652
+
+Timestep :  81,  Timestage :  1,   Time : 0.804359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85126
+
+Timestep :  81,  Timestage :  2,   Time : 0.807179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84341
+Old RHS Norm: 0.000132632,  New RHS Norm: 1.81319e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26745e-07
+
+Timestep :  81,  Timestage :  3,   Time : 0.81
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83675
+Old RHS Norm: 0.000134524,  New RHS Norm: 1.26629e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.03606e-07
+
+Timestep :  82,  Timestage :  1,   Time : 0.814359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85232
+Old RHS Norm: 0.000205525,  New RHS Norm: 1.51646e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.20706e-07
+
+Timestep :  82,  Timestage :  2,   Time : 0.817179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84454
+Old RHS Norm: 0.000132639,  New RHS Norm: 1.00645e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.8834e-08
+
+Timestep :  82,  Timestage :  3,   Time : 0.82
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83731
+
+Timestep :  83,  Timestage :  1,   Time : 0.824359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85321
+
+Timestep :  83,  Timestage :  2,   Time : 0.827179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84437
+Old RHS Norm: 0.000132659,  New RHS Norm: 1.51439e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.17539e-07
+
+Timestep :  83,  Timestage :  3,   Time : 0.83
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83711
+Old RHS Norm: 0.000134582,  New RHS Norm: 1.13276e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.02861e-07
+
+Timestep :  84,  Timestage :  1,   Time : 0.834359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85206
+Old RHS Norm: 0.000205591,  New RHS Norm: 1.34798e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.23198e-07
+
+Timestep :  84,  Timestage :  2,   Time : 0.837179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84383
+
+Timestep :  84,  Timestage :  3,   Time : 0.84
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83696
+
+Timestep :  85,  Timestage :  1,   Time : 0.844359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85213
+Old RHS Norm: 0.000205556,  New RHS Norm: 3.58356e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.55598e-07
+
+Timestep :  85,  Timestage :  2,   Time : 0.847179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84369
+Old RHS Norm: 0.000132641,  New RHS Norm: 1.44529e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.30327e-07
+
+Timestep :  85,  Timestage :  3,   Time : 0.85
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83608
+Old RHS Norm: 0.000134503,  New RHS Norm: 1.01664e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.33402e-08
+
+Timestep :  86,  Timestage :  1,   Time : 0.854359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8516
+
+Timestep :  86,  Timestage :  2,   Time : 0.857179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84208
+Old RHS Norm: 0.000132622,  New RHS Norm: 1.29624e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.08283e-07
+
+Timestep :  86,  Timestage :  3,   Time : 0.86
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83491
+Old RHS Norm: 0.000134518,  New RHS Norm: 1.42874e-06
+GMRES converges to the tolerance 0.001 within  6 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24344e-07
+
+Timestep :  87,  Timestage :  1,   Time : 0.864359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.849
+Old RHS Norm: 0.000205518,  New RHS Norm: 1.24562e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24103e-07
+
+Timestep :  87,  Timestage :  2,   Time : 0.867179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84097
+
+Timestep :  87,  Timestage :  3,   Time : 0.87
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83385
+
+Timestep :  88,  Timestage :  1,   Time : 0.874359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84967
+Old RHS Norm: 0.000205529,  New RHS Norm: 3.53232e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.65652e-07
+
+Timestep :  88,  Timestage :  2,   Time : 0.877179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84173
+Old RHS Norm: 0.000132629,  New RHS Norm: 1.38212e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.22279e-07
+
+Timestep :  88,  Timestage :  3,   Time : 0.88
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83458
+
+Timestep :  89,  Timestage :  1,   Time : 0.884359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8504
+
+Timestep :  89,  Timestage :  2,   Time : 0.887179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84205
+Old RHS Norm: 0.000132626,  New RHS Norm: 2.01176e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.23124e-07
+
+Timestep :  89,  Timestage :  3,   Time : 0.89
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83502
+Old RHS Norm: 0.000134522,  New RHS Norm: 1.21036e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.05217e-07
+
+Timestep :  90,  Timestage :  1,   Time : 0.894359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85043
+Old RHS Norm: 0.000205502,  New RHS Norm: 1.63986e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.32799e-07
+
+Timestep :  90,  Timestage :  2,   Time : 0.897179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84221
+
+Timestep :  90,  Timestage :  3,   Time : 0.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83499
+
+Timestep :  91,  Timestage :  1,   Time : 0.904359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85041
+Old RHS Norm: 0.000205473,  New RHS Norm: 3.69711e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.8901e-07
+
+Timestep :  91,  Timestage :  2,   Time : 0.907179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84226
+Old RHS Norm: 0.000132597,  New RHS Norm: 1.52067e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13523e-07
+
+Timestep :  91,  Timestage :  3,   Time : 0.91
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83514
+
+Timestep :  92,  Timestage :  1,   Time : 0.914359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85061
+
+Timestep :  92,  Timestage :  2,   Time : 0.917179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84254
+Old RHS Norm: 0.000132601,  New RHS Norm: 2.30774e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.20243e-07
+
+Timestep :  92,  Timestage :  3,   Time : 0.92
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83528
+Old RHS Norm: 0.00013448,  New RHS Norm: 1.3584e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19022e-07
+
+Timestep :  93,  Timestage :  1,   Time : 0.924359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85086
+Old RHS Norm: 0.000205512,  New RHS Norm: 2.1466e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.54294e-07
+
+Timestep :  93,  Timestage :  2,   Time : 0.927179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84249
+Old RHS Norm: 0.00013262,  New RHS Norm: 1.07872e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.7931e-08
+
+Timestep :  93,  Timestage :  3,   Time : 0.93
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83533
+
+Timestep :  94,  Timestage :  1,   Time : 0.934359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85109
+
+Timestep :  94,  Timestage :  2,   Time : 0.937179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84293
+Old RHS Norm: 0.000132612,  New RHS Norm: 2.10948e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.08248e-07
+
+Timestep :  94,  Timestage :  3,   Time : 0.94
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83524
+Old RHS Norm: 0.000134516,  New RHS Norm: 1.52e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.20671e-07
+
+Timestep :  95,  Timestage :  1,   Time : 0.944359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85115
+Old RHS Norm: 0.000205481,  New RHS Norm: 1.4834e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.20013e-07
+
+Timestep :  95,  Timestage :  2,   Time : 0.947179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84169
+Old RHS Norm: 0.000132587,  New RHS Norm: 1.05875e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.69258e-08
+
+Timestep :  95,  Timestage :  3,   Time : 0.95
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83413
+
+Timestep :  96,  Timestage :  1,   Time : 0.954359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84833
+
+Timestep :  96,  Timestage :  2,   Time : 0.957179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84084
+Old RHS Norm: 0.00013258,  New RHS Norm: 2.00451e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.22926e-07
+
+Timestep :  96,  Timestage :  3,   Time : 0.96
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83378
+Old RHS Norm: 0.000134514,  New RHS Norm: 1.43174e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1866e-07
+
+Timestep :  97,  Timestage :  1,   Time : 0.964359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85048
+Old RHS Norm: 0.00020549,  New RHS Norm: 1.65565e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31815e-07
+
+Timestep :  97,  Timestage :  2,   Time : 0.967179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84189
+
+Timestep :  97,  Timestage :  3,   Time : 0.97
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83362
+
+Timestep :  98,  Timestage :  1,   Time : 0.974359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84919
+Old RHS Norm: 0.000205536,  New RHS Norm: 3.48196e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.79524e-07
+
+Timestep :  98,  Timestage :  2,   Time : 0.977179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84025
+Old RHS Norm: 0.000132626,  New RHS Norm: 1.60893e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16707e-07
+
+Timestep :  98,  Timestage :  3,   Time : 0.98
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83339
+
+Timestep :  99,  Timestage :  1,   Time : 0.984359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84789
+
+Timestep :  99,  Timestage :  2,   Time : 0.987179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84224
+Old RHS Norm: 0.000132602,  New RHS Norm: 2.13988e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.03136e-07
+
+Timestep :  99,  Timestage :  3,   Time : 0.99
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8346
+Old RHS Norm: 0.000134516,  New RHS Norm: 1.33789e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.28812e-07
+
+Timestep :  100,  Timestage :  1,   Time : 0.994359
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85436
+Old RHS Norm: 0.000205472,  New RHS Norm: 1.85076e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.42902e-07
+
+Timestep :  100,  Timestage :  2,   Time : 0.997179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84422
+Old RHS Norm: 0.000132594,  New RHS Norm: 1.04614e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.037e-07
+
+Timestep :  100,  Timestage :  3,   Time : 1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83601
+
+Timestep :  101,  Timestage :  1,   Time : 1.00436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84972
+
+Timestep :  101,  Timestage :  2,   Time : 1.00718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84103
+Old RHS Norm: 0.000132584,  New RHS Norm: 1.79032e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16971e-07
+
+Timestep :  101,  Timestage :  3,   Time : 1.01
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83425
+Old RHS Norm: 0.000134483,  New RHS Norm: 1.32062e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1288e-07
+
+Timestep :  102,  Timestage :  1,   Time : 1.01436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84941
+Old RHS Norm: 0.000205438,  New RHS Norm: 1.44779e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.34036e-07
+
+Timestep :  102,  Timestage :  2,   Time : 1.01718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84268
+
+Timestep :  102,  Timestage :  3,   Time : 1.02
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83635
+
+Timestep :  103,  Timestage :  1,   Time : 1.02436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85287
+Old RHS Norm: 0.000205428,  New RHS Norm: 3.54689e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.90657e-07
+
+Timestep :  103,  Timestage :  2,   Time : 1.02718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84432
+Old RHS Norm: 0.000132568,  New RHS Norm: 1.53972e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.01898e-07
+
+Timestep :  103,  Timestage :  3,   Time : 1.03
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83605
+
+Timestep :  104,  Timestage :  1,   Time : 1.03436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85147
+
+Timestep :  104,  Timestage :  2,   Time : 1.03718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84035
+Old RHS Norm: 0.000132556,  New RHS Norm: 2.09986e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14311e-07
+
+Timestep :  104,  Timestage :  3,   Time : 1.04
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83377
+Old RHS Norm: 0.000134452,  New RHS Norm: 1.19334e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.07348e-07
+
+Timestep :  105,  Timestage :  1,   Time : 1.04436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84639
+Old RHS Norm: 0.00020538,  New RHS Norm: 1.99553e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.57669e-07
+
+Timestep :  105,  Timestage :  2,   Time : 1.04718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84
+Old RHS Norm: 0.00013253,  New RHS Norm: 1.01768e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.91359e-08
+
+Timestep :  105,  Timestage :  3,   Time : 1.05
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83292
+
+Timestep :  106,  Timestage :  1,   Time : 1.05436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85032
+
+Timestep :  106,  Timestage :  2,   Time : 1.05718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83969
+Old RHS Norm: 0.000132533,  New RHS Norm: 1.8859e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.10294e-07
+
+Timestep :  106,  Timestage :  3,   Time : 1.06
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83261
+Old RHS Norm: 0.000134459,  New RHS Norm: 1.39143e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19054e-07
+
+Timestep :  107,  Timestage :  1,   Time : 1.06436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84573
+Old RHS Norm: 0.00020539,  New RHS Norm: 1.54e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.44641e-07
+
+Timestep :  107,  Timestage :  2,   Time : 1.06718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83876
+Old RHS Norm: 0.000132539,  New RHS Norm: 1.01925e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.5471e-08
+
+Timestep :  107,  Timestage :  3,   Time : 1.07
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8323
+
+Timestep :  108,  Timestage :  1,   Time : 1.07436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84913
+
+Timestep :  108,  Timestage :  2,   Time : 1.07718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84136
+Old RHS Norm: 0.000132533,  New RHS Norm: 1.80797e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26375e-07
+
+Timestep :  108,  Timestage :  3,   Time : 1.08
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83378
+Old RHS Norm: 0.000134485,  New RHS Norm: 1.34977e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25013e-07
+
+Timestep :  109,  Timestage :  1,   Time : 1.08436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84967
+Old RHS Norm: 0.00020533,  New RHS Norm: 1.48499e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19716e-07
+
+Timestep :  109,  Timestage :  2,   Time : 1.08718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84034
+
+Timestep :  109,  Timestage :  3,   Time : 1.09
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83275
+
+Timestep :  110,  Timestage :  1,   Time : 1.09436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84771
+Old RHS Norm: 0.000205247,  New RHS Norm: 3.40275e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.76529e-07
+
+Timestep :  110,  Timestage :  2,   Time : 1.09718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84006
+Old RHS Norm: 0.000132446,  New RHS Norm: 1.47224e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.07462e-07
+
+Timestep :  110,  Timestage :  3,   Time : 1.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83324
+
+Timestep :  111,  Timestage :  1,   Time : 1.10436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84929
+
+Timestep :  111,  Timestage :  2,   Time : 1.10718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84112
+Old RHS Norm: 0.000132452,  New RHS Norm: 1.91406e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.07443e-07
+
+Timestep :  111,  Timestage :  3,   Time : 1.11
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83337
+Old RHS Norm: 0.000134305,  New RHS Norm: 1.22264e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11109e-07
+
+Timestep :  112,  Timestage :  1,   Time : 1.11436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84874
+Old RHS Norm: 0.000205243,  New RHS Norm: 1.6453e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.48232e-07
+
+Timestep :  112,  Timestage :  2,   Time : 1.11718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83982
+Old RHS Norm: 0.00013245,  New RHS Norm: 1.03329e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.077e-08
+
+Timestep :  112,  Timestage :  3,   Time : 1.12
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83262
+
+Timestep :  113,  Timestage :  1,   Time : 1.12436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84798
+
+Timestep :  113,  Timestage :  2,   Time : 1.12718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84031
+Old RHS Norm: 0.000132466,  New RHS Norm: 1.74155e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.57933e-08
+
+Timestep :  113,  Timestage :  3,   Time : 1.13
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83281
+Old RHS Norm: 0.00013436,  New RHS Norm: 1.31172e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19713e-07
+
+Timestep :  114,  Timestage :  1,   Time : 1.13436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84893
+Old RHS Norm: 0.000205288,  New RHS Norm: 1.49214e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.28703e-07
+
+Timestep :  114,  Timestage :  2,   Time : 1.13718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83942
+
+Timestep :  114,  Timestage :  3,   Time : 1.14
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83132
+
+Timestep :  115,  Timestage :  1,   Time : 1.14436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84594
+Old RHS Norm: 0.000205283,  New RHS Norm: 3.58511e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.72961e-07
+
+Timestep :  115,  Timestage :  2,   Time : 1.14718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83746
+Old RHS Norm: 0.000132465,  New RHS Norm: 1.54936e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21373e-07
+
+Timestep :  115,  Timestage :  3,   Time : 1.15
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83075
+
+Timestep :  116,  Timestage :  1,   Time : 1.15436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84581
+
+Timestep :  116,  Timestage :  2,   Time : 1.15718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83942
+Old RHS Norm: 0.00013246,  New RHS Norm: 1.96958e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31598e-07
+
+Timestep :  116,  Timestage :  3,   Time : 1.16
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83172
+Old RHS Norm: 0.000134332,  New RHS Norm: 1.19024e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1835e-07
+
+Timestep :  117,  Timestage :  1,   Time : 1.16436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84932
+Old RHS Norm: 0.000205274,  New RHS Norm: 1.72487e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.63928e-07
+
+Timestep :  117,  Timestage :  2,   Time : 1.16718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83954
+Old RHS Norm: 0.000132464,  New RHS Norm: 1.01147e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.83636e-08
+
+Timestep :  117,  Timestage :  3,   Time : 1.17
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83214
+
+Timestep :  118,  Timestage :  1,   Time : 1.17436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84603
+
+Timestep :  118,  Timestage :  2,   Time : 1.17718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83936
+Old RHS Norm: 0.000132457,  New RHS Norm: 1.85569e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24759e-07
+
+Timestep :  118,  Timestage :  3,   Time : 1.18
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83227
+Old RHS Norm: 0.000134387,  New RHS Norm: 1.29547e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.24628e-07
+
+Timestep :  119,  Timestage :  1,   Time : 1.18436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84945
+Old RHS Norm: 0.000205257,  New RHS Norm: 1.38862e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31432e-07
+
+Timestep :  119,  Timestage :  2,   Time : 1.18718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84058
+
+Timestep :  119,  Timestage :  3,   Time : 1.19
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83227
+
+Timestep :  120,  Timestage :  1,   Time : 1.19436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84775
+Old RHS Norm: 0.000205225,  New RHS Norm: 3.75398e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.73677e-07
+
+Timestep :  120,  Timestage :  2,   Time : 1.19718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83891
+Old RHS Norm: 0.00013242,  New RHS Norm: 1.47165e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.09633e-07
+
+Timestep :  120,  Timestage :  3,   Time : 1.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.832
+
+Timestep :  121,  Timestage :  1,   Time : 1.20436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84661
+
+Timestep :  121,  Timestage :  2,   Time : 1.20718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84021
+Old RHS Norm: 0.000132411,  New RHS Norm: 1.82387e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25797e-07
+
+Timestep :  121,  Timestage :  3,   Time : 1.21
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83257
+Old RHS Norm: 0.000134274,  New RHS Norm: 1.1835e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.08941e-07
+
+Timestep :  122,  Timestage :  1,   Time : 1.21436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8505
+Old RHS Norm: 0.00020522,  New RHS Norm: 1.78486e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.44629e-07
+
+Timestep :  122,  Timestage :  2,   Time : 1.21718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84084
+Old RHS Norm: 0.000132431,  New RHS Norm: 1.04283e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.85289e-08
+
+Timestep :  122,  Timestage :  3,   Time : 1.22
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83309
+
+Timestep :  123,  Timestage :  1,   Time : 1.22436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84736
+
+Timestep :  123,  Timestage :  2,   Time : 1.22718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83928
+Old RHS Norm: 0.000132437,  New RHS Norm: 1.8207e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31655e-07
+
+Timestep :  123,  Timestage :  3,   Time : 1.23
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83202
+Old RHS Norm: 0.000134321,  New RHS Norm: 1.30285e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.29533e-07
+
+Timestep :  124,  Timestage :  1,   Time : 1.23436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84799
+Old RHS Norm: 0.000205246,  New RHS Norm: 1.4031e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31129e-07
+
+Timestep :  124,  Timestage :  2,   Time : 1.23718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83989
+
+Timestep :  124,  Timestage :  3,   Time : 1.24
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83244
+
+Timestep :  125,  Timestage :  1,   Time : 1.24436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84842
+Old RHS Norm: 0.000205238,  New RHS Norm: 3.57745e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.73055e-07
+
+Timestep :  125,  Timestage :  2,   Time : 1.24718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83966
+Old RHS Norm: 0.000132439,  New RHS Norm: 1.50013e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.18427e-07
+
+Timestep :  125,  Timestage :  3,   Time : 1.25
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83194
+
+Timestep :  126,  Timestage :  1,   Time : 1.25436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8471
+
+Timestep :  126,  Timestage :  2,   Time : 1.25718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8376
+Old RHS Norm: 0.000132417,  New RHS Norm: 2.08642e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14471e-07
+
+Timestep :  126,  Timestage :  3,   Time : 1.26
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83054
+Old RHS Norm: 0.000134297,  New RHS Norm: 1.33117e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.2496e-08
+
+Timestep :  127,  Timestage :  1,   Time : 1.26436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84465
+Old RHS Norm: 0.000205186,  New RHS Norm: 1.92182e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.6708e-07
+
+Timestep :  127,  Timestage :  2,   Time : 1.26718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83749
+Old RHS Norm: 0.000132409,  New RHS Norm: 1.04793e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04593e-07
+
+Timestep :  127,  Timestage :  3,   Time : 1.27
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83065
+
+Timestep :  128,  Timestage :  1,   Time : 1.27436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84744
+
+Timestep :  128,  Timestage :  2,   Time : 1.27718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83873
+Old RHS Norm: 0.000132406,  New RHS Norm: 1.86038e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04882e-07
+
+Timestep :  128,  Timestage :  3,   Time : 1.28
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83158
+Old RHS Norm: 0.000134334,  New RHS Norm: 1.35592e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27947e-07
+
+Timestep :  129,  Timestage :  1,   Time : 1.28436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84634
+Old RHS Norm: 0.000205173,  New RHS Norm: 1.43946e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26589e-07
+
+Timestep :  129,  Timestage :  2,   Time : 1.28718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83828
+Old RHS Norm: 0.000132389,  New RHS Norm: 1.00028e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.06411e-08
+
+Timestep :  129,  Timestage :  3,   Time : 1.29
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83141
+
+Timestep :  130,  Timestage :  1,   Time : 1.29436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84693
+
+Timestep :  130,  Timestage :  2,   Time : 1.29718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83958
+Old RHS Norm: 0.000132364,  New RHS Norm: 1.66309e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.18274e-07
+
+Timestep :  130,  Timestage :  3,   Time : 1.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8322
+Old RHS Norm: 0.000134289,  New RHS Norm: 1.29848e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13308e-07
+
+Timestep :  131,  Timestage :  1,   Time : 1.30436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84874
+Old RHS Norm: 0.000205092,  New RHS Norm: 1.46519e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.37408e-07
+
+Timestep :  131,  Timestage :  2,   Time : 1.30718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83947
+
+Timestep :  131,  Timestage :  3,   Time : 1.31
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83112
+
+Timestep :  132,  Timestage :  1,   Time : 1.31436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84633
+Old RHS Norm: 0.000205084,  New RHS Norm: 3.47893e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.78841e-07
+
+Timestep :  132,  Timestage :  2,   Time : 1.31718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83817
+Old RHS Norm: 0.000132356,  New RHS Norm: 1.55512e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14725e-07
+
+Timestep :  132,  Timestage :  3,   Time : 1.32
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83151
+
+Timestep :  133,  Timestage :  1,   Time : 1.32436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84704
+
+Timestep :  133,  Timestage :  2,   Time : 1.32718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84047
+Old RHS Norm: 0.000132388,  New RHS Norm: 2.1248e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21331e-07
+
+Timestep :  133,  Timestage :  3,   Time : 1.33
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83233
+Old RHS Norm: 0.000134259,  New RHS Norm: 1.35755e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.05864e-07
+
+Timestep :  134,  Timestage :  1,   Time : 1.33436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.85038
+Old RHS Norm: 0.000205181,  New RHS Norm: 1.7724e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.58499e-07
+
+Timestep :  134,  Timestage :  2,   Time : 1.33718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83988
+Old RHS Norm: 0.000132414,  New RHS Norm: 1.03592e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.63382e-08
+
+Timestep :  134,  Timestage :  3,   Time : 1.34
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83186
+
+Timestep :  135,  Timestage :  1,   Time : 1.34436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84552
+
+Timestep :  135,  Timestage :  2,   Time : 1.34718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83754
+Old RHS Norm: 0.000132399,  New RHS Norm: 1.80629e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.00879e-07
+
+Timestep :  135,  Timestage :  3,   Time : 1.35
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83022
+Old RHS Norm: 0.000134337,  New RHS Norm: 1.39734e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21003e-07
+
+Timestep :  136,  Timestage :  1,   Time : 1.35436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8463
+Old RHS Norm: 0.000205157,  New RHS Norm: 1.44749e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26356e-07
+
+Timestep :  136,  Timestage :  2,   Time : 1.35718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83762
+
+Timestep :  136,  Timestage :  3,   Time : 1.36
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82952
+
+Timestep :  137,  Timestage :  1,   Time : 1.36436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84494
+Old RHS Norm: 0.000205124,  New RHS Norm: 3.49508e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 2.01075e-07
+
+Timestep :  137,  Timestage :  2,   Time : 1.36718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83578
+Old RHS Norm: 0.000132365,  New RHS Norm: 1.58892e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.06639e-07
+
+Timestep :  137,  Timestage :  3,   Time : 1.37
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82876
+
+Timestep :  138,  Timestage :  1,   Time : 1.37436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84311
+
+Timestep :  138,  Timestage :  2,   Time : 1.37718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83699
+Old RHS Norm: 0.000132352,  New RHS Norm: 2.08281e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14883e-07
+
+Timestep :  138,  Timestage :  3,   Time : 1.38
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83008
+Old RHS Norm: 0.000134251,  New RHS Norm: 1.33247e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25768e-07
+
+Timestep :  139,  Timestage :  1,   Time : 1.38436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84833
+Old RHS Norm: 0.000205088,  New RHS Norm: 1.91932e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.87132e-07
+
+Timestep :  139,  Timestage :  2,   Time : 1.38718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83901
+Old RHS Norm: 0.000132339,  New RHS Norm: 1.04906e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.62535e-08
+
+Timestep :  139,  Timestage :  3,   Time : 1.39
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8317
+
+Timestep :  140,  Timestage :  1,   Time : 1.39436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84524
+
+Timestep :  140,  Timestage :  2,   Time : 1.39718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83848
+Old RHS Norm: 0.000132322,  New RHS Norm: 1.90174e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.80958e-08
+
+Timestep :  140,  Timestage :  3,   Time : 1.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83111
+Old RHS Norm: 0.000134222,  New RHS Norm: 1.35387e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.28766e-07
+
+Timestep :  141,  Timestage :  1,   Time : 1.40436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8496
+Old RHS Norm: 0.000205048,  New RHS Norm: 1.47125e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19945e-07
+
+Timestep :  141,  Timestage :  2,   Time : 1.40718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84043
+Old RHS Norm: 0.000132328,  New RHS Norm: 1.12528e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.66242e-08
+
+Timestep :  141,  Timestage :  3,   Time : 1.41
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83259
+
+Timestep :  142,  Timestage :  1,   Time : 1.41436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84701
+
+Timestep :  142,  Timestage :  2,   Time : 1.41718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83811
+Old RHS Norm: 0.00013235,  New RHS Norm: 1.67517e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31316e-07
+
+Timestep :  142,  Timestage :  3,   Time : 1.42
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83095
+Old RHS Norm: 0.000134218,  New RHS Norm: 1.10249e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.03728e-07
+
+Timestep :  143,  Timestage :  1,   Time : 1.42436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84602
+Old RHS Norm: 0.000205101,  New RHS Norm: 1.37091e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.35534e-07
+
+Timestep :  143,  Timestage :  2,   Time : 1.42718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83839
+
+Timestep :  143,  Timestage :  3,   Time : 1.43
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83149
+
+Timestep :  144,  Timestage :  1,   Time : 1.43436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84749
+Old RHS Norm: 0.000205114,  New RHS Norm: 3.34368e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.73565e-07
+
+Timestep :  144,  Timestage :  2,   Time : 1.43718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83904
+Old RHS Norm: 0.000132362,  New RHS Norm: 1.40223e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19962e-07
+
+Timestep :  144,  Timestage :  3,   Time : 1.44
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.831
+
+Timestep :  145,  Timestage :  1,   Time : 1.44436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84649
+
+Timestep :  145,  Timestage :  2,   Time : 1.44718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83548
+Old RHS Norm: 0.000132333,  New RHS Norm: 1.6365e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.73094e-08
+
+Timestep :  145,  Timestage :  3,   Time : 1.45
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82849
+
+Timestep :  146,  Timestage :  1,   Time : 1.45436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84019
+Old RHS Norm: 0.000205042,  New RHS Norm: 1.59203e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26222e-07
+
+Timestep :  146,  Timestage :  2,   Time : 1.45718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83377
+Old RHS Norm: 0.000132303,  New RHS Norm: 1.48398e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.30341e-07
+
+Timestep :  146,  Timestage :  3,   Time : 1.46
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82763
+
+Timestep :  147,  Timestage :  1,   Time : 1.46436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8442
+
+Timestep :  147,  Timestage :  2,   Time : 1.46718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8369
+Old RHS Norm: 0.000132284,  New RHS Norm: 1.92014e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.1871e-07
+
+Timestep :  147,  Timestage :  3,   Time : 1.47
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82907
+Old RHS Norm: 0.000134194,  New RHS Norm: 1.24857e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13474e-07
+
+Timestep :  148,  Timestage :  1,   Time : 1.47436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84542
+Old RHS Norm: 0.000204971,  New RHS Norm: 1.35748e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11621e-07
+
+Timestep :  148,  Timestage :  2,   Time : 1.47718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83632
+
+Timestep :  148,  Timestage :  3,   Time : 1.48
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82932
+
+Timestep :  149,  Timestage :  1,   Time : 1.48436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84439
+Old RHS Norm: 0.000204908,  New RHS Norm: 3.40533e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.98153e-07
+
+Timestep :  149,  Timestage :  2,   Time : 1.48718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83737
+Old RHS Norm: 0.000132235,  New RHS Norm: 1.46557e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19672e-07
+
+Timestep :  149,  Timestage :  3,   Time : 1.49
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83066
+
+Timestep :  150,  Timestage :  1,   Time : 1.49436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84777
+
+Timestep :  150,  Timestage :  2,   Time : 1.49718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83886
+Old RHS Norm: 0.000132231,  New RHS Norm: 1.98008e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.24531e-08
+
+Timestep :  150,  Timestage :  3,   Time : 1.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83091
+Old RHS Norm: 0.000134085,  New RHS Norm: 1.28921e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.02166e-07
+
+Timestep :  151,  Timestage :  1,   Time : 1.50436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84567
+Old RHS Norm: 0.000204895,  New RHS Norm: 1.86119e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.37876e-07
+
+Timestep :  151,  Timestage :  2,   Time : 1.50718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83676
+
+Timestep :  151,  Timestage :  3,   Time : 1.51
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83026
+
+Timestep :  152,  Timestage :  1,   Time : 1.51436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84504
+Old RHS Norm: 0.000204911,  New RHS Norm: 3.71959e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.97693e-07
+
+Timestep :  152,  Timestage :  2,   Time : 1.51718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83747
+Old RHS Norm: 0.000132252,  New RHS Norm: 1.46896e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.02683e-07
+
+Timestep :  152,  Timestage :  3,   Time : 1.52
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83024
+
+Timestep :  153,  Timestage :  1,   Time : 1.52436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84651
+
+Timestep :  153,  Timestage :  2,   Time : 1.52718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83713
+Old RHS Norm: 0.000132287,  New RHS Norm: 1.9609e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.29043e-07
+
+Timestep :  153,  Timestage :  3,   Time : 1.53
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82916
+Old RHS Norm: 0.000134195,  New RHS Norm: 1.21929e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.2133e-07
+
+Timestep :  154,  Timestage :  1,   Time : 1.53436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84385
+Old RHS Norm: 0.000205,  New RHS Norm: 1.58801e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.47786e-07
+
+Timestep :  154,  Timestage :  2,   Time : 1.53718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83475
+
+Timestep :  154,  Timestage :  3,   Time : 1.54
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82728
+
+Timestep :  155,  Timestage :  1,   Time : 1.54436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84251
+Old RHS Norm: 0.000204976,  New RHS Norm: 3.79411e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.96585e-07
+
+Timestep :  155,  Timestage :  2,   Time : 1.54718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83471
+Old RHS Norm: 0.000132274,  New RHS Norm: 1.47661e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.23344e-07
+
+Timestep :  155,  Timestage :  3,   Time : 1.55
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8276
+
+Timestep :  156,  Timestage :  1,   Time : 1.55436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84344
+
+Timestep :  156,  Timestage :  2,   Time : 1.55718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83448
+Old RHS Norm: 0.000132246,  New RHS Norm: 2.41812e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.0513e-07
+
+Timestep :  156,  Timestage :  3,   Time : 1.56
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82733
+Old RHS Norm: 0.000134121,  New RHS Norm: 1.3756e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31112e-07
+
+Timestep :  157,  Timestage :  1,   Time : 1.56436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84121
+Old RHS Norm: 0.000204857,  New RHS Norm: 2.09969e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.5302e-07
+
+Timestep :  157,  Timestage :  2,   Time : 1.56718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83328
+Old RHS Norm: 0.000132178,  New RHS Norm: 1.12038e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.86003e-08
+
+Timestep :  157,  Timestage :  3,   Time : 1.57
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82666
+
+Timestep :  158,  Timestage :  1,   Time : 1.57436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84246
+
+Timestep :  158,  Timestage :  2,   Time : 1.57718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83538
+Old RHS Norm: 0.000132157,  New RHS Norm: 1.93826e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.11664e-07
+
+Timestep :  158,  Timestage :  3,   Time : 1.58
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82881
+Old RHS Norm: 0.000134055,  New RHS Norm: 1.37671e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16871e-07
+
+Timestep :  159,  Timestage :  1,   Time : 1.58436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84458
+Old RHS Norm: 0.0002048,  New RHS Norm: 1.42318e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31053e-07
+
+Timestep :  159,  Timestage :  2,   Time : 1.58718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83647
+
+Timestep :  159,  Timestage :  3,   Time : 1.59
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82977
+
+Timestep :  160,  Timestage :  1,   Time : 1.59436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84442
+Old RHS Norm: 0.000204784,  New RHS Norm: 3.58681e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.81298e-07
+
+Timestep :  160,  Timestage :  2,   Time : 1.59718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83669
+Old RHS Norm: 0.000132153,  New RHS Norm: 1.57766e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.08343e-07
+
+Timestep :  160,  Timestage :  3,   Time : 1.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8295
+
+Timestep :  161,  Timestage :  1,   Time : 1.60436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84549
+
+Timestep :  161,  Timestage :  2,   Time : 1.60718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83651
+Old RHS Norm: 0.000132151,  New RHS Norm: 1.95112e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13711e-07
+
+Timestep :  161,  Timestage :  3,   Time : 1.61
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82885
+Old RHS Norm: 0.000134031,  New RHS Norm: 1.14421e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.03856e-07
+
+Timestep :  162,  Timestage :  1,   Time : 1.61436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84384
+Old RHS Norm: 0.000204779,  New RHS Norm: 1.74538e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.60174e-07
+
+Timestep :  162,  Timestage :  2,   Time : 1.61718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83523
+
+Timestep :  162,  Timestage :  3,   Time : 1.62
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82816
+
+Timestep :  163,  Timestage :  1,   Time : 1.62436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84324
+Old RHS Norm: 0.000204838,  New RHS Norm: 3.64927e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.82558e-07
+
+Timestep :  163,  Timestage :  2,   Time : 1.62718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83485
+Old RHS Norm: 0.000132206,  New RHS Norm: 1.62278e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.18533e-07
+
+Timestep :  163,  Timestage :  3,   Time : 1.63
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82739
+Old RHS Norm: 0.000134096,  New RHS Norm: 1.07034e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.52174e-08
+
+Timestep :  164,  Timestage :  1,   Time : 1.63436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84272
+
+Timestep :  164,  Timestage :  2,   Time : 1.63718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83389
+Old RHS Norm: 0.000132227,  New RHS Norm: 1.32679e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14287e-07
+
+Timestep :  164,  Timestage :  3,   Time : 1.64
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8269
+Old RHS Norm: 0.000134086,  New RHS Norm: 1.59342e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.04512e-07
+
+Timestep :  165,  Timestage :  1,   Time : 1.64436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84189
+Old RHS Norm: 0.000204882,  New RHS Norm: 1.33887e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.32801e-07
+
+Timestep :  165,  Timestage :  2,   Time : 1.64718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83411
+
+Timestep :  165,  Timestage :  3,   Time : 1.65
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82759
+
+Timestep :  166,  Timestage :  1,   Time : 1.65436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84284
+Old RHS Norm: 0.000204853,  New RHS Norm: 3.39161e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.75022e-07
+
+Timestep :  166,  Timestage :  2,   Time : 1.65718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83459
+Old RHS Norm: 0.000132191,  New RHS Norm: 1.37721e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.22173e-07
+
+Timestep :  166,  Timestage :  3,   Time : 1.66
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8271
+Old RHS Norm: 0.000134042,  New RHS Norm: 1.01832e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.0141e-07
+
+Timestep :  167,  Timestage :  1,   Time : 1.66436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84265
+
+Timestep :  167,  Timestage :  2,   Time : 1.66718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83318
+Old RHS Norm: 0.000132166,  New RHS Norm: 1.04155e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.01722e-07
+
+Timestep :  167,  Timestage :  3,   Time : 1.67
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82603
+Old RHS Norm: 0.000134066,  New RHS Norm: 1.24343e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.75222e-08
+
+Timestep :  168,  Timestage :  1,   Time : 1.67436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84027
+
+Timestep :  168,  Timestage :  2,   Time : 1.67718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83183
+Old RHS Norm: 0.000132135,  New RHS Norm: 1.28252e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.20358e-07
+
+Timestep :  168,  Timestage :  3,   Time : 1.68
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82537
+Old RHS Norm: 0.000134047,  New RHS Norm: 1.71716e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.00094e-07
+
+Timestep :  169,  Timestage :  1,   Time : 1.68436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84088
+Old RHS Norm: 0.000204733,  New RHS Norm: 1.76481e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.38348e-07
+
+Timestep :  169,  Timestage :  2,   Time : 1.68718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83439
+Old RHS Norm: 0.000132107,  New RHS Norm: 1.54885e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13214e-07
+
+Timestep :  169,  Timestage :  3,   Time : 1.69
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82784
+Old RHS Norm: 0.000134005,  New RHS Norm: 1.07983e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.05623e-07
+
+Timestep :  170,  Timestage :  1,   Time : 1.69436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84441
+
+Timestep :  170,  Timestage :  2,   Time : 1.69718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83599
+
+Timestep :  170,  Timestage :  3,   Time : 1.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82869
+Old RHS Norm: 0.000133982,  New RHS Norm: 1.68637e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.06063e-07
+
+Timestep :  171,  Timestage :  1,   Time : 1.70436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84339
+Old RHS Norm: 0.000204675,  New RHS Norm: 1.79758e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.76606e-07
+
+Timestep :  171,  Timestage :  2,   Time : 1.70718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83528
+Old RHS Norm: 0.000132078,  New RHS Norm: 1.10727e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.07456e-07
+
+Timestep :  171,  Timestage :  3,   Time : 1.71
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8277
+
+Timestep :  172,  Timestage :  1,   Time : 1.71436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84379
+
+Timestep :  172,  Timestage :  2,   Time : 1.71718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83399
+Old RHS Norm: 0.000132077,  New RHS Norm: 1.82048e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.55133e-08
+
+Timestep :  172,  Timestage :  3,   Time : 1.72
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8269
+Old RHS Norm: 0.000133925,  New RHS Norm: 1.28569e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14482e-07
+
+Timestep :  173,  Timestage :  1,   Time : 1.72436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84113
+Old RHS Norm: 0.000204684,  New RHS Norm: 1.38461e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25276e-07
+
+Timestep :  173,  Timestage :  2,   Time : 1.72718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83351
+
+Timestep :  173,  Timestage :  3,   Time : 1.73
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82725
+
+Timestep :  174,  Timestage :  1,   Time : 1.73436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84218
+Old RHS Norm: 0.000204748,  New RHS Norm: 3.50305e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.88719e-07
+
+Timestep :  174,  Timestage :  2,   Time : 1.73718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83322
+Old RHS Norm: 0.000132134,  New RHS Norm: 1.48535e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.12145e-07
+
+Timestep :  174,  Timestage :  3,   Time : 1.74
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82544
+
+Timestep :  175,  Timestage :  1,   Time : 1.74436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84011
+
+Timestep :  175,  Timestage :  2,   Time : 1.74718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83139
+Old RHS Norm: 0.000132132,  New RHS Norm: 1.89582e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25523e-07
+
+Timestep :  175,  Timestage :  3,   Time : 1.75
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82477
+Old RHS Norm: 0.000134003,  New RHS Norm: 1.39137e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.33204e-07
+
+Timestep :  176,  Timestage :  1,   Time : 1.75436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83997
+Old RHS Norm: 0.000204753,  New RHS Norm: 1.65241e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.62845e-07
+
+Timestep :  176,  Timestage :  2,   Time : 1.75718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83271
+Old RHS Norm: 0.000132132,  New RHS Norm: 1.03194e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.77078e-08
+
+Timestep :  176,  Timestage :  3,   Time : 1.76
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82556
+
+Timestep :  177,  Timestage :  1,   Time : 1.76436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84154
+
+Timestep :  177,  Timestage :  2,   Time : 1.76718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83221
+Old RHS Norm: 0.000132122,  New RHS Norm: 1.98549e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25172e-07
+
+Timestep :  177,  Timestage :  3,   Time : 1.77
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82516
+Old RHS Norm: 0.000134051,  New RHS Norm: 1.40069e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.28827e-07
+
+Timestep :  178,  Timestage :  1,   Time : 1.77436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83967
+Old RHS Norm: 0.000204727,  New RHS Norm: 1.36595e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.25218e-07
+
+Timestep :  178,  Timestage :  2,   Time : 1.77718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83268
+
+Timestep :  178,  Timestage :  3,   Time : 1.78
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82674
+
+Timestep :  179,  Timestage :  1,   Time : 1.78436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84265
+Old RHS Norm: 0.000204678,  New RHS Norm: 3.54586e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.95955e-07
+
+Timestep :  179,  Timestage :  2,   Time : 1.78718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83458
+Old RHS Norm: 0.000132071,  New RHS Norm: 1.55303e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13162e-07
+
+Timestep :  179,  Timestage :  3,   Time : 1.79
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82673
+
+Timestep :  180,  Timestage :  1,   Time : 1.79436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84228
+
+Timestep :  180,  Timestage :  2,   Time : 1.79718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83184
+Old RHS Norm: 0.000132022,  New RHS Norm: 2.08517e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.95547e-08
+
+Timestep :  180,  Timestage :  3,   Time : 1.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82532
+Old RHS Norm: 0.000133906,  New RHS Norm: 1.36168e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 8.9419e-08
+
+Timestep :  181,  Timestage :  1,   Time : 1.80436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83821
+Old RHS Norm: 0.00020454,  New RHS Norm: 1.76664e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.2836e-07
+
+Timestep :  181,  Timestage :  2,   Time : 1.80718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83178
+
+Timestep :  181,  Timestage :  3,   Time : 1.81
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8267
+
+Timestep :  182,  Timestage :  1,   Time : 1.81436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8417
+Old RHS Norm: 0.00020455,  New RHS Norm: 3.78788e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.60455e-07
+
+Timestep :  182,  Timestage :  2,   Time : 1.81718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83326
+Old RHS Norm: 0.000132012,  New RHS Norm: 1.53151e-06
+GMRES converges to the tolerance 0.001 within  7 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.3187e-07
+
+Timestep :  182,  Timestage :  3,   Time : 1.82
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82542
+
+Timestep :  183,  Timestage :  1,   Time : 1.82436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84043
+
+Timestep :  183,  Timestage :  2,   Time : 1.82718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83076
+Old RHS Norm: 0.000132028,  New RHS Norm: 1.83824e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.13884e-07
+
+Timestep :  183,  Timestage :  3,   Time : 1.83
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82413
+
+Timestep :  184,  Timestage :  1,   Time : 1.83436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83762
+Old RHS Norm: 0.000204578,  New RHS Norm: 1.38594e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.3369e-07
+
+Timestep :  184,  Timestage :  2,   Time : 1.83718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83085
+Old RHS Norm: 0.000132021,  New RHS Norm: 1.52115e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.17453e-07
+
+Timestep :  184,  Timestage :  3,   Time : 1.84
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82401
+
+Timestep :  185,  Timestage :  1,   Time : 1.84436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84024
+
+Timestep :  185,  Timestage :  2,   Time : 1.84718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83099
+Old RHS Norm: 0.000132028,  New RHS Norm: 2.06929e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.17535e-07
+
+Timestep :  185,  Timestage :  3,   Time : 1.85
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8233
+Old RHS Norm: 0.000133893,  New RHS Norm: 1.38109e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31715e-07
+
+Timestep :  186,  Timestage :  1,   Time : 1.85436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83753
+Old RHS Norm: 0.000204578,  New RHS Norm: 1.40852e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.18334e-07
+
+Timestep :  186,  Timestage :  2,   Time : 1.85718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82954
+
+Timestep :  186,  Timestage :  3,   Time : 1.86
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82361
+
+Timestep :  187,  Timestage :  1,   Time : 1.86436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83889
+Old RHS Norm: 0.000204544,  New RHS Norm: 3.48196e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.81484e-07
+
+Timestep :  187,  Timestage :  2,   Time : 1.86718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83131
+Old RHS Norm: 0.000132001,  New RHS Norm: 1.52904e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.12642e-07
+
+Timestep :  187,  Timestage :  3,   Time : 1.87
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82378
+
+Timestep :  188,  Timestage :  1,   Time : 1.87436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83981
+
+Timestep :  188,  Timestage :  2,   Time : 1.87718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82949
+Old RHS Norm: 0.000131999,  New RHS Norm: 2.00713e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.17064e-07
+
+Timestep :  188,  Timestage :  3,   Time : 1.88
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8228
+Old RHS Norm: 0.000133855,  New RHS Norm: 1.39074e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27583e-07
+
+Timestep :  189,  Timestage :  1,   Time : 1.88436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83564
+Old RHS Norm: 0.00020451,  New RHS Norm: 1.83981e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.5625e-07
+
+Timestep :  189,  Timestage :  2,   Time : 1.88718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82938
+Old RHS Norm: 0.000131972,  New RHS Norm: 1.08843e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.46469e-08
+
+Timestep :  189,  Timestage :  3,   Time : 1.89
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82306
+
+Timestep :  190,  Timestage :  1,   Time : 1.89436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84063
+
+Timestep :  190,  Timestage :  2,   Time : 1.89718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83191
+Old RHS Norm: 0.000131954,  New RHS Norm: 2.00797e-06
+GMRES converges to the tolerance 0.001 within  11 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.16633e-07
+
+Timestep :  190,  Timestage :  3,   Time : 1.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82455
+Old RHS Norm: 0.000133865,  New RHS Norm: 1.38551e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27651e-07
+
+Timestep :  191,  Timestage :  1,   Time : 1.90436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8391
+Old RHS Norm: 0.000204451,  New RHS Norm: 1.34516e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14513e-07
+
+Timestep :  191,  Timestage :  2,   Time : 1.90718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83065
+
+Timestep :  191,  Timestage :  3,   Time : 1.91
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82449
+
+Timestep :  192,  Timestage :  1,   Time : 1.91436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83913
+Old RHS Norm: 0.000204414,  New RHS Norm: 3.6596e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.8237e-07
+
+Timestep :  192,  Timestage :  2,   Time : 1.91718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83151
+Old RHS Norm: 0.000131912,  New RHS Norm: 1.49586e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27849e-07
+
+Timestep :  192,  Timestage :  3,   Time : 1.92
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8243
+
+Timestep :  193,  Timestage :  1,   Time : 1.92436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.84006
+
+Timestep :  193,  Timestage :  2,   Time : 1.92718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83087
+Old RHS Norm: 0.000131914,  New RHS Norm: 1.93455e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.08354e-07
+
+Timestep :  193,  Timestage :  3,   Time : 1.93
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82313
+Old RHS Norm: 0.000133779,  New RHS Norm: 1.3527e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.14098e-07
+
+Timestep :  194,  Timestage :  1,   Time : 1.93436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83738
+Old RHS Norm: 0.000204398,  New RHS Norm: 1.89561e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.53387e-07
+
+Timestep :  194,  Timestage :  2,   Time : 1.93718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82921
+Old RHS Norm: 0.000131905,  New RHS Norm: 1.03603e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.0057e-07
+
+Timestep :  194,  Timestage :  3,   Time : 1.94
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82228
+
+Timestep :  195,  Timestage :  1,   Time : 1.94436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83833
+
+Timestep :  195,  Timestage :  2,   Time : 1.94718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8304
+Old RHS Norm: 0.00013192,  New RHS Norm: 1.95516e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.05422e-07
+
+Timestep :  195,  Timestage :  3,   Time : 1.95
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82279
+Old RHS Norm: 0.000133761,  New RHS Norm: 1.45665e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.27373e-07
+
+Timestep :  196,  Timestage :  1,   Time : 1.95436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83844
+Old RHS Norm: 0.000204447,  New RHS Norm: 1.4257e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.32082e-07
+
+Timestep :  196,  Timestage :  2,   Time : 1.95718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82921
+
+Timestep :  196,  Timestage :  3,   Time : 1.96
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82178
+
+Timestep :  197,  Timestage :  1,   Time : 1.96436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.8364
+Old RHS Norm: 0.000204464,  New RHS Norm: 3.85303e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.80348e-07
+
+Timestep :  197,  Timestage :  2,   Time : 1.96718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82861
+Old RHS Norm: 0.000131948,  New RHS Norm: 1.63655e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.31672e-07
+
+Timestep :  197,  Timestage :  3,   Time : 1.97
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82185
+
+Timestep :  198,  Timestage :  1,   Time : 1.97436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83758
+
+Timestep :  198,  Timestage :  2,   Time : 1.97718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82994
+Old RHS Norm: 0.000131946,  New RHS Norm: 2.10206e-06
+GMRES converges to the tolerance 0.001 within  13 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.06277e-07
+
+Timestep :  198,  Timestage :  3,   Time : 1.98
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82234
+Old RHS Norm: 0.00013382,  New RHS Norm: 1.225e-06
+GMRES converges to the tolerance 0.001 within  8 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.21763e-07
+
+Timestep :  199,  Timestage :  1,   Time : 1.98436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83841
+Old RHS Norm: 0.000204445,  New RHS Norm: 1.91439e-06
+GMRES converges to the tolerance 0.001 within  12 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.54868e-07
+
+Timestep :  199,  Timestage :  2,   Time : 1.98718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82964
+Old RHS Norm: 0.000131923,  New RHS Norm: 1.02539e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 9.16976e-08
+
+Timestep :  199,  Timestage :  3,   Time : 1.99
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82254
+
+Timestep :  200,  Timestage :  1,   Time : 1.99436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83768
+
+Timestep :  200,  Timestage :  2,   Time : 1.99718
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.83031
+Old RHS Norm: 0.000131901,  New RHS Norm: 1.81978e-06
+GMRES converges to the tolerance 0.001 within  10 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.19413e-07
+
+Timestep :  200,  Timestage :  3,   Time : 2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 8.82328
+Old RHS Norm: 0.000133776,  New RHS Norm: 1.4428e-06
+GMRES converges to the tolerance 0.001 within  9 iterations and 5 RB dimensions
+PTC Iteration: 1,  Residual Norm: 1.26852e-07

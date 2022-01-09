@@ -1,0 +1,630 @@
+==> Exasim  ...
+Using g++ compiler for CPU source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+run facepartition...
+face partition 1
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing app into file...
+generate code...
+compile code...
+ar: creating archive opuApp.a
+a - opuApp.o
+run code...
+datain/
+dataout/out
+Using 1 processors to solve the problem on CPU platform...
+Reading data from binary files 
+Set common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+Compute solution average = 1
+File exist = 0
+
+Timestep :  1,  Timestage :  1,   Time : 0.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 0
+Old RHS Norm: 0.0423402,  New RHS Norm: 0.0423402
+GMRES converges to the tolerance 0.001 within  18 iterations and 0 RB dimensions
+PTC Iteration: 1,  Residual Norm: 3.60524e-05
+Old RHS Norm: 3.60524e-05,  New RHS Norm: 3.60524e-05
+GMRES converges to the tolerance 0.001 within  32 iterations and 1 RB dimensions
+PTC Iteration: 2,  Residual Norm: 3.28488e-08
+
+Timestep :  2,  Timestage :  1,   Time : 0.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 10.6199
+
+Timestep :  3,  Timestage :  1,   Time : 0.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 14.1909
+
+Timestep :  4,  Timestage :  1,   Time : 0.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.3916
+
+Timestep :  5,  Timestage :  1,   Time : 0.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.7954
+
+Timestep :  6,  Timestage :  1,   Time : 0.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9312
+
+Timestep :  7,  Timestage :  1,   Time : 0.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9768
+
+Timestep :  8,  Timestage :  1,   Time : 0.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9922
+
+Timestep :  9,  Timestage :  1,   Time : 0.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9973
+
+Timestep :  10,  Timestage :  1,   Time : 1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9991
+
+Timestep :  11,  Timestage :  1,   Time : 1.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9997
+
+Timestep :  12,  Timestage :  1,   Time : 1.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9999
+
+Timestep :  13,  Timestage :  1,   Time : 1.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9999
+
+Timestep :  14,  Timestage :  1,   Time : 1.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9999
+
+Timestep :  15,  Timestage :  1,   Time : 1.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9999
+
+Timestep :  16,  Timestage :  1,   Time : 1.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9999
+
+Timestep :  17,  Timestage :  1,   Time : 1.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 15.9999
+
+Timestep :  18,  Timestage :  1,   Time : 1.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  19,  Timestage :  1,   Time : 1.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  20,  Timestage :  1,   Time : 2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  21,  Timestage :  1,   Time : 2.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  22,  Timestage :  1,   Time : 2.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  23,  Timestage :  1,   Time : 2.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  24,  Timestage :  1,   Time : 2.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  25,  Timestage :  1,   Time : 2.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  26,  Timestage :  1,   Time : 2.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  27,  Timestage :  1,   Time : 2.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  28,  Timestage :  1,   Time : 2.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  29,  Timestage :  1,   Time : 2.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  30,  Timestage :  1,   Time : 3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  31,  Timestage :  1,   Time : 3.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  32,  Timestage :  1,   Time : 3.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  33,  Timestage :  1,   Time : 3.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  34,  Timestage :  1,   Time : 3.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  35,  Timestage :  1,   Time : 3.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  36,  Timestage :  1,   Time : 3.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  37,  Timestage :  1,   Time : 3.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  38,  Timestage :  1,   Time : 3.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  39,  Timestage :  1,   Time : 3.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  40,  Timestage :  1,   Time : 4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  41,  Timestage :  1,   Time : 4.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  42,  Timestage :  1,   Time : 4.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  43,  Timestage :  1,   Time : 4.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  44,  Timestage :  1,   Time : 4.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  45,  Timestage :  1,   Time : 4.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  46,  Timestage :  1,   Time : 4.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  47,  Timestage :  1,   Time : 4.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  48,  Timestage :  1,   Time : 4.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  49,  Timestage :  1,   Time : 4.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  50,  Timestage :  1,   Time : 5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  51,  Timestage :  1,   Time : 5.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  52,  Timestage :  1,   Time : 5.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  53,  Timestage :  1,   Time : 5.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  54,  Timestage :  1,   Time : 5.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  55,  Timestage :  1,   Time : 5.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  56,  Timestage :  1,   Time : 5.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  57,  Timestage :  1,   Time : 5.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  58,  Timestage :  1,   Time : 5.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  59,  Timestage :  1,   Time : 5.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  60,  Timestage :  1,   Time : 6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  61,  Timestage :  1,   Time : 6.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  62,  Timestage :  1,   Time : 6.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  63,  Timestage :  1,   Time : 6.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  64,  Timestage :  1,   Time : 6.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  65,  Timestage :  1,   Time : 6.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  66,  Timestage :  1,   Time : 6.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  67,  Timestage :  1,   Time : 6.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  68,  Timestage :  1,   Time : 6.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  69,  Timestage :  1,   Time : 6.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  70,  Timestage :  1,   Time : 7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  71,  Timestage :  1,   Time : 7.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  72,  Timestage :  1,   Time : 7.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  73,  Timestage :  1,   Time : 7.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  74,  Timestage :  1,   Time : 7.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  75,  Timestage :  1,   Time : 7.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  76,  Timestage :  1,   Time : 7.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  77,  Timestage :  1,   Time : 7.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  78,  Timestage :  1,   Time : 7.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  79,  Timestage :  1,   Time : 7.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  80,  Timestage :  1,   Time : 8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  81,  Timestage :  1,   Time : 8.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  82,  Timestage :  1,   Time : 8.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  83,  Timestage :  1,   Time : 8.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  84,  Timestage :  1,   Time : 8.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  85,  Timestage :  1,   Time : 8.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  86,  Timestage :  1,   Time : 8.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  87,  Timestage :  1,   Time : 8.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  88,  Timestage :  1,   Time : 8.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  89,  Timestage :  1,   Time : 8.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  90,  Timestage :  1,   Time : 9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  91,  Timestage :  1,   Time : 9.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  92,  Timestage :  1,   Time : 9.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  93,  Timestage :  1,   Time : 9.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  94,  Timestage :  1,   Time : 9.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  95,  Timestage :  1,   Time : 9.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  96,  Timestage :  1,   Time : 9.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  97,  Timestage :  1,   Time : 9.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  98,  Timestage :  1,   Time : 9.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  99,  Timestage :  1,   Time : 9.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  100,  Timestage :  1,   Time : 10
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  101,  Timestage :  1,   Time : 10.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  102,  Timestage :  1,   Time : 10.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  103,  Timestage :  1,   Time : 10.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  104,  Timestage :  1,   Time : 10.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  105,  Timestage :  1,   Time : 10.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  106,  Timestage :  1,   Time : 10.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  107,  Timestage :  1,   Time : 10.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  108,  Timestage :  1,   Time : 10.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  109,  Timestage :  1,   Time : 10.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  110,  Timestage :  1,   Time : 11
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  111,  Timestage :  1,   Time : 11.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  112,  Timestage :  1,   Time : 11.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  113,  Timestage :  1,   Time : 11.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  114,  Timestage :  1,   Time : 11.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  115,  Timestage :  1,   Time : 11.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  116,  Timestage :  1,   Time : 11.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  117,  Timestage :  1,   Time : 11.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  118,  Timestage :  1,   Time : 11.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  119,  Timestage :  1,   Time : 11.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  120,  Timestage :  1,   Time : 12
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  121,  Timestage :  1,   Time : 12.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  122,  Timestage :  1,   Time : 12.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  123,  Timestage :  1,   Time : 12.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  124,  Timestage :  1,   Time : 12.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  125,  Timestage :  1,   Time : 12.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  126,  Timestage :  1,   Time : 12.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  127,  Timestage :  1,   Time : 12.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  128,  Timestage :  1,   Time : 12.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  129,  Timestage :  1,   Time : 12.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  130,  Timestage :  1,   Time : 13
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  131,  Timestage :  1,   Time : 13.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  132,  Timestage :  1,   Time : 13.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  133,  Timestage :  1,   Time : 13.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  134,  Timestage :  1,   Time : 13.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  135,  Timestage :  1,   Time : 13.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  136,  Timestage :  1,   Time : 13.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  137,  Timestage :  1,   Time : 13.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  138,  Timestage :  1,   Time : 13.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  139,  Timestage :  1,   Time : 13.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  140,  Timestage :  1,   Time : 14
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  141,  Timestage :  1,   Time : 14.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  142,  Timestage :  1,   Time : 14.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  143,  Timestage :  1,   Time : 14.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  144,  Timestage :  1,   Time : 14.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  145,  Timestage :  1,   Time : 14.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  146,  Timestage :  1,   Time : 14.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  147,  Timestage :  1,   Time : 14.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  148,  Timestage :  1,   Time : 14.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  149,  Timestage :  1,   Time : 14.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  150,  Timestage :  1,   Time : 15
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  151,  Timestage :  1,   Time : 15.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  152,  Timestage :  1,   Time : 15.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  153,  Timestage :  1,   Time : 15.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  154,  Timestage :  1,   Time : 15.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  155,  Timestage :  1,   Time : 15.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  156,  Timestage :  1,   Time : 15.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  157,  Timestage :  1,   Time : 15.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  158,  Timestage :  1,   Time : 15.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  159,  Timestage :  1,   Time : 15.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  160,  Timestage :  1,   Time : 16
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  161,  Timestage :  1,   Time : 16.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  162,  Timestage :  1,   Time : 16.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  163,  Timestage :  1,   Time : 16.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  164,  Timestage :  1,   Time : 16.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  165,  Timestage :  1,   Time : 16.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  166,  Timestage :  1,   Time : 16.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  167,  Timestage :  1,   Time : 16.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  168,  Timestage :  1,   Time : 16.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  169,  Timestage :  1,   Time : 16.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  170,  Timestage :  1,   Time : 17
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  171,  Timestage :  1,   Time : 17.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  172,  Timestage :  1,   Time : 17.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  173,  Timestage :  1,   Time : 17.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  174,  Timestage :  1,   Time : 17.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  175,  Timestage :  1,   Time : 17.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  176,  Timestage :  1,   Time : 17.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  177,  Timestage :  1,   Time : 17.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  178,  Timestage :  1,   Time : 17.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  179,  Timestage :  1,   Time : 17.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  180,  Timestage :  1,   Time : 18
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  181,  Timestage :  1,   Time : 18.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  182,  Timestage :  1,   Time : 18.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  183,  Timestage :  1,   Time : 18.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  184,  Timestage :  1,   Time : 18.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  185,  Timestage :  1,   Time : 18.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  186,  Timestage :  1,   Time : 18.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  187,  Timestage :  1,   Time : 18.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  188,  Timestage :  1,   Time : 18.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  189,  Timestage :  1,   Time : 18.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  190,  Timestage :  1,   Time : 19
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  191,  Timestage :  1,   Time : 19.1
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  192,  Timestage :  1,   Time : 19.2
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  193,  Timestage :  1,   Time : 19.3
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  194,  Timestage :  1,   Time : 19.4
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  195,  Timestage :  1,   Time : 19.5
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  196,  Timestage :  1,   Time : 19.6
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  197,  Timestage :  1,   Time : 19.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  198,  Timestage :  1,   Time : 19.8
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  199,  Timestage :  1,   Time : 19.9
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16
+
+Timestep :  200,  Timestage :  1,   Time : 20
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 16

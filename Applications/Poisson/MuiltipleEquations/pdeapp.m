@@ -1,9 +1,6 @@
 % clear exasim data from memory
 clear pde mesh master dmd sol;
 
-% Specify an Exasim version to run
-version = "Version0.3";
-
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/Installation/setpath.m");
