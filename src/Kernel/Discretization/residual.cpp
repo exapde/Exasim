@@ -728,10 +728,8 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     Int nudg = common.npe*common.nc;
     Int n;
    
-    /* copy some portion of u to buffsend */
-    GetArrayAtIndex(tmp.buffsend, sol.dudg, mesh.elemsendind, bsz*common.nelemsend, backend);
     // copy some portion of du to buffsend
-    // GetArrayAtIndex(&tmp.buffsend[bsz*common.nelemsend], sol.dudg, mesh.elemsendind, bsz*common.nelemsend, backend);
+    GetArrayAtIndex(tmp.buffsend, sol.dudg, mesh.elemsendind, bsz*common.nelemsend, backend);
 
 #ifdef HAVE_CUDA
     cudaDeviceSynchronize();
@@ -750,7 +748,7 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         }
     }
 
-    /* non-blocking receive */
+    // non-blocking receive 
     Int nrecv, precv = 0;
     for (n=0; n<common.nnbsd; n++) {
         neighbor = common.nbsd[n];
@@ -776,12 +774,11 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         dRuElem(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, backend);    
         
     // non-blocking receive solutions on exterior and outer elements from neighbors
-    /* wait until all send and receive operations are completely done */
+    // wait until all send and receive operations are completely done
     MPI_Waitall(request_counter, common.requests, common.statuses);
 
-    /* copy buffrecv to udg */
+    // copy buffrecv to udg
     PutArrayAtIndex(sol.dudg, tmp.buffrecv, mesh.elemrecvind, bsz*common.nelemrecv, backend);
-    // PutArrayAtIndex(sol.dudg, &tmp.buffrecv[bsz*common.nelemrecv], mesh.elemrecvind, bsz*common.nelemrecv, backend);
 
     // compute uhat for all faces
     GetdUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
@@ -810,9 +807,6 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     Int e2 = common.eblks[3*(common.nbe1-1)+1];       
     PutFaceNodes(res.dRu, res.dRh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
             mesh.ent2ind2, common.npf, common.npe, common.ncu, e1, e2, 0, backend);
-    
-    // change sign 
-    //ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);      
 }
 
 
