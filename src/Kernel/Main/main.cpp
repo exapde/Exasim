@@ -23,6 +23,10 @@
 #define HAVE_ENZYME
 #endif
 
+#ifdef _MUTATIONPP
+#define HAVE_MPP
+#endif
+
 #ifdef _MPI
 #define HAVE_MPI
 #endif
@@ -35,6 +39,10 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include "cublas_v2.h"
+#endif
+
+#ifdef HAVE_MPP
+#include <mutationpp.h>
 #endif
 
 #ifdef HAVE_MPI
