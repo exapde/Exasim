@@ -2,7 +2,7 @@ from sys import platform
 import shutil, os, sys
 import subprocess
 
-version = "Version0.1";
+version = "src";
 cdir = os.getcwd(); ii = cdir.find("Exasim");
 versiondir = cdir[0:(ii+6)] + "/"  + version + "/Python";
 
