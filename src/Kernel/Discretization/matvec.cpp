@@ -12,7 +12,6 @@ void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstr
     Int ne = common.ne1; // number of elements in this subdomain 
     Int nd = common.nd;
     Int N = npe*ncu*ne;
-
     Int order = common.matvecOrder;
     dstype epsilon = common.matvecTol;
 #ifdef HAVE_ENZYME

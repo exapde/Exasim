@@ -397,6 +397,12 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         sol.odgg = (dstype*) malloc (sizeof (dstype)*common.nge*common.nco*common.ne);
         sol.og1 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
         sol.og2 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
+        #ifdef HAVE_ENZYME
+        printf("setting dodgg, dog1, dog2\n");
+            sol.dodgg = (dstype*) malloc (sizeof (dstype)*common.nge*common.nco*common.ne);
+            sol.dog1 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
+            sol.dog2 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
+        #endif
     }
     
     if (mpirank==0) 
