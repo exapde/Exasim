@@ -1,4 +1,4 @@
-version = "Version0.1";
+version = "src";
 
 if ismac
     [brewstatus0,~] = system("which brew");
