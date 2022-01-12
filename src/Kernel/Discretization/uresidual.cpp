@@ -647,8 +647,7 @@ void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
         FbouDriver(&tmp.tempg[n8], &tmp.tempg[n14], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n10], &sol.og1[ngf*nco*f1], 
                 &sol.dog1[ngf*nco*f1], &tmp.tempg[n5], &tmp.tempg[n11], &tmp.tempg[n3], &tmp.tempg[n9], &sol.faceg[nm+n1], mesh, master, app, 
                 sol, tmp, common, ngf, f1, f2, ib, backend);        
-    }        
-            
+    } 
     // evaluate dfhg * jac
     ApplyJac(&tmp.tempg[n9], &tmp.tempg[n14], &sol.faceg[nm+n2], nga, ncu, ngf, backend);
     Gauss2Node(handle, &res.dRh[npf*ncu*f1], &tmp.tempg[n9], master.shapfgw, ngf, npf, nf*ncu, backend);   

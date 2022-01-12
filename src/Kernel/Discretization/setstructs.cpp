@@ -400,8 +400,11 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         #ifdef HAVE_ENZYME
         printf("setting dodgg, dog1, dog2\n");
             sol.dodgg = (dstype*) malloc (sizeof (dstype)*common.nge*common.nco*common.ne);
+            ArraySetValue(sol.dodgg, zero, common.nge*common.nco*common.ne, 0);
             sol.dog1 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
+            ArraySetValue(sol.dog1, zero, common.ngf*common.nco*common.nf, 0);
             sol.dog2 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
+            ArraySetValue(sol.dog2, zero, common.ngf*common.nco*common.nf, 0);
         #endif
     }
     

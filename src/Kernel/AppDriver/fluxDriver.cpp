@@ -39,7 +39,7 @@ void FluxDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, me
 
 #ifdef HAVE_ENZYME      
 
-void FluxDriver(dstype *f, dstype *df, dstype *xg, dstype *udg, dstype *dudg, dstype *dodg, dstype *odg, dstype *wdg, 
+void FluxDriver(dstype *f, dstype *df, dstype *xg, dstype *udg, dstype *dudg, dstype *odg, dstype *dodg, dstype *wdg, 
         dstype *dwdg, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 {
