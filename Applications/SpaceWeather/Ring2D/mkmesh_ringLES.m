@@ -1,54 +1,30 @@
-function [p,t,dgnodes] = mkmesh_ring_scaleheight(porder,R0,R1,T0,T1,g0,omega,R,rate,AR)
-% Generates mesh on the ring defining the elements assuming constant pressure ratio.
+function [p,t,dgnodes] = mkmesh_ringLES(porder,r1,r2)
 
-elemtype = 1;
+dlay = 1;
+dwall = 8e-3; 
+nx = 121;
+ny = 16; 
+xv = linspace(0, 1, nx); 
+yref = [3e-2 12e-2 3e-1 6e-1];
 
-% R0b = R0+100;
-% I200 = @(r) 0.5*(1+tanh(1000*(r-R0b)));
-% T = @(r) T1*I200(r) + (T0 + (T1-T0)*(r-R0)/(R0b-R0)).*(1-I200(r));
-
-T = @(r) T1 - (T1-T0)*exp(-(r-R0)/4);
-g = @(r) g0*R0^2./(r.^2);
-dp_p = @(r) -(g(r) - omega^2*r)./(R*T(r));
-
-h = @(x) exp(integral(dp_p,R0,x));
-nDivY = floor(log(h(R1))/log(rate));
-trueRate = exp(log(h(R1))/nDivY);
-
-yp = zeros(nDivY+1,1);
-yp(1) = R0; yp(nDivY+1) = R1;
-for iDiv=1:nDivY-1
-    hi = @(x) exp(integral(dp_p,yp(iDiv),x)) - trueRate;
-    yn = fsolve(hi,yp(iDiv));
-    yp(iDiv+1) = yn;
-end
-
-nDivX = floor(2*pi*R0/(AR*(yp(2)-R0)));
-
-[p,t] = squaremesh(nDivX-1,nDivY,1,elemtype);
-p=p'; 
-
-ln = (yp-R0)/(R1-R0);
-ln  = reshape(ones(nDivX,1)*ln',[nDivX*(nDivY+1),1]);
-
-
-% Assign mesh point positions
-p(:,2) = ln;
+[p,t,yv] = lesmesh2d_rect(dlay, dwall, ny, xv, yref);
+p = p';
 
 dgnodes = mkdgnodes(p',t,porder);
 
 pnew = p;
-pnew(:,1) = -(R0+(R1-R0)*p(:,2)).*sin(2*pi*p(:,1));
-pnew(:,2) = -(R0+(R1-R0)*p(:,2)).*cos(2*pi*p(:,1));
+pnew(:,1) = -(r1+(r2-r1)*p(:,2)).*sin(2*pi*p(:,1));
+pnew(:,2) = -(r1+(r2-r1)*p(:,2)).*cos(2*pi*p(:,1));
 [p,t] = fixmesh(pnew,t');
 p = p';
 t = t';
 
 pnew = zeros(size(dgnodes));
-pnew(:,1,:) = -(R0+(R1-R0)*dgnodes(:,2,:)).*sin(2*pi*dgnodes(:,1,:));
-pnew(:,2,:) = -(R0+(R1-R0)*dgnodes(:,2,:)).*cos(2*pi*dgnodes(:,1,:));
+pnew(:,1,:) = -(r1+(r2-r1)*dgnodes(:,2,:)).*sin(2*pi*dgnodes(:,1,:));
+pnew(:,2,:) = -(r1+(r2-r1)*dgnodes(:,2,:)).*cos(2*pi*dgnodes(:,1,:));
 dgnodes = pnew;
 
+% simpplot(p,t); axis equal; axis tight;
 
 function dgnodes = mkdgnodes(p,t,porder)
 %CREATEDGNODES Computes the Coordinates of the DG nodes.

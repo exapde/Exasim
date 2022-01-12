@@ -88,20 +88,14 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     tau = gettau(uhat, mu, eta, n);
 
     f = fluxWall(u, q, w, v, x, t, mu, eta);
-%     fi1 = fluxInviscid(u,mu);
-%     fv1 = fluxViscous(u,q,x,mu);
-%     f1 = fi1+fv1;
-%     f1 = f*n(1);
-    %f1 = -f;
     fw = f*n; % numerical flux at freestream boundary
     fw(1) = fw(1) + tau(1)*(u(1)-uhat(1));
     fw(2) = fw(2) + tau(2)*(u(2)-uhat(2));
     fw(3) = fw(3) + tau(3)*(u(3)-uhat(3));
     
-    % Inviscid wall
+    % Inviscid outer boundary
     fi2 = fluxInviscid(u,mu);
     ft = fi2*n;    
-    
     ft(1) = ft(1) + tau(1)*(u(1)-uhat(1));
     ft(2) = ft(2) + tau(2)*(u(2)-uhat(2));
     ft(3) = ft(3) + tau(3)*(u(3)-uhat(3));
@@ -118,13 +112,11 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     sr = sqrt(rho);
     
     utw1 = u;
-    %utw1(1) = 0.0;
     utw1(2) = 0.0;
     utw1(3) = sr*Tbot;
 
     % Inviscid wall
     utw2 = u;
-    %utw2(2) = 0.0;
         
     ub = [utw1 utw2];
 end

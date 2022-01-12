@@ -1,89 +1,187 @@
 function [pde, mesh] = pdeparams(pde,mesh)
 
-% Define a PDE model: governing equations, initial solutions, and boundary conditions
-pde.model = "ModelD";          % ModelC, ModelD, ModelW
-pde.modelfile = "pdemodel";    % name of a file defining the PDE model
+%% User defined parameters
+%Planet
+planet = "Earth";
+%Set species (or "air", for mixture)
+species = "O";
 
-% Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 2;          % polynomial degree
-pde.torder = 2;          % time-stepping order of accuracy
-pde.nstage = 2;          % time-stepping number of stages
-pde.dt = 0.01*ones(10000,1);   % time step sizes
-pde.visdt = pde.dt(1);         % visualization timestep size
-pde.saveSolFreq = 10;          % solution is saved every 100 time steps
-pde.soltime = 10:10:length(pde.dt); % steps at which solution are collected
-pde.timestepOffset = 0;
+%Model (0:Cartesian, 1:cylindrical, 2:spherical)
+model = 2;
 
-c0 = 2;     %0: Cartesian, 1: cylindrical, 2: spherical coordinates
+%timeStep (s)
+tstep = 5;
+%Length of simulation (days)
+tSimulation = 5;
+%frequency of data (minutes)
+freq = 15;
+%Restart at given time step
+tRestart = 0;
 
+%Coordinates
 longitude = 0;
 latitude = 0;
-declinationSun = 0;
 
-% Nondimensional constants
-gam = 5/3;                      % specific heat ratio
-Re = 1200;                       % Reynolds number (we seek 1200)
-Pe = 4500;                      % Péclet number (we seek 4500)
-Minf = 0.1;                     % Mach number
+%Polynomial order
+porder = 1;
 
-%Physical quantities
-R0dim = 6470000;
-R1dim = 6970000;
-rhodim = 6.6e-7;
-Tdim = 200;
+%EUV efficiency
+EUVeff = 1.2;
+%Radiation efficiency
+Reff = 0;
+
+%Domain of interest
+L = 500e3;
+hbot = 100e3;     %height inner surface (km)
+htop = hbot+L;     %height outer surface (km)
+lambda0 = 1e-9;   %reference wavelength (1nm=1e-9m)
+
+%Initial condition
+Tbot = 200;     %(in K)
+Ttop = 1000;    %(in K)
+
+
+%% Read input csv files
+addpath('inputs');
+load('inputCSV.mat','orbits','neutrals','EUV');
+
+%Planet information
+iPlanet = strcmp(string(table2array(orbits(:,1))),planet);
+periodDay = table2array(orbits(iPlanet,14))*3600;
+radius = table2array(orbits(iPlanet,18))*1e3;
+radiusIn = radius+hbot;
+radiusOut= radius+htop;
+planetMass = table2array(orbits(iPlanet,17));
+declinationSun = table2array(orbits(iPlanet,20));
+clear orbits
+
+%Species information
+speciesEUV = string(table2array(EUV(5:end,2)));
+iSpecies = find(strcmp(string(table2array(neutrals(:,1))),species));
+iSpeciesEUV = find(strcmp(speciesEUV,species));
+neutralSpecies = string(table2array(neutrals(:,1)));
+neutrals = table2array(neutrals(:,2:end));
+gam = 5/3;
+amu = 1.66e-27;
+if strcmp(species,"air")
+    rho = (neutrals(:,1)'*neutrals(:,end))*amu;
+    m = rho/sum(neutrals(:,end));
+    expKappa = (neutrals(:,4)'*neutrals(:,end))/sum(neutrals(:,end));
+    kappa0 = (neutrals(:,3)'*neutrals(:,end))/sum(neutrals(:,end))*(Tbot^expKappa);
+    
+    iEUV = zeros(size(speciesEUV));
+    for iSpecies=1:length(speciesEUV)
+        index = find(strcmp(speciesEUV(iSpecies),neutralSpecies));
+        if isempty(index)
+            iEUV(iSpecies) = 0;
+        else
+            iEUV(iSpecies) = index;
+        end
+    end
+    localIndicesEUV = find(iEUV);
+    crossSections_d = neutrals(iEUV(localIndicesEUV),end)'*(table2array(EUV(iEUV(localIndicesEUV)+4,6:42)).*table2array(EUV(iEUV(localIndicesEUV)+4,4)))/sum(neutrals(:,end));     %m2
+else
+    m = neutrals(iSpecies,1)*amu;
+    rho = neutrals(iSpecies,end)*m;
+    expKappa = neutrals(iSpecies,4);
+    kappa0 = neutrals(iSpecies,3)*(Tbot^expKappa);
+    crossSections_d = table2array(EUV(iSpeciesEUV,6:42))*table2array(EUV(iSpeciesEUV,4));     %m2
+end
+lambda_d = (0.5*(table2array(EUV(1,6:42))+table2array(EUV(2,6:42))))*1e-10;    % initially in Armstrongs
+AFAC = table2array(EUV(4,6:42));
+F74113_d = table2array(EUV(3,6:42))*table2array(EUV(3,4))*1e4;    %1/(m2*s)
+clear neutrals
+clear EUV
+% m = 16*amu;
+
+%% Physical quantities
 kBoltzmann = 1.38e-23;
-gdim = 9.5;
-omega = 2*pi/86400;
-h = 6.0626e-34;
+hPlanck = 6.0626e-34;
 c = 3e8;
-m = 16*1.66e-27;    %(16 instead of 28.9)
+gravitationalConstant = 6.674e-11;
+R = kBoltzmann/m;
+g = gravitationalConstant*planetMass/radiusIn^2;
+omega = 2*pi/periodDay;
+cp = gam*R/(gam-1);
+H = R*Tbot/g;
 
-Rdim = kBoltzmann/m;
-Ldim = Rdim*Tdim/gdim;
-vdim = Minf*sqrt(gam*Rdim*Tdim);
+%Reference quantities
+T0 = 1;
+T1 = Ttop/Tbot;
+epsilon = abs(T1-T0);
+v0 = sqrt(gam*R*Tbot);
+t0 = H/v0;
+R0 = radiusIn/H;
+R1 = radiusOut/H;
 
-vdim2 = vdim^2;
-Ldim2 = Ldim^2;
-Ldim3 = Ldim^3;
+expMu = 0.5;
+expKappa = 0.75;
 
-R0 = R0dim/Ldim;
-R1 = R1dim/Ldim;
+alpha0 = kappa0/(rho*cp);
+mu0 = 1.3e-4*(Tbot/R)^expMu;
+nu0 = mu0/rho;
 
-%Nondimensionalized quantities
-rbot = 0;                    % Density bottom boundary
-Tbot = 1;                     % Temperature bottom surface
-Ttop = 5;                     % Temperature top surface (equal to Tbot to start)
+lambda = lambda_d/lambda0;
+crossSections = crossSections_d/H^2;
+F74113 = F74113_d*(H^2*t0);
 
-%Additional nondimensional numbers
-Fr2 = gdim*Ldim/vdim2;                  % Normalized gravity acceleration
-St = omega*Ldim/vdim;                   % angular velocity
-Q0 = h*c/(m*vdim2*Ldim);
-M0 = rhodim*Ldim3/m;
+tauA = 1;
 
-EUVeff = 0.1;
+%Nondimensional quantities
+Gr = g*epsilon*H^3/nu0^2;
+Pr = nu0/alpha0;
+D = g*H/(R*Tbot);
+Fr = sqrt(omega^2*H/g);
+Re = sqrt(gam*Gr/epsilon);
+Pe = Pr*Re;
+Keuv = (hPlanck*c/lambda0)/(gam*kBoltzmann*Tbot);
+M = rho*H^3/m;
+PiRad = 0;
 
-%Vector of physical parameters
-pde.physicsparam = [gam Re Pe Minf Fr2 St rbot Tbot Ttop R0 R1 Q0 M0 Ldim EUVeff c0 longitude latitude declinationSun];
+% Pr = 7.2;
+% Re = 18000;
+% Pe = 3600;
+Minf = 1;
+Fr2 = 1/gam;
+St = sqrt(omega^2*H/(gam*g));
+
+
+%% Time parameters;
+tstepStar = tstep/t0;
+nTimeSteps = ceil(tSimulation*periodDay/tstep);
+freqTimeSteps = ceil(freq*60/tstep);
+
+% Set discretization parameters, physical parameters, and solver parameters
+pde.porder = porder;          % polynomial degree
+pde.torder = 2;          % time-stepping order of accuracy
+pde.nstage = 2;          % time-stepping number of stages
+pde.dt = tstepStar*ones(nTimeSteps,1);   % time step sizes
+pde.visdt = pde.dt(1);         % visualization timestep size
+pde.saveSolFreq = freqTimeSteps;          % solution is saved every 100 time steps
+pde.soltime = freqTimeSteps:freqTimeSteps:length(pde.dt); % steps at which solution are collected
+pde.timestepOffset = tRestart;
+
+
+%% Vectors of physical and external parameters
+pde.physicsparam = [gam Re Pe Minf Fr2 St rho T0 T1 R0 R1 Keuv M H EUVeff model longitude latitude declinationSun];
                    % 1  2  3   4    5  6   7    8    9   10 11 12 13  14    15   16      17       18       19
-%Vector of physical EUV parameters
-EUV = readtable('euv.csv');
-lambda = (0.5*(table2array(EUV(1,6:42))+table2array(EUV(2,6:42))))*1e-10/Ldim;    % initially in Armstrongs
-crossSections = (0.78*table2array(EUV(5,6:42))*table2array(EUV(5,4))+0.22*table2array(EUV(8,6:42))*table2array(EUV(5,4)))/Ldim2;   % initially in m2
-AFAC = table2array(EUV(4,6:42));                        % non-dimensional
-F74113 = table2array(EUV(3,6:42))*table2array(EUV(3,4))*1e4*Ldim3/vdim;                                                 % initially in 1/(cm2*s)
+
+%External params (EUV)
 pde.externalparam = [lambda,crossSections,AFAC,F74113];
-                                      
-%Solver parameters
+         
+
+%% Solver parameters
 pde.extStab = 1;
 pde.tau = 0.0;                  % DG stabilization parameter
-pde.GMRESrestart=39;            % number of GMRES restarts
+pde.GMRESrestart=29;            % number of GMRES restarts
 pde.linearsolvertol=1e-10;     % GMRES tolerance
-pde.linearsolveriter=40;        % number of GMRES iterations
+pde.linearsolveriter=30;        % number of GMRES iterations
 pde.precMatrixType=2;           % preconditioning type
 pde.NLtol = 1e-10;               % Newton toleranccd dataoue
 pde.NLiter = 2;                 % Newton iterations
-pde.matvectol = 1e-6;
-pde.RBdim = 7;
+pde.matvectol = 1e-7;
+pde.RBdim = 8;
+
 
 %% Grid
 [mesh.p,mesh.t] = mesh1D_adapted(R0,R1);
