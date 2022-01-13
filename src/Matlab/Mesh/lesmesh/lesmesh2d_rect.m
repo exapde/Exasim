@@ -38,8 +38,11 @@ if n>0
     [p,t] = fixmesh(p,t);
 end
 
+p=p';
+t=t';
+
 % plot grid 
-figure(1);clf;simpplot(p,t);axis on;
+% figure(1);clf;simpplot(p,t);axis on;
 
 
 
