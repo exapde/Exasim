@@ -19,6 +19,8 @@ def compilecode(app):
     cpuflags = app['cpuflags'];
     gpuflags = app['gpuflags'];
 
+    mutationflag = app['mutationflag']
+
     # current directory
     cdir = os.getcwd();
     ii = cdir.find(codename)
@@ -43,6 +45,14 @@ def compilecode(app):
     shutil.copyfile(appdriverdir + "gpuApp.cu", cdir + "/gpuApp.cu");
 
     compilerstr = ["" for i in range(12)]
+    if mutationflag:
+        mutationpath = app['mutationpath']
+        mutationinclude = " -D _MUTATIONPP";
+        mutationinclude = mutationinclude + " -I " + mutationpath + "/install/include/mutation++/"
+        mutationinclude = mutationinclude + " -I " + mutationpath + "/thirdparty/eigen/"
+        mutationinclude = mutationinclude + " -I " + mutationpath + "/install/"
+
+        mutationlib = " -L " + mutationpath + "/install/lib/ -lmutation++"
 
     if  size(cpucompiler)>0:
         #compilerstr[0] = cpucompiler + " -fPIC -O3 -c opuApp.cpp";
@@ -50,6 +60,8 @@ def compilecode(app):
             compilerstr[0] = cpucompiler + " -D _ENZYME -fPIC -O3 -c opuApp.cpp" + " -Xclang -load -Xclang " + coredir + enzyme;
         else:
             compilerstr[0] = cpucompiler + " -fPIC -O3 -c opuApp.cpp";
+        if mutationflag:
+            compilerstr[0] = compilerstr[0] + mutationinclude
         compilerstr[1] = "ar -rvs opuApp.a opuApp.o";        
     else:
         compilerstr[0] = "";
@@ -73,12 +85,16 @@ def compilecode(app):
         else:
             str1 = cpucompiler + " -std=c++11 " + maindir + "main.cpp " + "-o serial" + appname + " ";
             compilerstr[4] = str1 + str2 + str3;
+        if mutationflag:
+            compilerstr[4] = compilerstr[4] + mutationinclude + mutationlib
 
     if ( size(cpuflags)>0) and ( size(mpicompiler)>0):
         str1 = mpicompiler + " -std=c++11 -D _MPI " + maindir + "main.cpp " + "-o mpi" + appname + " ";
         str2 = coredir + "commonCore.a " + coredir + "opuCore.a " + "opuApp.a ";
         str3 = cpuflags;
         compilerstr[5] = str1 + str2 + str3;
+        if mutationflag:
+            compilerstr[5] = compilerstr[5] + mutationinclude + mutationlib
 
     if ( size(cpuflags)>0) and ( size(cpucompiler)>0) and ( size(gpucompiler)>0) and ( size(gpuflags)>0):
         str1 = cpucompiler + " -std=c++11 -D _CUDA " + maindir + "main.cpp " + "-o gpu" + appname + " ";

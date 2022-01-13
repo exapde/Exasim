@@ -117,6 +117,10 @@ mutable struct PDEStruct
     dae_steps::IntP;
     dae_dt::Array{FloatP,1};  # dual time steps
 
+    mutationflag::IntP
+    mutationopts::Dict
+    mutationpath::String
+
     PDEStruct() = new();
 end
 
@@ -240,6 +244,10 @@ function initializepde(version)
     pde.dae_epsilon = 0.0;
     pde.dae_steps = 0;
     pde.dae_dt = [0.0];  # dual time steps
+
+    pde.mutationflag = 0
+    pde.mutationopts = Dict()
+    pde.mutationpath = ""
 
     return pde;
 end

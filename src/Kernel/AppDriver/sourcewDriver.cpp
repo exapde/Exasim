@@ -23,7 +23,7 @@ void SourcewDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg,
                     numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne, app.mix);
         #else
         opuSourcew(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne, app.mix);
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);
         #endif                
     }
 #endif              

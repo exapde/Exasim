@@ -39,12 +39,11 @@ void readappstruct(string filename, appstruct &app)
     app.stgib = readiarrayfromdouble(in, app.nsize[11]);
     app.vindx = readiarrayfromdouble(in, app.nsize[12]);
     readarray(in, &app.dae_dt, app.nsize[13]);              
-    
     #ifdef HAVE_MPP
         char a[50];
         in.getline(a, 50, 'X');
         string MixtureName = a;
-
+        
         char b[50];
         in.getline(b, 50, 'X');
         string StateModel = b;
@@ -58,7 +57,6 @@ void readappstruct(string filename, appstruct &app)
         opts.setThermodynamicDatabase(ThermoDB);
         
         app.mix = new Mutation::Mixture(opts);
-
         printf("Mutation mixture initialized\n");
     #endif 
 

@@ -118,4 +118,6 @@ def initializepde(version):
     pde['dae_steps'] = 0;
     pde['dae_dt'] = numpy.array([0.0]);  # dual time steps
 
+    pde['mutationflag'] = 0
+
     return pde
