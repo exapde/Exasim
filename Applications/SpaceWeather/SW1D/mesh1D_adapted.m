@@ -1,9 +1,8 @@
 function [p,t] = mesh1D_adapted(r1,r2)
 
 dlay = 1;
-dwall = 5e-3; 
-nx = 150;
-% xref = [3e-2 12e-2 3e-1 6e-1];
+dwall = 2.5e-3; 
+nx = 48;
 
 % calculate the mesh ratio
 c = 1 - dlay/dwall;

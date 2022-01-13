@@ -5,6 +5,7 @@ pde.source = @source;
 pde.fbou = @fbou;
 pde.ubou = @ubou;
 pde.initu = @initu;
+pde.stab = @stab;
 end
 
 function m = mass(u, q, w, v, x, t, mu, eta)
@@ -13,204 +14,263 @@ end
 
 function f = flux(u, q, w, v, x, t, mu, eta)
     gam = mu(1);
-    gam1 = gam - 1.0;
-    visc0 = mu(2);
-    kappa0 = mu(3);
-    
-    cp = mu(7);
-    cv = cp/gam;
-    R = cp-cv;
-
+    Re = mu(2);
+    Pe = mu(3);
+    Minf = mu(4);
+    M2 = Minf^2;
     c23 = 2.0/3.0;
     
     r = u(1);
-    ru = u(2);
-    rv = u(3);
-    rE = u(4);
+    ruv = u(2);
+    rvv = u(3);
+    rT = u(4);
+    
+    rho = exp(r);
+    sr = sqrt(rho);
+    sr1 = 1/sr;
+    
+    uv = ruv*sr1;
+    vv = rvv*sr1;
+    T = rT*sr1;
+    
+    p = rT/(gam*M2);
     
     rx = q(1);
     rux = q(2);
     rvx = q(3);
-    rEx = q(4);
+    rTx = q(4);
     ry = q(5);
     ruy = q(6);
     rvy = q(7);
-    rEy = q(8);
+    rTy = q(8);
     
-    r1 = 1.0/r;
-    uv = ru*r1;
-    vv = rv*r1;
-    E = rE*r1;
-    ke = 0.5*(uv*uv+vv*vv);
-    p = gam1*(rE-r*ke);
-    h = E+p*r1;
-    
-    % Inviscid fluxes
-    fi = [ru, ru*uv+p, rv*uv, ru*h, ...
-            rv, ru*vv, rv*vv+p, rv*h];
+    ux = sr1*rux - 0.5*rx*uv;
+    uy = sr1*ruy - 0.5*ry*uv;
+    vx = sr1*rvx - 0.5*rx*vv;
+    vy = sr1*rvy - 0.5*ry*vv;
+    Tx = sr1*rTx - 0.5*rx*T;
+    Ty = sr1*rTy - 0.5*ry*T;   
+
+    fi = [r*uv, ruv*uv+p, rvv*uv, uv*rT, ...
+            r*vv, ruv*vv, rvv*vv+p, vv*rT];
         
-    ux = (rux - rx*uv)*r1;
-    vx = (rvx - rx*vv)*r1;
-    kex = uv*ux + vv*vx;
-    px = gam1*(rEx - rx*ke - r*kex);
-    Tx = (px*r - p*rx)*r1^2/R;
-    uy = (ruy - ry*uv)*r1;
-    vy = (rvy - ry*vv)*r1;
-    key = uv*uy + vv*vy;
-    py = gam1*(rEy - ry*ke - r*key);
-    Ty = (py*r - p*ry)*r1^2/R;
-
     % Viscosity
-    T = p/(R*r);
-    muS = visc0*sqrt(T/R);
-    fc = kappa0*T^(0.75);
-
-    %Viscous fluxes
-    txx = muS*c23*(2*ux - vy);
-    txy = muS*(uy + vx);
-    tyy = muS*c23*(2*vy - ux);
-    fv = [0, txx, txy, uv*txx + vv*txy + fc*Tx, ...
-          0, txy, tyy, uv*txy + vv*tyy + fc*Ty];
+    mustar = sqrt(T);
+    kstar = T^0.75;
+    nu = mustar*sr1/Re;
+    fc = kstar*sr1*gam/Pe;
+    
+    txx = nu*c23*(2*ux - vy);
+    txy = nu*(uy + vx);
+    tyy = nu*c23*(2*vy - ux);
+    
+    fv = [0, txx, txy, fc*Tx, ...
+          0, txy, tyy, fc*Ty];
     f = fi+fv;
     f = reshape(f,[4,2]);    
 end
 
 function s = source(u, q, w, v, x, t, mu, eta)
-    s_EUV = EUVsource(u, x, t, mu, eta);
+    gam = mu(1);
+    gam1 = gam - 1.0;
+    Re = mu(2);
+    Pe = mu(3);
+    Minf = mu(4);
+    Re1 = 1/Re;
+    M2 = Minf^2;
+    c23 = 2.0/3.0;
     
-    r = sqrt(x(1)^2 + x(2)^2);
-    sca = (x(1)*u(2) + x(2)*u(3))/r;
+    r = u(1);
+    ruv = u(2);
+    rvv = u(3);
+    rT = u(4);
     
-    R0 = mu(12);
+    r_1 = r-1;
+    rho = exp(r);
+    sr = sqrt(rho);
+    sr1 = 1/sr;
+    
+    uv = ruv*sr1;
+    vv = rvv*sr1;
+    T = rT*sr1;
+    
+    p = rT/(gam*M2);
+    
+    rx = -q(1);
+    rux = -q(2);
+    rvx = -q(3);
+    rTx = -q(4);
+    ry = -q(5);
+    ruy = -q(6);
+    rvy = -q(7);
+    rTy = -q(8);
+    
+    ux = sr1*rux - 0.5*rx*uv;
+    uy = sr1*ruy - 0.5*ry*uv;
+    vx = sr1*rvx - 0.5*rx*vv;
+    vy = sr1*rvy - 0.5*ry*vv;
+    Tx = sr1*rTx - 0.5*rx*T;
+    Ty = sr1*rTy - 0.5*ry*T; 
+    
+    % Viscosity
+    mustar = sqrt(T);
+    kstar = T^0.75;
+    nu = mustar*sr1/Re;
+    fc = kstar*sr1*gam/Pe;
+    
+    txx = nu*c23*(2*ux - vy);
+    txy = nu*(uy + vx);
+    tyy = nu*c23*(2*vy - ux);
+
+    z = sqrt(x(1)^2 + x(2)^2);
+    R0 = mu(10);
     gravity0 = mu(5);
-    gravity = gravity0*(R0/r)^2;
-    
+    gravity = gravity0*R0^2/(z^2);
     omega = mu(6);
-    s = [sym(0.0); -gravity*u(1)*x(1)/r + 2.0*omega*u(3) + u(1)*x(1)*omega^2; ...
-                   -gravity*u(1)*x(2)/r - 2.0*omega*u(2) + u(1)*x(2)*omega^2; ...
-                   -gravity*sca + omega^2*sca*r + s_EUV];
+    ax = -gravity*x(1)/z + 2*omega*vv + x(1)*omega^2;
+    ay = -gravity*x(2)/z - 2*omega*uv + x(2)*omega^2;
+    
+    div = ux + vy;
+    SigmadV = (txx*ux + txy*uy + txy*vx + tyy*vy)*(gam*gam1*M2);
+    Sigmadrx = txx*rx + txy*ry;
+    Sigmadry = txy*rx + tyy*ry;
+    dTdr = fc*(Tx*rx + Ty*ry);
+    s_EUV = 0;
+%     s_EUV = EUVsource(u, x, t, mu, eta);
+    
+    s = [r_1*div; ...
+        sr*ax + 0.5*div*ruv - 0.5*p*rx + 0.5*Sigmadrx; ...
+        sr*ay + 0.5*div*rvv - 0.5*p*ry + 0.5*Sigmadry; ...
+        sr*s_EUV + (3/2-gam)*rT*div + 0.5*dTdr + SigmadV];
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+    tau = gettau(uhat, mu, eta, n);
+
     f = flux(u, q, w, v, x, t, mu, eta);
-    fi = f(:,1)*n(1) + f(:,2)*n(2) + tau*(u-uhat); % numerical flux at freestream boundary
+    fh = f(:,1)*n(1) + f(:,2)*n(2); % numerical flux at freestream boundary
+    fw = fh;
+    fw(1) = tau(1)*(u(1)-uhat(1));
+    fw(2) = fw(2) + tau(2)*(u(2)-uhat(2));
+    fw(3) = fw(3) + tau(3)*(u(3)-uhat(3));
+    fw(4) = fw(4) + tau(4)*(u(4)-uhat(4));
     
-    fa = fi;
-    fa(1) = 0.0;
-    fa(4) = 0.0;
+    % Inviscid wall
+    gam = mu(1);
+    Minf = mu(4);
+    M2 = Minf^2;
     
-    fw = fi;
-    fw(1) = 0.0;   % zero velocity 
-    fb = [fw fa];  % isothermal, "zero gradient"
+    r = u(1);
+    ruv = u(2);
+    rvv = u(3);
+    rT = u(4);
+    
+    rho = exp(r);
+    sr = sqrt(rho);
+    sr1 = 1/sr;
+    
+    uv = ruv*sr1;
+    vv = rvv*sr1;
+    
+    p = rT/(gam*M2);  
+
+    fi = [r*uv, ruv*uv+p, rvv*uv, uv*rT, ...
+            r*vv, ruv*vv, rvv*vv+p, vv*rT];
+    fi = reshape(fi,[4,2]);    
+    ft = fi(:,1)*n(1) + fi(:,2)*n(2);    
+    
+    ft(1) = ft(1) + tau(1)*(u(1)-uhat(1));
+    ft(2) = ft(2) + tau(2)*(u(2)-uhat(2));
+    ft(3) = ft(3) + tau(3)*(u(3)-uhat(3));
+    ft(4) = ft(4) + tau(4)*(u(4)-uhat(4));
+    
+    fb = [fw ft];
 end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+    Tbot = mu(8);
 
-    gam = mu(1);
-%     gam1 = gam - 1.0;
-    cp = mu(7);
-    cv = cp/gam;
-%     R = cp-cv;
-%     gravity0 = mu(5);
-%     pbot = mu(9);
-    Tbot = mu(10);
-%     Ttop = mu(11);
-%     
-%     Rbot = mu(12);
-%     Rtop = mu(13);
-%     
-%     r = u(1);
-%     ru = u(2);
-%     rv = u(3);
-%     rE = u(4);
-%     nx = n(1);
-%     ny = n(2);
-%     
-%     r1 = 1/r;
-%     uv = ru*r1;
-%     vv = rv*r1;
-%     E = rE*r1;
-%     p = gam1*(rE-r*0.5*(uv*uv+vv*vv));
-%     h = E+p*r1;
-%     a = sqrt(gam*p*r1);
-%     Temp = p/(R*r);
-%     
-%     run = ru*nx + rv*ny;
-%     rut = -ru*ny + rv*nx;
-%     un = run/r;
-%     ut = rut/r;
-%     
-%     K = [ 1 , 1 , 0 , 1 ;...
-%           un-a , un , 0 , un+a ;...
-%           ut , ut , 1 , ut ;...
-%           h - un*a , (1/2)*(un^2 + ut^2) , ut , h+un*a ];
-%     Kinv = (gam1/(2*a^2))*[ h + (a/gam1)*(un-a) , -(un+a/gam1) , -ut , 1 ;...
-%                             -2*h + (4/gam1)*a^2 , 2*un , 2*ut , -2 ;...
-%                             -2*(ut*a^2)/gam1 , 0 , 2*(a^2)/gam1 , 0 ;...
-%                             h - a*(un+a)/gam1 , -un+a/gam1 , -ut , 1 ];
-%     T = [ 1 , 0 , 0 , 0;...
-%           0 , nx , ny , 0;...
-%           0 , -ny , nx , 0;...
-%           0 , 0 , 0 , 1];
-%     Tinv = [ 1 , 0 , 0 , 0;...
-%              0 , nx ,-ny , 0;...
-%              0 , ny , nx , 0;...
-%              0 , 0 , 0 , 1];
-%     Lambda = [ tanh(1e3*(un-a)) , 0 , 0 , 0 ;...
-%                      0 , tanh(1e3*(un)) , 0 , 0 ;...
-%                      0 , 0 , tanh(1e3*(un)) , 0 ;...
-%                      0 , 0 , 0 , tanh(1e3*(un+a)) ];
-%     E = (K * Lambda * Kinv);
-%     An = (Tinv * E * T);
-%     
-%     % freestream boundary condition
-%     gravity = gravity0*Rbot^2/Rtop^2;
-%     ptop = pbot*exp(-20*gravity/(R*Ttop)*log(1 + Ttop/Tbot*(exp(0.05*(Rtop-Rbot)-1))));
-%     rtop = ptop/(R*Ttop);
+    % Isothermal Wall
+    r = u(1);
+    rho = exp(r);
+    sr = sqrt(rho);
     
-%     uinf = sym([rtop; 0.0; 0.0; rtop*cv*Temp]); % freestream flow
-%     uinf = uinf(:);
-%     u = u(:);          % state variables 
-%     ui = 0.5*((u+uinf) + An*(u-uinf));  % Riemann solution
-
-    %Adiabatic
-    ua = u;
-    ua(2:3) = 0.0;
-
-    % Isothermal Wall?
     utw1 = u;
     utw1(2:3) = 0.0;
-    utw1(4) = u(1)*cv*Tbot;
+    utw1(4) = sr*Tbot;
 
-    ub = [utw1 ua]; % isothermal, "zero gradient"
+    % Inviscid wall
+    utw2 = u;
+    
+    ub = [utw1 utw2];
 end
 
 
 function u0 = initu(x, mu, eta)
+    radius = sqrt(x(1)^2 + x(2)^2);
+    
     gam = mu(1);
-    gravity0 = mu(5);
-    cp = mu(7);
-    cv = cp/gam;
-    R = cp-cv;
+    Minf = mu(4);
+    M2 = Minf^2;
+    Fr2 = mu(5);
+    omega = mu(6);
 
-    pbot = mu(9);
-    Tbot = mu(10);
-    Ttop = mu(11);
-    R0 = mu(12);
+    Tbot = mu(8);
+    Ttop = mu(9);
+    R0 = mu(10);
+    Ldim = mu(14);
+    h0 = 40000/Ldim;
+
+    a0 = gam*M2*(-Fr2 + omega^2*R0);
     
-    r = sqrt(x(1)^2 + x(2)^2);
+    T = Ttop - (Ttop-Tbot)*exp(-(radius-R0)/h0);
+    logp_p0 = a0*h0/Ttop*log(1+Ttop/Tbot*(exp((radius-R0)/h0)-1));
+    r = logp_p0 - log(T);
+    rho = exp(r);
+    srT = sqrt(rho)*T;
     
-    gravity = gravity0*R0^2/r^2;
+    u0 = sym([r; 0.0; 0.0; srT]);
+end
 
-    A = Ttop;
-    C = 1/40;
-    B = -(Ttop-Tbot)*exp(C*R0);
-    f = log(A*exp(C*r)+B)/(A*C);
-    f0 = log(A*exp(C*R0)+B)/(A*C);
 
-    T = A+B*exp(-C*r);
-    p = pbot*exp(-gravity*(f-f0)/R);
-    rho = p/(R*T);
+function ftau = stab(u1, q1, w1, v1, x, t, mu, eta, uhat, n, tau, u2, q2, w2, v2) 
+    uhat = 0.5*(u1+u2);
+    tau = gettau(uhat, mu, eta, n);
+    
+    ftau(1) = tau(1)*(u1(1) - u2(1));
+    ftau(2) = tau(2)*(u1(2) - u2(2));
+    ftau(3) = tau(3)*(u1(3) - u2(3));
+    ftau(4) = tau(4)*(u1(4) - u2(4));
+end
 
-    u0 = [ rho, 0.0, 0.0, p/(gam-1.0)];    
+
+function   tau = gettau(uhat, mu, eta, n)
+
+    gam = mu(1);
+    Re = mu(2);
+    Pe = mu(3);
+    
+    r = uhat(1);
+    rT = uhat(4);
+    
+    rho = exp(r);
+    sr = sqrt(rho);
+    sr1 = 1/sr;
+    T = rT*sr1;
+    
+    tauA = mu(18);
+    
+    % Viscosity
+    mustar = sqrt(T);
+    kstar = T^0.75;
+    tauDv = mustar*sr1/Re;
+    tauDT = kstar*sr1*gam/Pe;
+    
+    tau = 0*uhat;
+
+    tau(1) = tauA;
+    tau(2) = tauA + tauDv;
+    tau(3) = tauA + tauDv;
+    tau(4) = tauA + tauDT;
+
 end
