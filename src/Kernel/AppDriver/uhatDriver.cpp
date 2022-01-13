@@ -19,8 +19,13 @@ void UhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
     if (common.extUhat==1) { 
 #ifdef HAVE_ONETHREAD            
         if (backend==0) {
+            #ifdef HAVE_MPP
+            opuUhat(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
+                    time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, app.mix);
+            #else
             opuUhat(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
                     time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            #endif
         }
 #endif              
 #ifdef HAVE_OPENMP                        

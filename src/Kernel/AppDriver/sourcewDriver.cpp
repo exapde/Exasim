@@ -18,8 +18,13 @@ void SourcewDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg,
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
+        #ifdef HAVE_MPP
         opuSourcew(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne, app.mix);
+        #else
+        opuSourcew(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne, app.mix);
+        #endif                
     }
 #endif              
 #ifdef HAVE_OPENMP        

@@ -22,8 +22,13 @@ void OutputDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, 
     /* 2. Compute output field */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
+        #ifdef HAVE_MPP
         opuOutput(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
-                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);                
+                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne, app.mix);
+        #else
+        opuOutput(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);       
+        #endif       
     }
 #endif              
 #ifdef HAVE_OPENMP        

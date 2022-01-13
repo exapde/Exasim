@@ -7,6 +7,11 @@
 #include "../AppDriver/initwdgDriver.cpp"
 #include "../AppDriver/initodgDriver.cpp"
 
+#include <string>
+
+#ifdef HAVE_MPP
+#include <mutation++.h>
+#endif
 void readappstruct(string filename, appstruct &app)
 {
     // Open file to read
@@ -35,6 +40,28 @@ void readappstruct(string filename, appstruct &app)
     app.vindx = readiarrayfromdouble(in, app.nsize[12]);
     readarray(in, &app.dae_dt, app.nsize[13]);              
     
+    #ifdef HAVE_MPP
+        char a[50];
+        in.getline(a, 50, 'X');
+        string MixtureName = a;
+
+        char b[50];
+        in.getline(b, 50, 'X');
+        string StateModel = b;
+
+        char c[50];
+        in.getline(c, 50, 'X');
+        string ThermoDB = c;
+
+        Mutation::MixtureOptions opts(MixtureName);
+        opts.setStateModel(StateModel);
+        opts.setThermodynamicDatabase(ThermoDB);
+        
+        app.mix = new Mutation::Mixture(opts);
+
+        printf("Mutation mixture initialized\n");
+    #endif 
+
     Int i, ncu, ncq, ncp;
     ncu = app.ndims[6];// number of compoments of (u)
     ncq = app.ndims[7];// number of compoments of (q)

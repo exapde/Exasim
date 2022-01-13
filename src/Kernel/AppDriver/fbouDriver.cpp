@@ -18,8 +18,13 @@ void FbouDriver(dstype *fb, dstype *xg, dstype *udg, dstype * odg, dstype * wdg,
     /* 3. Compute physical boundary conditions */
 #ifdef HAVE_ONETHREAD             
     if (backend==0) {
+        #ifdef HAVE_MPP
+        opuFbou(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                         common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw, app.mix);
+        #else
         opuFbou(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                          common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
+        #endif
     }
 #endif              
 #ifdef HAVE_OPENMP                

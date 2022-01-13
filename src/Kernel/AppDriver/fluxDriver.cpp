@@ -19,8 +19,13 @@ void FluxDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, me
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
+        #ifdef HAVE_MPP
+        opuFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
+                     common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, app.mix);   
+        #else
         opuFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
                      common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
+        #endif
     }
 #endif              
 #ifdef HAVE_OPENMP        

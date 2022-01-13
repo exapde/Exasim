@@ -22,8 +22,13 @@ void AvfieldDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg,
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
+        #ifdef HAVE_MPP
         opuAvfield(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber, 
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, nco, npe, ne);                
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, nco, npe, ne, app.mix);   
+        #else
+        opuAvfield(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber, 
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, nco, npe, ne);   
+        #endif      
     }
 #endif              
 #ifdef HAVE_OPENMP        

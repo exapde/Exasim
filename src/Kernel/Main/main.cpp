@@ -42,7 +42,7 @@
 #endif
 
 #ifdef HAVE_MPP
-#include <mutationpp.h>
+#include <mutation++.h>
 #endif
 
 #ifdef HAVE_MPI

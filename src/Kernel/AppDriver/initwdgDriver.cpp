@@ -9,7 +9,11 @@ void InitwdgDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int ncw, Int 
     /* 2. Compute output field */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
-        opuInitwdg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, ncw, npe, ne);                
+        #ifdef HAVE_MPP
+        opuInitwdg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, ncw, npe, ne, app.mix);      
+        #else
+        opuInitwdg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, ncw, npe, ne);
+        #endif          
     }
 #endif              
 #ifdef HAVE_OPENMP        
