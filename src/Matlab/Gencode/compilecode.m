@@ -72,7 +72,11 @@ if (~isempty(cpuflags)>0) && (~isempty(cpucompiler)>0)
 end
 
 if (~isempty(cpuflags)) && (~isempty(mpicompiler)>0)
-    str1 = mpicompiler + " -std=c++11 -D _MPI " + maindir + "main.cpp " + "-o mpi" + appname + " ";
+    if (~isempty(enzyme))    
+        str1 = mpicompiler + " -std=c++11 -D _MPI -D _ENZYME " + maindir + "main.cpp " + "-o mpi" + appname + " ";
+    else
+        str1 = mpicompiler + " -std=c++11 -D _MPI " + maindir + "main.cpp " + "-o mpi" + appname + " ";
+    end
     str2 = coredir + "commonCore.a " + coredir + "opuCore.a " + "opuApp.a ";
     str3 = cpuflags;
     compilerstr{6} = str1 + str2 + str3;

@@ -75,7 +75,10 @@ def compilecode(app):
             compilerstr[4] = str1 + str2 + str3;
 
     if ( size(cpuflags)>0) and ( size(mpicompiler)>0):
-        str1 = mpicompiler + " -std=c++11 -D _MPI " + maindir + "main.cpp " + "-o mpi" + appname + " ";
+        if (size(enzyme)>0):
+            str1 = mpicompiler + " -std=c++11 -D _ENZYME -D _MPI " + maindir + "main.cpp " + "-o mpi" + appname + " ";
+        else:
+            str1 = mpicompiler + " -std=c++11 -D _MPI " + maindir + "main.cpp " + "-o mpi" + appname + " ";
         str2 = coredir + "commonCore.a " + coredir + "opuCore.a " + "opuApp.a ";
         str3 = cpuflags;
         compilerstr[5] = str1 + str2 + str3;
