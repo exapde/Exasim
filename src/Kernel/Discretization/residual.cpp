@@ -827,7 +827,9 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         GetdQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
     // TODO: DAE AD Matvec    
 
-    // TODO: artificial viscosity AD Matvec
+    if (common.ncAV>0 && common.frozenAVflag == 0)
+    /// FROM MEETING: MUST MOVE THE VOLUME RESIDUAL AND EVALUATE 0 to common.npe2 if unfrozen for mpi
+        GetdAv(sol, res, app, master, mesh, tmp, common, handle, backend);
     
     if (common.frozenAVflag == 1)
     { // calculate Ru for interface elements
