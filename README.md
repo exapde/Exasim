@@ -13,7 +13,7 @@ What make Exasim unique are the following distinctive features:
    - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs   
    - can be called from Julia, Python, and Matlab. 
    
-After downloading the Exasim source code, you can run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. If Exasim needs external packages, it will install them on the fly. See the documentation https://github.com/exapde/Exasim/tree/master/Documentation/Exasim0.3.pdf for more details. 
+After downloading the Exasim source code, you can run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. If Exasim needs external packages, it will install them on the fly. See the documentation https://github.com/exapde/Exasim/blob/master/Documentation/exasim.pdf for more details. 
 
 # Installation 
 
@@ -25,4 +25,4 @@ Exasim produces C++ Code to solve a wide variety of parametrized partial differe
 
 
 # Publications
-[1] Under-Resolved Direct Numerical Simulation of Transonic Buffet Using an Implicit Discontinuous Galerkin Method. https://github.com/exapde/Exasim/tree/master/Documentation/AIAA_Journal_2021_OAT15A.pdf. The numerical results and the source codes are located at https://github.com/exapde/Exasim/blob/master/Applications/NavierStokes/OAT15A.
+[1] Under-Resolved Direct Numerical Simulation of Transonic Buffet Using an Implicit Discontinuous Galerkin Method. https://github.com/exapde/Exasim/blob/master/Documentation/AIAA2021paper.pdf. The numerical results and the source codes are located at https://github.com/exapde/Exasim/blob/master/Applications/NavierStokes/OAT15A.

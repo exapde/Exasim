@@ -513,11 +513,10 @@ void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
     }    
 }
 
-#ifdef HAVE_ENZYME
 ////////////////////////////////////////////////////////////////
 /// Method 1: Calculate R(u) and dR(u)/du v in the same call////
 ////////////////////////////////////////////////////////////////
-
+#ifdef HAVE_ENZYME
 void GetQEnzyme(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
@@ -682,12 +681,12 @@ void ResidualEnzyme(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         writearray2file(common.fileout + "enz_Ru.bin", res.Ru, common.npe*common.ncu*common.ne, backend);
     }    
 }
-
+#endif 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //// Method 2: Calculate just dR(u)/du v, with u, q, uhat, R(u) already precalculated /////
 ///////////////////////////////////////////////////////////////////////////////////////////
-
+#ifdef HAVE_ENZYME
 void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
@@ -758,13 +757,113 @@ void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
             mesh.ent2ind2, common.npf, common.npe, common.ncu, e1, e2, 0, backend);
 }
 
+#ifdef  HAVE_MPI
+
+void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+   tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+{      
+    // non-blocking send and receive solutions on exterior and outer elements to neighbors    
+    Int bsz = common.npe*common.ncu;
+    Int nudg = common.npe*common.nc;
+    Int n;
+   
+    // copy some portion of du to buffsend
+    GetArrayAtIndex(tmp.buffsend, sol.dudg, mesh.elemsendind, bsz*common.nelemsend, backend);
+
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+
+    /* non-blocking send */
+    Int neighbor, nsend, psend = 0, request_counter = 0;
+    for (n=0; n<common.nnbsd; n++) {
+        neighbor = common.nbsd[n];
+        nsend = common.elemsendpts[n]*bsz;
+        if (nsend>0) {
+            MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
+                   MPI_COMM_WORLD, &common.requests[request_counter]);
+            psend += nsend;
+            request_counter += 1;
+        }
+    }
+
+    // non-blocking receive 
+    Int nrecv, precv = 0;
+    for (n=0; n<common.nnbsd; n++) {
+        neighbor = common.nbsd[n];
+        nrecv = common.elemrecvpts[n]*bsz;
+        if (nrecv>0) {
+            MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
+                   MPI_COMM_WORLD, &common.requests[request_counter]);
+            precv += nrecv;
+            request_counter += 1;
+        }
+    }
+    // compute uhat for all faces
+    GetdUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);            
+    
+    // calculate q for interior elements
+    if (common.ncq>0)         
+        GetdQ(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
+    // TODO: DAE AD matvec
+
+    // calculate Ru for interior elements
+    if (common.frozenAVflag == 1)
+    // if AVfield is not part of residual, we can evaluate interior volume integrals before receving neighbor information
+        dRuElem(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, backend);    
+        
+    // non-blocking receive solutions on exterior and outer elements from neighbors
+    // wait until all send and receive operations are completely done
+    MPI_Waitall(request_counter, common.requests, common.statuses);
+
+    // copy buffrecv to udg
+    PutArrayAtIndex(sol.dudg, tmp.buffrecv, mesh.elemrecvind, bsz*common.nelemrecv, backend);
+
+    // compute uhat for all faces
+    GetdUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+
+    // calculate q for interface and exterior elements
+    if (common.ncq>0)         
+        GetdQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
+    // TODO: DAE AD Matvec    
+
+    // TODO: artificial viscosity AD Matvec
+    
+    if (common.frozenAVflag == 1)
+    { // calculate Ru for interface elements
+        dRuElem(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe1, backend); 
+    } 
+    else
+    { // For unfrozen AV, we can only compute Ru for interior and interface after calculating AV 
+        dRuElem(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe1, backend); 
+    }
+
+    // calculate Ru for all faces
+    dRuFace(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+        
+    // assemble face residual vector into element residual vector
+    Int e1 = common.eblks[3*0]-1;    
+    Int e2 = common.eblks[3*(common.nbe1-1)+1];       
+    PutFaceNodes(res.dRu, res.dRh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
+            mesh.ent2ind2, common.npf, common.npe, common.ncu, e1, e2, 0, backend);
+}
+
+
+#endif
 
 void dResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
-    dRuResidual(sol, res, app, master, mesh, tmp, common, handle,
-            0, common.nbe, 0, common.nbe, 0, common.nbf, backend);
-            
+    
+    if (common.mpiProcs>1) { // mpi processes
+#ifdef  HAVE_MPI        
+        dRuResidualMPI(sol, res, app, master, mesh, tmp, common, handle, backend);
+#endif        
+    }
+    else {
+        dRuResidual(sol, res, app, master, mesh, tmp, common, handle,
+                0, common.nbe, 0, common.nbe, 0, common.nbf, backend);
+    } 
     // change sign for matrix-vector product
     ArrayMultiplyScalar(res.dRu, minusone, common.ndof1, backend);     
     if (common.tdep==1)

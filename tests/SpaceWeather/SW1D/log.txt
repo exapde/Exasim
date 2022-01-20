@@ -1,0 +1,2455 @@
+==> Exasim  ...
+
+Equation solved.
+
+fsolve completed because the vector of function values is near zero
+as measured by the value of the function tolerance, and
+the problem appears regular as measured by the gradient.
+
+<stopping criteria details>
+Using g++ compiler for CPU source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+run facepartition...
+face partition 1
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing app into file...
+generate code...
+compile code...
+ar: creating archive opuApp.a
+a - opuApp.o
+run code...
+datain/
+dataout/out
+Using 1 processors to solve the problem on CPU platform...
+Reading data from binary files 
+Set common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+Compute solution average = 1
+File exist = 0
+
+Timestep :  1,  Timestage :  1,   Time : 0.0556837
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.539
+Old RHS Norm: 0.000473788,  New RHS Norm: 0.000473788
+Warning: GMRES(29) does not converge to the tolerance 1e-10 within  30 iterations
+Warning: The current relative error is 0.00968655 
+PTC Iteration: 1,  Residual Norm: 5.21815e-05
+
+Timestep :  1,  Timestage :  2,   Time : 0.190116
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5389
+Old RHS Norm: 0.000946474,  New RHS Norm: 0.000709214
+Warning: GMRES(29) does not converge to the tolerance 1.33454e-10 within  30 iterations
+Warning: The current relative error is 0.00382567 
+PTC Iteration: 1,  Residual Norm: 2.12652e-05
+
+Timestep :  2,  Timestage :  1,   Time : 0.2458
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5381
+Old RHS Norm: 0.000773376,  New RHS Norm: 0.000378667
+Warning: GMRES(29) does not converge to the tolerance 2.04236e-10 within  30 iterations
+Warning: The current relative error is 0.00394716 
+PTC Iteration: 1,  Residual Norm: 1.54029e-05
+
+Timestep :  2,  Timestage :  2,   Time : 0.380232
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5374
+Old RHS Norm: 0.0023327,  New RHS Norm: 0.000120094
+Warning: GMRES(29) does not converge to the tolerance 1.9424e-09 within  30 iterations
+Warning: The current relative error is 0.00679692 
+PTC Iteration: 1,  Residual Norm: 5.31301e-06
+
+Timestep :  3,  Timestage :  1,   Time : 0.435916
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5354
+Old RHS Norm: 0.00142268,  New RHS Norm: 2.94505e-05
+Warning: GMRES(29) does not converge to the tolerance 4.83073e-09 within  30 iterations
+Warning: The current relative error is 0.0132078 
+PTC Iteration: 1,  Residual Norm: 1.58827e-06
+
+Timestep :  3,  Timestage :  2,   Time : 0.570349
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5341
+Old RHS Norm: 0.00389771,  New RHS Norm: 1.06438e-05
+Warning: GMRES(29) does not converge to the tolerance 3.66197e-08 within  30 iterations
+Warning: The current relative error is 0.0411422 
+PTC Iteration: 1,  Residual Norm: 1.05104e-06
+
+Timestep :  4,  Timestage :  1,   Time : 0.626032
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5308
+Old RHS Norm: 0.00207722,  New RHS Norm: 4.49794e-06
+Warning: GMRES(29) does not converge to the tolerance 4.61815e-08 within  30 iterations
+Warning: The current relative error is 0.0620302 
+PTC Iteration: 1,  Residual Norm: 4.87012e-07
+
+Timestep :  4,  Timestage :  2,   Time : 0.760465
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5291
+Old RHS Norm: 0.00547353,  New RHS Norm: 4.01774e-06
+Warning: GMRES(29) does not converge to the tolerance 1.36234e-07 within  30 iterations
+Warning: The current relative error is 0.0721505 
+PTC Iteration: 1,  Residual Norm: 5.02236e-07
+
+Timestep :  5,  Timestage :  1,   Time : 0.816149
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5246
+Old RHS Norm: 0.00272455,  New RHS Norm: 2.08132e-06
+Warning: GMRES(29) does not converge to the tolerance 1.30905e-07 within  30 iterations
+Warning: The current relative error is 0.118858 
+PTC Iteration: 1,  Residual Norm: 2.63714e-07
+
+Timestep :  5,  Timestage :  2,   Time : 0.950581
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5223
+Old RHS Norm: 0.00702977,  New RHS Norm: 1.89553e-06
+Warning: GMRES(29) does not converge to the tolerance 3.7086e-07 within  30 iterations
+Warning: The current relative error is 0.11268 
+PTC Iteration: 1,  Residual Norm: 3.66914e-07
+
+Timestep :  6,  Timestage :  1,   Time : 1.00626
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5166
+Old RHS Norm: 0.00336185,  New RHS Norm: 1.15636e-06
+Warning: GMRES(29) does not converge to the tolerance 2.90726e-07 within  30 iterations
+Warning: The current relative error is 0.136841 
+PTC Iteration: 1,  Residual Norm: 1.85428e-07
+
+Timestep :  6,  Timestage :  2,   Time : 1.1407
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5138
+Old RHS Norm: 0.0085607,  New RHS Norm: 1.42397e-06
+Warning: GMRES(29) does not converge to the tolerance 6.01184e-07 within  30 iterations
+Warning: The current relative error is 0.0952833 
+PTC Iteration: 1,  Residual Norm: 4.75191e-07
+
+Timestep :  7,  Timestage :  1,   Time : 1.19638
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5069
+Old RHS Norm: 0.00398792,  New RHS Norm: 1.17186e-06
+Warning: GMRES(29) does not converge to the tolerance 3.40307e-07 within  30 iterations
+Warning: The current relative error is 0.110077 
+PTC Iteration: 1,  Residual Norm: 2.28354e-07
+
+Timestep :  7,  Timestage :  2,   Time : 1.33081
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.5037
+Old RHS Norm: 0.010064,  New RHS Norm: 1.75586e-06
+Warning: GMRES(29) does not converge to the tolerance 5.73165e-07 within  30 iterations
+Warning: The current relative error is 0.082772 
+PTC Iteration: 1,  Residual Norm: 4.34756e-07
+
+Timestep :  8,  Timestage :  1,   Time : 1.3865
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4956
+Old RHS Norm: 0.00460213,  New RHS Norm: 1.06572e-06
+Warning: GMRES(29) does not converge to the tolerance 4.31832e-07 within  30 iterations
+Warning: The current relative error is 0.131334 
+PTC Iteration: 1,  Residual Norm: 1.96802e-07
+
+Timestep :  8,  Timestage :  2,   Time : 1.52093
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4919
+Old RHS Norm: 0.0115381,  New RHS Norm: 1.55033e-06
+Warning: GMRES(29) does not converge to the tolerance 7.44234e-07 within  30 iterations
+Warning: The current relative error is 0.0902874 
+PTC Iteration: 1,  Residual Norm: 5.3948e-07
+
+Timestep :  9,  Timestage :  1,   Time : 1.57661
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4827
+Old RHS Norm: 0.00520392,  New RHS Norm: 1.09254e-06
+Warning: GMRES(29) does not converge to the tolerance 4.76314e-07 within  30 iterations
+Warning: The current relative error is 0.139341 
+PTC Iteration: 1,  Residual Norm: 1.95795e-07
+
+Timestep :  9,  Timestage :  2,   Time : 1.71105
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4786
+Old RHS Norm: 0.012982,  New RHS Norm: 1.80412e-06
+Warning: GMRES(29) does not converge to the tolerance 7.19574e-07 within  30 iterations
+Warning: The current relative error is 0.0965624 
+PTC Iteration: 1,  Residual Norm: 5.31908e-07
+
+Timestep :  10,  Timestage :  1,   Time : 1.76673
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4683
+Old RHS Norm: 0.00579283,  New RHS Norm: 1.01713e-06
+Warning: GMRES(29) does not converge to the tolerance 5.69528e-07 within  30 iterations
+Warning: The current relative error is 0.138547 
+PTC Iteration: 1,  Residual Norm: 1.85517e-07
+
+Timestep :  10,  Timestage :  2,   Time : 1.90116
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4637
+Old RHS Norm: 0.0143944,  New RHS Norm: 1.55413e-06
+Warning: GMRES(29) does not converge to the tolerance 9.26203e-07 within  30 iterations
+Warning: The current relative error is 0.101265 
+PTC Iteration: 1,  Residual Norm: 6.12912e-07
+
+Timestep :  11,  Timestage :  1,   Time : 1.95685
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4524
+Old RHS Norm: 0.00636834,  New RHS Norm: 1.19123e-06
+Warning: GMRES(29) does not converge to the tolerance 5.346e-07 within  30 iterations
+Warning: The current relative error is 0.144654 
+PTC Iteration: 1,  Residual Norm: 1.61941e-07
+
+Timestep :  11,  Timestage :  2,   Time : 2.09128
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4474
+Old RHS Norm: 0.015774,  New RHS Norm: 1.49936e-06
+Warning: GMRES(29) does not converge to the tolerance 1.05205e-06 within  30 iterations
+Warning: The current relative error is 0.107526 
+PTC Iteration: 1,  Residual Norm: 6.43122e-07
+
+Timestep :  12,  Timestage :  1,   Time : 2.14696
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4351
+Old RHS Norm: 0.00692994,  New RHS Norm: 9.92718e-07
+Warning: GMRES(29) does not converge to the tolerance 6.98077e-07 within  30 iterations
+Warning: The current relative error is 0.175633 
+PTC Iteration: 1,  Residual Norm: 2.0041e-07
+
+Timestep :  12,  Timestage :  2,   Time : 2.28139
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4297
+Old RHS Norm: 0.0171197,  New RHS Norm: 1.40233e-06
+Warning: GMRES(29) does not converge to the tolerance 1.22081e-06 within  30 iterations
+Warning: The current relative error is 0.0996942 
+PTC Iteration: 1,  Residual Norm: 7.16264e-07
+
+Timestep :  13,  Timestage :  1,   Time : 2.33708
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4164
+Old RHS Norm: 0.00747708,  New RHS Norm: 1.24188e-06
+Warning: GMRES(29) does not converge to the tolerance 6.02077e-07 within  30 iterations
+Warning: The current relative error is 0.187128 
+PTC Iteration: 1,  Residual Norm: 1.52248e-07
+
+Timestep :  13,  Timestage :  2,   Time : 2.47151
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.4106
+Old RHS Norm: 0.0184301,  New RHS Norm: 1.51853e-06
+Warning: GMRES(29) does not converge to the tolerance 1.21368e-06 within  30 iterations
+Warning: The current relative error is 0.0957412 
+PTC Iteration: 1,  Residual Norm: 7.13462e-07
+
+Timestep :  14,  Timestage :  1,   Time : 2.52719
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3963
+Old RHS Norm: 0.00800921,  New RHS Norm: 1.24094e-06
+Warning: GMRES(29) does not converge to the tolerance 6.45414e-07 within  30 iterations
+Warning: The current relative error is 0.177805 
+PTC Iteration: 1,  Residual Norm: 1.96708e-07
+
+Timestep :  14,  Timestage :  2,   Time : 2.66163
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3902
+Old RHS Norm: 0.0197039,  New RHS Norm: 1.31348e-06
+Warning: GMRES(29) does not converge to the tolerance 1.50013e-06 within  30 iterations
+Warning: The current relative error is 0.1117 
+PTC Iteration: 1,  Residual Norm: 7.51128e-07
+
+Timestep :  15,  Timestage :  1,   Time : 2.71731
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3751
+Old RHS Norm: 0.00852576,  New RHS Norm: 1.24187e-06
+Warning: GMRES(29) does not converge to the tolerance 6.86527e-07 within  30 iterations
+Warning: The current relative error is 0.201925 
+PTC Iteration: 1,  Residual Norm: 2.28699e-07
+
+Timestep :  15,  Timestage :  2,   Time : 2.85174
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3686
+Old RHS Norm: 0.0209397,  New RHS Norm: 1.64161e-06
+Warning: GMRES(29) does not converge to the tolerance 1.27556e-06 within  30 iterations
+Warning: The current relative error is 0.126107 
+PTC Iteration: 1,  Residual Norm: 8.0589e-07
+
+Timestep :  16,  Timestage :  1,   Time : 2.90743
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3526
+Old RHS Norm: 0.00902615,  New RHS Norm: 1.19927e-06
+Warning: GMRES(29) does not converge to the tolerance 7.52635e-07 within  30 iterations
+Warning: The current relative error is 0.157979 
+PTC Iteration: 1,  Residual Norm: 2.40478e-07
+
+Timestep :  16,  Timestage :  2,   Time : 3.04186
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3458
+Old RHS Norm: 0.022136,  New RHS Norm: 2.18482e-06
+Warning: GMRES(29) does not converge to the tolerance 1.01317e-06 within  30 iterations
+Warning: The current relative error is 0.108138 
+PTC Iteration: 1,  Residual Norm: 7.42582e-07
+
+Timestep :  17,  Timestage :  1,   Time : 3.09754
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3291
+Old RHS Norm: 0.00950982,  New RHS Norm: 1.0508e-06
+Warning: GMRES(29) does not converge to the tolerance 9.0501e-07 within  30 iterations
+Warning: The current relative error is 0.184856 
+PTC Iteration: 1,  Residual Norm: 1.68568e-07
+
+Timestep :  17,  Timestage :  2,   Time : 3.23198
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3219
+Old RHS Norm: 0.0232915,  New RHS Norm: 1.38645e-06
+Warning: GMRES(29) does not converge to the tolerance 1.67994e-06 within  30 iterations
+Warning: The current relative error is 0.095689 
+PTC Iteration: 1,  Residual Norm: 8.68461e-07
+
+Timestep :  18,  Timestage :  1,   Time : 3.28766
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3045
+Old RHS Norm: 0.00997618,  New RHS Norm: 1.06295e-06
+Warning: GMRES(29) does not converge to the tolerance 9.3854e-07 within  30 iterations
+Warning: The current relative error is 0.193719 
+PTC Iteration: 1,  Residual Norm: 2.33219e-07
+
+Timestep :  18,  Timestage :  2,   Time : 3.42209
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.297
+Old RHS Norm: 0.0244049,  New RHS Norm: 2.12158e-06
+Warning: GMRES(29) does not converge to the tolerance 1.15032e-06 within  30 iterations
+Warning: The current relative error is 0.103713 
+PTC Iteration: 1,  Residual Norm: 7.50099e-07
+
+Timestep :  19,  Timestage :  1,   Time : 3.47778
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2789
+Old RHS Norm: 0.0104247,  New RHS Norm: 1.13308e-06
+Warning: GMRES(29) does not converge to the tolerance 9.20028e-07 within  30 iterations
+Warning: The current relative error is 0.219012 
+PTC Iteration: 1,  Residual Norm: 1.62914e-07
+
+Timestep :  19,  Timestage :  2,   Time : 3.61221
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2711
+Old RHS Norm: 0.0254746,  New RHS Norm: 1.2906e-06
+Warning: GMRES(29) does not converge to the tolerance 1.97385e-06 within  30 iterations
+Warning: The current relative error is 0.0953404 
+PTC Iteration: 1,  Residual Norm: 8.70216e-07
+
+Timestep :  20,  Timestage :  1,   Time : 3.66789
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2523
+Old RHS Norm: 0.0108547,  New RHS Norm: 1.04907e-06
+Warning: GMRES(29) does not converge to the tolerance 1.0347e-06 within  30 iterations
+Warning: The current relative error is 0.176082 
+PTC Iteration: 1,  Residual Norm: 3.03424e-07
+
+Timestep :  20,  Timestage :  2,   Time : 3.80232
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2444
+Old RHS Norm: 0.0264994,  New RHS Norm: 1.8259e-06
+Warning: GMRES(29) does not converge to the tolerance 1.45131e-06 within  30 iterations
+Warning: The current relative error is 0.115187 
+PTC Iteration: 1,  Residual Norm: 8.60351e-07
+
+Timestep :  21,  Timestage :  1,   Time : 3.85801
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2249
+Old RHS Norm: 0.0112657,  New RHS Norm: 8.84097e-07
+Warning: GMRES(29) does not converge to the tolerance 1.27426e-06 within  30 iterations
+Warning: The current relative error is 0.242595 
+PTC Iteration: 1,  Residual Norm: 2.42952e-07
+
+Timestep :  21,  Timestage :  2,   Time : 3.99244
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2167
+Old RHS Norm: 0.027478,  New RHS Norm: 1.96538e-06
+Warning: GMRES(29) does not converge to the tolerance 1.3981e-06 within  30 iterations
+Warning: The current relative error is 0.129824 
+PTC Iteration: 1,  Residual Norm: 8.18034e-07
+
+Timestep :  22,  Timestage :  1,   Time : 4.04812
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1968
+Old RHS Norm: 0.0116571,  New RHS Norm: 8.35694e-07
+Warning: GMRES(29) does not converge to the tolerance 1.3949e-06 within  30 iterations
+Warning: The current relative error is 0.241 
+PTC Iteration: 1,  Residual Norm: 3.04557e-07
+
+Timestep :  22,  Timestage :  2,   Time : 4.18256
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1884
+Old RHS Norm: 0.0284089,  New RHS Norm: 1.59549e-06
+Warning: GMRES(29) does not converge to the tolerance 1.78058e-06 within  30 iterations
+Warning: The current relative error is 0.142229 
+PTC Iteration: 1,  Residual Norm: 8.15767e-07
+
+Timestep :  23,  Timestage :  1,   Time : 4.23824
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1679
+Old RHS Norm: 0.0120285,  New RHS Norm: 1.01758e-06
+Warning: GMRES(29) does not converge to the tolerance 1.18206e-06 within  30 iterations
+Warning: The current relative error is 0.268091 
+PTC Iteration: 1,  Residual Norm: 2.2459e-07
+
+Timestep :  23,  Timestage :  2,   Time : 4.37267
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1593
+Old RHS Norm: 0.0292908,  New RHS Norm: 1.05907e-06
+Warning: GMRES(29) does not converge to the tolerance 2.7657e-06 within  30 iterations
+Warning: The current relative error is 0.144931 
+PTC Iteration: 1,  Residual Norm: 8.77454e-07
+
+Timestep :  24,  Timestage :  1,   Time : 4.42836
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1384
+Old RHS Norm: 0.0123791,  New RHS Norm: 1.0311e-06
+Warning: GMRES(29) does not converge to the tolerance 1.20058e-06 within  30 iterations
+Warning: The current relative error is 0.246874 
+PTC Iteration: 1,  Residual Norm: 1.96142e-07
+
+Timestep :  24,  Timestage :  2,   Time : 4.56279
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1296
+Old RHS Norm: 0.0301225,  New RHS Norm: 1.2479e-06
+Warning: GMRES(29) does not converge to the tolerance 2.41384e-06 within  30 iterations
+Warning: The current relative error is 0.165978 
+PTC Iteration: 1,  Residual Norm: 8.02702e-07
+
+Timestep :  25,  Timestage :  1,   Time : 4.61847
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1083
+Old RHS Norm: 0.0127087,  New RHS Norm: 1.11274e-06
+Warning: GMRES(29) does not converge to the tolerance 1.1421e-06 within  30 iterations
+Warning: The current relative error is 0.245791 
+PTC Iteration: 1,  Residual Norm: 2.04475e-07
+
+Timestep :  25,  Timestage :  2,   Time : 4.7529
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0994
+Old RHS Norm: 0.0309028,  New RHS Norm: 1.6916e-06
+Warning: GMRES(29) does not converge to the tolerance 1.82683e-06 within  30 iterations
+Warning: The current relative error is 0.16099 
+PTC Iteration: 1,  Residual Norm: 7.55963e-07
+
+Timestep :  26,  Timestage :  1,   Time : 4.80859
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0777
+Old RHS Norm: 0.0130165,  New RHS Norm: 1.19546e-06
+Warning: GMRES(29) does not converge to the tolerance 1.08883e-06 within  30 iterations
+Warning: The current relative error is 0.291655 
+PTC Iteration: 1,  Residual Norm: 1.72628e-07
+
+Timestep :  26,  Timestage :  2,   Time : 4.94302
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0687
+Old RHS Norm: 0.0316304,  New RHS Norm: 1.42113e-06
+Warning: GMRES(29) does not converge to the tolerance 2.22572e-06 within  30 iterations
+Warning: The current relative error is 0.219301 
+PTC Iteration: 1,  Residual Norm: 7.6705e-07
+
+Timestep :  27,  Timestage :  1,   Time : 4.9987
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0467
+Old RHS Norm: 0.0133023,  New RHS Norm: 7.35304e-07
+Warning: GMRES(29) does not converge to the tolerance 1.80909e-06 within  30 iterations
+Warning: The current relative error is 0.323578 
+PTC Iteration: 1,  Residual Norm: 2.17524e-07
+
+Timestep :  27,  Timestage :  2,   Time : 5.13314
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0375
+Old RHS Norm: 0.0323043,  New RHS Norm: 1.24038e-06
+Warning: GMRES(29) does not converge to the tolerance 2.6044e-06 within  30 iterations
+Warning: The current relative error is 0.173593 
+PTC Iteration: 1,  Residual Norm: 7.39934e-07
+
+Timestep :  28,  Timestage :  1,   Time : 5.18882
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0153
+Old RHS Norm: 0.0135654,  New RHS Norm: 1.22172e-06
+Warning: GMRES(29) does not converge to the tolerance 1.11035e-06 within  30 iterations
+Warning: The current relative error is 0.255868 
+PTC Iteration: 1,  Residual Norm: 1.64705e-07
+
+Timestep :  28,  Timestage :  2,   Time : 5.32325
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0061
+Old RHS Norm: 0.0329233,  New RHS Norm: 1.20157e-06
+Warning: GMRES(29) does not converge to the tolerance 2.74003e-06 within  30 iterations
+Warning: The current relative error is 0.16709 
+PTC Iteration: 1,  Residual Norm: 7.30029e-07
+
+Timestep :  29,  Timestage :  1,   Time : 5.37894
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9837
+Old RHS Norm: 0.0138055,  New RHS Norm: 7.87322e-07
+Warning: GMRES(29) does not converge to the tolerance 1.75348e-06 within  30 iterations
+Warning: The current relative error is 0.390405 
+PTC Iteration: 1,  Residual Norm: 1.90824e-07
+
+Timestep :  29,  Timestage :  2,   Time : 5.51337
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9743
+Old RHS Norm: 0.0334865,  New RHS Norm: 1.25705e-06
+Warning: GMRES(29) does not converge to the tolerance 2.66389e-06 within  30 iterations
+Warning: The current relative error is 0.220892 
+PTC Iteration: 1,  Residual Norm: 7.04872e-07
+
+Timestep :  30,  Timestage :  1,   Time : 5.56905
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9518
+Old RHS Norm: 0.0140222,  New RHS Norm: 9.69202e-07
+Warning: GMRES(29) does not converge to the tolerance 1.44678e-06 within  30 iterations
+Warning: The current relative error is 0.408253 
+PTC Iteration: 1,  Residual Norm: 1.99636e-07
+
+Timestep :  30,  Timestage :  2,   Time : 5.70349
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9424
+Old RHS Norm: 0.0339928,  New RHS Norm: 1.12603e-06
+Warning: GMRES(29) does not converge to the tolerance 3.01883e-06 within  30 iterations
+Warning: The current relative error is 0.175062 
+PTC Iteration: 1,  Residual Norm: 6.86344e-07
+
+Timestep :  31,  Timestage :  1,   Time : 5.75917
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9198
+Old RHS Norm: 0.014215,  New RHS Norm: 8.01132e-07
+Warning: GMRES(29) does not converge to the tolerance 1.77437e-06 within  30 iterations
+Warning: The current relative error is 0.439636 
+PTC Iteration: 1,  Residual Norm: 2.10053e-07
+
+Timestep :  31,  Timestage :  2,   Time : 5.8936
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9103
+Old RHS Norm: 0.0344413,  New RHS Norm: 1.17663e-06
+Warning: GMRES(29) does not converge to the tolerance 2.9271e-06 within  30 iterations
+Warning: The current relative error is 0.234965 
+PTC Iteration: 1,  Residual Norm: 6.00699e-07
+
+Timestep :  32,  Timestage :  1,   Time : 5.94929
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8876
+Old RHS Norm: 0.0143837,  New RHS Norm: 9.99536e-07
+Warning: GMRES(29) does not converge to the tolerance 1.43904e-06 within  30 iterations
+Warning: The current relative error is 0.344113 
+PTC Iteration: 1,  Residual Norm: 1.69654e-07
+
+Timestep :  32,  Timestage :  2,   Time : 6.08372
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8782
+Old RHS Norm: 0.034831,  New RHS Norm: 1.14136e-06
+Warning: GMRES(29) does not converge to the tolerance 3.0517e-06 within  30 iterations
+Warning: The current relative error is 0.258538 
+PTC Iteration: 1,  Residual Norm: 5.77665e-07
+
+Timestep :  33,  Timestage :  1,   Time : 6.1394
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8555
+Old RHS Norm: 0.0145278,  New RHS Norm: 6.87485e-07
+Warning: GMRES(29) does not converge to the tolerance 2.11319e-06 within  30 iterations
+Warning: The current relative error is 0.422665 
+PTC Iteration: 1,  Residual Norm: 1.81815e-07
+
+Timestep :  33,  Timestage :  2,   Time : 6.27383
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8461
+Old RHS Norm: 0.0351615,  New RHS Norm: 1.07945e-06
+Warning: GMRES(29) does not converge to the tolerance 3.25734e-06 within  30 iterations
+Warning: The current relative error is 0.225947 
+PTC Iteration: 1,  Residual Norm: 4.75097e-07
+
+Timestep :  34,  Timestage :  1,   Time : 6.32952
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8235
+Old RHS Norm: 0.0146472,  New RHS Norm: 7.17338e-07
+Warning: GMRES(29) does not converge to the tolerance 2.04188e-06 within  30 iterations
+Warning: The current relative error is 0.395797 
+PTC Iteration: 1,  Residual Norm: 1.50905e-07
+
+Timestep :  34,  Timestage :  2,   Time : 6.46395
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8141
+Old RHS Norm: 0.0354318,  New RHS Norm: 1.0314e-06
+Warning: GMRES(29) does not converge to the tolerance 3.43531e-06 within  30 iterations
+Warning: The current relative error is 0.18387 
+PTC Iteration: 1,  Residual Norm: 4.59219e-07
+
+Timestep :  35,  Timestage :  1,   Time : 6.51963
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7915
+Old RHS Norm: 0.0147414,  New RHS Norm: 6.64755e-07
+Warning: GMRES(29) does not converge to the tolerance 2.21757e-06 within  30 iterations
+Warning: The current relative error is 0.398827 
+PTC Iteration: 1,  Residual Norm: 1.70328e-07
+
+Timestep :  35,  Timestage :  2,   Time : 6.65407
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7822
+Old RHS Norm: 0.0356414,  New RHS Norm: 1.10509e-06
+Warning: GMRES(29) does not converge to the tolerance 3.22521e-06 within  30 iterations
+Warning: The current relative error is 0.182366 
+PTC Iteration: 1,  Residual Norm: 3.94635e-07
+
+Timestep :  36,  Timestage :  1,   Time : 6.70975
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7598
+Old RHS Norm: 0.0148103,  New RHS Norm: 5.89302e-07
+Warning: GMRES(29) does not converge to the tolerance 2.5132e-06 within  30 iterations
+Warning: The current relative error is 0.40388 
+PTC Iteration: 1,  Residual Norm: 2.1236e-07
+
+Timestep :  36,  Timestage :  2,   Time : 6.84418
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7505
+Old RHS Norm: 0.0357898,  New RHS Norm: 1.29639e-06
+Warning: GMRES(29) does not converge to the tolerance 2.76074e-06 within  30 iterations
+Warning: The current relative error is 0.146355 
+PTC Iteration: 1,  Residual Norm: 3.56409e-07
+
+Timestep :  37,  Timestage :  1,   Time : 6.89987
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7283
+Old RHS Norm: 0.0148538,  New RHS Norm: 6.9091e-07
+Warning: GMRES(29) does not converge to the tolerance 2.14988e-06 within  30 iterations
+Warning: The current relative error is 0.382698 
+PTC Iteration: 1,  Residual Norm: 2.22863e-07
+
+Timestep :  37,  Timestage :  2,   Time : 7.0343
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7192
+Old RHS Norm: 0.0358765,  New RHS Norm: 1.03185e-06
+Warning: GMRES(29) does not converge to the tolerance 3.4769e-06 within  30 iterations
+Warning: The current relative error is 0.234456 
+PTC Iteration: 1,  Residual Norm: 3.10849e-07
+
+Timestep :  38,  Timestage :  1,   Time : 7.08998
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6971
+Old RHS Norm: 0.0148715,  New RHS Norm: 6.56427e-07
+Warning: GMRES(29) does not converge to the tolerance 2.26552e-06 within  30 iterations
+Warning: The current relative error is 0.292895 
+PTC Iteration: 1,  Residual Norm: 1.5887e-07
+
+Timestep :  38,  Timestage :  2,   Time : 7.22442
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6881
+Old RHS Norm: 0.035901,  New RHS Norm: 9.86056e-07
+Warning: GMRES(29) does not converge to the tolerance 3.64087e-06 within  30 iterations
+Warning: The current relative error is 0.251099 
+PTC Iteration: 1,  Residual Norm: 3.16244e-07
+
+Timestep :  39,  Timestage :  1,   Time : 7.2801
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6664
+Old RHS Norm: 0.0148635,  New RHS Norm: 5.43704e-07
+Warning: GMRES(29) does not converge to the tolerance 2.73375e-06 within  30 iterations
+Warning: The current relative error is 0.351738 
+PTC Iteration: 1,  Residual Norm: 1.86568e-07
+
+Timestep :  39,  Timestage :  2,   Time : 7.41453
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6575
+Old RHS Norm: 0.0358633,  New RHS Norm: 1.3048e-06
+Warning: GMRES(29) does not converge to the tolerance 2.74856e-06 within  30 iterations
+Warning: The current relative error is 0.242842 
+PTC Iteration: 1,  Residual Norm: 3.35278e-07
+
+Timestep :  40,  Timestage :  1,   Time : 7.47022
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6361
+Old RHS Norm: 0.0148296,  New RHS Norm: 7.76359e-07
+Warning: GMRES(29) does not converge to the tolerance 1.91014e-06 within  30 iterations
+Warning: The current relative error is 0.339202 
+PTC Iteration: 1,  Residual Norm: 1.27636e-07
+
+Timestep :  40,  Timestage :  2,   Time : 7.60465
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6273
+Old RHS Norm: 0.0357631,  New RHS Norm: 8.43328e-07
+Warning: GMRES(29) does not converge to the tolerance 4.24071e-06 within  30 iterations
+Warning: The current relative error is 0.239641 
+PTC Iteration: 1,  Residual Norm: 2.74541e-07
+
+Timestep :  41,  Timestage :  1,   Time : 7.66033
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6063
+Old RHS Norm: 0.0147698,  New RHS Norm: 5.10021e-07
+Warning: GMRES(29) does not converge to the tolerance 2.89592e-06 within  30 iterations
+Warning: The current relative error is 0.450288 
+PTC Iteration: 1,  Residual Norm: 2.11834e-07
+
+Timestep :  41,  Timestage :  2,   Time : 7.79476
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5977
+Old RHS Norm: 0.0356004,  New RHS Norm: 1.11636e-06
+Warning: GMRES(29) does not converge to the tolerance 3.18897e-06 within  30 iterations
+Warning: The current relative error is 0.216678 
+PTC Iteration: 1,  Residual Norm: 2.7394e-07
+
+Timestep :  42,  Timestage :  1,   Time : 7.85045
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.577
+Old RHS Norm: 0.0146841,  New RHS Norm: 6.16103e-07
+Warning: GMRES(29) does not converge to the tolerance 2.38339e-06 within  30 iterations
+Warning: The current relative error is 0.366035 
+PTC Iteration: 1,  Residual Norm: 1.6021e-07
+
+Timestep :  42,  Timestage :  2,   Time : 7.98488
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5686
+Old RHS Norm: 0.0353752,  New RHS Norm: 8.75883e-07
+Warning: GMRES(29) does not converge to the tolerance 4.03881e-06 within  30 iterations
+Warning: The current relative error is 0.230339 
+PTC Iteration: 1,  Residual Norm: 2.99922e-07
+
+Timestep :  43,  Timestage :  1,   Time : 8.04056
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5485
+Old RHS Norm: 0.0145726,  New RHS Norm: 4.92329e-07
+Warning: GMRES(29) does not converge to the tolerance 2.95993e-06 within  30 iterations
+Warning: The current relative error is 0.364483 
+PTC Iteration: 1,  Residual Norm: 1.33004e-07
+
+Timestep :  43,  Timestage :  2,   Time : 8.175
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5402
+Old RHS Norm: 0.0350877,  New RHS Norm: 8.83778e-07
+Warning: GMRES(29) does not converge to the tolerance 3.97019e-06 within  30 iterations
+Warning: The current relative error is 0.210131 
+PTC Iteration: 1,  Residual Norm: 3.93884e-07
+
+Timestep :  44,  Timestage :  1,   Time : 8.23068
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5206
+Old RHS Norm: 0.0144354,  New RHS Norm: 8.1338e-07
+Warning: GMRES(29) does not converge to the tolerance 1.77474e-06 within  30 iterations
+Warning: The current relative error is 0.433965 
+PTC Iteration: 1,  Residual Norm: 1.96011e-07
+
+Timestep :  44,  Timestage :  2,   Time : 8.36511
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5126
+Old RHS Norm: 0.0347382,  New RHS Norm: 1.08966e-06
+Warning: GMRES(29) does not converge to the tolerance 3.188e-06 within  30 iterations
+Warning: The current relative error is 0.174843 
+PTC Iteration: 1,  Residual Norm: 3.88226e-07
+
+Timestep :  45,  Timestage :  1,   Time : 8.4208
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4934
+Old RHS Norm: 0.0142726,  New RHS Norm: 8.90536e-07
+Warning: GMRES(29) does not converge to the tolerance 1.6027e-06 within  30 iterations
+Warning: The current relative error is 0.313178 
+PTC Iteration: 1,  Residual Norm: 1.839e-07
+
+Timestep :  45,  Timestage :  2,   Time : 8.55523
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4856
+Old RHS Norm: 0.0343273,  New RHS Norm: 1.25794e-06
+Warning: GMRES(29) does not converge to the tolerance 2.72885e-06 within  30 iterations
+Warning: The current relative error is 0.146296 
+PTC Iteration: 1,  Residual Norm: 4.00343e-07
+
+Timestep :  46,  Timestage :  1,   Time : 8.61091
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4671
+Old RHS Norm: 0.0140844,  New RHS Norm: 7.14803e-07
+Warning: GMRES(29) does not converge to the tolerance 1.97039e-06 within  30 iterations
+Warning: The current relative error is 0.299465 
+PTC Iteration: 1,  Residual Norm: 1.6756e-07
+
+Timestep :  46,  Timestage :  2,   Time : 8.74534
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4595
+Old RHS Norm: 0.0338552,  New RHS Norm: 1.14087e-06
+Warning: GMRES(29) does not converge to the tolerance 2.96749e-06 within  30 iterations
+Warning: The current relative error is 0.221971 
+PTC Iteration: 1,  Residual Norm: 4.55983e-07
+
+Timestep :  47,  Timestage :  1,   Time : 8.80103
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4416
+Old RHS Norm: 0.0138712,  New RHS Norm: 7.53009e-07
+Warning: GMRES(29) does not converge to the tolerance 1.8421e-06 within  30 iterations
+Warning: The current relative error is 0.405916 
+PTC Iteration: 1,  Residual Norm: 2.21718e-07
+
+Timestep :  47,  Timestage :  2,   Time : 8.93546
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4343
+Old RHS Norm: 0.0333228,  New RHS Norm: 1.21322e-06
+Warning: GMRES(29) does not converge to the tolerance 2.74665e-06 within  30 iterations
+Warning: The current relative error is 0.256497 
+PTC Iteration: 1,  Residual Norm: 4.91699e-07
+
+Timestep :  48,  Timestage :  1,   Time : 8.99114
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.417
+Old RHS Norm: 0.0136332,  New RHS Norm: 7.71137e-07
+Warning: GMRES(29) does not converge to the tolerance 1.76794e-06 within  30 iterations
+Warning: The current relative error is 0.358435 
+PTC Iteration: 1,  Residual Norm: 2.44074e-07
+
+Timestep :  48,  Timestage :  2,   Time : 9.12558
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.41
+Old RHS Norm: 0.0327309,  New RHS Norm: 1.50725e-06
+Warning: GMRES(29) does not converge to the tolerance 2.17157e-06 within  30 iterations
+Warning: The current relative error is 0.130393 
+PTC Iteration: 1,  Residual Norm: 4.63609e-07
+
+Timestep :  49,  Timestage :  1,   Time : 9.18126
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3933
+Old RHS Norm: 0.0133709,  New RHS Norm: 5.73639e-07
+Warning: GMRES(29) does not converge to the tolerance 2.33089e-06 within  30 iterations
+Warning: The current relative error is 0.359799 
+PTC Iteration: 1,  Residual Norm: 2.1079e-07
+
+Timestep :  49,  Timestage :  2,   Time : 9.31569
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3866
+Old RHS Norm: 0.0320805,  New RHS Norm: 1.13419e-06
+Warning: GMRES(29) does not converge to the tolerance 2.82849e-06 within  30 iterations
+Warning: The current relative error is 0.201927 
+PTC Iteration: 1,  Residual Norm: 6.54658e-07
+
+Timestep :  50,  Timestage :  1,   Time : 9.37138
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3707
+Old RHS Norm: 0.0130847,  New RHS Norm: 8.76503e-07
+Warning: GMRES(29) does not converge to the tolerance 1.49283e-06 within  30 iterations
+Warning: The current relative error is 0.206757 
+PTC Iteration: 1,  Residual Norm: 1.63125e-07
+
+Timestep :  50,  Timestage :  2,   Time : 9.50581
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3643
+Old RHS Norm: 0.0313729,  New RHS Norm: 1.33347e-06
+Warning: GMRES(29) does not converge to the tolerance 2.35273e-06 within  30 iterations
+Warning: The current relative error is 0.169471 
+PTC Iteration: 1,  Residual Norm: 6.3478e-07
+
+Timestep :  51,  Timestage :  1,   Time : 9.56149
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3491
+Old RHS Norm: 0.0127751,  New RHS Norm: 9.99241e-07
+Warning: GMRES(29) does not converge to the tolerance 1.27848e-06 within  30 iterations
+Warning: The current relative error is 0.310372 
+PTC Iteration: 1,  Residual Norm: 1.58018e-07
+
+Timestep :  51,  Timestage :  2,   Time : 9.69593
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.343
+Old RHS Norm: 0.0306094,  New RHS Norm: 1.51631e-06
+Warning: GMRES(29) does not converge to the tolerance 2.01868e-06 within  30 iterations
+Warning: The current relative error is 0.245264 
+PTC Iteration: 1,  Residual Norm: 6.60521e-07
+
+Timestep :  52,  Timestage :  1,   Time : 9.75161
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3286
+Old RHS Norm: 0.0124429,  New RHS Norm: 9.67078e-07
+Warning: GMRES(29) does not converge to the tolerance 1.28665e-06 within  30 iterations
+Warning: The current relative error is 0.275648 
+PTC Iteration: 1,  Residual Norm: 1.59496e-07
+
+Timestep :  52,  Timestage :  2,   Time : 9.88604
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3229
+Old RHS Norm: 0.0297915,  New RHS Norm: 1.12881e-06
+Warning: GMRES(29) does not converge to the tolerance 2.63918e-06 within  30 iterations
+Warning: The current relative error is 0.175312 
+PTC Iteration: 1,  Residual Norm: 7.15626e-07
+
+Timestep :  53,  Timestage :  1,   Time : 9.94173
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3092
+Old RHS Norm: 0.0120886,  New RHS Norm: 1.07925e-06
+Warning: GMRES(29) does not converge to the tolerance 1.12009e-06 within  30 iterations
+Warning: The current relative error is 0.379741 
+PTC Iteration: 1,  Residual Norm: 2.00254e-07
+
+Timestep :  53,  Timestage :  2,   Time : 10.0762
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3038
+Old RHS Norm: 0.0289211,  New RHS Norm: 1.18283e-06
+Warning: GMRES(29) does not converge to the tolerance 2.44509e-06 within  30 iterations
+Warning: The current relative error is 0.177447 
+PTC Iteration: 1,  Residual Norm: 8.27624e-07
+
+Timestep :  54,  Timestage :  1,   Time : 10.1318
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.291
+Old RHS Norm: 0.0117133,  New RHS Norm: 1.15082e-06
+Warning: GMRES(29) does not converge to the tolerance 1.01782e-06 within  30 iterations
+Warning: The current relative error is 0.339507 
+PTC Iteration: 1,  Residual Norm: 1.80065e-07
+
+Timestep :  54,  Timestage :  2,   Time : 10.2663
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2859
+Old RHS Norm: 0.0280004,  New RHS Norm: 1.20905e-06
+Warning: GMRES(29) does not converge to the tolerance 2.31589e-06 within  30 iterations
+Warning: The current relative error is 0.21339 
+PTC Iteration: 1,  Residual Norm: 7.93571e-07
+
+Timestep :  55,  Timestage :  1,   Time : 10.322
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.274
+Old RHS Norm: 0.0113178,  New RHS Norm: 1.10508e-06
+Warning: GMRES(29) does not converge to the tolerance 1.02416e-06 within  30 iterations
+Warning: The current relative error is 0.34763 
+PTC Iteration: 1,  Residual Norm: 1.56539e-07
+
+Timestep :  55,  Timestage :  2,   Time : 10.4564
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2693
+Old RHS Norm: 0.0270317,  New RHS Norm: 1.64638e-06
+Warning: GMRES(29) does not converge to the tolerance 1.64189e-06 within  30 iterations
+Warning: The current relative error is 0.189823 
+PTC Iteration: 1,  Residual Norm: 8.04307e-07
+
+Timestep :  56,  Timestage :  1,   Time : 10.5121
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2582
+Old RHS Norm: 0.0109032,  New RHS Norm: 1.06216e-06
+Warning: GMRES(29) does not converge to the tolerance 1.02651e-06 within  30 iterations
+Warning: The current relative error is 0.425209 
+PTC Iteration: 1,  Residual Norm: 2.77098e-07
+
+Timestep :  56,  Timestage :  2,   Time : 10.6465
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2539
+Old RHS Norm: 0.026018,  New RHS Norm: 1.61206e-06
+Warning: GMRES(29) does not converge to the tolerance 1.61395e-06 within  30 iterations
+Warning: The current relative error is 0.21472 
+PTC Iteration: 1,  Residual Norm: 8.59107e-07
+
+Timestep :  57,  Timestage :  1,   Time : 10.7022
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2437
+Old RHS Norm: 0.0104709,  New RHS Norm: 9.14953e-07
+Warning: GMRES(29) does not converge to the tolerance 1.14442e-06 within  30 iterations
+Warning: The current relative error is 0.512256 
+PTC Iteration: 1,  Residual Norm: 1.75594e-07
+
+Timestep :  57,  Timestage :  2,   Time : 10.8366
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2397
+Old RHS Norm: 0.0249625,  New RHS Norm: 1.55541e-06
+Warning: GMRES(29) does not converge to the tolerance 1.60488e-06 within  30 iterations
+Warning: The current relative error is 0.210417 
+PTC Iteration: 1,  Residual Norm: 8.84333e-07
+
+Timestep :  58,  Timestage :  1,   Time : 10.8923
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2304
+Old RHS Norm: 0.0100224,  New RHS Norm: 8.7006e-07
+Warning: GMRES(29) does not converge to the tolerance 1.15192e-06 within  30 iterations
+Warning: The current relative error is 0.348432 
+PTC Iteration: 1,  Residual Norm: 1.76809e-07
+
+Timestep :  58,  Timestage :  2,   Time : 11.0267
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2268
+Old RHS Norm: 0.0238691,  New RHS Norm: 1.26751e-06
+Warning: GMRES(29) does not converge to the tolerance 1.88314e-06 within  30 iterations
+Warning: The current relative error is 0.268528 
+PTC Iteration: 1,  Residual Norm: 8.85149e-07
+
+Timestep :  59,  Timestage :  1,   Time : 11.0824
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2185
+Old RHS Norm: 0.00955945,  New RHS Norm: 1.08224e-06
+Warning: GMRES(29) does not converge to the tolerance 8.83299e-07 within  30 iterations
+Warning: The current relative error is 0.380115 
+PTC Iteration: 1,  Residual Norm: 1.5837e-07
+
+Timestep :  59,  Timestage :  2,   Time : 11.2169
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2153
+Old RHS Norm: 0.0227423,  New RHS Norm: 1.27639e-06
+Warning: GMRES(29) does not converge to the tolerance 1.78176e-06 within  30 iterations
+Warning: The current relative error is 0.181054 
+PTC Iteration: 1,  Residual Norm: 9.2076e-07
+
+Timestep :  60,  Timestage :  1,   Time : 11.2725
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2079
+Old RHS Norm: 0.00908424,  New RHS Norm: 1.19524e-06
+Warning: GMRES(29) does not converge to the tolerance 7.60037e-07 within  30 iterations
+Warning: The current relative error is 0.420079 
+PTC Iteration: 1,  Residual Norm: 1.83956e-07
+
+Timestep :  60,  Timestage :  2,   Time : 11.407
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2051
+Old RHS Norm: 0.0215875,  New RHS Norm: 2.01017e-06
+Warning: GMRES(29) does not converge to the tolerance 1.07391e-06 within  30 iterations
+Warning: The current relative error is 0.188232 
+PTC Iteration: 1,  Residual Norm: 9.03562e-07
+
+Timestep :  61,  Timestage :  1,   Time : 11.4627
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1987
+Old RHS Norm: 0.00859931,  New RHS Norm: 1.22666e-06
+Warning: GMRES(29) does not converge to the tolerance 7.01032e-07 within  30 iterations
+Warning: The current relative error is 0.370426 
+PTC Iteration: 1,  Residual Norm: 1.89787e-07
+
+Timestep :  61,  Timestage :  2,   Time : 11.5971
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1963
+Old RHS Norm: 0.0204113,  New RHS Norm: 1.54248e-06
+Warning: GMRES(29) does not converge to the tolerance 1.32328e-06 within  30 iterations
+Warning: The current relative error is 0.253258 
+PTC Iteration: 1,  Residual Norm: 9.13118e-07
+
+Timestep :  62,  Timestage :  1,   Time : 11.6528
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1908
+Old RHS Norm: 0.00810769,  New RHS Norm: 7.88837e-07
+Warning: GMRES(29) does not converge to the tolerance 1.0278e-06 within  30 iterations
+Warning: The current relative error is 0.436737 
+PTC Iteration: 1,  Residual Norm: 1.67635e-07
+
+Timestep :  62,  Timestage :  2,   Time : 11.7872
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1888
+Old RHS Norm: 0.0192214,  New RHS Norm: 1.65432e-06
+Warning: GMRES(29) does not converge to the tolerance 1.16189e-06 within  30 iterations
+Warning: The current relative error is 0.216629 
+PTC Iteration: 1,  Residual Norm: 8.37138e-07
+
+Timestep :  63,  Timestage :  1,   Time : 11.8429
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1843
+Old RHS Norm: 0.00761318,  New RHS Norm: 1.01541e-06
+Warning: GMRES(29) does not converge to the tolerance 7.49763e-07 within  30 iterations
+Warning: The current relative error is 0.38107 
+PTC Iteration: 1,  Residual Norm: 1.91676e-07
+
+Timestep :  63,  Timestage :  2,   Time : 11.9773
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1828
+Old RHS Norm: 0.0180276,  New RHS Norm: 1.20097e-06
+Warning: GMRES(29) does not converge to the tolerance 1.50109e-06 within  30 iterations
+Warning: The current relative error is 0.219884 
+PTC Iteration: 1,  Residual Norm: 9.00615e-07
+
+Timestep :  64,  Timestage :  1,   Time : 12.033
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1792
+Old RHS Norm: 0.0071205,  New RHS Norm: 9.80478e-07
+Warning: GMRES(29) does not converge to the tolerance 7.26227e-07 within  30 iterations
+Warning: The current relative error is 0.456307 
+PTC Iteration: 1,  Residual Norm: 1.62714e-07
+
+Timestep :  64,  Timestage :  2,   Time : 12.1674
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1781
+Old RHS Norm: 0.0168421,  New RHS Norm: 1.37247e-06
+Warning: GMRES(29) does not converge to the tolerance 1.22714e-06 within  30 iterations
+Warning: The current relative error is 0.267775 
+PTC Iteration: 1,  Residual Norm: 8.93401e-07
+
+Timestep :  65,  Timestage :  1,   Time : 12.2231
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1756
+Old RHS Norm: 0.00663548,  New RHS Norm: 7.99289e-07
+Warning: GMRES(29) does not converge to the tolerance 8.30173e-07 within  30 iterations
+Warning: The current relative error is 0.276088 
+PTC Iteration: 1,  Residual Norm: 2.13597e-07
+
+Timestep :  65,  Timestage :  2,   Time : 12.3576
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1748
+Old RHS Norm: 0.0156798,  New RHS Norm: 1.29406e-06
+Warning: GMRES(29) does not converge to the tolerance 1.21167e-06 within  30 iterations
+Warning: The current relative error is 0.291253 
+PTC Iteration: 1,  Residual Norm: 8.12133e-07
+
+Timestep :  66,  Timestage :  1,   Time : 12.4132
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1733
+Old RHS Norm: 0.00616562,  New RHS Norm: 1.20783e-06
+Warning: GMRES(29) does not converge to the tolerance 5.10471e-07 within  30 iterations
+Warning: The current relative error is 0.338192 
+PTC Iteration: 1,  Residual Norm: 1.93674e-07
+
+Timestep :  66,  Timestage :  2,   Time : 12.5477
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.173
+Old RHS Norm: 0.0145604,  New RHS Norm: 1.77423e-06
+Warning: GMRES(29) does not converge to the tolerance 8.20658e-07 within  30 iterations
+Warning: The current relative error is 0.207584 
+PTC Iteration: 1,  Residual Norm: 7.12026e-07
+
+Timestep :  67,  Timestage :  1,   Time : 12.6034
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1725
+Old RHS Norm: 0.00572034,  New RHS Norm: 8.01325e-07
+Warning: GMRES(29) does not converge to the tolerance 7.1386e-07 within  30 iterations
+Warning: The current relative error is 0.594723 
+PTC Iteration: 1,  Residual Norm: 1.89959e-07
+
+Timestep :  67,  Timestage :  2,   Time : 12.7378
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1725
+Old RHS Norm: 0.013508,  New RHS Norm: 1.18443e-06
+Warning: GMRES(29) does not converge to the tolerance 1.14046e-06 within  30 iterations
+Warning: The current relative error is 0.180801 
+PTC Iteration: 1,  Residual Norm: 7.34993e-07
+
+Timestep :  68,  Timestage :  1,   Time : 12.7935
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.173
+Old RHS Norm: 0.00531152,  New RHS Norm: 1.28356e-06
+Warning: GMRES(29) does not converge to the tolerance 4.13813e-07 within  30 iterations
+Warning: The current relative error is 0.433336 
+PTC Iteration: 1,  Residual Norm: 1.97987e-07
+
+Timestep :  68,  Timestage :  2,   Time : 12.9279
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1735
+Old RHS Norm: 0.0125533,  New RHS Norm: 1.45862e-06
+Warning: GMRES(29) does not converge to the tolerance 8.60631e-07 within  30 iterations
+Warning: The current relative error is 0.171923 
+PTC Iteration: 1,  Residual Norm: 6.48356e-07
+
+Timestep :  69,  Timestage :  1,   Time : 12.9836
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.175
+Old RHS Norm: 0.00495375,  New RHS Norm: 6.75111e-07
+Warning: GMRES(29) does not converge to the tolerance 7.33768e-07 within  30 iterations
+Warning: The current relative error is 0.264222 
+PTC Iteration: 1,  Residual Norm: 2.17931e-07
+
+Timestep :  69,  Timestage :  2,   Time : 13.118
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1759
+Old RHS Norm: 0.0117333,  New RHS Norm: 9.03113e-07
+Warning: GMRES(29) does not converge to the tolerance 1.29921e-06 within  30 iterations
+Warning: The current relative error is 0.203292 
+PTC Iteration: 1,  Residual Norm: 6.36858e-07
+
+Timestep :  70,  Timestage :  1,   Time : 13.1737
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1784
+Old RHS Norm: 0.00466403,  New RHS Norm: 8.12786e-07
+Warning: GMRES(29) does not converge to the tolerance 5.73833e-07 within  30 iterations
+Warning: The current relative error is 0.294633 
+PTC Iteration: 1,  Residual Norm: 2.2897e-07
+
+Timestep :  70,  Timestage :  2,   Time : 13.3081
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1797
+Old RHS Norm: 0.0110904,  New RHS Norm: 9.18038e-07
+Warning: GMRES(29) does not converge to the tolerance 1.20806e-06 within  30 iterations
+Warning: The current relative error is 0.208739 
+PTC Iteration: 1,  Residual Norm: 6.02583e-07
+
+Timestep :  71,  Timestage :  1,   Time : 13.3638
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1831
+Old RHS Norm: 0.00446032,  New RHS Norm: 7.88139e-07
+Warning: GMRES(29) does not converge to the tolerance 5.65931e-07 within  30 iterations
+Warning: The current relative error is 0.387284 
+PTC Iteration: 1,  Residual Norm: 1.71018e-07
+
+Timestep :  71,  Timestage :  2,   Time : 13.4982
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1848
+Old RHS Norm: 0.0106673,  New RHS Norm: 1.14227e-06
+Warning: GMRES(29) does not converge to the tolerance 9.33869e-07 within  30 iterations
+Warning: The current relative error is 0.317251 
+PTC Iteration: 1,  Residual Norm: 4.94814e-07
+
+Timestep :  72,  Timestage :  1,   Time : 13.5539
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1893
+Old RHS Norm: 0.00435862,  New RHS Norm: 7.30683e-07
+Warning: GMRES(29) does not converge to the tolerance 5.96514e-07 within  30 iterations
+Warning: The current relative error is 0.278317 
+PTC Iteration: 1,  Residual Norm: 1.90272e-07
+
+Timestep :  72,  Timestage :  2,   Time : 13.6884
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1914
+Old RHS Norm: 0.0104995,  New RHS Norm: 1.07979e-06
+Warning: GMRES(29) does not converge to the tolerance 9.72365e-07 within  30 iterations
+Warning: The current relative error is 0.222888 
+PTC Iteration: 1,  Residual Norm: 4.07486e-07
+
+Timestep :  73,  Timestage :  1,   Time : 13.744
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1968
+Old RHS Norm: 0.00436904,  New RHS Norm: 5.21465e-07
+Warning: GMRES(29) does not converge to the tolerance 8.3784e-07 within  30 iterations
+Warning: The current relative error is 0.386856 
+PTC Iteration: 1,  Residual Norm: 1.59651e-07
+
+Timestep :  73,  Timestage :  2,   Time : 13.8785
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.1993
+Old RHS Norm: 0.0106057,  New RHS Norm: 7.94124e-07
+Warning: GMRES(29) does not converge to the tolerance 1.33552e-06 within  30 iterations
+Warning: The current relative error is 0.250968 
+PTC Iteration: 1,  Residual Norm: 4.51513e-07
+
+Timestep :  74,  Timestage :  1,   Time : 13.9342
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2056
+Old RHS Norm: 0.00449277,  New RHS Norm: 6.71805e-07
+Warning: GMRES(29) does not converge to the tolerance 6.68761e-07 within  30 iterations
+Warning: The current relative error is 0.4131 
+PTC Iteration: 1,  Residual Norm: 1.30542e-07
+
+Timestep :  74,  Timestage :  2,   Time : 14.0686
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2085
+Old RHS Norm: 0.0109818,  New RHS Norm: 9.0006e-07
+Warning: GMRES(29) does not converge to the tolerance 1.22012e-06 within  30 iterations
+Warning: The current relative error is 0.225923 
+PTC Iteration: 1,  Residual Norm: 2.86676e-07
+
+Timestep :  75,  Timestage :  1,   Time : 14.1243
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2158
+Old RHS Norm: 0.00472176,  New RHS Norm: 5.73547e-07
+Warning: GMRES(29) does not converge to the tolerance 8.23257e-07 within  30 iterations
+Warning: The current relative error is 0.513477 
+PTC Iteration: 1,  Residual Norm: 1.80924e-07
+
+Timestep :  75,  Timestage :  2,   Time : 14.2587
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2191
+Old RHS Norm: 0.011603,  New RHS Norm: 9.87744e-07
+Warning: GMRES(29) does not converge to the tolerance 1.17469e-06 within  30 iterations
+Warning: The current relative error is 0.295744 
+PTC Iteration: 1,  Residual Norm: 2.8569e-07
+
+Timestep :  76,  Timestage :  1,   Time : 14.3144
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2273
+Old RHS Norm: 0.00504163,  New RHS Norm: 6.06512e-07
+Warning: GMRES(29) does not converge to the tolerance 8.31249e-07 within  30 iterations
+Warning: The current relative error is 0.459053 
+PTC Iteration: 1,  Residual Norm: 1.69802e-07
+
+Timestep :  76,  Timestage :  2,   Time : 14.4488
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.231
+Old RHS Norm: 0.0124317,  New RHS Norm: 7.62147e-07
+Warning: GMRES(29) does not converge to the tolerance 1.63115e-06 within  30 iterations
+Warning: The current relative error is 0.236468 
+PTC Iteration: 1,  Residual Norm: 2.53087e-07
+
+Timestep :  77,  Timestage :  1,   Time : 14.5045
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2401
+Old RHS Norm: 0.00543537,  New RHS Norm: 5.18841e-07
+Warning: GMRES(29) does not converge to the tolerance 1.0476e-06 within  30 iterations
+Warning: The current relative error is 0.398821 
+PTC Iteration: 1,  Residual Norm: 1.54693e-07
+
+Timestep :  77,  Timestage :  2,   Time : 14.6389
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2441
+Old RHS Norm: 0.0134268,  New RHS Norm: 8.1834e-07
+Warning: GMRES(29) does not converge to the tolerance 1.64074e-06 within  30 iterations
+Warning: The current relative error is 0.245527 
+PTC Iteration: 1,  Residual Norm: 2.61529e-07
+
+Timestep :  78,  Timestage :  1,   Time : 14.6946
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2541
+Old RHS Norm: 0.00588648,  New RHS Norm: 4.84746e-07
+Warning: GMRES(29) does not converge to the tolerance 1.21434e-06 within  30 iterations
+Warning: The current relative error is 0.417292 
+PTC Iteration: 1,  Residual Norm: 1.85478e-07
+
+Timestep :  78,  Timestage :  2,   Time : 14.8291
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2585
+Old RHS Norm: 0.0145495,  New RHS Norm: 9.93309e-07
+Warning: GMRES(29) does not converge to the tolerance 1.46475e-06 within  30 iterations
+Warning: The current relative error is 0.290674 
+PTC Iteration: 1,  Residual Norm: 3.05282e-07
+
+Timestep :  79,  Timestage :  1,   Time : 14.8847
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2693
+Old RHS Norm: 0.00638042,  New RHS Norm: 4.92363e-07
+Warning: GMRES(29) does not converge to the tolerance 1.29588e-06 within  30 iterations
+Warning: The current relative error is 0.542268 
+PTC Iteration: 1,  Residual Norm: 1.67988e-07
+
+Timestep :  79,  Timestage :  2,   Time : 15.0192
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.274
+Old RHS Norm: 0.0157663,  New RHS Norm: 9.06002e-07
+Warning: GMRES(29) does not converge to the tolerance 1.74021e-06 within  30 iterations
+Warning: The current relative error is 0.258055 
+PTC Iteration: 1,  Residual Norm: 3.64396e-07
+
+Timestep :  80,  Timestage :  1,   Time : 15.0749
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2857
+Old RHS Norm: 0.00690511,  New RHS Norm: 5.20479e-07
+Warning: GMRES(29) does not converge to the tolerance 1.32668e-06 within  30 iterations
+Warning: The current relative error is 0.468263 
+PTC Iteration: 1,  Residual Norm: 1.22308e-07
+
+Timestep :  80,  Timestage :  2,   Time : 15.2093
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.2908
+Old RHS Norm: 0.01705,  New RHS Norm: 8.29236e-07
+Warning: GMRES(29) does not converge to the tolerance 2.05611e-06 within  30 iterations
+Warning: The current relative error is 0.24159 
+PTC Iteration: 1,  Residual Norm: 4.08496e-07
+
+Timestep :  81,  Timestage :  1,   Time : 15.265
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3033
+Old RHS Norm: 0.00745072,  New RHS Norm: 5.85466e-07
+Warning: GMRES(29) does not converge to the tolerance 1.27261e-06 within  30 iterations
+Warning: The current relative error is 0.400988 
+PTC Iteration: 1,  Residual Norm: 1.68679e-07
+
+Timestep :  81,  Timestage :  2,   Time : 15.3994
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3087
+Old RHS Norm: 0.018378,  New RHS Norm: 1.05061e-06
+Warning: GMRES(29) does not converge to the tolerance 1.74927e-06 within  30 iterations
+Warning: The current relative error is 0.232612 
+PTC Iteration: 1,  Residual Norm: 4.80025e-07
+
+Timestep :  82,  Timestage :  1,   Time : 15.4551
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.322
+Old RHS Norm: 0.00800926,  New RHS Norm: 6.4994e-07
+Warning: GMRES(29) does not converge to the tolerance 1.23231e-06 within  30 iterations
+Warning: The current relative error is 0.578227 
+PTC Iteration: 1,  Residual Norm: 1.67149e-07
+
+Timestep :  82,  Timestage :  2,   Time : 15.5895
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3277
+Old RHS Norm: 0.0197323,  New RHS Norm: 1.0137e-06
+Warning: GMRES(29) does not converge to the tolerance 1.94656e-06 within  30 iterations
+Warning: The current relative error is 0.347588 
+PTC Iteration: 1,  Residual Norm: 6.04559e-07
+
+Timestep :  83,  Timestage :  1,   Time : 15.6452
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3417
+Old RHS Norm: 0.00857417,  New RHS Norm: 5.91615e-07
+Warning: GMRES(29) does not converge to the tolerance 1.44928e-06 within  30 iterations
+Warning: The current relative error is 0.372653 
+PTC Iteration: 1,  Residual Norm: 1.91934e-07
+
+Timestep :  83,  Timestage :  2,   Time : 15.7796
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3477
+Old RHS Norm: 0.0210979,  New RHS Norm: 1.2482e-06
+Warning: GMRES(29) does not converge to the tolerance 1.69027e-06 within  30 iterations
+Warning: The current relative error is 0.288259 
+PTC Iteration: 1,  Residual Norm: 7.14456e-07
+
+Timestep :  84,  Timestage :  1,   Time : 15.8353
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3625
+Old RHS Norm: 0.00914001,  New RHS Norm: 7.5267e-07
+Warning: GMRES(29) does not converge to the tolerance 1.21434e-06 within  30 iterations
+Warning: The current relative error is 0.592115 
+PTC Iteration: 1,  Residual Norm: 2.0999e-07
+
+Timestep :  84,  Timestage :  2,   Time : 15.9698
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3688
+Old RHS Norm: 0.0224621,  New RHS Norm: 1.33804e-06
+Warning: GMRES(29) does not converge to the tolerance 1.67873e-06 within  30 iterations
+Warning: The current relative error is 0.308039 
+PTC Iteration: 1,  Residual Norm: 7.0645e-07
+
+Timestep :  85,  Timestage :  1,   Time : 16.0254
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3842
+Old RHS Norm: 0.00970214,  New RHS Norm: 7.93719e-07
+Warning: GMRES(29) does not converge to the tolerance 1.22236e-06 within  30 iterations
+Warning: The current relative error is 0.567456 
+PTC Iteration: 1,  Residual Norm: 1.97298e-07
+
+Timestep :  85,  Timestage :  2,   Time : 16.1599
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.3908
+Old RHS Norm: 0.0238146,  New RHS Norm: 1.55045e-06
+Warning: GMRES(29) does not converge to the tolerance 1.53598e-06 within  30 iterations
+Warning: The current relative error is 0.324086 
+PTC Iteration: 1,  Residual Norm: 7.89965e-07
+
+Timestep :  86,  Timestage :  1,   Time : 16.2156
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4069
+Old RHS Norm: 0.0102565,  New RHS Norm: 8.27512e-07
+Warning: GMRES(29) does not converge to the tolerance 1.23944e-06 within  30 iterations
+Warning: The current relative error is 0.51452 
+PTC Iteration: 1,  Residual Norm: 2.13737e-07
+
+Timestep :  86,  Timestage :  2,   Time : 16.35
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4137
+Old RHS Norm: 0.0251457,  New RHS Norm: 1.34805e-06
+Warning: GMRES(29) does not converge to the tolerance 1.86534e-06 within  30 iterations
+Warning: The current relative error is 0.284045 
+PTC Iteration: 1,  Residual Norm: 8.89612e-07
+
+Timestep :  87,  Timestage :  1,   Time : 16.4057
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4304
+Old RHS Norm: 0.0107997,  New RHS Norm: 8.62459e-07
+Warning: GMRES(29) does not converge to the tolerance 1.25219e-06 within  30 iterations
+Warning: The current relative error is 0.402785 
+PTC Iteration: 1,  Residual Norm: 1.64203e-07
+
+Timestep :  87,  Timestage :  2,   Time : 16.5401
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4375
+Old RHS Norm: 0.0264472,  New RHS Norm: 1.47619e-06
+Warning: GMRES(29) does not converge to the tolerance 1.79159e-06 within  30 iterations
+Warning: The current relative error is 0.505062 
+PTC Iteration: 1,  Residual Norm: 9.3825e-07
+
+Timestep :  88,  Timestage :  1,   Time : 16.5958
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4548
+Old RHS Norm: 0.0113283,  New RHS Norm: 9.56273e-07
+Warning: GMRES(29) does not converge to the tolerance 1.18463e-06 within  30 iterations
+Warning: The current relative error is 0.453623 
+PTC Iteration: 1,  Residual Norm: 1.52915e-07
+
+Timestep :  88,  Timestage :  2,   Time : 16.7302
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4622
+Old RHS Norm: 0.0277117,  New RHS Norm: 1.4307e-06
+Warning: GMRES(29) does not converge to the tolerance 1.93693e-06 within  30 iterations
+Warning: The current relative error is 0.341758 
+PTC Iteration: 1,  Residual Norm: 9.25058e-07
+
+Timestep :  89,  Timestage :  1,   Time : 16.7859
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.48
+Old RHS Norm: 0.0118394,  New RHS Norm: 6.13047e-07
+Warning: GMRES(29) does not converge to the tolerance 1.93125e-06 within  30 iterations
+Warning: The current relative error is 0.51242 
+PTC Iteration: 1,  Residual Norm: 2.09973e-07
+
+Timestep :  89,  Timestage :  2,   Time : 16.9203
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.4875
+Old RHS Norm: 0.0289319,  New RHS Norm: 2.07779e-06
+Warning: GMRES(29) does not converge to the tolerance 1.39244e-06 within  30 iterations
+Warning: The current relative error is 0.264731 
+PTC Iteration: 1,  Residual Norm: 8.89607e-07
+
+Timestep :  90,  Timestage :  1,   Time : 16.976
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5059
+Old RHS Norm: 0.0123305,  New RHS Norm: 1.01255e-06
+Warning: GMRES(29) does not converge to the tolerance 1.21776e-06 within  30 iterations
+Warning: The current relative error is 0.467981 
+PTC Iteration: 1,  Residual Norm: 2.0876e-07
+
+Timestep :  90,  Timestage :  2,   Time : 17.1105
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5136
+Old RHS Norm: 0.0301018,  New RHS Norm: 1.44124e-06
+Warning: GMRES(29) does not converge to the tolerance 2.08861e-06 within  30 iterations
+Warning: The current relative error is 0.287867 
+PTC Iteration: 1,  Residual Norm: 9.27791e-07
+
+Timestep :  91,  Timestage :  1,   Time : 17.1661
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5324
+Old RHS Norm: 0.0127988,  New RHS Norm: 9.30493e-07
+Warning: GMRES(29) does not converge to the tolerance 1.37548e-06 within  30 iterations
+Warning: The current relative error is 0.549555 
+PTC Iteration: 1,  Residual Norm: 2.17261e-07
+
+Timestep :  91,  Timestage :  2,   Time : 17.3006
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5403
+Old RHS Norm: 0.0312151,  New RHS Norm: 2.4368e-06
+Warning: GMRES(29) does not converge to the tolerance 1.28099e-06 within  30 iterations
+Warning: The current relative error is 0.264712 
+PTC Iteration: 1,  Residual Norm: 9.16651e-07
+
+Timestep :  92,  Timestage :  1,   Time : 17.3563
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5596
+Old RHS Norm: 0.0132419,  New RHS Norm: 8.45968e-07
+Warning: GMRES(29) does not converge to the tolerance 1.5653e-06 within  30 iterations
+Warning: The current relative error is 0.535096 
+PTC Iteration: 1,  Residual Norm: 2.32031e-07
+
+Timestep :  92,  Timestage :  2,   Time : 17.4907
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5676
+Old RHS Norm: 0.032266,  New RHS Norm: 1.66785e-06
+Warning: GMRES(29) does not converge to the tolerance 1.93459e-06 within  30 iterations
+Warning: The current relative error is 0.325007 
+PTC Iteration: 1,  Residual Norm: 9.46278e-07
+
+Timestep :  93,  Timestage :  1,   Time : 17.5464
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5873
+Old RHS Norm: 0.0136576,  New RHS Norm: 8.27235e-07
+Warning: GMRES(29) does not converge to the tolerance 1.651e-06 within  30 iterations
+Warning: The current relative error is 0.464492 
+PTC Iteration: 1,  Residual Norm: 1.80537e-07
+
+Timestep :  93,  Timestage :  2,   Time : 17.6808
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.5955
+Old RHS Norm: 0.033249,  New RHS Norm: 2.22532e-06
+Warning: GMRES(29) does not converge to the tolerance 1.49412e-06 within  30 iterations
+Warning: The current relative error is 0.237189 
+PTC Iteration: 1,  Residual Norm: 8.64053e-07
+
+Timestep :  94,  Timestage :  1,   Time : 17.7365
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6154
+Old RHS Norm: 0.0140437,  New RHS Norm: 8.3913e-07
+Warning: GMRES(29) does not converge to the tolerance 1.6736e-06 within  30 iterations
+Warning: The current relative error is 0.493141 
+PTC Iteration: 1,  Residual Norm: 1.78606e-07
+
+Timestep :  94,  Timestage :  2,   Time : 17.8709
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6238
+Old RHS Norm: 0.0341589,  New RHS Norm: 1.93133e-06
+Warning: GMRES(29) does not converge to the tolerance 1.76867e-06 within  30 iterations
+Warning: The current relative error is 0.247264 
+PTC Iteration: 1,  Residual Norm: 8.57577e-07
+
+Timestep :  95,  Timestage :  1,   Time : 17.9266
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.644
+Old RHS Norm: 0.014398,  New RHS Norm: 6.39923e-07
+Warning: GMRES(29) does not converge to the tolerance 2.24996e-06 within  30 iterations
+Warning: The current relative error is 0.56939 
+PTC Iteration: 1,  Residual Norm: 1.95981e-07
+
+Timestep :  95,  Timestage :  2,   Time : 18.061
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6524
+Old RHS Norm: 0.0349907,  New RHS Norm: 1.79216e-06
+Warning: GMRES(29) does not converge to the tolerance 1.95244e-06 within  30 iterations
+Warning: The current relative error is 0.298966 
+PTC Iteration: 1,  Residual Norm: 8.19831e-07
+
+Timestep :  96,  Timestage :  1,   Time : 18.1167
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6729
+Old RHS Norm: 0.0147186,  New RHS Norm: 1.00518e-06
+Warning: GMRES(29) does not converge to the tolerance 1.46427e-06 within  30 iterations
+Warning: The current relative error is 0.32219 
+PTC Iteration: 1,  Residual Norm: 1.86345e-07
+
+Timestep :  96,  Timestage :  2,   Time : 18.2512
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6814
+Old RHS Norm: 0.0357398,  New RHS Norm: 1.72279e-06
+Warning: GMRES(29) does not converge to the tolerance 2.07453e-06 within  30 iterations
+Warning: The current relative error is 0.301285 
+PTC Iteration: 1,  Residual Norm: 7.71576e-07
+
+Timestep :  97,  Timestage :  1,   Time : 18.3068
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7021
+Old RHS Norm: 0.0150034,  New RHS Norm: 9.03714e-07
+Warning: GMRES(29) does not converge to the tolerance 1.6602e-06 within  30 iterations
+Warning: The current relative error is 0.489113 
+PTC Iteration: 1,  Residual Norm: 1.97338e-07
+
+Timestep :  97,  Timestage :  2,   Time : 18.4413
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7106
+Old RHS Norm: 0.0364014,  New RHS Norm: 1.44161e-06
+Warning: GMRES(29) does not converge to the tolerance 2.52506e-06 within  30 iterations
+Warning: The current relative error is 0.298845 
+PTC Iteration: 1,  Residual Norm: 7.38661e-07
+
+Timestep :  98,  Timestage :  1,   Time : 18.497
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7314
+Old RHS Norm: 0.0152509,  New RHS Norm: 4.60315e-07
+Warning: GMRES(29) does not converge to the tolerance 3.31313e-06 within  30 iterations
+Warning: The current relative error is 0.347132 
+PTC Iteration: 1,  Residual Norm: 2.07819e-07
+
+Timestep :  98,  Timestage :  2,   Time : 18.6314
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7401
+Old RHS Norm: 0.0369712,  New RHS Norm: 1.41237e-06
+Warning: GMRES(29) does not converge to the tolerance 2.61767e-06 within  30 iterations
+Warning: The current relative error is 0.369161 
+PTC Iteration: 1,  Residual Norm: 6.22009e-07
+
+Timestep :  99,  Timestage :  1,   Time : 18.6871
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7609
+Old RHS Norm: 0.0154591,  New RHS Norm: 7.02324e-07
+Warning: GMRES(29) does not converge to the tolerance 2.20114e-06 within  30 iterations
+Warning: The current relative error is 0.468388 
+PTC Iteration: 1,  Residual Norm: 1.74611e-07
+
+Timestep :  99,  Timestage :  2,   Time : 18.8215
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7696
+Old RHS Norm: 0.0374456,  New RHS Norm: 1.30745e-06
+Warning: GMRES(29) does not converge to the tolerance 2.86402e-06 within  30 iterations
+Warning: The current relative error is 0.281582 
+PTC Iteration: 1,  Residual Norm: 5.35411e-07
+
+Timestep :  100,  Timestage :  1,   Time : 18.8772
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7905
+Old RHS Norm: 0.0156266,  New RHS Norm: 5.91848e-07
+Warning: GMRES(29) does not converge to the tolerance 2.64031e-06 within  30 iterations
+Warning: The current relative error is 0.420683 
+PTC Iteration: 1,  Residual Norm: 2.19974e-07
+
+Timestep :  100,  Timestage :  2,   Time : 19.0116
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7991
+Old RHS Norm: 0.0378204,  New RHS Norm: 1.25639e-06
+Warning: GMRES(29) does not converge to the tolerance 3.01025e-06 within  30 iterations
+Warning: The current relative error is 0.315568 
+PTC Iteration: 1,  Residual Norm: 4.90757e-07
+
+Timestep :  101,  Timestage :  1,   Time : 19.0673
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.82
+Old RHS Norm: 0.0157519,  New RHS Norm: 5.30303e-07
+Warning: GMRES(29) does not converge to the tolerance 2.97036e-06 within  30 iterations
+Warning: The current relative error is 0.448928 
+PTC Iteration: 1,  Residual Norm: 2.14732e-07
+
+Timestep :  101,  Timestage :  2,   Time : 19.2017
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8286
+Old RHS Norm: 0.0380924,  New RHS Norm: 9.89545e-07
+Warning: GMRES(29) does not converge to the tolerance 3.84948e-06 within  30 iterations
+Warning: The current relative error is 0.294385 
+PTC Iteration: 1,  Residual Norm: 4.84143e-07
+
+Timestep :  102,  Timestage :  1,   Time : 19.2574
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8494
+Old RHS Norm: 0.0158338,  New RHS Norm: 4.98169e-07
+Warning: GMRES(29) does not converge to the tolerance 3.17839e-06 within  30 iterations
+Warning: The current relative error is 0.408469 
+PTC Iteration: 1,  Residual Norm: 2.47349e-07
+
+Timestep :  102,  Timestage :  2,   Time : 19.3919
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.858
+Old RHS Norm: 0.0382586,  New RHS Norm: 9.90174e-07
+Warning: GMRES(29) does not converge to the tolerance 3.86382e-06 within  30 iterations
+Warning: The current relative error is 0.299457 
+PTC Iteration: 1,  Residual Norm: 4.29237e-07
+
+Timestep :  103,  Timestage :  1,   Time : 19.4475
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8786
+Old RHS Norm: 0.0158709,  New RHS Norm: 5.59847e-07
+Warning: GMRES(29) does not converge to the tolerance 2.83487e-06 within  30 iterations
+Warning: The current relative error is 0.503863 
+PTC Iteration: 1,  Residual Norm: 2.08229e-07
+
+Timestep :  103,  Timestage :  2,   Time : 19.582
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8871
+Old RHS Norm: 0.0383164,  New RHS Norm: 9.35855e-07
+Warning: GMRES(29) does not converge to the tolerance 4.09426e-06 within  30 iterations
+Warning: The current relative error is 0.243008 
+PTC Iteration: 1,  Residual Norm: 4.02669e-07
+
+Timestep :  104,  Timestage :  1,   Time : 19.6377
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9076
+Old RHS Norm: 0.0158625,  New RHS Norm: 4.77946e-07
+Warning: GMRES(29) does not converge to the tolerance 3.31889e-06 within  30 iterations
+Warning: The current relative error is 0.558817 
+PTC Iteration: 1,  Residual Norm: 1.63048e-07
+
+Timestep :  104,  Timestage :  2,   Time : 19.7721
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.916
+Old RHS Norm: 0.0382634,  New RHS Norm: 8.74834e-07
+Warning: GMRES(29) does not converge to the tolerance 4.37379e-06 within  30 iterations
+Warning: The current relative error is 0.283482 
+PTC Iteration: 1,  Residual Norm: 4.53774e-07
+
+Timestep :  105,  Timestage :  1,   Time : 19.8278
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9362
+Old RHS Norm: 0.0158077,  New RHS Norm: 4.88782e-07
+Warning: GMRES(29) does not converge to the tolerance 3.2341e-06 within  30 iterations
+Warning: The current relative error is 0.377115 
+PTC Iteration: 1,  Residual Norm: 1.79772e-07
+
+Timestep :  105,  Timestage :  2,   Time : 19.9622
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9445
+Old RHS Norm: 0.0380981,  New RHS Norm: 9.71099e-07
+Warning: GMRES(29) does not converge to the tolerance 3.92319e-06 within  30 iterations
+Warning: The current relative error is 0.260185 
+PTC Iteration: 1,  Residual Norm: 5.63143e-07
+
+Timestep :  106,  Timestage :  1,   Time : 20.0179
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9644
+Old RHS Norm: 0.015706,  New RHS Norm: 6.28222e-07
+Warning: GMRES(29) does not converge to the tolerance 2.50006e-06 within  30 iterations
+Warning: The current relative error is 0.497907 
+PTC Iteration: 1,  Residual Norm: 2.16818e-07
+
+Timestep :  106,  Timestage :  2,   Time : 20.1523
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9725
+Old RHS Norm: 0.0378191,  New RHS Norm: 1.36943e-06
+Warning: GMRES(29) does not converge to the tolerance 2.76167e-06 within  30 iterations
+Warning: The current relative error is 0.272444 
+PTC Iteration: 1,  Residual Norm: 6.0883e-07
+
+Timestep :  107,  Timestage :  1,   Time : 20.208
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9921
+Old RHS Norm: 0.0155569,  New RHS Norm: 7.40757e-07
+Warning: GMRES(29) does not converge to the tolerance 2.10014e-06 within  30 iterations
+Warning: The current relative error is 0.503124 
+PTC Iteration: 1,  Residual Norm: 2.20439e-07
+
+Timestep :  107,  Timestage :  2,   Time : 20.3424
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0001
+Old RHS Norm: 0.0374259,  New RHS Norm: 1.26712e-06
+Warning: GMRES(29) does not converge to the tolerance 2.95361e-06 within  30 iterations
+Warning: The current relative error is 0.247766 
+PTC Iteration: 1,  Residual Norm: 7.00138e-07
+
+Timestep :  108,  Timestage :  1,   Time : 20.3981
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0192
+Old RHS Norm: 0.0153605,  New RHS Norm: 6.99283e-07
+Warning: GMRES(29) does not converge to the tolerance 2.1966e-06 within  30 iterations
+Warning: The current relative error is 0.515434 
+PTC Iteration: 1,  Residual Norm: 2.24984e-07
+
+Timestep :  108,  Timestage :  2,   Time : 20.5325
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.027
+Old RHS Norm: 0.0369182,  New RHS Norm: 1.22988e-06
+Warning: GMRES(29) does not converge to the tolerance 3.00178e-06 within  30 iterations
+Warning: The current relative error is 0.312223 
+PTC Iteration: 1,  Residual Norm: 8.60757e-07
+
+Timestep :  109,  Timestage :  1,   Time : 20.5882
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0456
+Old RHS Norm: 0.0151168,  New RHS Norm: 7.01914e-07
+Warning: GMRES(29) does not converge to the tolerance 2.15365e-06 within  30 iterations
+Warning: The current relative error is 0.527938 
+PTC Iteration: 1,  Residual Norm: 2.20491e-07
+
+Timestep :  109,  Timestage :  2,   Time : 20.7227
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0532
+Old RHS Norm: 0.0362967,  New RHS Norm: 1.7032e-06
+Warning: GMRES(29) does not converge to the tolerance 2.13108e-06 within  30 iterations
+Warning: The current relative error is 0.266875 
+PTC Iteration: 1,  Residual Norm: 9.78404e-07
+
+Timestep :  110,  Timestage :  1,   Time : 20.7783
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0713
+Old RHS Norm: 0.0148262,  New RHS Norm: 1.02996e-06
+Warning: GMRES(29) does not converge to the tolerance 1.43949e-06 within  30 iterations
+Warning: The current relative error is 0.413913 
+PTC Iteration: 1,  Residual Norm: 1.91033e-07
+
+Timestep :  110,  Timestage :  2,   Time : 20.9128
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0787
+Old RHS Norm: 0.0355625,  New RHS Norm: 1.65592e-06
+Warning: GMRES(29) does not converge to the tolerance 2.1476e-06 within  30 iterations
+Warning: The current relative error is 0.317507 
+PTC Iteration: 1,  Residual Norm: 1.09145e-06
+
+Timestep :  111,  Timestage :  1,   Time : 20.9685
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0962
+Old RHS Norm: 0.0144895,  New RHS Norm: 9.41306e-07
+Warning: GMRES(29) does not converge to the tolerance 1.53929e-06 within  30 iterations
+Warning: The current relative error is 0.4488 
+PTC Iteration: 1,  Residual Norm: 2.13661e-07
+
+Timestep :  111,  Timestage :  2,   Time : 21.1029
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1033
+Old RHS Norm: 0.0347175,  New RHS Norm: 1.91031e-06
+Warning: GMRES(29) does not converge to the tolerance 1.81737e-06 within  30 iterations
+Warning: The current relative error is 0.266232 
+PTC Iteration: 1,  Residual Norm: 1.09639e-06
+
+Timestep :  112,  Timestage :  1,   Time : 21.1586
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1202
+Old RHS Norm: 0.0141075,  New RHS Norm: 6.51692e-07
+Warning: GMRES(29) does not converge to the tolerance 2.16475e-06 within  30 iterations
+Warning: The current relative error is 0.551354 
+PTC Iteration: 1,  Residual Norm: 2.49497e-07
+
+Timestep :  112,  Timestage :  2,   Time : 21.293
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.127
+Old RHS Norm: 0.0337643,  New RHS Norm: 1.69212e-06
+Warning: GMRES(29) does not converge to the tolerance 1.99539e-06 within  30 iterations
+Warning: The current relative error is 0.324349 
+PTC Iteration: 1,  Residual Norm: 1.29986e-06
+
+Timestep :  113,  Timestage :  1,   Time : 21.3487
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1433
+Old RHS Norm: 0.0136817,  New RHS Norm: 1.09833e-06
+Warning: GMRES(29) does not converge to the tolerance 1.24568e-06 within  30 iterations
+Warning: The current relative error is 0.506667 
+PTC Iteration: 1,  Residual Norm: 2.23634e-07
+
+Timestep :  113,  Timestage :  2,   Time : 21.4831
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1498
+Old RHS Norm: 0.032706,  New RHS Norm: 1.97111e-06
+Warning: GMRES(29) does not converge to the tolerance 1.65927e-06 within  30 iterations
+Warning: The current relative error is 0.247951 
+PTC Iteration: 1,  Residual Norm: 1.37534e-06
+
+Timestep :  114,  Timestage :  1,   Time : 21.5388
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1653
+Old RHS Norm: 0.0132135,  New RHS Norm: 9.80389e-07
+Warning: GMRES(29) does not converge to the tolerance 1.34778e-06 within  30 iterations
+Warning: The current relative error is 0.396243 
+PTC Iteration: 1,  Residual Norm: 1.99015e-07
+
+Timestep :  114,  Timestage :  2,   Time : 21.6732
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1715
+Old RHS Norm: 0.0315468,  New RHS Norm: 1.72975e-06
+Warning: GMRES(29) does not converge to the tolerance 1.82378e-06 within  30 iterations
+Warning: The current relative error is 0.266316 
+PTC Iteration: 1,  Residual Norm: 1.4179e-06
+
+Timestep :  115,  Timestage :  1,   Time : 21.7289
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1862
+Old RHS Norm: 0.0127049,  New RHS Norm: 9.55788e-07
+Warning: GMRES(29) does not converge to the tolerance 1.32926e-06 within  30 iterations
+Warning: The current relative error is 0.366252 
+PTC Iteration: 1,  Residual Norm: 2.4829e-07
+
+Timestep :  115,  Timestage :  2,   Time : 21.8634
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.192
+Old RHS Norm: 0.0302915,  New RHS Norm: 2.11797e-06
+Warning: GMRES(29) does not converge to the tolerance 1.43022e-06 within  30 iterations
+Warning: The current relative error is 0.270649 
+PTC Iteration: 1,  Residual Norm: 1.46818e-06
+
+Timestep :  116,  Timestage :  1,   Time : 21.919
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2059
+Old RHS Norm: 0.012158,  New RHS Norm: 1.14518e-06
+Warning: GMRES(29) does not converge to the tolerance 1.06167e-06 within  30 iterations
+Warning: The current relative error is 0.385877 
+PTC Iteration: 1,  Residual Norm: 2.61735e-07
+
+Timestep :  116,  Timestage :  2,   Time : 22.0535
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2114
+Old RHS Norm: 0.0289456,  New RHS Norm: 1.60894e-06
+Warning: GMRES(29) does not converge to the tolerance 1.79905e-06 within  30 iterations
+Warning: The current relative error is 0.233489 
+PTC Iteration: 1,  Residual Norm: 1.47905e-06
+
+Timestep :  117,  Timestage :  1,   Time : 22.1092
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2244
+Old RHS Norm: 0.0115754,  New RHS Norm: 1.24852e-06
+Warning: GMRES(29) does not converge to the tolerance 9.27133e-07 within  30 iterations
+Warning: The current relative error is 0.429582 
+PTC Iteration: 1,  Residual Norm: 2.50127e-07
+
+Timestep :  117,  Timestage :  2,   Time : 22.2436
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2295
+Old RHS Norm: 0.0275153,  New RHS Norm: 2.27934e-06
+Warning: GMRES(29) does not converge to the tolerance 1.20716e-06 within  30 iterations
+Warning: The current relative error is 0.312062 
+PTC Iteration: 1,  Residual Norm: 1.45748e-06
+
+Timestep :  118,  Timestage :  1,   Time : 22.2993
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2416
+Old RHS Norm: 0.01096,  New RHS Norm: 1.09633e-06
+Warning: GMRES(29) does not converge to the tolerance 9.99693e-07 within  30 iterations
+Warning: The current relative error is 0.317057 
+PTC Iteration: 1,  Residual Norm: 2.57523e-07
+
+Timestep :  118,  Timestage :  2,   Time : 22.4337
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2464
+Old RHS Norm: 0.0260079,  New RHS Norm: 2.08168e-06
+Warning: GMRES(29) does not converge to the tolerance 1.24937e-06 within  30 iterations
+Warning: The current relative error is 0.201982 
+PTC Iteration: 1,  Residual Norm: 1.41432e-06
+
+Timestep :  119,  Timestage :  1,   Time : 22.4894
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2575
+Old RHS Norm: 0.0103148,  New RHS Norm: 7.30101e-07
+Warning: GMRES(29) does not converge to the tolerance 1.41279e-06 within  30 iterations
+Warning: The current relative error is 0.550998 
+PTC Iteration: 1,  Residual Norm: 2.97205e-07
+
+Timestep :  119,  Timestage :  2,   Time : 22.6238
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2619
+Old RHS Norm: 0.0244314,  New RHS Norm: 2.05011e-06
+Warning: GMRES(29) does not converge to the tolerance 1.19171e-06 within  30 iterations
+Warning: The current relative error is 0.25665 
+PTC Iteration: 1,  Residual Norm: 1.44081e-06
+
+Timestep :  120,  Timestage :  1,   Time : 22.6795
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.272
+Old RHS Norm: 0.00964363,  New RHS Norm: 8.56645e-07
+Warning: GMRES(29) does not converge to the tolerance 1.12575e-06 within  30 iterations
+Warning: The current relative error is 0.41553 
+PTC Iteration: 1,  Residual Norm: 3.08594e-07
+
+Timestep :  120,  Timestage :  2,   Time : 22.8139
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.276
+Old RHS Norm: 0.0227947,  New RHS Norm: 2.06332e-06
+Warning: GMRES(29) does not converge to the tolerance 1.10476e-06 within  30 iterations
+Warning: The current relative error is 0.220764 
+PTC Iteration: 1,  Residual Norm: 1.45393e-06
+
+Timestep :  121,  Timestage :  1,   Time : 22.8696
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2851
+Old RHS Norm: 0.00895042,  New RHS Norm: 9.99365e-07
+Warning: GMRES(29) does not converge to the tolerance 8.9561e-07 within  30 iterations
+Warning: The current relative error is 0.513293 
+PTC Iteration: 1,  Residual Norm: 2.62143e-07
+
+Timestep :  121,  Timestage :  2,   Time : 23.0041
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2886
+Old RHS Norm: 0.0211077,  New RHS Norm: 2.44824e-06
+Warning: GMRES(29) does not converge to the tolerance 8.62159e-07 within  30 iterations
+Warning: The current relative error is 0.206107 
+PTC Iteration: 1,  Residual Norm: 1.29248e-06
+
+Timestep :  122,  Timestage :  1,   Time : 23.0597
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2968
+Old RHS Norm: 0.00823973,  New RHS Norm: 1.16568e-06
+Warning: GMRES(29) does not converge to the tolerance 7.06863e-07 within  30 iterations
+Warning: The current relative error is 0.392118 
+PTC Iteration: 1,  Residual Norm: 2.21246e-07
+
+Timestep :  122,  Timestage :  2,   Time : 23.1942
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2999
+Old RHS Norm: 0.0193822,  New RHS Norm: 2.04427e-06
+Warning: GMRES(29) does not converge to the tolerance 9.48127e-07 within  30 iterations
+Warning: The current relative error is 0.311262 
+PTC Iteration: 1,  Residual Norm: 1.26823e-06
+
+Timestep :  123,  Timestage :  1,   Time : 23.2499
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.307
+Old RHS Norm: 0.00751683,  New RHS Norm: 1.18383e-06
+Warning: GMRES(29) does not converge to the tolerance 6.34958e-07 within  30 iterations
+Warning: The current relative error is 0.428811 
+PTC Iteration: 1,  Residual Norm: 1.9683e-07
+
+Timestep :  123,  Timestage :  2,   Time : 23.3843
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3096
+Old RHS Norm: 0.0176313,  New RHS Norm: 2.22795e-06
+Warning: GMRES(29) does not converge to the tolerance 7.91369e-07 within  30 iterations
+Warning: The current relative error is 0.258811 
+PTC Iteration: 1,  Residual Norm: 1.1568e-06
+
+Timestep :  124,  Timestage :  1,   Time : 23.44
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3156
+Old RHS Norm: 0.00678791,  New RHS Norm: 1.17377e-06
+Warning: GMRES(29) does not converge to the tolerance 5.78298e-07 within  30 iterations
+Warning: The current relative error is 0.322935 
+PTC Iteration: 1,  Residual Norm: 2.17908e-07
+
+Timestep :  124,  Timestage :  2,   Time : 23.5744
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3178
+Old RHS Norm: 0.0158708,  New RHS Norm: 2.13339e-06
+Warning: GMRES(29) does not converge to the tolerance 7.43922e-07 within  30 iterations
+Warning: The current relative error is 0.206027 
+PTC Iteration: 1,  Residual Norm: 1.00192e-06
+
+Timestep :  125,  Timestage :  1,   Time : 23.6301
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3228
+Old RHS Norm: 0.00606057,  New RHS Norm: 6.56769e-07
+Warning: GMRES(29) does not converge to the tolerance 9.22786e-07 within  30 iterations
+Warning: The current relative error is 0.452491 
+PTC Iteration: 1,  Residual Norm: 2.39904e-07
+
+Timestep :  125,  Timestage :  2,   Time : 23.7645
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3245
+Old RHS Norm: 0.0141205,  New RHS Norm: 1.18495e-06
+Warning: GMRES(29) does not converge to the tolerance 1.19165e-06 within  30 iterations
+Warning: The current relative error is 0.19129 
+PTC Iteration: 1,  Residual Norm: 9.77788e-07
+
+Timestep :  126,  Timestage :  1,   Time : 23.8202
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3284
+Old RHS Norm: 0.00534467,  New RHS Norm: 1.06449e-06
+Warning: GMRES(29) does not converge to the tolerance 5.02086e-07 within  30 iterations
+Warning: The current relative error is 0.416904 
+PTC Iteration: 1,  Residual Norm: 2.10768e-07
+
+Timestep :  126,  Timestage :  2,   Time : 23.9546
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3297
+Old RHS Norm: 0.0124061,  New RHS Norm: 1.68352e-06
+Warning: GMRES(29) does not converge to the tolerance 7.36915e-07 within  30 iterations
+Warning: The current relative error is 0.30117 
+PTC Iteration: 1,  Residual Norm: 8.58799e-07
+
+Timestep :  127,  Timestage :  1,   Time : 24.0103
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3324
+Old RHS Norm: 0.0046537,  New RHS Norm: 4.24392e-07
+Warning: GMRES(29) does not converge to the tolerance 1.09656e-06 within  30 iterations
+Warning: The current relative error is 0.347976 
+PTC Iteration: 1,  Residual Norm: 2.56509e-07
+
+Timestep :  127,  Timestage :  2,   Time : 24.1448
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3333
+Old RHS Norm: 0.0107639,  New RHS Norm: 1.62463e-06
+Warning: GMRES(29) does not converge to the tolerance 6.62546e-07 within  30 iterations
+Warning: The current relative error is 0.278724 
+PTC Iteration: 1,  Residual Norm: 7.1605e-07
+
+Timestep :  128,  Timestage :  1,   Time : 24.2004
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.335
+Old RHS Norm: 0.00400725,  New RHS Norm: 9.45701e-07
+Warning: GMRES(29) does not converge to the tolerance 4.23734e-07 within  30 iterations
+Warning: The current relative error is 0.4265 
+PTC Iteration: 1,  Residual Norm: 1.41782e-07
+
+Timestep :  128,  Timestage :  2,   Time : 24.3349
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3354
+Old RHS Norm: 0.00924697,  New RHS Norm: 1.08011e-06
+Warning: GMRES(29) does not converge to the tolerance 8.56118e-07 within  30 iterations
+Warning: The current relative error is 0.335005 
+PTC Iteration: 1,  Residual Norm: 6.73048e-07
+
+Timestep :  129,  Timestage :  1,   Time : 24.3906
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.336
+Old RHS Norm: 0.00343506,  New RHS Norm: 6.86565e-07
+Warning: GMRES(29) does not converge to the tolerance 5.00325e-07 within  30 iterations
+Warning: The current relative error is 0.485335 
+PTC Iteration: 1,  Residual Norm: 1.93272e-07
+
+Timestep :  129,  Timestage :  2,   Time : 24.525
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3359
+Old RHS Norm: 0.00793659,  New RHS Norm: 1.29536e-06
+Warning: GMRES(29) does not converge to the tolerance 6.12694e-07 within  30 iterations
+Warning: The current relative error is 0.22111 
+PTC Iteration: 1,  Residual Norm: 5.28446e-07
+
+Timestep :  130,  Timestage :  1,   Time : 24.5807
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3355
+Old RHS Norm: 0.0029815,  New RHS Norm: 5.45724e-07
+Warning: GMRES(29) does not converge to the tolerance 5.46339e-07 within  30 iterations
+Warning: The current relative error is 0.423125 
+PTC Iteration: 1,  Residual Norm: 1.86496e-07
+
+Timestep :  130,  Timestage :  2,   Time : 24.7151
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.335
+Old RHS Norm: 0.00695103,  New RHS Norm: 7.28226e-07
+Warning: GMRES(29) does not converge to the tolerance 9.54516e-07 within  30 iterations
+Warning: The current relative error is 0.261616 
+PTC Iteration: 1,  Residual Norm: 4.67681e-07
+
+Timestep :  131,  Timestage :  1,   Time : 24.7708
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3335
+Old RHS Norm: 0.0027042,  New RHS Norm: 3.98389e-07
+Warning: GMRES(29) does not converge to the tolerance 6.78784e-07 within  30 iterations
+Warning: The current relative error is 0.43969 
+PTC Iteration: 1,  Residual Norm: 1.68215e-07
+
+Timestep :  131,  Timestage :  2,   Time : 24.9052
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3326
+Old RHS Norm: 0.00643164,  New RHS Norm: 8.38226e-07
+Warning: GMRES(29) does not converge to the tolerance 7.67292e-07 within  30 iterations
+Warning: The current relative error is 0.237229 
+PTC Iteration: 1,  Residual Norm: 3.56303e-07
+
+Timestep :  132,  Timestage :  1,   Time : 24.9609
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.33
+Old RHS Norm: 0.00265217,  New RHS Norm: 4.31782e-07
+Warning: GMRES(29) does not converge to the tolerance 6.14238e-07 within  30 iterations
+Warning: The current relative error is 0.677328 
+PTC Iteration: 1,  Residual Norm: 1.38818e-07
+
+Timestep :  132,  Timestage :  2,   Time : 25.0953
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3287
+Old RHS Norm: 0.00647275,  New RHS Norm: 7.52007e-07
+Warning: GMRES(29) does not converge to the tolerance 8.6073e-07 within  30 iterations
+Warning: The current relative error is 0.320071 
+PTC Iteration: 1,  Residual Norm: 2.57075e-07
+
+Timestep :  133,  Timestage :  1,   Time : 25.151
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3252
+Old RHS Norm: 0.00282813,  New RHS Norm: 3.55978e-07
+Warning: GMRES(29) does not converge to the tolerance 7.94469e-07 within  30 iterations
+Warning: The current relative error is 0.451988 
+PTC Iteration: 1,  Residual Norm: 2.17443e-07
+
+Timestep :  133,  Timestage :  2,   Time : 25.2855
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3234
+Old RHS Norm: 0.00703959,  New RHS Norm: 7.65296e-07
+Warning: GMRES(29) does not converge to the tolerance 9.19852e-07 within  30 iterations
+Warning: The current relative error is 0.341583 
+PTC Iteration: 1,  Residual Norm: 2.30418e-07
+
+Timestep :  134,  Timestage :  1,   Time : 25.3411
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3189
+Old RHS Norm: 0.00318323,  New RHS Norm: 4.23683e-07
+Warning: GMRES(29) does not converge to the tolerance 7.51324e-07 within  30 iterations
+Warning: The current relative error is 0.471475 
+PTC Iteration: 1,  Residual Norm: 1.84873e-07
+
+Timestep :  134,  Timestage :  2,   Time : 25.4756
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3167
+Old RHS Norm: 0.00799334,  New RHS Norm: 6.92048e-07
+Warning: GMRES(29) does not converge to the tolerance 1.15503e-06 within  30 iterations
+Warning: The current relative error is 0.304243 
+PTC Iteration: 1,  Residual Norm: 2.47616e-07
+
+Timestep :  135,  Timestage :  1,   Time : 25.5313
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3112
+Old RHS Norm: 0.00365371,  New RHS Norm: 4.53582e-07
+Warning: GMRES(29) does not converge to the tolerance 8.05525e-07 within  30 iterations
+Warning: The current relative error is 0.409983 
+PTC Iteration: 1,  Residual Norm: 1.84701e-07
+
+Timestep :  135,  Timestage :  2,   Time : 25.6657
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3087
+Old RHS Norm: 0.00918529,  New RHS Norm: 8.54646e-07
+Warning: GMRES(29) does not converge to the tolerance 1.07475e-06 within  30 iterations
+Warning: The current relative error is 0.31285 
+PTC Iteration: 1,  Residual Norm: 3.42085e-07
+
+Timestep :  136,  Timestage :  1,   Time : 25.7214
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.3022
+Old RHS Norm: 0.0041889,  New RHS Norm: 5.63145e-07
+Warning: GMRES(29) does not converge to the tolerance 7.43839e-07 within  30 iterations
+Warning: The current relative error is 0.40333 
+PTC Iteration: 1,  Residual Norm: 1.70646e-07
+
+Timestep :  136,  Timestage :  2,   Time : 25.8558
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2993
+Old RHS Norm: 0.0105059,  New RHS Norm: 9.3655e-07
+Warning: GMRES(29) does not converge to the tolerance 1.12177e-06 within  30 iterations
+Warning: The current relative error is 0.217588 
+PTC Iteration: 1,  Residual Norm: 3.64999e-07
+
+Timestep :  137,  Timestage :  1,   Time : 25.9115
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.292
+Old RHS Norm: 0.00475525,  New RHS Norm: 5.92978e-07
+Warning: GMRES(29) does not converge to the tolerance 8.01927e-07 within  30 iterations
+Warning: The current relative error is 0.574713 
+PTC Iteration: 1,  Residual Norm: 2.43353e-07
+
+Timestep :  137,  Timestage :  2,   Time : 26.0459
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2887
+Old RHS Norm: 0.0118844,  New RHS Norm: 1.11834e-06
+Warning: GMRES(29) does not converge to the tolerance 1.06268e-06 within  30 iterations
+Warning: The current relative error is 0.245287 
+PTC Iteration: 1,  Residual Norm: 3.94455e-07
+
+Timestep :  138,  Timestage :  1,   Time : 26.1016
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2806
+Old RHS Norm: 0.00533159,  New RHS Norm: 5.77135e-07
+Warning: GMRES(29) does not converge to the tolerance 9.23804e-07 within  30 iterations
+Warning: The current relative error is 0.453764 
+PTC Iteration: 1,  Residual Norm: 2.01108e-07
+
+Timestep :  138,  Timestage :  2,   Time : 26.236
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.277
+Old RHS Norm: 0.0132759,  New RHS Norm: 1.1688e-06
+Warning: GMRES(29) does not converge to the tolerance 1.13585e-06 within  30 iterations
+Warning: The current relative error is 0.293071 
+PTC Iteration: 1,  Residual Norm: 4.91857e-07
+
+Timestep :  139,  Timestage :  1,   Time : 26.2917
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.268
+Old RHS Norm: 0.00590434,  New RHS Norm: 6.65369e-07
+Warning: GMRES(29) does not converge to the tolerance 8.87378e-07 within  30 iterations
+Warning: The current relative error is 0.442259 
+PTC Iteration: 1,  Residual Norm: 2.17172e-07
+
+Timestep :  139,  Timestage :  2,   Time : 26.4262
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2641
+Old RHS Norm: 0.0146514,  New RHS Norm: 1.1223e-06
+Warning: GMRES(29) does not converge to the tolerance 1.30549e-06 within  30 iterations
+Warning: The current relative error is 0.359276 
+PTC Iteration: 1,  Residual Norm: 5.43178e-07
+
+Timestep :  140,  Timestage :  1,   Time : 26.4818
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2543
+Old RHS Norm: 0.00646442,  New RHS Norm: 6.24472e-07
+Warning: GMRES(29) does not converge to the tolerance 1.03518e-06 within  30 iterations
+Warning: The current relative error is 0.381074 
+PTC Iteration: 1,  Residual Norm: 1.74241e-07
+
+Timestep :  140,  Timestage :  2,   Time : 26.6163
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2501
+Old RHS Norm: 0.0159914,  New RHS Norm: 1.15496e-06
+Warning: GMRES(29) does not converge to the tolerance 1.38458e-06 within  30 iterations
+Warning: The current relative error is 0.279533 
+PTC Iteration: 1,  Residual Norm: 5.60896e-07
+
+Timestep :  141,  Timestage :  1,   Time : 26.672
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2396
+Old RHS Norm: 0.00700557,  New RHS Norm: 6.02684e-07
+Warning: GMRES(29) does not converge to the tolerance 1.1624e-06 within  30 iterations
+Warning: The current relative error is 0.530355 
+PTC Iteration: 1,  Residual Norm: 2.66506e-07
+
+Timestep :  141,  Timestage :  2,   Time : 26.8064
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2351
+Old RHS Norm: 0.0172822,  New RHS Norm: 1.20266e-06
+Warning: GMRES(29) does not converge to the tolerance 1.437e-06 within  30 iterations
+Warning: The current relative error is 0.280644 
+PTC Iteration: 1,  Residual Norm: 6.31725e-07
+
+Timestep :  142,  Timestage :  1,   Time : 26.8621
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2239
+Old RHS Norm: 0.00752331,  New RHS Norm: 6.5974e-07
+Warning: GMRES(29) does not converge to the tolerance 1.14034e-06 within  30 iterations
+Warning: The current relative error is 0.361153 
+PTC Iteration: 1,  Residual Norm: 1.71792e-07
+
+Timestep :  142,  Timestage :  2,   Time : 26.9965
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2191
+Old RHS Norm: 0.0185138,  New RHS Norm: 1.63233e-06
+Warning: GMRES(29) does not converge to the tolerance 1.1342e-06 within  30 iterations
+Warning: The current relative error is 0.288034 
+PTC Iteration: 1,  Residual Norm: 6.00925e-07
+
+Timestep :  143,  Timestage :  1,   Time : 27.0522
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2074
+Old RHS Norm: 0.00801432,  New RHS Norm: 7.82202e-07
+Warning: GMRES(29) does not converge to the tolerance 1.02458e-06 within  30 iterations
+Warning: The current relative error is 0.443834 
+PTC Iteration: 1,  Residual Norm: 1.81259e-07
+
+Timestep :  143,  Timestage :  2,   Time : 27.1866
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.2023
+Old RHS Norm: 0.019679,  New RHS Norm: 1.34864e-06
+Warning: GMRES(29) does not converge to the tolerance 1.45918e-06 within  30 iterations
+Warning: The current relative error is 0.30354 
+PTC Iteration: 1,  Residual Norm: 6.66967e-07
+
+Timestep :  144,  Timestage :  1,   Time : 27.2423
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.19
+Old RHS Norm: 0.0084761,  New RHS Norm: 8.22861e-07
+Warning: GMRES(29) does not converge to the tolerance 1.03008e-06 within  30 iterations
+Warning: The current relative error is 0.385963 
+PTC Iteration: 1,  Residual Norm: 1.66435e-07
+
+Timestep :  144,  Timestage :  2,   Time : 27.3767
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1847
+Old RHS Norm: 0.0207723,  New RHS Norm: 1.35173e-06
+Warning: GMRES(29) does not converge to the tolerance 1.53672e-06 within  30 iterations
+Warning: The current relative error is 0.344971 
+PTC Iteration: 1,  Residual Norm: 6.90927e-07
+
+Timestep :  145,  Timestage :  1,   Time : 27.4324
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1718
+Old RHS Norm: 0.0089068,  New RHS Norm: 7.76138e-07
+Warning: GMRES(29) does not converge to the tolerance 1.14758e-06 within  30 iterations
+Warning: The current relative error is 0.568855 
+PTC Iteration: 1,  Residual Norm: 2.21003e-07
+
+Timestep :  145,  Timestage :  2,   Time : 27.5668
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1663
+Old RHS Norm: 0.0217893,  New RHS Norm: 1.1256e-06
+Warning: GMRES(29) does not converge to the tolerance 1.9358e-06 within  30 iterations
+Warning: The current relative error is 0.23117 
+PTC Iteration: 1,  Residual Norm: 6.16745e-07
+
+Timestep :  146,  Timestage :  1,   Time : 27.6225
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.153
+Old RHS Norm: 0.00930504,  New RHS Norm: 7.26212e-07
+Warning: GMRES(29) does not converge to the tolerance 1.28131e-06 within  30 iterations
+Warning: The current relative error is 0.533797 
+PTC Iteration: 1,  Residual Norm: 2.28969e-07
+
+Timestep :  146,  Timestage :  2,   Time : 27.757
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1473
+Old RHS Norm: 0.0227272,  New RHS Norm: 1.47126e-06
+Warning: GMRES(29) does not converge to the tolerance 1.54475e-06 within  30 iterations
+Warning: The current relative error is 0.230535 
+PTC Iteration: 1,  Residual Norm: 6.49604e-07
+
+Timestep :  147,  Timestage :  1,   Time : 27.8126
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1335
+Old RHS Norm: 0.00966979,  New RHS Norm: 6.47503e-07
+Warning: GMRES(29) does not converge to the tolerance 1.4934e-06 within  30 iterations
+Warning: The current relative error is 0.458624 
+PTC Iteration: 1,  Residual Norm: 2.08142e-07
+
+Timestep :  147,  Timestage :  2,   Time : 27.9471
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1276
+Old RHS Norm: 0.0235838,  New RHS Norm: 1.25603e-06
+Warning: GMRES(29) does not converge to the tolerance 1.87765e-06 within  30 iterations
+Warning: The current relative error is 0.329007 
+PTC Iteration: 1,  Residual Norm: 6.12355e-07
+
+Timestep :  148,  Timestage :  1,   Time : 28.0028
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1135
+Old RHS Norm: 0.0100003,  New RHS Norm: 7.19864e-07
+Warning: GMRES(29) does not converge to the tolerance 1.3892e-06 within  30 iterations
+Warning: The current relative error is 0.402191 
+PTC Iteration: 1,  Residual Norm: 1.85264e-07
+
+Timestep :  148,  Timestage :  2,   Time : 28.1372
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.1075
+Old RHS Norm: 0.0243574,  New RHS Norm: 1.08642e-06
+Warning: GMRES(29) does not converge to the tolerance 2.24198e-06 within  30 iterations
+Warning: The current relative error is 0.376251 
+PTC Iteration: 1,  Residual Norm: 5.99905e-07
+
+Timestep :  149,  Timestage :  1,   Time : 28.1929
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.093
+Old RHS Norm: 0.0102963,  New RHS Norm: 8.03636e-07
+Warning: GMRES(29) does not converge to the tolerance 1.28121e-06 within  30 iterations
+Warning: The current relative error is 0.50012 
+PTC Iteration: 1,  Residual Norm: 1.94945e-07
+
+Timestep :  149,  Timestage :  2,   Time : 28.3273
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0869
+Old RHS Norm: 0.0250472,  New RHS Norm: 1.0832e-06
+Warning: GMRES(29) does not converge to the tolerance 2.31233e-06 within  30 iterations
+Warning: The current relative error is 0.2558 
+PTC Iteration: 1,  Residual Norm: 5.5222e-07
+
+Timestep :  150,  Timestage :  1,   Time : 28.383
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0721
+Old RHS Norm: 0.0105574,  New RHS Norm: 5.95125e-07
+Warning: GMRES(29) does not converge to the tolerance 1.77398e-06 within  30 iterations
+Warning: The current relative error is 0.489459 
+PTC Iteration: 1,  Residual Norm: 1.72099e-07
+
+Timestep :  150,  Timestage :  2,   Time : 28.5174
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0659
+Old RHS Norm: 0.0256529,  New RHS Norm: 1.24802e-06
+Warning: GMRES(29) does not converge to the tolerance 2.0555e-06 within  30 iterations
+Warning: The current relative error is 0.292967 
+PTC Iteration: 1,  Residual Norm: 4.99596e-07
+
+Timestep :  151,  Timestage :  1,   Time : 28.5731
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0508
+Old RHS Norm: 0.0107836,  New RHS Norm: 5.20745e-07
+Warning: GMRES(29) does not converge to the tolerance 2.07081e-06 within  30 iterations
+Warning: The current relative error is 0.439929 
+PTC Iteration: 1,  Residual Norm: 1.64061e-07
+
+Timestep :  151,  Timestage :  2,   Time : 28.7075
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0445
+Old RHS Norm: 0.0261746,  New RHS Norm: 9.68247e-07
+Warning: GMRES(29) does not converge to the tolerance 2.7033e-06 within  30 iterations
+Warning: The current relative error is 0.251351 
+PTC Iteration: 1,  Residual Norm: 4.79464e-07
+
+Timestep :  152,  Timestage :  1,   Time : 28.7632
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0293
+Old RHS Norm: 0.0109752,  New RHS Norm: 4.61701e-07
+Warning: GMRES(29) does not converge to the tolerance 2.37712e-06 within  30 iterations
+Warning: The current relative error is 0.41617 
+PTC Iteration: 1,  Residual Norm: 2.01694e-07
+
+Timestep :  152,  Timestage :  2,   Time : 28.8977
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.023
+Old RHS Norm: 0.0266127,  New RHS Norm: 1.04991e-06
+Warning: GMRES(29) does not converge to the tolerance 2.53476e-06 within  30 iterations
+Warning: The current relative error is 0.260042 
+PTC Iteration: 1,  Residual Norm: 4.82227e-07
+
+Timestep :  153,  Timestage :  1,   Time : 28.9533
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0076
+Old RHS Norm: 0.0111324,  New RHS Norm: 4.21973e-07
+Warning: GMRES(29) does not converge to the tolerance 2.63818e-06 within  30 iterations
+Warning: The current relative error is 0.462612 
+PTC Iteration: 1,  Residual Norm: 2.40902e-07
+
+Timestep :  153,  Timestage :  2,   Time : 29.0878
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 53.0012
+Old RHS Norm: 0.0269681,  New RHS Norm: 9.63565e-07
+Warning: GMRES(29) does not converge to the tolerance 2.79879e-06 within  30 iterations
+Warning: The current relative error is 0.365576 
+PTC Iteration: 1,  Residual Norm: 4.14624e-07
+
+Timestep :  154,  Timestage :  1,   Time : 29.1435
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9858
+Old RHS Norm: 0.0112556,  New RHS Norm: 4.51292e-07
+Warning: GMRES(29) does not converge to the tolerance 2.4941e-06 within  30 iterations
+Warning: The current relative error is 0.491833 
+PTC Iteration: 1,  Residual Norm: 1.77593e-07
+
+Timestep :  154,  Timestage :  2,   Time : 29.2779
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9794
+Old RHS Norm: 0.0272419,  New RHS Norm: 7.96283e-07
+Warning: GMRES(29) does not converge to the tolerance 3.42114e-06 within  30 iterations
+Warning: The current relative error is 0.295071 
+PTC Iteration: 1,  Residual Norm: 3.42667e-07
+
+Timestep :  155,  Timestage :  1,   Time : 29.3336
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9639
+Old RHS Norm: 0.0113455,  New RHS Norm: 5.11496e-07
+Warning: GMRES(29) does not converge to the tolerance 2.21811e-06 within  30 iterations
+Warning: The current relative error is 0.585066 
+PTC Iteration: 1,  Residual Norm: 1.90782e-07
+
+Timestep :  155,  Timestage :  2,   Time : 29.468
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9574
+Old RHS Norm: 0.0274357,  New RHS Norm: 8.2272e-07
+Warning: GMRES(29) does not converge to the tolerance 3.33476e-06 within  30 iterations
+Warning: The current relative error is 0.288571 
+PTC Iteration: 1,  Residual Norm: 3.03706e-07
+
+Timestep :  156,  Timestage :  1,   Time : 29.5237
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9419
+Old RHS Norm: 0.0114028,  New RHS Norm: 4.76291e-07
+Warning: GMRES(29) does not converge to the tolerance 2.39407e-06 within  30 iterations
+Warning: The current relative error is 0.635979 
+PTC Iteration: 1,  Residual Norm: 1.81171e-07
+
+Timestep :  156,  Timestage :  2,   Time : 29.6581
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9355
+Old RHS Norm: 0.0275511,  New RHS Norm: 8.2237e-07
+Warning: GMRES(29) does not converge to the tolerance 3.35021e-06 within  30 iterations
+Warning: The current relative error is 0.278935 
+PTC Iteration: 1,  Residual Norm: 3.64146e-07
+
+Timestep :  157,  Timestage :  1,   Time : 29.7138
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9201
+Old RHS Norm: 0.011428,  New RHS Norm: 4.14274e-07
+Warning: GMRES(29) does not converge to the tolerance 2.75857e-06 within  30 iterations
+Warning: The current relative error is 0.684638 
+PTC Iteration: 1,  Residual Norm: 2.17454e-07
+
+Timestep :  157,  Timestage :  2,   Time : 29.8482
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.9137
+Old RHS Norm: 0.02759,  New RHS Norm: 8.92943e-07
+Warning: GMRES(29) does not converge to the tolerance 3.08978e-06 within  30 iterations
+Warning: The current relative error is 0.293843 
+PTC Iteration: 1,  Residual Norm: 2.09381e-07
+
+Timestep :  158,  Timestage :  1,   Time : 29.9039
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8983
+Old RHS Norm: 0.0114222,  New RHS Norm: 3.55511e-07
+Warning: GMRES(29) does not converge to the tolerance 3.21291e-06 within  30 iterations
+Warning: The current relative error is 0.644897 
+PTC Iteration: 1,  Residual Norm: 1.68948e-07
+
+Timestep :  158,  Timestage :  2,   Time : 30.0384
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.892
+Old RHS Norm: 0.0275546,  New RHS Norm: 7.73088e-07
+Warning: GMRES(29) does not converge to the tolerance 3.56422e-06 within  30 iterations
+Warning: The current relative error is 0.318487 
+PTC Iteration: 1,  Residual Norm: 2.44428e-07
+
+Timestep :  159,  Timestage :  1,   Time : 30.094
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8767
+Old RHS Norm: 0.0113863,  New RHS Norm: 3.64006e-07
+Warning: GMRES(29) does not converge to the tolerance 3.12805e-06 within  30 iterations
+Warning: The current relative error is 0.484089 
+PTC Iteration: 1,  Residual Norm: 1.71862e-07
+
+Timestep :  159,  Timestage :  2,   Time : 30.2285
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8705
+Old RHS Norm: 0.027447,  New RHS Norm: 6.96897e-07
+Warning: GMRES(29) does not converge to the tolerance 3.93845e-06 within  30 iterations
+Warning: The current relative error is 0.301274 
+PTC Iteration: 1,  Residual Norm: 2.65108e-07
+
+Timestep :  160,  Timestage :  1,   Time : 30.2842
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8554
+Old RHS Norm: 0.0113212,  New RHS Norm: 3.61208e-07
+Warning: GMRES(29) does not converge to the tolerance 3.13425e-06 within  30 iterations
+Warning: The current relative error is 0.585051 
+PTC Iteration: 1,  Residual Norm: 2.06682e-07
+
+Timestep :  160,  Timestage :  2,   Time : 30.4186
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8492
+Old RHS Norm: 0.0272697,  New RHS Norm: 7.0878e-07
+Warning: GMRES(29) does not converge to the tolerance 3.84742e-06 within  30 iterations
+Warning: The current relative error is 0.292386 
+PTC Iteration: 1,  Residual Norm: 2.2289e-07
+
+Timestep :  161,  Timestage :  1,   Time : 30.4743
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8343
+Old RHS Norm: 0.0112279,  New RHS Norm: 3.64069e-07
+Warning: GMRES(29) does not converge to the tolerance 3.08401e-06 within  30 iterations
+Warning: The current relative error is 0.531777 
+PTC Iteration: 1,  Residual Norm: 1.29322e-07
+
+Timestep :  161,  Timestage :  2,   Time : 30.6087
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8282
+Old RHS Norm: 0.0270253,  New RHS Norm: 7.15884e-07
+Warning: GMRES(29) does not converge to the tolerance 3.77509e-06 within  30 iterations
+Warning: The current relative error is 0.245645 
+PTC Iteration: 1,  Residual Norm: 2.62093e-07
+
+Timestep :  162,  Timestage :  1,   Time : 30.6644
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8136
+Old RHS Norm: 0.0111076,  New RHS Norm: 4.40005e-07
+Warning: GMRES(29) does not converge to the tolerance 2.52444e-06 within  30 iterations
+Warning: The current relative error is 0.576598 
+PTC Iteration: 1,  Residual Norm: 1.9386e-07
+
+Timestep :  162,  Timestage :  2,   Time : 30.7988
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.8076
+Old RHS Norm: 0.0267163,  New RHS Norm: 7.32643e-07
+Warning: GMRES(29) does not converge to the tolerance 3.64656e-06 within  30 iterations
+Warning: The current relative error is 0.324781 
+PTC Iteration: 1,  Residual Norm: 3.37359e-07
+
+Timestep :  163,  Timestage :  1,   Time : 30.8545
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7932
+Old RHS Norm: 0.0109614,  New RHS Norm: 4.44187e-07
+Warning: GMRES(29) does not converge to the tolerance 2.46774e-06 within  30 iterations
+Warning: The current relative error is 0.646694 
+PTC Iteration: 1,  Residual Norm: 2.19642e-07
+
+Timestep :  163,  Timestage :  2,   Time : 30.9889
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7874
+Old RHS Norm: 0.0263455,  New RHS Norm: 7.81923e-07
+Warning: GMRES(29) does not converge to the tolerance 3.36932e-06 within  30 iterations
+Warning: The current relative error is 0.279138 
+PTC Iteration: 1,  Residual Norm: 3.07251e-07
+
+Timestep :  164,  Timestage :  1,   Time : 31.0446
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7733
+Old RHS Norm: 0.0107904,  New RHS Norm: 3.83686e-07
+Warning: GMRES(29) does not converge to the tolerance 2.81229e-06 within  30 iterations
+Warning: The current relative error is 0.487134 
+PTC Iteration: 1,  Residual Norm: 1.74304e-07
+
+Timestep :  164,  Timestage :  2,   Time : 31.1791
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7676
+Old RHS Norm: 0.0259156,  New RHS Norm: 8.45064e-07
+Warning: GMRES(29) does not converge to the tolerance 3.06671e-06 within  30 iterations
+Warning: The current relative error is 0.306795 
+PTC Iteration: 1,  Residual Norm: 3.6425e-07
+
+Timestep :  165,  Timestage :  1,   Time : 31.2347
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7538
+Old RHS Norm: 0.0105957,  New RHS Norm: 5.30312e-07
+Warning: GMRES(29) does not converge to the tolerance 1.99801e-06 within  30 iterations
+Warning: The current relative error is 0.51927 
+PTC Iteration: 1,  Residual Norm: 1.78213e-07
+
+Timestep :  165,  Timestage :  2,   Time : 31.3692
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7482
+Old RHS Norm: 0.0254297,  New RHS Norm: 8.10139e-07
+Warning: GMRES(29) does not converge to the tolerance 3.13892e-06 within  30 iterations
+Warning: The current relative error is 0.306012 
+PTC Iteration: 1,  Residual Norm: 4.35475e-07
+
+Timestep :  166,  Timestage :  1,   Time : 31.4249
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7349
+Old RHS Norm: 0.0103786,  New RHS Norm: 4.26522e-07
+Warning: GMRES(29) does not converge to the tolerance 2.43331e-06 within  30 iterations
+Warning: The current relative error is 0.368625 
+PTC Iteration: 1,  Residual Norm: 1.35835e-07
+
+Timestep :  166,  Timestage :  2,   Time : 31.5593
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7295
+Old RHS Norm: 0.0248904,  New RHS Norm: 8.23353e-07
+Warning: GMRES(29) does not converge to the tolerance 3.02305e-06 within  30 iterations
+Warning: The current relative error is 0.277355 
+PTC Iteration: 1,  Residual Norm: 4.28145e-07
+
+Timestep :  167,  Timestage :  1,   Time : 31.615
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7165
+Old RHS Norm: 0.0101403,  New RHS Norm: 5.06481e-07
+Warning: GMRES(29) does not converge to the tolerance 2.00211e-06 within  30 iterations
+Warning: The current relative error is 0.676255 
+PTC Iteration: 1,  Residual Norm: 2.08539e-07
+
+Timestep :  167,  Timestage :  2,   Time : 31.7494
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.7112
+Old RHS Norm: 0.0243007,  New RHS Norm: 1.0161e-06
+Warning: GMRES(29) does not converge to the tolerance 2.39156e-06 within  30 iterations
+Warning: The current relative error is 0.33422 
+PTC Iteration: 1,  Residual Norm: 4.50615e-07
+
+Timestep :  168,  Timestage :  1,   Time : 31.8051
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6987
+Old RHS Norm: 0.00988202,  New RHS Norm: 5.41497e-07
+Warning: GMRES(29) does not converge to the tolerance 1.82494e-06 within  30 iterations
+Warning: The current relative error is 0.481944 
+PTC Iteration: 1,  Residual Norm: 1.90507e-07
+
+Timestep :  168,  Timestage :  2,   Time : 31.9395
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6936
+Old RHS Norm: 0.0236636,  New RHS Norm: 9.27254e-07
+Warning: GMRES(29) does not converge to the tolerance 2.55201e-06 within  30 iterations
+Warning: The current relative error is 0.338157 
+PTC Iteration: 1,  Residual Norm: 4.95628e-07
+
+Timestep :  169,  Timestage :  1,   Time : 31.9952
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6815
+Old RHS Norm: 0.00960494,  New RHS Norm: 5.84847e-07
+Warning: GMRES(29) does not converge to the tolerance 1.6423e-06 within  30 iterations
+Warning: The current relative error is 0.384231 
+PTC Iteration: 1,  Residual Norm: 1.46926e-07
+
+Timestep :  169,  Timestage :  2,   Time : 32.1296
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6766
+Old RHS Norm: 0.0229822,  New RHS Norm: 1.0452e-06
+Warning: GMRES(29) does not converge to the tolerance 2.19883e-06 within  30 iterations
+Warning: The current relative error is 0.291923 
+PTC Iteration: 1,  Residual Norm: 5.03859e-07
+
+Timestep :  170,  Timestage :  1,   Time : 32.1853
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.665
+Old RHS Norm: 0.00931033,  New RHS Norm: 5.97625e-07
+Warning: GMRES(29) does not converge to the tolerance 1.55789e-06 within  30 iterations
+Warning: The current relative error is 0.536509 
+PTC Iteration: 1,  Residual Norm: 2.11746e-07
+
+Timestep :  170,  Timestage :  2,   Time : 32.3198
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6603
+Old RHS Norm: 0.0222592,  New RHS Norm: 1.1733e-06
+Warning: GMRES(29) does not converge to the tolerance 1.89714e-06 within  30 iterations
+Warning: The current relative error is 0.24184 
+PTC Iteration: 1,  Residual Norm: 4.99718e-07
+
+Timestep :  171,  Timestage :  1,   Time : 32.3754
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6491
+Old RHS Norm: 0.00899942,  New RHS Norm: 5.70716e-07
+Warning: GMRES(29) does not converge to the tolerance 1.57687e-06 within  30 iterations
+Warning: The current relative error is 0.545528 
+PTC Iteration: 1,  Residual Norm: 1.68404e-07
+
+Timestep :  171,  Timestage :  2,   Time : 32.5099
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6446
+Old RHS Norm: 0.0214977,  New RHS Norm: 8.73393e-07
+Warning: GMRES(29) does not converge to the tolerance 2.4614e-06 within  30 iterations
+Warning: The current relative error is 0.296852 
+PTC Iteration: 1,  Residual Norm: 5.83744e-07
+
+Timestep :  172,  Timestage :  1,   Time : 32.5656
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.634
+Old RHS Norm: 0.00867346,  New RHS Norm: 7.77351e-07
+Warning: GMRES(29) does not converge to the tolerance 1.11577e-06 within  30 iterations
+Warning: The current relative error is 0.463372 
+PTC Iteration: 1,  Residual Norm: 1.70249e-07
+
+Timestep :  172,  Timestage :  2,   Time : 32.7
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6297
+Old RHS Norm: 0.0207008,  New RHS Norm: 1.14964e-06
+Warning: GMRES(29) does not converge to the tolerance 1.80063e-06 within  30 iterations
+Warning: The current relative error is 0.316546 
+PTC Iteration: 1,  Residual Norm: 5.41489e-07
+
+Timestep :  173,  Timestage :  1,   Time : 32.7557
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6196
+Old RHS Norm: 0.00833367,  New RHS Norm: 5.39095e-07
+Warning: GMRES(29) does not converge to the tolerance 1.54586e-06 within  30 iterations
+Warning: The current relative error is 0.535519 
+PTC Iteration: 1,  Residual Norm: 1.76093e-07
+
+Timestep :  173,  Timestage :  2,   Time : 32.8901
+PTC Iteration: 0,  PTC Param: 0,  Solution Norm: 52.6155
+Old RHS Norm: 0.0198713,  New RHS Norm: 1.23982e-06
+Warning: GMRES(29) does not converge to the tolerance 1.60276e-06 within  30 iterations
+Warning: The current relative error is 0.257092 
+PTC Iteration: 1,  Residual Norm: 5.45454e-07
+Done!
