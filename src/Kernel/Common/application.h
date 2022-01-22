@@ -123,6 +123,22 @@ template <typename T> void gpuInitq(T *udg, T *xdg, T *uinf, T *param, int model
 template <typename T> void gpuInitudg(T *udg, T *xdg, T *uinf, T *param, int modelnumber, int ng, int ncx, int nc, int npe, int ne);
 template <typename T> void gpuInitwdg(T *udg, T *xdg, T *uinf, T *param, int modelnumber, int ng, int ncx, int ncw, int npe, int ne);
 template <typename T> void gpuInitodg(T *udg, T *xdg, T *uinf, T *param, int modelnumber, int ng, int ncx, int nco, int npe, int ne);
+#ifdef HAVE_ENZYME
+template <typename T> void gpuFluxEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+template <typename T> void gpuSourceEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+template <typename T> void gpuUbouEnzyme(T *f, T *df, T *xg, T *udg, T *dudg,T *odg, T *wdg, T *dwdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, 
+        T time, int modelnumber, int ib, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+template <typename T> void gpuFbouEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
+        T time, int modelnumber, int ib, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+// template <typename T> void gpuFhatEnzyme(T *f, T *df, T *xg, T *udg1, T *dudg1, T *udg2, T *dudg2, 
+//         T *odg1, T *odg2,  T *wdg1, T *dwdg1, T *wdg2, T *dwdg2, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
+//         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+// template <typename T> void gpuStabEnzyme(T *f, T *df, T *xg, T *udg1, T *dudg1, T *udg2, T *dudg2, 
+//         T *odg1, T *odg2,  T *wdg1, T *dwdg1, T *wdg2, T *dwdg2, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
+//         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+#endif
 #endif                
 
 #endif  
