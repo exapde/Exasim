@@ -123,7 +123,7 @@ else
         nocodeelem("Tdfunc" * strn);
     end
 end
-if isdefined(pdemodel, Symbol("avifield"))
+if isdefined(pdemodel, Symbol("avfield"))
     #f = pdemodel.avfield(xdg, udg, odg, wdg, uinf, param, time);
     f = pdemodel.avfield(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1

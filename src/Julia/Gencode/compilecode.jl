@@ -47,7 +47,7 @@ compilerstr = Array{String, 1}(undef, 12);
 
 if length(cpucompiler)>0
     if (length(enzyme)>0)   
-        compilerstr[1] = cpucompiler * " -D _ENZYME -fPIC -O3 -c opuApp.cpp" * " -Xclang -load -Xclang " * coredir * enzyme;
+        compilerstr[1] = cpucompiler * " -D _ENZYME -fPIC -O3 -c opuApp.cpp" * " -stdlib=libc++ -Xclang -load -Xclang " * coredir * enzyme;
     else
         compilerstr[1] = cpucompiler * " -fPIC -O3 -c opuApp.cpp";
     end    
@@ -58,7 +58,11 @@ else
 end
 
 if length(gpucompiler)>0
-    compilerstr[3] = gpucompiler * " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
+    compilerstr[3] = gpucompiler * " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
+    if (length(enzyme))>0
+        compilerstr[3] = compilerstr[3] * " -D _ENZYME -std=c++11 -stdlib=libc++ -Xclang -load -Xclang " * coredir * enzyme;
+        compilerstr[3] = compilerstr[3] * " --cuda-gpu-arch=sm_60 -lcudart -L/usr/local/cuda-9.0/lib64 -stdlib=libc++ -std=c++11 --cuda-path=/usr/local/cuda-9.0/"
+    end
     compilerstr[4] = "ar -rvs gpuApp.a gpuApp.o";
 else
     compilerstr[3] = "";
@@ -71,7 +75,7 @@ if (length(cpuflags)>0) && (length(cpucompiler)>0)
     str3 = cpuflags;
     #compilerstr[5] = str1 * str2 * str3;
     if (length(enzyme)>0)    
-        str1 = cpucompiler  * " -std=c++11 -D _ENZYME " * maindir * "main.cpp " * "-o serial" * appname * " ";
+        str1 = cpucompiler  * " -std=c++11 -stdlib=libc++ -D _ENZYME " * maindir * "main.cpp " * "-o serial" * appname * " ";
         compilerstr[5] = str1 * str2 * str3 * " -Xclang -load -Xclang " * coredir * enzyme;
     else
         str1 = cpucompiler * " -std=c++11 " * maindir * "main.cpp " * "-o serial" * appname * " ";
@@ -91,7 +95,12 @@ if (length(cpuflags)>0) && (length(mpicompiler)>0)
 end
 
 if (length(cpuflags)>0) && (length(cpucompiler)>0) && (length(gpucompiler)>0) && (length(gpuflags)>0)
-    str1 = cpucompiler * " -std=c++11 -D _CUDA " * maindir * "main.cpp " * "-o gpu" * appname * " ";
+    if (length(enzyme)>0)
+        str1 = cpucompiler * " -std=c++11 -D _ENZYME -D _CUDA " * maindir * "main.cpp " * "-o gpu" * appname * " ";
+        str1 = str1 * " -Xclang -load -Xclang " * coredir * enzyme * " ";
+    else
+        str1 = cpucompiler * " -std=c++11 -D _CUDA " * maindir * "main.cpp " * "-o gpu" * appname * " ";
+    end
     str2 = coredir * "commonCore.a " * coredir * "gpuCore.a " * coredir * "opuCore.a opuApp.a gpuApp.a ";
     str3 = cpuflags * " " * gpuflags;
     compilerstr[7] = str1 * str2 * str3;
@@ -135,13 +144,20 @@ if app.platform == "cpu"
         run(string2cmd(compilerstr[6]));
     end
 elseif app.platform == "gpu"
+    println(compilerstr[1])
+    println(compilerstr[2])
+    println(compilerstr[3])
+    println(compilerstr[4])
+
     run(string2cmd(compilerstr[1]));
     run(string2cmd(compilerstr[2]));
     run(string2cmd(compilerstr[3]));
     run(string2cmd(compilerstr[4]));
     if app.mpiprocs==1
+        println(compilerstr[7])
         run(string2cmd(compilerstr[7]));
     else
+        println(compilerstr[8])
         run(string2cmd(compilerstr[8]));
     end
 end
