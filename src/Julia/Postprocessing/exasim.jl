@@ -6,6 +6,7 @@ else
     nmodels = 1;   
 end
 
+res = [];    
 if nmodels==1
     # search compilers and set options
     pde = Gencode.setcompilers(pde);
