@@ -6,7 +6,7 @@ else
     nmodels = 1;   
 end
 
-res = [];    
+res = []
 if nmodels==1
     # search compilers and set options
     pde = Gencode.setcompilers(pde);
@@ -30,7 +30,7 @@ if nmodels==1
 
     # get solution from output files in dataout folder
     sol = Postprocessing.fetchsolution(pde,master,dmd,"dataout");
-    if pde.saveResNorm
+    if pde.saveResNorm == 1
         fn = "dataout/out_residualnorms0.bin";
         res = reinterpret(Float64,read(fn));        
         ne = Int64(round(length(res)/4));
