@@ -255,7 +255,7 @@ void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     Node2Gauss(handle, &tmp.tempg[n3], tmp.tempn, master.shapegt, nge, npe, ne*nc, backend);        
     GetArrayAtIndex(tmp.tempn, sol.dudg, &mesh.eindudg1[npe*nc*e1], nn*nc, backend);
     Node2Gauss(handle, &tmp.tempg[n9], tmp.tempn, master.shapegt, nge, npe, ne*nc, backend);        
-    
+
 
     ArraySetValue(&tmp.tempg[n7], 0.0, nga*ncu*nd, backend); // so df = 0.
     ArraySetValue(&tmp.tempg[n8], 0.0, nga*ncu, backend);
@@ -265,7 +265,7 @@ void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
         GetElemNodes(tmp.tempn, sol.dwdg, npe, ncw, 0, ncw, e1, e2, backend);    
         Node2Gauss(handle, &tmp.tempg[n0], tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);
     }
-    
+
     if (common.tdep) { // for time-dependent problem                
         ArrayAXPBY(&tmp.tempg[n4], &sol.sdgg[nge*ncs*e1], &tmp.tempg[n3], one, -common.dtfactor, nga*ncu, backend);
 
@@ -304,12 +304,12 @@ void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
 
     FluxDriver(&tmp.tempg[n5], &tmp.tempg[n7], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], &tmp.tempg[n0], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);   
-             
+
     // calculate sum_j dFlux_j(u) * Xx(:,j,i)  at gauss points on element
     // .       rg = sg, fg, Xx, jac
     ApplyXx4(&tmp.tempg[n9], &tmp.tempg[n8], &tmp.tempg[n7], &sol.elemg[nm+n1], &sol.elemg[nm+n2],
         nge, nd, ncu, ne, backend);
-    Gauss2Node(handle, &res.dRue[npe*ncu*e1], &tmp.tempg[n9], master.shapegw, nge*(nd+1), npe, ncu*ne, backend);                
+    Gauss2Node(handle, &res.dRue[npe*ncu*e1], &tmp.tempg[n9], master.shapegw, nge*(nd+1), npe, ncu*ne, backend);             
 
 #ifdef DEBUG                       
     writearray2file(common.fileout + "EnzymeRuElem_uge.bin", &tmp.tempg[n3], nge*nc*ne, backend);  

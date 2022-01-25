@@ -61,8 +61,8 @@ if length(gpucompiler)>0
     compilerstr[3] = gpucompiler * " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
     if (length(enzyme))>0
         compilerstr[3] = compilerstr[3] * " -D _ENZYME -std=c++11 -stdlib=libc++ -Xclang -load -Xclang " * coredir * enzyme;
-        compilerstr[3] = compilerstr[3] * " --cuda-gpu-arch=sm_60 -lcudart -L/usr/local/cuda-9.0/lib64 -stdlib=libc++ -std=c++11 --cuda-path=/usr/local/cuda-9.0/"
     end
+    compilerstr[3] = compilerstr[3] * " --cuda-gpu-arch=sm_60 -lcudart -L/usr/local/cuda-9.0/lib64 -stdlib=libc++ -std=c++11 --cuda-path=/usr/local/cuda-9.0/"
     compilerstr[4] = "ar -rvs gpuApp.a gpuApp.o";
 else
     compilerstr[3] = "";
