@@ -75,6 +75,7 @@ mutable struct PDEStruct
     compudgavg::IntP; # flag if time-average solution is computed
     extFhat::IntP;
     extUhat::IntP;
+    extStab::IntP;
     saveResNorm::IntP; # option for how the solution be saved: 0 -> u only, 1 -> u and q
 
     time::FloatP; # starting time (usually 0, however >0 if restarting from the saved solution)
@@ -203,6 +204,7 @@ function initializepde(version)
     pde.compudgavg = 0;
     pde.extFhat = 0;
     pde.extUhat = 0;
+    pde.extStab = 0;
     pde.saveResNorm = 0;
 
     pde.time = 0.0;
