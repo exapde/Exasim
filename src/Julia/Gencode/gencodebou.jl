@@ -33,9 +33,7 @@ strgpu = strgpu * str * "\t\ti += blockDim.x * gridDim.x;\n";
 strgpu = strgpu * "\t}\n" * "}\n\n";
 
 strgpu = strgpu * "template <typename T>  __global__  void kernel" * gpufile;
-
 tmp = "(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw)\n";
-
 tmp = tmp * "{\n";
 tmp = tmp * "\tdevice" * gpufile * "(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);\n";
 tmp = tmp * "}\n\n";

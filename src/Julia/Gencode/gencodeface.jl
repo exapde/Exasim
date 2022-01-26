@@ -69,7 +69,6 @@ for k = 1:nbc
     else
         tmp = tmp * "template <typename T> __global__ void kernelGrad" * gpufile *string(k)*"Enzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, T time, int modelnumber, int ib, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw)\n";
     end
-    # tmp = tmp * "template <typename T> __global__ void kernelGrad" * gpufile *string(k)*"Enzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, T time, int modelnumber, int ib, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw)\n";
     tmp = tmp * "{\n";
     tmp = tmp * "\t__enzyme_fwddiff"*gpufile*"((void*)device"  * gpufile * string(k) * "<T>,\n"
     tmp = tmp * "\t\t\t  enzyme_dup, f, df,\n"
@@ -131,8 +130,6 @@ if gpufile == "gpuUbou"
 else
     tmp = tmp * "(double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double, int, int, int, int, int, int, int, int, int);\n";
 end
-# tmp = tmp * "template void " * gpufile * "Enzyme";
-# tmp = tmp * "(float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float *, float, int, int, int, int, int, int, int, int, int);\n";
 tmp = tmp * "#endif"
 strgpu = strgpu * tmp;
 ## end enzyme
