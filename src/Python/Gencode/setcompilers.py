@@ -107,6 +107,8 @@ def setcompilers(app):
 
     cpulib = 0;
     gpulib = 0;
+    cpulibflags = app['cpulibflags']
+    gpulibflags = app['gpulibflags']
     if platform == "darwin":
         if (os.path.isfile(coredir + "/Mac/commonCore.a")) and (os.path.isfile(coredir + "/Mac/opuCore.a")):
             cpulib = 1;
@@ -125,11 +127,11 @@ def setcompilers(app):
 
     if cpulib==0:
         print("Generating CPU core libraries.");
-        genlib(app['cpucompiler'], "", coredir);
+        genlib(app['cpucompiler'], "", coredir, cpulibflags);
 
     if gpulib==0:
         if (len(app['gpucompiler'])>0) and (app['platform'] == "gpu"):
             print("Generating GPU core library.");
-            genlib("", app['gpucompiler'], coredir);
+            genlib("", app['gpucompiler'], coredir, cpulibflags, gpulibflags);
 
     return app

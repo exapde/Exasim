@@ -1,24 +1,27 @@
 import os
 from sys import platform
 
-def genlib(cpucompiler, gpucompiler, coredir):
+def genlib(cpucompiler, gpucompiler, coredir, cpulibflags="", gpulibflags=""):
 
     mydir = os.getcwd();
     os.chdir(coredir);
 
     if len(cpucompiler)>0:
         str = cpucompiler + " -fPIC -O3 -c commonCore.cpp";
+        str = str + " " + cpulibflags
         os.system(str);
         str = "ar rvs commonCore.a commonCore.o";
         os.system(str);
 
         str = cpucompiler + " -fPIC -O3 -c opuCore.cpp";
+        str = str + " " + cpulibflags
         os.system(str);
         str = "ar rvs opuCore.a opuCore.o";
         os.system(str);
 
     if len(gpucompiler)>0:
         str = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuCore.cu";
+        str = str + " " + gpulibflags
         os.system(str);
         str = "ar rvs gpuCore.a gpuCore.o";
         os.system(str);

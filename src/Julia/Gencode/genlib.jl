@@ -1,4 +1,4 @@
-function genlib(cpucompiler::String, gpucompiler::String, coredir::String)
+function genlib(cpucompiler::String, gpucompiler::String, coredir::String, cpulibflags::String="", gpulibflags::String="")
 # Examples: genlib("g++","");
 #           genlib("g++","nvcc");
 
@@ -6,13 +6,17 @@ mydir = pwd();
 cd(coredir);
 
 if length(cpucompiler)>0
-    str = `$cpucompiler -fPIC -O3 -c commonCore.cpp`;
-    run(str);
+    str = cpucompiler * " -fPIC -O3 -c commonCore.cpp"
+    str = str * " " * cpulibflags
+    run(string2cmd(str));
+
     str = `ar rvs commonCore.a commonCore.o`;
     run(str);
 
-    str = `$cpucompiler -fPIC -O3 -c opuCore.cpp`;
-    run(str);
+    str = cpucompiler * " -fPIC -O3 -c opuCore.cpp"
+    str = str * " " * cpulibflags
+    run(string2cmd(str));
+
     str = `ar rvs opuCore.a opuCore.o`;
     run(str);
 
@@ -23,8 +27,9 @@ if length(cpucompiler)>0
 end
 
 if length(gpucompiler)>0
-    str = `$gpucompiler -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuCore.cu`;
-    run(str);
+    str = gpucompiler * "-D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuCore.cu";
+    str = str * " " * gpulibflags
+    run(string2cmd(str));
     str = `ar rvs gpuCore.a gpuCore.o `;
     run(str);
 end
