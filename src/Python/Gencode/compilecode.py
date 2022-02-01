@@ -18,6 +18,8 @@ def compilecode(app):
     enzyme = app['enzyme'];
     cpuflags = app['cpuflags'];
     gpuflags = app['gpuflags'];
+    cpuappflags = app['cpuappflags']
+    gpuappflags = app['gpuappflags']
 
     # current directory
     cdir = os.getcwd();
@@ -50,6 +52,7 @@ def compilecode(app):
             compilerstr[0] = cpucompiler + " -D _ENZYME -fPIC -O3 -c opuApp.cpp" + " -Xclang -load -Xclang " + coredir + enzyme;
         else:
             compilerstr[0] = cpucompiler + " -fPIC -O3 -c opuApp.cpp";
+        compilerstr[0] = compilerstr[0] + " " + cpuappflags
         compilerstr[1] = "ar -rvs opuApp.a opuApp.o";        
     else:
         compilerstr[0] = "";
@@ -57,6 +60,7 @@ def compilecode(app):
 
     if  size(gpucompiler)>0:
         compilerstr[2] = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
+        compilerstr[2] = compilerstr[2] + " " + gpuappflags
         compilerstr[3] = "ar -rvs gpuApp.a gpuApp.o";
     else:
         compilerstr[2] = "";

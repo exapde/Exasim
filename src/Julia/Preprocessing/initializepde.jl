@@ -9,6 +9,10 @@ mutable struct PDEStruct
     mpirun::String;      # Path to MPI run command and MPI run options
     cpuflags::String;    # options for CPU compiler
     gpuflags::String;    # options for GGU compiler
+    cpuappflags::String
+    gpuappflags::String
+    cpulibflags::String
+    gpulibflags::String
     model::String;# used to indicate PDE model
     modelfile::String;# PDE model file name
     modelnumber::IntP;
@@ -142,6 +146,10 @@ function initializepde(version)
     #pde.cpuflags = "-O2 -Wall -ldl -lm -lblas -llapack";
     pde.cpuflags = "-O2 -ldl -lm -lblas -llapack";
     pde.gpuflags = "-lcudart -lcublas";
+    pde.cpuappflags = ""
+    pde.gpuappflags = ""
+    pde.cpulibflags = ""
+    pde.gpulibflags = ""
     pde.modelfile = "";
     pde.preprocessmode = 1;
     pde.mpiprocs = 1;
