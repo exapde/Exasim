@@ -92,8 +92,8 @@ void FhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
 }
 
 #ifdef HAVE_ENZYME
-void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, dstype *ug2, dstype *dug2, dstype * og1, 
-     dstype * og2, dstype *wg1, dstype *dwg1, dstype *wg2, dstype *dwg2, dstype *uh, dstype *duh, dstype *nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, 
+void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, dstype *ug2, dstype *dug2, dstype * og1, dstype * dog1,
+     dstype * og2, dstype *dog2, dstype *wg1, dstype *dwg1, dstype *wg2, dstype *dwg2, dstype *uh, dstype *duh, dstype *nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, 
      tempstruct &tmp, commonstruct &common, Int ngf, Int f1, Int f2, Int backend)
 {
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -115,7 +115,7 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
     if (common.extFhat==1) { 
 #ifdef HAVE_ONETHREAD            
         if (backend==0) {
-            opuFhatEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, og2, wg1, dwg1, wg2, dwg2, uh, duh, 
+            opuFhatEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, dog1, og2, dog2, wg1, dwg1, wg2, dwg2, uh, duh, 
                 nl, app.tau, app.uinf, app.physicsparam, 
                 time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
         }
@@ -135,11 +135,11 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
     }
     else {     
     // left flux
-    FluxDriver(fg, dfg, xg, ug1, dug1, og1, wg1, dwg1, mesh, master, app, sol, tmp, common,
+    FluxDriver(fg, dfg, xg, ug1, dug1, og1, dog1, wg1, dwg1, mesh, master, app, sol, tmp, common,
                       ngf, f1, f2, backend);
 
     // right flux
-    FluxDriver(&fg[N], &dfg[N], xg, ug2, dug2, og2, wg2, dwg2, mesh, master, app, sol, tmp, common,
+    FluxDriver(&fg[N], &dfg[N], xg, ug2, dug2, og2, dog2, wg2, dwg2, mesh, master, app, sol, tmp, common,
                       ngf, f1, f2, backend);    
                           
     // Part 1: fh = fg dot nl
@@ -153,7 +153,7 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
     if (common.extStab>=1) { 
 #ifdef HAVE_ONETHREAD            
         if (backend==0) {
-            opuStabEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, og2, wg1, dwg1, wg2, dwg2, uh, duh, nl, app.tau, app.uinf, app.physicsparam, 
+            opuStabEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, dog1, og2, dog2, wg1, dwg1, wg2, dwg2, uh, duh, nl, app.tau, app.uinf, app.physicsparam, 
                     time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
         }
 #endif              

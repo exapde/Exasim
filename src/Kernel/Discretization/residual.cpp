@@ -513,67 +513,10 @@ void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
     }    
 }
 
-////////////////////////////////////////////////////////////////
-/// Method 1: Calculate R(u) and dR(u)/du v in the same call////
-////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+//// Calculate just dR(u)/du v, with u, q, uhat, R(u) already precalculated /////
+///////////////////////////////////////////////////////////////////////////////////////////
 #ifdef HAVE_ENZYME
-void GetQEnzyme(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
-        tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
-        Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
-{    // Currently unused
-    Int nc = common.nc; // number of compoments of (u, q, p)
-    Int ncu = common.ncu;// number of compoments of (u)
-    Int ncq = common.ncq;// number of compoments of (q)
-    Int npe = common.npe; // number of nodes on master element
-    Int npf = common.npf; // number of nodes on master element
-    Int ne = common.ne2; // number of elements in this subdomain 
-    Int N = npe*ncq*ne;
-        
-    // Element integrals
-    RqElemEnzyme(sol, res, app, master, mesh, tmp, common, handle, nbe1, nbe2, backend);
-
-    // Face integrals
-    RqFaceEnzyme(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
-        
-    // elements in the range [e1, e2)
-    Int e1 = common.eblks[3*nbe1]-1;    
-    Int e2 = common.eblks[3*(nbe2-1)+1];
-       
-    // assemble face residual vector into element residual vector
-    PutFaceNodes(res.Rq, res.Rh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
-            mesh.ent2ind2, npf, npe, ncq, e1, e2, 0, backend);
-    PutFaceNodes(res.dRq, res.dRh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
-        mesh.ent2ind2, npf, npe, ncq, e1, e2, 0, backend);
-    
-    if (common.wave==1)
-    {  // get the source term due to the time derivative (for wave problem)  
-        ArrayExtract(&res.Rq[N], sol.sdg, npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2, backend); 
-        ArraySetValue(&res.dRq[N], zero, npe*ncq*(e2-e1), backend);
-        // ArrayExtract(&res.dRq[N], sol.dsdg, npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2, backend); 
-        // TODO: should this term be here? 
-    }
-    else
-    {  // set it to zero
-        ArraySetValue(&res.Rq[N], zero, npe*ncq*(e2-e1), backend);
-        ArraySetValue(&res.dRq[N], zero, npe*ncq*(e2-e1), backend);
-        // TODO: does this need to happen? 
-    }    
-    dstype scalar = one;
-    if (common.wave==1)
-        scalar = one/common.dtfactor;
-
-    // Apply the mass matrix inverse and the factor fc_q to the residual
-    ApplyMinv(handle, &res.Rq[N], res.Minv, &res.Rq[npe*ncq*e1], app.fc_q, scalar, common.curvedMesh, npe, ncq, e1, e2, backend);              
-    ApplyMinv(handle, &res.dRq[N], res.Minv, &res.dRq[npe*ncq*e1], app.fc_q, scalar, common.curvedMesh, npe, ncq, e1, e2, backend);              
-
-    // // append q into udg
-    ArrayInsert(sol.udg, &res.Rq[N], npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2, backend);  
-    ArrayInsert(sol.dudg, &res.dRq[N], npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2, backend);       
-    // //     for (Int i=0; i<30; i++)
-    // //     cout << sol.dudg[i] << "   ";
-    // // cout << endl;  
-}
-
 void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
@@ -617,76 +560,40 @@ void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
     ArrayInsert(sol.dudg, &res.dRq[N], npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2, backend);           
 }
 
-void RuResidualEnzyme(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
-   tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
-   Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
-{   // Not curently used in code; instead opted for dRu (see Method 2 below)
-    // compute uhat and (duhat/du v)
-    GetUhatEnzyme(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
+void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+        tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+{
+    AvfieldDriver(sol.odg, sol.dodg, sol.xdg, sol.udg, sol.dudg, sol.odg, sol.wdg, sol.dwdg, mesh, master, app, sol, tmp, common, backend); 
 
-    // compute q
-    if (common.ncq>0)
-    { // TODO: is it fine to use 2 seperate calls or is it inefficient? 
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);
-        GetdQ(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);
-        // GetQEnzyme(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend); 
-    }               
-
-    // compute w
-    if (common.ncw>0) //TODO: not finished yet
-         GetW(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);                
-    // Eventually, get dw
-
-    // Element integrals
-    RuElemEnzyme(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
-                    
-    // Face integrals
-    RuFaceEnzyme(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
-        
-    Int e1 = common.eblks[3*nbe1u]-1;    
-    Int e2 = common.eblks[3*(nbe2u-1)+1];    
-    
-    // // assemble face residual vector into element residual vector
-    PutFaceNodes(res.Ru, res.Rh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
-            mesh.ent2ind2, common.npf, common.npe, common.ncu, e1, e2, 0, backend);
-    // // repeat for dRu/du
-    PutFaceNodes(res.dRu, res.dRh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
-            mesh.ent2ind2, common.npf, common.npe, common.ncu, e1, e2, 0, backend);
-
-    // change sign 
-    // ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);        
-    // ArrayMultiplyScalar(res.dRu, minusone, common.ndof1, backend);        
-}
-
-
-void ResidualEnzyme(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
-        meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
-{    
-    
-    RuResidualEnzyme(sol, res, app, master, mesh, tmp, common, handle,
-            0, common.nbe, 0, common.nbe, 0, common.nbf, backend);
-            
-    // change sign for matrix-vector product
-    ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);      
-    ArrayMultiplyScalar(res.dRu, minusone, common.ndof1, backend);     
-    //common.dtfactor
-    if (common.tdep==1)
-    { 
-        ArrayMultiplyScalar(res.Ru, one/common.dtfactor, common.ndof1, backend);                
-        ArrayMultiplyScalar(res.dRu, one/common.dtfactor, common.ndof1, backend); 
+    for (Int iav = 0; iav<common.AVsmoothingIter; iav++){
+        DG2CGAVField(sol, res, app, master, mesh, tmp, common, sol.dodg, sol.dodg, backend);
     }
-    if (common.debugMode==1) {
-        writearray2file(common.fileout + "enz_uh.bin", sol.uh, common.npf*common.ncu*common.nf, backend);
-        writearray2file(common.fileout + "enz_udg.bin", sol.udg, common.npe*common.nc*common.ne, backend);
-        writearray2file(common.fileout + "enz_Ru.bin", res.Ru, common.npe*common.ncu*common.ne, backend);
-    }    
-}
-#endif 
 
-///////////////////////////////////////////////////////////////////////////////////////////
-//// Method 2: Calculate just dR(u)/du v, with u, q, uhat, R(u) already precalculated /////
-///////////////////////////////////////////////////////////////////////////////////////////
-#ifdef HAVE_ENZYME
+    for (Int j=0; j<common.nbe; j++) {
+        Int e1 = common.eblks[3*j]-1;
+        Int e2 = common.eblks[3*j+1];                
+        GetElemNodes(tmp.tempn, sol.dodg, common.npe, common.nco, 
+                0, common.nco, e1, e2, backend);        
+        Node2Gauss(common.cublasHandle, &sol.dodgg[common.nge*common.nco*e1], 
+            tmp.tempn, master.shapegt, common.nge, common.npe, (e2-e1)*common.nco, backend);        
+    }         
+    for (Int j=0; j<common.nbf; j++) {
+        Int f1 = common.fblks[3*j]-1;
+        Int f2 = common.fblks[3*j+1];            
+        
+        GetFaceNodes(tmp.tempn, sol.dodg, mesh.facecon, common.npf, common.nco, 
+                common.npe, common.nco, f1, f2, 1, backend);          
+        Node2Gauss(common.cublasHandle, &sol.dog1[common.ngf*common.nco*f1], 
+            tmp.tempn, master.shapfgt, common.ngf, common.npf, (f2-f1)*common.nco, backend);               
+        
+        GetFaceNodes(tmp.tempn, sol.dodg, mesh.facecon, common.npf, common.nco, 
+                common.npe, common.nco, f1, f2, 2, backend);          
+        Node2Gauss(common.cublasHandle, &sol.dog2[common.ngf*common.nco*f1], 
+            tmp.tempn, master.shapfgt, common.ngf, common.npf, (f2-f1)*common.nco, backend);               
+    }       
+}
+
+
 void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
    Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
@@ -701,6 +608,11 @@ void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
         // GetQ(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);
         GetdQ(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);
     }               
+
+    if (common.ncAV>0 && common.frozenAVflag == 0)
+    /// FROM MEETING: MUST MOVE THE VOLUME RESIDUAL AND EVALUATE 0 to common.npe2 if unfrozen for mpi
+        GetdAv(sol, res, app, master, mesh, tmp, common, handle, backend);
+
 
     //TODO: DAE functionality not implemented yet
 
@@ -788,7 +700,9 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         GetdQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
     // TODO: DAE AD Matvec    
 
-    // TODO: artificial viscosity AD Matvec
+    if (common.ncAV>0 && common.frozenAVflag == 0)
+    /// FROM MEETING: MUST MOVE THE VOLUME RESIDUAL AND EVALUATE 0 to common.npe2 if unfrozen for mpi
+        GetdAv(sol, res, app, master, mesh, tmp, common, handle, backend);
     
     if (common.frozenAVflag == 1)
     { // calculate Ru for interface elements
