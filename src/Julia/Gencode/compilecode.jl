@@ -13,6 +13,8 @@ gpucompiler = app.gpucompiler;
 enzyme = app.enzyme;
 cpuflags = app.cpuflags;
 gpuflags = app.gpuflags;
+cpuappflags = app.cpuappflags
+gpuappflags = app.gpuappflags
 
 # current directory
 cdir = pwd();
@@ -51,6 +53,9 @@ if length(cpucompiler)>0
     else
         compilerstr[1] = cpucompiler * " -fPIC -O3 -c opuApp.cpp";
     end    
+    if length(cpuappflags) > 0
+        compilerstr[1] = compilerstr[1] * " " * cpuappflags
+    end
     compilerstr[2] = "ar -rvs opuApp.a opuApp.o";
 else
     compilerstr[1] = "";
@@ -58,11 +63,16 @@ else
 end
 
 if length(gpucompiler)>0
-    compilerstr[3] = gpucompiler * " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
     if (length(enzyme))>0
+        compilerstr[3] = gpucompiler * " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
         compilerstr[3] = compilerstr[3] * " -D _ENZYME -std=c++11 -stdlib=libc++ -Xclang -load -Xclang " * coredir * enzyme;
+    else
+        compilerstr[3] = gpucompiler * " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
     end
-    compilerstr[3] = compilerstr[3] * " --cuda-gpu-arch=sm_60 -lcudart -L/usr/local/cuda-9.0/lib64 -stdlib=libc++ -std=c++11 --cuda-path=/usr/local/cuda-9.0/"
+    # compilerstr[3] = compilerstr[3] * " --cuda-gpu-arch=sm_60 -lcudart -L/usr/local/cuda-9.0/lib64 -stdlib=libc++ -std=c++11 --cuda-path=/usr/local/cuda-9.0/"
+    if length(gpuappflags) > 0
+        compilerstr[3] = compilerstr[3] * " " * gpuappflags
+    end
     compilerstr[4] = "ar -rvs gpuApp.a gpuApp.o";
 else
     compilerstr[3] = "";

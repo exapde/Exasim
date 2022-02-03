@@ -9,6 +9,10 @@ mutable struct PDEStruct
     mpirun::String;      # Path to MPI run command and MPI run options
     cpuflags::String;    # options for CPU compiler
     gpuflags::String;    # options for GGU compiler
+    cpuappflags::String
+    gpuappflags::String
+    cpulibflags::String
+    gpulibflags::String
     model::String;# used to indicate PDE model
     modelfile::String;# PDE model file name
     modelnumber::IntP;
@@ -75,6 +79,7 @@ mutable struct PDEStruct
     compudgavg::IntP; # flag if time-average solution is computed
     extFhat::IntP;
     extUhat::IntP;
+    extStab::IntP;
     saveResNorm::IntP; # option for how the solution be saved: 0 -> u only, 1 -> u and q
 
     time::FloatP; # starting time (usually 0, however >0 if restarting from the saved solution)
@@ -141,6 +146,10 @@ function initializepde(version)
     #pde.cpuflags = "-O2 -Wall -ldl -lm -lblas -llapack";
     pde.cpuflags = "-O2 -ldl -lm -lblas -llapack";
     pde.gpuflags = "-lcudart -lcublas";
+    pde.cpuappflags = ""
+    pde.gpuappflags = ""
+    pde.cpulibflags = ""
+    pde.gpulibflags = ""
     pde.modelfile = "";
     pde.preprocessmode = 1;
     pde.mpiprocs = 1;
@@ -203,6 +212,7 @@ function initializepde(version)
     pde.compudgavg = 0;
     pde.extFhat = 0;
     pde.extUhat = 0;
+    pde.extStab = 0;
     pde.saveResNorm = 0;
 
     pde.time = 0.0;

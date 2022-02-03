@@ -29,7 +29,7 @@ if nmodels==1
 
     # get solution from output files in dataout folder
     sol = Postprocessing.fetchsolution(pde,master,dmd,"dataout");
-    if pde.saveResNorm==1
+    if pde.saveResNorm == 1
         fn = "dataout/out_residualnorms0.bin";
         res = reinterpret(Float64,read(fn));        
         ne = Int64(round(length(res)/4));

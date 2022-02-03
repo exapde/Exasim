@@ -37,7 +37,8 @@ void FbouDriver(dstype *fb, dstype *xg, dstype *udg, dstype * odg, dstype * wdg,
 }
 
 #ifdef HAVE_ENZYME
-void FbouDriver(dstype *fb, dstype *dfb, dstype *xg, dstype *udg, dstype *dudg, dstype * odg, dstype * wdg, dstype *dwdg, dstype *uhg, dstype *duhg, dstype *nl, 
+void FbouDriver(dstype *fb, dstype *dfb, dstype *xg, dstype *udg, dstype *dudg, dstype * odg, dstype *dodg,
+        dstype * wdg, dstype *dwdg, dstype *uhg, dstype *duhg, dstype *nl, 
         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
 {
@@ -54,7 +55,7 @@ void FbouDriver(dstype *fb, dstype *dfb, dstype *xg, dstype *udg, dstype *dudg, 
     /* 3. Compute physical boundary conditions */
 #ifdef HAVE_ONETHREAD             
     if (backend==0) {
-        opuFbouEnzyme(fb, dfb, xg, udg, dudg, odg, wdg, dwdg, uhg, duhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+        opuFbouEnzyme(fb, dfb, xg, udg, dudg, odg, dodg, wdg, dwdg, uhg, duhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                          common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
     }
 #endif              

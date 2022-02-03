@@ -36,21 +36,23 @@ template <typename T> void opuInitwdg(T *udg, T *xdg, T *uinf, T *param, int mod
 template <typename T> void opuInitodg(T *udg, T *xdg, T *uinf, T *param, int modelnumber, int ng, int ncx, int nco, int npe, int ne);
 
 #ifdef HAVE_ENZYME       
-template <typename T> void opuFluxEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uinf, T *param, 
+template <typename T> void opuFluxEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *dodg, T *wdg, T *dwdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void opuSourceEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 // TODO: do the variable names need to be made consisten here...i.e. using nl instead of nlg
 template <typename T> void opuUbouEnzyme(T *f, T *df, T *xg, T *udg, T *dudg,T *odg, T *wdg, T *dwdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, 
         T time, int modelnumber, int ib, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
-template <typename T> void opuFbouEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
+template <typename T> void opuFbouEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *dodg, T *wdg, T *dwdg, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
         T time, int modelnumber, int ib, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void opuFhatEnzyme(T *f, T *df, T *xg, T *udg1, T *dudg1, T *udg2, T *dudg2, 
-        T *odg1, T *odg2,  T *wdg1, T *dwdg1, T *wdg2, T *dwdg2, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
+        T *odg1, T *dodg1, T *odg2, T *dodg2, T *wdg1, T *dwdg1, T *wdg2, T *dwdg2, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void opuStabEnzyme(T *f, T *df, T *xg, T *udg1, T *dudg1, T *udg2, T *dudg2, 
-        T *odg1, T *odg2,  T *wdg1, T *dwdg1, T *wdg2, T *dwdg2, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
+        T *odg1, T *dodg1, T *odg2, T *dodg2, T *wdg1, T *dwdg1, T *wdg2, T *dwdg2, T *uhg, T *duhg, T *nlg, T *tau, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
+template <typename T> void opuAvfieldEnzyme(T *f, T *df, T *xg, T *udg, T *dudg, T *odg, T *wdg, T *dwdg, 
+        T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
 #endif
 
 #endif                

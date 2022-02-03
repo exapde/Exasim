@@ -443,10 +443,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         readarray(in, &tmp,     sol.nsize[2]);    
         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
         ArraySetValue(sol.udg, zero, npe*nc*ne, 0);
-    #ifdef HAVE_ENZYME
-        sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
-        ArraySetValue(sol.dudg, zero, npe*nc*ne, 0);
-    #endif
+
         ArrayInsert(sol.udg, tmp, npe, nc, ne, 0, npe, 0, ncu, 0, ne, 0); 
         sol.nsize[2] = npe*nc*ne;     
         CPUFREE(tmp);
@@ -454,11 +451,6 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     else if (sol.nsize[2] == 0) {
         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
         ArraySetValue(sol.udg, zero, npe*nc*ne, 0);
-
-        #ifdef HAVE_ENZYME
-            sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
-            ArraySetValue(sol.dudg, zero, npe*nc*ne, 0);
-        #endif
         
         if (app.flag[1]==0) { //            
             InituDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);    
@@ -469,16 +461,24 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     else
         error("Input files are incorrect");
-    
+    #ifdef HAVE_ENZYME
+        sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
+        ArraySetValue(sol.dudg, zero, npe*nc*ne, 0);
+    #endif
+
     if ((sol.nsize[3] >0) && (sol.nsize[3] == npe*nco*ne)) {
         readarray(in, &sol.odg, sol.nsize[3]);    
     }
     else if (nco>0) {
-        sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);    
+        sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);
         InitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);       
         sol.nsize[3] = npe*nco*ne;
-    }    
-    
+    } 
+    #ifdef HAVE_ENZYME
+        sol.dodg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);
+        ArraySetValue(sol.dodg, zero, npe*nco*ne, 0);
+    #endif
+
     if ((sol.nsize[4] >0) && (sol.nsize[4] == npe*ncw*ne)) {
         readarray(in, &sol.wdg, sol.nsize[4]);    
     }
