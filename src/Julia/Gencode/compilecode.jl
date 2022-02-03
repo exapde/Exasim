@@ -53,7 +53,9 @@ if length(cpucompiler)>0
     else
         compilerstr[1] = cpucompiler * " -fPIC -O3 -c opuApp.cpp";
     end    
-    compilerstr[1] = compilerstr[1] * " " * cpuappflags
+    if length(cpuappflags) > 0
+        compilerstr[1] = compilerstr[1] * " " * cpuappflags
+    end
     compilerstr[2] = "ar -rvs opuApp.a opuApp.o";
 else
     compilerstr[1] = "";
@@ -62,7 +64,9 @@ end
 
 if length(gpucompiler)>0
     compilerstr[3] = gpucompiler * " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
-    compilerstr[3] = compilerstr[3] * " " * gpuappflags
+    if length(gpuappflags) > 0
+        compilerstr[3] = compilerstr[3] * " " * gpuappflags
+    end
     compilerstr[4] = "ar -rvs gpuApp.a gpuApp.o";
 else
     compilerstr[3] = "";

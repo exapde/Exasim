@@ -7,14 +7,18 @@ cd(coredir);
 
 if length(cpucompiler)>0
     str = cpucompiler * " -fPIC -O3 -c commonCore.cpp"
-    str = str * " " * cpulibflags
+    if length(cpulibflags) > 0
+        str = str * " " * cpulibflags
+    end
     run(string2cmd(str));
 
     str = `ar rvs commonCore.a commonCore.o`;
     run(str);
 
     str = cpucompiler * " -fPIC -O3 -c opuCore.cpp"
-    str = str * " " * cpulibflags
+    if length(cpulibflags)
+        str = str * " " * cpulibflags
+    end
     run(string2cmd(str));
 
     str = `ar rvs opuCore.a opuCore.o`;
@@ -28,7 +32,9 @@ end
 
 if length(gpucompiler)>0
     str = gpucompiler * "-D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuCore.cu";
-    str = str * " " * gpulibflags
+    if length(gpulibflags) > 0
+        str = str * " " * gpulibflags
+    end
     run(string2cmd(str));
     str = `ar rvs gpuCore.a gpuCore.o `;
     run(str);
