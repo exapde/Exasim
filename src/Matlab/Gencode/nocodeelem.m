@@ -21,6 +21,12 @@ stropu = stropu + tmp;
 strcpu = strrep(stropu, "opu", "cpu");
 strgpu = strrep(stropu, "opu", "gpu");
 
+strgpu = strgpu + "\ntemplate <typename T> void __device__ device" + gpufile;
+tmp = "(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw)\n";
+tmp = tmp + "{\n";
+tmp = tmp + "}\n\n";
+strgpu = strgpu + tmp;
+
 fid = fopen(foldername + "/" + opufile + ".cpp", 'w');
 fprintf(fid, char(stropu));
 fclose(fid);

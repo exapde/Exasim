@@ -770,9 +770,17 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         cudaTemplateMalloc(&sol.og1, common.ngf*common.nco*common.nf);    
         cudaTemplateMalloc(&sol.og2, common.ngf*common.nco*common.nf);    
         // #ifdef HAVE_ENZYME
+        // printf("These allocations are happening!!!\n");
         // cudaTemplateMalloc(&sol.dodgg, common.nge*common.nco*common.ne);
+        // CHECK( cudaMemcpy( sol.dodgg, hsol.dodgg, common.nge*common.nco*common.ne*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+
         // cudaTemplateMalloc(&sol.dog1, common.ngf*common.nco*common.nf);    
+        // CHECK( cudaMemcpy( sol.dog1, hsol.dog1, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+
         // cudaTemplateMalloc(&sol.dog2, common.ngf*common.nco*common.nf); 
+        // CHECK( cudaMemcpy( sol.dog2, hsol.dog2, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        // // CHECK( cudaMemcpy( sol.wsrc, hsol.wsrc, N*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        // // CHECK( cudaMemcpy( sol.wsrc, hsol.wsrc, N*sizeof(dstype), cudaMemcpyHostToDevice ) );  
         // #endif
     }
     

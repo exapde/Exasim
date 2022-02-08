@@ -106,7 +106,7 @@ end
 
 if (length(cpuflags)>0) && (length(cpucompiler)>0) && (length(gpucompiler)>0) && (length(gpuflags)>0)
     if (length(enzyme)>0)
-        str1 = cpucompiler * " -std=c++11 -D _ENZYME -D _CUDA " * maindir * "main.cpp " * "-o gpu" * appname * " ";
+        str1 = cpucompiler * " -std=c++11 --stdlib=libc++ -D _ENZYME -D _CUDA " * maindir * "main.cpp " * "-o gpu" * appname * " ";
         str1 = str1 * " -Xclang -load -Xclang " * coredir * enzyme * " ";
     else
         str1 = cpucompiler * " -std=c++11 -D _CUDA " * maindir * "main.cpp " * "-o gpu" * appname * " ";
@@ -154,14 +154,14 @@ if app.platform == "cpu"
         run(string2cmd(compilerstr[6]));
     end
 elseif app.platform == "gpu"
-    println(compilerstr[1])
-    println(compilerstr[2])
-    println(compilerstr[3])
-    println(compilerstr[4])
 
+    println(compilerstr[1])
     run(string2cmd(compilerstr[1]));
+    println(compilerstr[2])
     run(string2cmd(compilerstr[2]));
+    println(compilerstr[3])
     run(string2cmd(compilerstr[3]));
+    println(compilerstr[4])   
     run(string2cmd(compilerstr[4]));
     if app.mpiprocs==1
         println(compilerstr[7])

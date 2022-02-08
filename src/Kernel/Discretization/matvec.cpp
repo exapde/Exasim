@@ -15,11 +15,17 @@ void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstr
     
     Int order = common.matvecOrder;
     dstype epsilon = common.matvecTol;
+        // printf("About to test...\n");
+    // printf("test: %f\n", sol.odgg[0]);
+    // printf("test: %f\n", sol.dodgg[0]);
 #ifdef HAVE_ENZYME
 //TODO: there might be a cleaner way to do this...matvecAD v. matvecFD functions? 
     ArrayInsert(sol.dudg, v, npe, nc, ne, 0, npe, 0, ncu, 0, ne, backend); //insert v into dudgs
     dResidual(sol, res, app, master, mesh, tmp, common, handle, backend);
+        // printf("test: %f\n", sol.udg[0]);
+    // printf("test: %f\n", sol.dudg[0]);
     ArrayAXPBY(w, u, res.dRu, 0.0, 1, N, backend);
+    // error("Stop!");
 #else
     if (order==1) {
         // calculate w = u + epsilon*v

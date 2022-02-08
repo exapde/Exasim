@@ -69,8 +69,9 @@ void FbouDriver(dstype *fb, dstype *dfb, dstype *xg, dstype *udg, dstype *dudg, 
     if (backend==2) {
         // gpuFbou(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                         //  common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
-        gpuFbouEnzyme(fb, dfb, xg, udg, dudg, odg, wdg, dwdg, uhg, duhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+        gpuFbouEnzyme(fb, dfb, xg, udg, dudg, odg, dodg, wdg, dwdg, uhg, duhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                          common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
+        error("Stop in Fbou");
     }
 #endif            
 }

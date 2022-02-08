@@ -100,8 +100,8 @@ for k = 1:nbc
     tmp = tmp + "\t\t\t enzyme_const, ncx,\n";
     tmp = tmp + "\t\t\t enzyme_const, nco,\n";
     tmp = tmp + "\t\t\t enzyme_const, ncw);\n";
+    tmp = tmp + "}\n\n";
 end
-tmp = tmp + "}\n\n";
 
 
 tmp = tmp + "template <typename T> void " + gpufile + "Enzyme";
