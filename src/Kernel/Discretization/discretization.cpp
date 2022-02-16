@@ -124,12 +124,9 @@ void CDiscretization::evalResidual(dstype* Ru, dstype* u, Int backend)
 
     // compute the residual vector R(u)
     Residual(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
-// error("stops");
 
     // copy the residual vector to Ru
     ArrayCopy(Ru, res.Ru, common.ndof1, backend);        
-    // printf("Ru: %f\n", Ru[0]);
-    // error("stop");
 }
 
 // q evaluation

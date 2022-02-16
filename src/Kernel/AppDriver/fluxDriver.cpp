@@ -6,7 +6,6 @@ void FluxDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, me
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
-    // printf("Calling flux driver\n");
     Int nc = common.nc; // number of compoments of (u, q)
     Int ncu = common.ncu;// number of compoments of (u)
     //Int ncq = common.ncq;// number of compoments of (q)
@@ -32,7 +31,6 @@ void FluxDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, me
 #endif            
 #ifdef HAVE_CUDA             
     if (backend==2) {
-        // printf("am i calling this?\n");
         gpuFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
                      common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                        
     }

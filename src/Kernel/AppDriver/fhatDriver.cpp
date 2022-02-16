@@ -133,7 +133,7 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
             // gpuFhatEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, dog1, og2, dog2, wg1, dwg1, wg2, dwg2, uh, duh, 
                 // nl, app.tau, app.uinf, app.physicsparam, 
                 // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
-            error("should not be called");
+            error("Custom Fhat with AD on GPU not implemented yet");
         }
 #endif                            
     }
@@ -173,7 +173,7 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
                     // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
             // opuStabEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, dog1, og2, dog2, wg1, dwg1, wg2, dwg2, uh, duh, nl, app.tau, app.uinf, app.physicsparam, 
                     // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
-            error("should not be called");
+            error("Custom stabilization with AD on GPU not implemented yet");
         }
 #endif                            
     }
