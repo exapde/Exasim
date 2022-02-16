@@ -66,6 +66,7 @@ if length(gpucompiler)>0
     if (length(enzyme))>0
         compilerstr[3] = gpucompiler * " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
         compilerstr[3] = compilerstr[3] * " -D _ENZYME -std=c++11 -stdlib=libc++ -Xclang -load -Xclang " * coredir * enzyme;
+        println("If compiling Enzyme AD for the GPU please add the following to pde.gpuappflags: --cuda-gpu-arch=sm_XX -L/path/to/cuda/lib64 -std=c++11 --cuda-path=/path/to/cuda/")
     else
         compilerstr[3] = gpucompiler * " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
     end
@@ -154,20 +155,13 @@ if app.platform == "cpu"
         run(string2cmd(compilerstr[6]));
     end
 elseif app.platform == "gpu"
-
-    println(compilerstr[1])
     run(string2cmd(compilerstr[1]));
-    println(compilerstr[2])
     run(string2cmd(compilerstr[2]));
-    println(compilerstr[3])
     run(string2cmd(compilerstr[3]));
-    println(compilerstr[4])   
     run(string2cmd(compilerstr[4]));
     if app.mpiprocs==1
-        println(compilerstr[7])
         run(string2cmd(compilerstr[7]));
     else
-        println(compilerstr[8])
         run(string2cmd(compilerstr[8]));
     end
 end

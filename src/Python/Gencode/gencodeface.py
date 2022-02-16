@@ -92,7 +92,7 @@ def gencodeface(filename, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, tim
         tmp = tmp + "\t\t\t enzyme_const, ncx,\n"
         tmp = tmp + "\t\t\t enzyme_const, nco,\n"
         tmp = tmp + "\t\t\t enzyme_const, ncw);\n"
-    tmp = tmp + "}\n\n";
+        tmp = tmp + "}\n\n";
 
     tmp = tmp + "template <typename T> void " + gpufile + "Enzyme";
     if gpufile == "gpuUbou":

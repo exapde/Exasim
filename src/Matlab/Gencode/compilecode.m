@@ -59,6 +59,7 @@ end
 
 if ~isempty(gpucompiler)
     if (~isempty(enzyme))
+        disp("If compiling Enzyme AD for the GPU please add the following to pde.gpuappflags: --cuda-gpu-arch=sm_XX -L/path/to/cuda/lib64 -std=c++11 --cuda-path=/path/to/cuda/");
         compilerstr{3} = gpucompiler + " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
         compilerstr{3} = compilerstr{3} + " -D _ENZYME -std=c++11 -stdlib=libc++ -Xclang -load -Xclang " + coredir + enzyme;
     else
@@ -132,9 +133,6 @@ end
 delete *.a;
 
 if app.platform == "cpu"
-    disp(compilerstr{1});
-    disp(compilerstr{2});
-    disp(compilerstr{5});
     eval(char("!" + compilerstr{1}));
     eval(char("!" + compilerstr{2}));    
     if app.mpiprocs==1
@@ -143,11 +141,6 @@ if app.platform == "cpu"
         eval(char("!" + compilerstr{6}));
     end
 elseif app.platform == "gpu"
-    disp(compilerstr{1});
-    disp(compilerstr{2});
-    disp(compilerstr{3});
-    disp(compilerstr{4});
-    disp(compilerstr{7});
     eval(char("!" + compilerstr{1}));
     eval(char("!" + compilerstr{2}));        
     eval(char("!" + compilerstr{3}));
