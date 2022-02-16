@@ -548,7 +548,7 @@ void devsolstruct(solstruct &dsol, solstruct &sol)
     #ifdef HAVE_ENZYME
     cudaTemplateMalloc(&dsol.dudg, sol.nsize[2]);    
     //cudaTemplateMalloc(&dsol.uh, sol.nsize[3]);    
-    // cudaTemplateMalloc(&dsol.dodg, sol.nsize[3]);          
+    cudaTemplateMalloc(&dsol.dodg, sol.nsize[3]);          
     cudaTemplateMalloc(&dsol.dwdg, sol.nsize[4]);
     #endif          
     
@@ -563,7 +563,7 @@ void devsolstruct(solstruct &dsol, solstruct &sol)
     #ifdef HAVE_ENZYME
     CHECK( cudaMemcpy( dsol.dudg, sol.dudg, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     //CHECK( cudaMemcpy( dsol.uh, sol.uh, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    // CHECK( cudaMemcpy( dsol.dodg, sol.dodg, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
+    CHECK( cudaMemcpy( dsol.dodg, sol.dodg, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     CHECK( cudaMemcpy( dsol.wdg, sol.dwdg, sol.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );  
     #endif
 }
@@ -769,19 +769,16 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         cudaTemplateMalloc(&sol.odgg, common.nge*common.nco*common.ne);
         cudaTemplateMalloc(&sol.og1, common.ngf*common.nco*common.nf);    
         cudaTemplateMalloc(&sol.og2, common.ngf*common.nco*common.nf);    
-        // #ifdef HAVE_ENZYME
-        // printf("These allocations are happening!!!\n");
-        // cudaTemplateMalloc(&sol.dodgg, common.nge*common.nco*common.ne);
-        // CHECK( cudaMemcpy( sol.dodgg, hsol.dodgg, common.nge*common.nco*common.ne*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        #ifdef HAVE_ENZYME
+        cudaTemplateMalloc(&sol.dodgg, common.nge*common.nco*common.ne);
+        CHECK( cudaMemcpy( sol.dodgg, hsol.dodgg, common.nge*common.nco*common.ne*sizeof(dstype), cudaMemcpyHostToDevice ) );  
 
-        // cudaTemplateMalloc(&sol.dog1, common.ngf*common.nco*common.nf);    
-        // CHECK( cudaMemcpy( sol.dog1, hsol.dog1, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        cudaTemplateMalloc(&sol.dog1, common.ngf*common.nco*common.nf);    
+        CHECK( cudaMemcpy( sol.dog1, hsol.dog1, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
 
-        // cudaTemplateMalloc(&sol.dog2, common.ngf*common.nco*common.nf); 
-        // CHECK( cudaMemcpy( sol.dog2, hsol.dog2, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
-        // // CHECK( cudaMemcpy( sol.wsrc, hsol.wsrc, N*sizeof(dstype), cudaMemcpyHostToDevice ) );  
-        // // CHECK( cudaMemcpy( sol.wsrc, hsol.wsrc, N*sizeof(dstype), cudaMemcpyHostToDevice ) );  
-        // #endif
+        cudaTemplateMalloc(&sol.dog2, common.ngf*common.nco*common.nf); 
+        CHECK( cudaMemcpy( sol.dog2, hsol.dog2, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        #endif
     }
     
     if (common.mpiRank==0) 

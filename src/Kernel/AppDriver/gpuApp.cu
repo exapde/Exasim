@@ -1,6 +1,13 @@
 #ifndef __GPUAPP
 #define __GPUAPP
 
+// If getting unexpected NaNs when compiling with Enzyme, consider running the script
+//      sed -i 's/sqrt/halfpow/g' *.cu
+// in the app folder. At the time of this pull request, sqrt(x) will return 0 when compiled with Enzyme, but powf(x, 0.5) works as expected.
+
+template <typename T> __device__ T halfpow(T x){
+        return powf(x, 0.5);
+}
 #ifdef _ENZYME
 
 ///// Flux and source
