@@ -1,6 +1,6 @@
 include("findinstallexec.jl");
 
-version = "Version0.1";
+version = "src";
 
 if Sys.isapple()
     brewstatus0 = Sys.which("brew");

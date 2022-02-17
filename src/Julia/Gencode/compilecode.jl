@@ -14,6 +14,8 @@ enzyme = app.enzyme;
 cpuflags = app.cpuflags;
 gpuflags = app.gpuflags;
 mutationflag = app.mutationflag
+cpuappflags = app.cpuappflags
+gpuappflags = app.gpuappflags
 
 # current directory
 cdir = pwd();
@@ -66,6 +68,9 @@ if length(cpucompiler)>0
     if mutationflag == 1
         compilerstr[1] = compilerstr[1] * mutationinclude
     end
+    if length(cpuappflags) > 0
+        compilerstr[1] = compilerstr[1] * " " * cpuappflags
+    end
     compilerstr[2] = "ar -rvs opuApp.a opuApp.o";
 else
     compilerstr[1] = "";
@@ -74,6 +79,9 @@ end
 
 if length(gpucompiler)>0
     compilerstr[3] = gpucompiler * " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
+    if length(gpuappflags) > 0
+        compilerstr[3] = compilerstr[3] * " " * gpuappflags
+    end
     compilerstr[4] = "ar -rvs gpuApp.a gpuApp.o";
 else
     compilerstr[3] = "";
@@ -98,7 +106,11 @@ if (length(cpuflags)>0) && (length(cpucompiler)>0)
 end
 
 if (length(cpuflags)>0) && (length(mpicompiler)>0)
-    str1 = mpicompiler * " -std=c++11 -D _MPI " * maindir * "main.cpp " * "-o mpi" * appname * " ";
+    if (length(enzyme)>0)
+        str1 = mpicompiler * " -std=c++11 -D _ENZYME -D _MPI " * maindir * "main.cpp " * "-o mpi" * appname * " ";
+    else
+        str1 = mpicompiler * " -std=c++11 -D _MPI " * maindir * "main.cpp " * "-o mpi" * appname * " ";
+    end
     str2 = coredir * "commonCore.a " * coredir * "opuCore.a " * "opuApp.a ";
     str3 = cpuflags;
     compilerstr[6] = str1 * str2 * str3;

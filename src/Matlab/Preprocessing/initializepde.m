@@ -17,6 +17,10 @@ pde.appname = "app";
 pde.platform = "cpu";
 pde.cpuflags = "-O2 -ldl -lm -lblas -llapack";
 pde.gpuflags = "-lcudart -lcublas";
+pde.cpuappflags = "";
+pde.gpuappflags = "";
+pde.cpulibflags = "";
+pde.gpulibflags = "";
 pde.pdemodel="ModelD";
 pde.modelnumber = 0;
 

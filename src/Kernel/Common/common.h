@@ -624,10 +624,16 @@ struct solstruct {
     dstype *sdg=NULL; // source term due to the previous solution
     dstype *odg=NULL; // auxilary term 
     dstype *wdg=NULL; // dw/dt = u (wave problem)
-    dstype *dudg=NULL; // solution (du, dq, dp) 
-    dstype *dwdg=NULL; // dw/dt = u (wave problem)
     dstype *uh=NULL;  // uhat  
-    dstype *duh=NULL; // duhat
+    // #ifdef HAVE_ENZYME
+        dstype *dudg=NULL; // solution (du, dq, dp) 
+        dstype *dwdg=NULL; // dw/dt = u (wave problem)
+        dstype *duh=NULL; // duhat
+        dstype *dodg=NULL;
+        dstype *dodgg=NULL;
+        dstype *dog1=NULL;
+        dstype *dog2=NULL;
+    // #endif
     dstype *elemg=NULL;
     dstype *faceg=NULL;    
     //dstype *udgg=NULL;
@@ -655,6 +661,10 @@ struct solstruct {
             CPUFREE(dudg); // solution (u, q, p) 
             CPUFREE(dwdg); // wave problem
             CPUFREE(duh);
+            CPUFREE(dodg);
+            CPUFREE(dodgg);
+            CPUFREE(dog1);
+            CPUFREE(dog2);
 #endif            
             CPUFREE(uh);  // uhat      
             CPUFREE(elemg); 
@@ -683,6 +693,10 @@ struct solstruct {
             GPUFREE(dudg); // solution (u, q, p) 
             GPUFREE(dwdg); // wave problem
             GPUFREE(duh);
+            GPUFREE(dodg);
+            GPUFREE(dodgg);
+            GPUFREE(dog1);
+            GPUFREE(dog2);
 #endif                        
             GPUFREE(uh);  // uhat          
             GPUFREE(elemg); 

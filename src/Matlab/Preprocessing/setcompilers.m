@@ -110,6 +110,8 @@ coredir = mdir(1:(ii+5)) + "/lib";
 
 cpulib = 0;
 gpulib = 0;
+cpulibflags = app.cpulibflags;
+gpulibflags = app.gpulibflags;
 if ismac    
     if (exist(coredir + "/Mac/commonCore.a", 'file') == 2) && (exist(coredir + "/Mac/opuCore.a", 'file') == 2)
         cpulib = 1;
@@ -135,13 +137,13 @@ end
 
 if cpulib==0    
     disp("Generating CPU core libraries.");
-    genlib(app.cpucompiler, [], coredir);
+    genlib(app.cpucompiler, [], coredir, cpulibflags);
 end
 
 if gpulib==0        
     if (~isempty(app.gpucompiler)) && (app.platform == "gpu")
         disp("Generating GPU core library.");
-        genlib([], app.gpucompiler, coredir);
+        genlib([], app.gpucompiler, coredir, cpulibflags, gpulibflags);
     end
 end
 
