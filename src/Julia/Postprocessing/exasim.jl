@@ -5,7 +5,6 @@ if isa(pde, Array)
 else
     nmodels = 1;   
 end
-
 res = []
 if nmodels==1
     # search compilers and set options

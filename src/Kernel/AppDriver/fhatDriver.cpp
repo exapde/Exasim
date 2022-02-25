@@ -128,8 +128,12 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
 #endif            
 #ifdef HAVE_CUDA                             
         if (backend==2) {
-            gpuFhatEnzyme(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
-                    time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            // gpuFhat(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
+                    // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            // gpuFhatEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, dog1, og2, dog2, wg1, dwg1, wg2, dwg2, uh, duh, 
+                // nl, app.tau, app.uinf, app.physicsparam, 
+                // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            error("Custom Fhat with AD on GPU not implemented yet");
         }
 #endif                            
     }
@@ -165,8 +169,11 @@ void FhatDriver(dstype *fg, dstype *dfg, dstype *xg, dstype *ug1, dstype *dug1, 
 #endif            
 #ifdef HAVE_CUDA                             
         if (backend==2) {
-            gpuStabEnzyme(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
-                    time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            // gpuStab(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
+                    // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            // opuStabEnzyme(fg, dfg, xg, ug1, dug1, ug2, dug2, og1, dog1, og2, dog2, wg1, dwg1, wg2, dwg2, uh, duh, nl, app.tau, app.uinf, app.physicsparam, 
+                    // time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            error("Custom stabilization with AD on GPU not implemented yet");
         }
 #endif                            
     }

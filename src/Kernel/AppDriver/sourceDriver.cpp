@@ -75,7 +75,7 @@ void SourceDriver(dstype *f, dstype *df, dstype *xg, dstype *udg, dstype *dudg, 
 #ifdef HAVE_CUDA             
     if (backend==2) {
         gpuSourceEnzyme(f, df, xg, udg, dudg, odg, wdg, dwdg, app.uinf, app.physicsparam, time, 
-                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
+                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                  
     }
 #endif           
 }

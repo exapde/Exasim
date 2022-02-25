@@ -67,7 +67,7 @@ void FbouDriver(dstype *fb, dstype *dfb, dstype *xg, dstype *udg, dstype *dudg, 
 #endif            
 #ifdef HAVE_CUDA                     
     if (backend==2) {
-        gpuFbouEnzyme(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+        gpuFbouEnzyme(fb, dfb, xg, udg, dudg, odg, dodg, wdg, dwdg, uhg, duhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                          common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
     }
 #endif            

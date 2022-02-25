@@ -75,8 +75,8 @@ void FluxDriver(dstype *f, dstype *df, dstype *xg, dstype *udg, dstype *dudg, ds
 #endif            
 #ifdef HAVE_CUDA             
     if (backend==2) {
-        gpuFluxEnzyme(f, df, xg, udg, dudg, odg, wdg, dwdg, app.uinf, app.physicsparam, time, 
-                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
+        gpuFluxEnzyme(f, df, xg, udg, dudg, odg, dodg, wdg, dwdg, app.uinf, app.physicsparam, time, 
+                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);               
     }
 #endif           
 }

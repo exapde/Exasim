@@ -618,10 +618,10 @@ void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 
     // Element integrals
     dRuElem(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
-                    
+
     // Face integrals
     dRuFace(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
-        
+
     Int e1 = common.eblks[3*nbe1u]-1;    
     Int e2 = common.eblks[3*(nbe2u-1)+1];    
     

@@ -58,7 +58,13 @@ if ~isempty(cpucompiler)
 end
 
 if ~isempty(gpucompiler)
-    compilerstr{3} = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' -w gpuApp.cu";
+    if (~isempty(enzyme))
+        disp("If compiling Enzyme AD for the GPU please add the following to pde.gpuappflags: --cuda-gpu-arch=sm_XX -L/path/to/cuda/lib64 -std=c++11 --cuda-path=/path/to/cuda/");
+        compilerstr{3} = gpucompiler + " -D _FORCE_INLINES -O3 -c -fPIC gpuApp.cu";
+        compilerstr{3} = compilerstr{3} + " -D _ENZYME -std=c++11 -stdlib=libc++ -Xclang -load -Xclang " + coredir + enzyme;
+    else
+        compilerstr{3} = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' -w gpuApp.cu";
+    end
     compilerstr{3} = compilerstr{3} + " " + gpuappflags;
     compilerstr{4} = "ar -rvs gpuApp.a gpuApp.o";
 end
@@ -87,7 +93,12 @@ if (~isempty(cpuflags)) && (~isempty(mpicompiler)>0)
 end
 
 if (~isempty(cpuflags)>0) && (~isempty(cpucompiler)>0) && (~isempty(gpucompiler)>0) && (~isempty(gpuflags)>0)
-    str1 = cpucompiler + " -std=c++11 -D _CUDA " + maindir + "main.cpp " + "-o gpu" + appname + " ";
+    if (~isempty(enzyme))
+        str1 = cpucompiler + " -std=c++11 --stdlib=libc++ -D _ENZYME -D _CUDA " + maindir + "main.cpp " + "-o gpu" + appname + " ";
+        str1 = str1 + " -Xclang -load -Xclang " + coredir + enzyme + " ";
+    else
+        str1 = cpucompiler + " -std=c++11 -D _CUDA " + maindir + "main.cpp " + "-o gpu" + appname + " ";
+    end
     str2 = coredir + "commonCore.a " + coredir + "gpuCore.a " + coredir + "opuCore.a opuApp.a gpuApp.a ";
     str3 = cpuflags + " " + gpuflags;
     compilerstr{7} = str1 + str2 + str3;
