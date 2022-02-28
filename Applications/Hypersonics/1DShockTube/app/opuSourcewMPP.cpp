@@ -19,13 +19,19 @@ template <typename T> void opuSourcew(T *f, T *xdg, T *udg, T *odg, T *wdg, T *u
 		T wdg6 = wdg[j+npe*5+npe*ncw*k];
 
 		int nspecies = 5;
-		double rhovec[5] = {udg1, udg2, udg3, udg4, udg5};
+		T rho_inf = 0.0085;
+		T u_inf = 542.0;
+		T rhoe_inf = rho_inf * u_inf * u_inf;
+		double rhovec[5] = {abs(udg1*rho_inf), abs(udg2*rho_inf), abs(udg3*rho_inf), abs(udg4*rho_inf), abs(udg5*rho_inf)};
+
+		// double rhovec[5] = {udg1, udg2, udg3, udg4, udg5};
 		double wdot[5];
 		double rhoe = abs(udg7-(udg6*udg6)*(udg1/2.0+udg2/2.0+udg3/2.0+udg4/2.0+udg5/2.0)*1.0/pow(udg1+udg2+udg3+udg4+udg5,2.0));
 		// std::cout << rhoe << std::endl;
 		// if (rhoe < 0){
 		// 	std::cout << xdg1 << std::endl;
 		// }
+		rhoe = rhoe * rhoe_inf;
 		mix->setState(rhovec, &rhoe, 0);
 		mix->netProductionRates(wdot);
 		for (int ispecies = 0; ispecies < nspecies; ispecies++ )

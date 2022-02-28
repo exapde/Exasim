@@ -82,10 +82,16 @@ template <typename T> void opuInitwdg(T *f, T *xdg, T *uinf, T *param, int model
 		T udg6 = t7+t14+t17*(t7-t14);
 		T udg7 = t8+t15+t17*(t8-t15);
 		int nspecies = 5;
-		double rhovec[5] = {udg1, udg2, udg3, udg4, udg5};
+		T rho_inf = 0.0085;
+		T u_inf = 542.0;
+		T rhoe_inf = rho_inf * u_inf * u_inf;
+		double rhovec[5] = {udg1*rho_inf, udg2*rho_inf, udg3*rho_inf, udg4*rho_inf, udg5*rho_inf};
+
+		// double rhovec[5] = {udg1, udg2, udg3, udg4, udg5};
 		double wdot[5];
 		double rhoe = udg7-(udg6*udg6)*(udg1/2.0+udg2/2.0+udg3/2.0+udg4/2.0+udg5/2.0)*1.0/pow(udg1+udg2+udg3+udg4+udg5,2.0);
 		// std::cout << rhoe << std::endl;
+		rhoe = rhoe * rhoe_inf;
 		mix->setState(rhovec, &rhoe, 0);
 		mix->netProductionRates(wdot);
 		for (int ispecies = 0; ispecies < nspecies; ispecies++ )
