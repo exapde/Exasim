@@ -96,9 +96,9 @@ template <typename T> void opuInitwdg(T *f, T *xdg, T *uinf, T *param, int model
 		mix->netProductionRates(wdot);
 		for (int ispecies = 0; ispecies < nspecies; ispecies++ )
 		{
-			f[j+npe*ispecies+npe*nce*k] = wdot[ispecies];
+			f[j+npe*ispecies+npe*nce*k] = wdot[ispecies]/(rho_inf*u_inf);
 		}
-		f[j+npe*nspecies+npe*nce*k] = mix->P();
+		f[j+npe*nspecies+npe*nce*k] = mix->P()/rhoe_inf;
 
 	}
 }

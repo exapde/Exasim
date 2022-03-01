@@ -22,23 +22,25 @@ template <typename T> void opuSourcew(T *f, T *xdg, T *udg, T *odg, T *wdg, T *u
 		T rho_inf = 0.0085;
 		T u_inf = 542.0;
 		T rhoe_inf = rho_inf * u_inf * u_inf;
-		double rhovec[5] = {abs(udg1*rho_inf), abs(udg2*rho_inf), abs(udg3*rho_inf), abs(udg4*rho_inf), abs(udg5*rho_inf)};
+		double rhovec[5] = {udg1*rho_inf, udg2*rho_inf, udg3*rho_inf, udg4*rho_inf, udg5*rho_inf};
 
 		// double rhovec[5] = {udg1, udg2, udg3, udg4, udg5};
 		double wdot[5];
 		double rhoe = abs(udg7-(udg6*udg6)*(udg1/2.0+udg2/2.0+udg3/2.0+udg4/2.0+udg5/2.0)*1.0/pow(udg1+udg2+udg3+udg4+udg5,2.0));
 		// std::cout << rhoe << std::endl;
 		// if (rhoe < 0){
-		// 	std::cout << xdg1 << std::endl;
+			// std::cout << xdg1 << std::endl;
 		// }
 		rhoe = rhoe * rhoe_inf;
+		rhoe = fmax(rhoe,200.0);
+		// std::cout << rhoe << std::endl;
 		mix->setState(rhovec, &rhoe, 0);
 		mix->netProductionRates(wdot);
 		for (int ispecies = 0; ispecies < nspecies; ispecies++ )
 		{
-			f[j+npe*ispecies+npe*nce*k] = wdot[ispecies];
+			f[j+npe*ispecies+npe*nce*k] = wdot[ispecies]/(rho_inf*u_inf);
 		}
-		f[j+npe*nspecies+npe*nce*k] = mix->P();
+		f[j+npe*nspecies+npe*nce*k] = mix->P()/rhoe_inf;
 	}
 }
 

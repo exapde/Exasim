@@ -29,11 +29,11 @@ template <typename T> void opuSource(T *f, T *xdg, T *udg, T *odg, T *wdg, T *ui
 		mix->setState(rhovec, &rhoe, 0);
 		mix->netProductionRates(wdot);
 
-		f[0*ng+i] = wdot[0]/rho_inf;
-		f[1*ng+i] = wdot[1]/rho_inf;
-		f[2*ng+i] = wdot[2]/rho_inf;
-		f[3*ng+i] = wdot[3]/rho_inf;
-		f[4*ng+i] = wdot[4]/rho_inf;
+		f[0*ng+i] = wdot[0];
+		f[1*ng+i] = wdot[1];
+		f[2*ng+i] = wdot[2];
+		f[3*ng+i] = wdot[3];
+		f[4*ng+i] = wdot[4];
 		f[5*ng+i] = 0.0;
 		f[6*ng+i] = 0.0;
 	}

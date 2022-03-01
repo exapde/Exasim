@@ -18,7 +18,7 @@ template <typename T> void opuFlux(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uinf
 		rhoe = rhoe * rho_inf * u_inf * u_inf;
 		mix->setState(rhovec, &rhoe, 0);
 
-		T wdg6 = mix->P() /  (rho_inf * u_inf * u_inf);
+		T wdg6 = mix->P();
 		T t2 = udg1+udg2+udg3+udg4+udg5;
 		T t3 = 1.0/t2;
 		f[0*ng+i] = t3*udg1*udg6;
