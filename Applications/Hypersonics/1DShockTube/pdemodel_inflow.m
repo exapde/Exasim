@@ -42,7 +42,7 @@ function f = flux(u, q, w, v, x, t, mu, eta)
     u_inf = 542.0;
     rhoe_inf = rho_inf * u_inf^2;
 
-    p = w(nspecies + 1)/rhoe_inf; %pressure
+    p = w(nspecies + 1); %pressure
 
     H = E+p*rhoinv; %enthalpy
 
@@ -91,7 +91,7 @@ function s = source(u, q, w, v, x, t, mu, eta)
 
     % Sources
     for ispecies = 1:nspecies
-        s(ispecies) = omega_i(ispecies)/rho_inf;
+        s(ispecies) = omega_i(ispecies);
     end
 end
 
@@ -120,9 +120,9 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
     f = flux(u, q, w, v, x, t, mu, eta);
     finflow = flux(mu(8:14), q, w, v, x, t, mu, eta);
-    fb(:,1) = finflow*n(1) + tau.*(mu(8:14)-uhat);
+    fb(:,1) = finflow*n(1) + tau(1)*(mu(8:14)-uhat);
 %     fb(:,1) = f*n(1) + tau.*(u-uhat);
-    fb(:,2) = f*n(1) + tau.*(u-uhat);
+    fb(:,2) = f*n(1) + tau(1)*(u-uhat);
 end
 
 function u0 = initu(x, mu, eta)
