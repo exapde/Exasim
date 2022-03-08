@@ -38,9 +38,8 @@ function f = flux(u, q, w, v, x, t, mu, eta)
     E = rhoE*rhoinv; %energy
 
     % Mutation outputs
-	rho_inf = 0.0085;
-    u_inf = 542.0;
-    rhoe_inf = rho_inf * u_inf^2;
+	rho_inf = eta(1);
+    u_inf = eta(2);
 
     p = w(nspecies + 1); %pressure
 
@@ -85,7 +84,7 @@ function s = source(u, q, w, v, x, t, mu, eta)
 % 
 %     H = E+p*rhoinv; %enthalpy
 
-    rho_inf = 0.0085;
+%     rho_inf = 0.0085;
 %     u_inf = 542.0;
 %     rhoe_inf = rho_inf * u_inf^2;
 
@@ -98,7 +97,7 @@ end
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     nspecies = 5;
     ub = sym(zeros(nspecies+2, 2));
-
+%     [rho_pre, rhou_pre, rhoE_pre, rho_post, rhou_postshock, rhoE_post]
 %     rhoL = mu(1:nspecies);
 %     rhouL = mu(nspecies+1);
 %     rhoEL = mu(nspecies+2);
@@ -109,9 +108,11 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
 %     ub(:,1) = [rhoL(:); rhouL; rhoEL];
     
-    ub(:,1) = mu(8:14);
+%     ub(:,1) = mu(8:14);
+    ub(:,1) = mu(1:nspecies+2);
 %     ub(:,1) = u(:);
-    ub(:,2) = u(:);
+    p_outflow = mu(nspecies+3);
+    ub(:,2) = [u(1:nspecies);u(nspecies+1);p_outflow];
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
@@ -119,25 +120,28 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fb = sym(zeros(nspecies+2, 2));
 
     f = flux(u, q, w, v, x, t, mu, eta);
-    finflow = flux(mu(8:14), q, w, v, x, t, mu, eta);
-    fb(:,1) = finflow*n(1) + tau(1)*(mu(8:14)-uhat);
-%     fb(:,1) = f*n(1) + tau.*(u-uhat);
+
+    uinflow = mu(1:nspecies+2);
+    finflow = flux(uinflow, q, w, v, x, t, mu, eta);
+%     fb(:,1) = finflow*n(1) + tau(1)*(uinflow-uhat);
+    fb(:,1) = f*n(1) + tau(1)*(u-uhat);
     fb(:,2) = f*n(1) + tau(1)*(u-uhat);
 end
 
 function u0 = initu(x, mu, eta)
     % To be manually modified
     nspecies = 5;
-    u0 = sym(zeros(nspecies+2,1));
-
-    rho_pre = mu(1:nspecies);
-    rhou_pre = mu(nspecies+1);
-    rhoE_pre = mu(nspecies+2);
-
-    rho_post = mu(nspecies+3:2*nspecies+2);
-    rhou_post = mu(2*nspecies+3);
-    rhoE_post = mu(2*nspecies+4);
-    u0 = mu(1:nspecies + 2);
+%     u0 = sym(zeros(nspecies+2,1));
+% 
+%     rho_pre = mu(1:nspecies);
+%     rhou_pre = mu(nspecies+1);
+%     rhoE_pre = mu(nspecies+2);
+% 
+%     rho_post = mu(nspecies+3:2*nspecies+2);
+%     rhou_post = mu(2*nspecies+3);
+%     rhoE_post = mu(2*nspecies+4);
+%     u0 = mu(nspecies + 3:2*nspecies + 2);
+    u0 = mu(1:nspecies+2);
 %     for i = 1:nspecies
 %         u0(i) = smoothstep(x, rho_post(i), rho_pre(i), 1/1000);
 %     end

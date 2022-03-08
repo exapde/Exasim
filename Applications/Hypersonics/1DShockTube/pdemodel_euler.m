@@ -19,165 +19,81 @@ function f = flux(u, q, w, v, x, t, mu, eta)
     nspecies = 1;
 
     f = sym(zeros(nspecies + 2,1));
-    rho_i = sym(zeros(1,1));
-    rho = sym(0);
-
-    % Conservative Variables
-    for ispecies = 1:nspecies
-        rho_i(ispecies) = u(ispecies); %subspecies density
-        rho = rho + rho_i(ispecies); %total mixture density
-    end
-
-    rhou = u(nspecies+1);
-    rhoE = u(nspecies+2);
+    
+    rho = u(1);
+    rhou = u(2);
+    rhoE = u(3);
 
     rhoinv = 1.0 / rho;
-    u = rhou * rhoinv; %velocity
+    uv = rhou * rhoinv; %velocity
     E = rhoE * rhoinv; %energy
 
-    % Mutation outputs
-
-%     p = w(nspecies + 1); %pressure
     gamma = 1.4;
     gammam1 = gamma-1;
-    p = gammam1 * (rhoE - 0.5 * rho * u^2);
+    p = gammam1 * (rhoE - 0.5 * rho * uv^2);
     H = E+p*rhoinv; %enthalpy
 
-    % Fluxes
-    for ispecies = 1:nspecies
-        f(ispecies) = rho_i(ispecies) * u;
-    end
-    f(nspecies + 1) = rhou * u + p;
+    f(1) = rhou;
+    f(nspecies + 1) = rhou * uv + p;
     f(nspecies + 2) = rhou * H;
-%     f(nspecies + 2) = (rhoE + p)*u;
 end
 
 function s = source(u, q, w, v, x, t, mu, eta)
-    
     nspecies = 1;
-
     s = sym(zeros(nspecies + 2,1));
-%     omega_i = sym(zeros(nspecies,1));
-%     rho_i = sym(zeros(5,1));
-%     rho = 0;
-% 
-%     % Conservative Variables
-%     for ispecies = 1:nspecies
-%         rho_i(ispecies) = u(ispecies); %subspecies density
-%         rho = rho + rho_i(ispecies); %total mixture density
-%     end
-% 
-%     rhou = u(nspecies+1);
-%     rhoE = u(nspecies+2);
-% 
-%     rhoinv = 1/ rho;
-%     u = rhou * rhoinv; %velocity
-%     E = rhoE*rhoinv; %energy
-% 
-%     % Mutation outputs
-%     for ispecies = 1:nspecies
-%         omega_i(ispecies) = w(ispecies);
-%     end
-%     p = w(nspecies + 1); %pressure
-% 
-%     H = E+p*rhoinv; %enthalpy
-% 
-%     % Sources
-%     for ispecies = 1:nspecies
-%         s(ispecies) = omega_i(ispecies);
-%     end
 end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     nspecies = 1;
     ub = sym(zeros(nspecies+2, 2));
 
-%     rhoL = mu(1:nspecies);
-%     rhouL = mu(nspecies+1);
-%     rhoEL = mu(nspecies+2);
-% 
-%     rho_post = mu(nspecies+3:2*nspecies+2);
-%     rhou_post = mu(2*nspecies+3);
-%     rhoE_post = mu(2*nspecies+4);
+    uin = uinflow(u, mu, eta);
+    ub(:,1) = uin;
 
-%     ub(:,1) = [rhoL(:); rhouL; rhoEL];
-    
-%     ub(:,1) = mu(8:14);
-%     rho_post = mu(nspecies + 3: 2*nspecies + 2);
-%     rhou_post = mu(2*nspecies + 3);
-%     rhoE_post = mu(2*nspecies + 4);
-    ub(:,1) = mu(nspecies + 3: 2*nspecies + 4);
-%     ub(:,1) = u(:);
-    ub(:,2) = u(:);
-end
+    uout = uoutflow(u, mu, eta);
+    ub(:,2) = uout;
+end  
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     nspecies = 1;
     fb = sym(zeros(nspecies+2, 2));
 
-    f = flux(u, q, w, v, x, t, mu, eta);
-    uinflow = mu(nspecies + 3: 2*nspecies + 4);
-    finflow = flux(uinflow, q, w, v, x, t, mu, eta);
-    fb(:,1) = finflow*n(1) + tau(1)*(uinflow-uhat);
-%     fb(:,1) = f*n(1) + tau.*(u-uhat);
-    fb(:,2) = f*n(1) + tau(1)*(u-uhat);
+    uin = uinflow(u, mu, eta);
+    fin = flux(uin, q, w, v, x, t, mu, eta);
+    fb(:,1) = fin *n(1) + tau(1)*(uin-uhat); 
+
+    uout = uoutflow(u, mu, eta);
+    fout = flux(uout, q, w, v, x, t, mu, eta);
+    fb(:,2) = fout*n(1) + tau(1)*(uout-uhat);
 end
 
 function u0 = initu(x, mu, eta)
-    % To be manually modified
     nspecies = 1;
-    u0 = sym(zeros(nspecies+2,1));
-
-    rho_pre = mu(1:nspecies);
-    rhou_pre = mu(nspecies+1);
-    rhoE_pre = mu(nspecies+2);
-
-    rho_post = mu(nspecies+3:2*nspecies+2);
-    rhou_post = mu(2*nspecies+3);
-    rhoE_post = mu(2*nspecies+4);
-    u0 = mu(1:nspecies+2);
-%     for i = 1:nspecies
-%         u0(i) = smoothstep(x, rho_post(i), rho_pre(i), 1/1000);
-%     end
-%     u0(1) = smoothstep_up(x, rho_post(1), rho_pre(1), 1/1000);
-%     u0(2) = smoothstep_up(x, rho_post(2), rho_pre(2), 1/100);
-%     u0(3) = smoothstep_up(x, rho_post(3), rho_pre(3), 1/100);
-%     u0(4) = smoothstep_down(x, rho_post(4), rho_pre(4), 1/100);
-%     u0(5) = smoothstep_down(x, rho_post(5), rho_pre(5), 1/100);
-%     u0(nspecies+1) = smoothstep_down(x, rhou_post, rhou_pre, 1/1000);
-%     u0(nspecies+2) = smoothstep_down(x, rhoE_post, rhoE_pre, 1/1000);
-%     u0 = [rhoL(:) + rhoR(:); rhouL + rhouR; rhoEL + rhoER];
+    u0 = uinflow(mu,mu,eta);
+%     u0 = uoutflow(mu,mu,eta);
 end
 
-% function sw = sourcew(u, q, w, v, x, t, mu, eta)
-%     nspecies = 5;
-% 
-%     sw = sym(zeros(nspecies + 2,1));
-%     rho_i = sym(zeros(5,1));
-%     rho = sym(0);
-% 
-%     % Conservative Variables
-%     for ispecies = 1:nspecies
-%         rho_i(ispecies) = u(ispecies); %subspecies density
-%         rho = rho + rho_i(ispecies); %total mixture density
-%     end
-% 
-%     rhou = u(nspecies+1);
-%     rhoE = u(nspecies+2);
-% 
-%     rhoinv = 1.0 / rho;
-%     u = rhou * rhoinv; %velocity
-%     E = rhoE*rhoinv; %energy
-% 
-%     % Mutation inputs
-%     rhoe = rhoE - 0.5 * rho * u^2;
-%     for i = 1:nspecies
-%         sw(i) = rho_i(i);
-%     end
-%     sw(nspecies + 1) = rhoe;
-% end
-% 
-% function w0 = initw(x, mu, eta)
-%     nspecies = 5;
-%     w0 = sym(zeros(nspecies + 1,1));
-% end
+function uin = uinflow(u, mu, eta)
+    nspecies = 1;
+
+    rho = mu(1);
+    rhou = mu(2);
+    rhoE = mu(3);
+    uin = [rho; rhou; rhoE];
+end
+
+function uout = uoutflow(u, mu, eta)
+    nspecies = 1;
+
+    gamma = 1.4;
+    gammam1 = gamma-1;
+    p = eta(3);
+
+    rho = u(1);
+    rhou = u(2);
+    rhoinv = 1/rho;
+    uv = rhou * rhoinv;
+
+    rhoE = p/gammam1 + 0.5 * rho * uv^2;
+    uout = [rho; rhou; rhoE];
+end

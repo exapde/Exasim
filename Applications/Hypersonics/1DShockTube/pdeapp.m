@@ -29,9 +29,9 @@ pde.mpiprocs = 1;              % number of MPI processors
 pde.porder = 1;          % polynomial degree
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-nt = 2e5;
-pde.dt = 1e-7*ones(1,nt);   % time step sizes
-pde.saveSolFreq = nt/10;
+nt = 1e2;
+pde.dt = 1e-6*ones(1,nt);   % time step sizes
+pde.saveSolFreq = nt/100;
 % pde.soltime = 1:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
 
 %Solver params
@@ -48,24 +48,31 @@ pde.RBdim = 5;
 % rhoR = [0 0 0.00691678 0.00183864 0];
 % rhouR = 4.74544;
 % rhoER = 72810.4;
-rho_pre = [0 0 0 0.000911061 0.000242181 ];
-rhou_pre = 4.61296;
-rhoE_pre = 9128.09;
+% rho_pre = [0 0 0 0.000911061 0.000242181 ];
+% rhou_pre = 4.61296;
+% rhoE_pre = 9128.09;
 
-rho_post = [0 0 0 0.00672992 0.00178897 ];
-rhou_post = 4.61724;
-rhoE_post = 52157.2;
+p_outflow = 16894.1;
+
+% rho_post = [0 0 0 0.00672992 0.00178897 ];
+rho_post = [0 0 0 0.00655326 0.00199076 ];
+rhou_post = 4.63086;
+rhoE_post = 52267.1;
 
 rho_inf = sum(rho_post);
 u_inf = rhou_post/rho_inf;
 
 % pde.physicsparam = [rho_pre(:)', rhou_pre, rhoE_pre, rho_post(:)', rhou_post, rhoE_post];
-pde.physicsparam = [rho_pre(:)'/rho_inf,...
-                    rhou_pre/(rho_inf * u_inf),...
-                    rhoE_pre/(rho_inf * u_inf * u_inf),...
-                    rho_post(:)'/rho_inf,...
+% pde.physicsparam = [rho_pre(:)'/rho_inf,...
+%                     rhou_pre/(rho_inf * u_inf),...
+%                     rhoE_pre/(rho_inf * u_inf * u_inf),...
+%                     rho_post(:)'/rho_inf,...
+%                     rhou_post/(rho_inf*u_inf),...
+%                     rhoE_post/(rho_inf * u_inf * u_inf)];
+pde.physicsparam = [rho_post(:)'/rho_inf,...
                     rhou_post/(rho_inf*u_inf),...
-                    rhoE_post/(rho_inf * u_inf * u_inf)];
+                    rhoE_post/(rho_inf * u_inf * u_inf),...
+                    p_outflow/(rho_inf * u_inf * u_inf)];
 
 pde.externalparam = [rho_inf, u_inf];
 % pde.physicsparam = [rhoL(:)', rhouL, rhoEL,    rhoR(:)',  rhouR,  rhoER];
@@ -75,12 +82,13 @@ pde.tau = 2;
 pde.dae_alpha = 0;
 pde.dae_beta = 1;
 % create a grid of 8 by 8 on the unit square
-nDiv = 2^8;
+% nDiv = 2^10;
+nDiv = 1200;
 
 [mesh.p,mesh.t] = linemesh(nDiv-1);
-a = 0; b = 2;
+a = 0; b = 1;
 mesh.p = a + (b-a)*mesh.p;
-mesh.p = loginc(mesh.p, 15);
+% mesh.p = loginc(mesh.p, 15);
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(1,:)-a)<1e-16, @(p) abs(p(1,:) - b)<1e-8}; %TODO: double check boundaries
 mesh.boundarycondition = [1;2]; % Set boundary condition for each boundary
@@ -100,8 +108,9 @@ cd("app");
 eval('!./fixargsMPP_Mac.sh');
 % eval('!./movefiles.sh');
 % eval('!cp opuInituMPP.cpp opuInitu.cpp');  
-eval('!cp opuInitwdgMPP.cpp opuInitwdg.cpp');
-eval('!cp opuSourcewMPP.cpp opuSourcew.cpp');
+eval('!cp opuInitwdg_MPP.cpp opuInitwdg.cpp');
+eval('!cp opuSourcew_MPP.cpp opuSourcew.cpp');
+eval('!cp opuUbou_MPP.cpp opuUbou.cpp');
 % eval('!cp opuFbou_MPP.cpp opuFbou.cpp');
 % eval('!cp opuFlux_MPP.cpp opuFlux.cpp');
 % eval('!cp opuSource_MPP.cpp opuSource.cpp');
@@ -122,15 +131,15 @@ for i = 1:5
     u = sol(:,i,:);
     subplot(1,3,1)
     hold on
-    semilogx(dgnodes(:),u(:),'LineWidth',1.3)
+    plot(dgnodes(:),u(:),'LineWidth',1.3)
 end
 u = sol(:,6,:);
 subplot(1,3,2)
-semilogx(dgnodes(:),u(:),'LineWidth',1.3);
+plot(dgnodes(:),u(:),'LineWidth',1.3);
 
 u = sol(:,7,:);
 subplot(1,3,3)
-semilogx(dgnodes(:), u(:),'LineWidth',1.3)
+plot(dgnodes(:), u(:),'LineWidth',1.3)
 
 % solw = getsolution(['dataout/out_wdg_t' num2str(ti)],dmd,master.npe);
 % w = solw(:,6,:);
