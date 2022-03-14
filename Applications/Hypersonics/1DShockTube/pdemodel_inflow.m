@@ -34,7 +34,7 @@ function f = flux(u, q, w, v, x, t, mu, eta)
     rhoE = u(nspecies+2);
 
     rhoinv = 1.0 / rho;
-    u = rhou * rhoinv; %velocity
+    uv = rhou * rhoinv; %velocity
     E = rhoE*rhoinv; %energy
 
     % Mutation outputs
@@ -47,9 +47,9 @@ function f = flux(u, q, w, v, x, t, mu, eta)
 
     % Fluxes
     for ispecies = 1:nspecies
-        f(ispecies) = rho_i(ispecies) * u;
+        f(ispecies) = rho_i(ispecies) * uv;
     end
-    f(nspecies + 1) = rhou * u + p;
+    f(nspecies + 1) = rhou * uv + p;
     f(nspecies + 2) = rhou * H;
 %     f(nspecies + 2) = (rhoE + p)*u;
 end
@@ -60,37 +60,9 @@ function s = source(u, q, w, v, x, t, mu, eta)
 
     s = sym(zeros(nspecies + 2,1));
     omega_i = sym(zeros(nspecies,1));
-%     rho_i = sym(zeros(5,1));
-%     rho = 0;
-% 
-%     % Conservative Variables
-%     for ispecies = 1:nspecies
-%         rho_i(ispecies) = u(ispecies); %subspecies density
-%         rho = rho + rho_i(ispecies); %total mixture density
-%     end
-% 
-%     rhou = u(nspecies+1);
-%     rhoE = u(nspecies+2);
 
-%     rhoinv = 1/ rho;
-%     u = rhou * rhoinv; %velocity
-%     E = rhoE*rhoinv; %energy
-% 
-    % Mutation outputs
     for ispecies = 1:nspecies
-        omega_i(ispecies) = w(ispecies);
-    end
-%     p = w(nspecies + 1); %pressure
-% 
-%     H = E+p*rhoinv; %enthalpy
-
-%     rho_inf = 0.0085;
-%     u_inf = 542.0;
-%     rhoe_inf = rho_inf * u_inf^2;
-
-    % Sources
-    for ispecies = 1:nspecies
-        s(ispecies) = omega_i(ispecies);
+        s(ispecies) = w(ispecies);
     end
 end
 
@@ -109,10 +81,12 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 %     ub(:,1) = [rhoL(:); rhouL; rhoEL];
     
 %     ub(:,1) = mu(8:14);
-    ub(:,1) = mu(1:nspecies+2);
+%     ub(:,1) = mu(1:nspecies+2);
 %     ub(:,1) = u(:);
-    p_outflow = mu(nspecies+3);
-    ub(:,2) = [u(1:nspecies);u(nspecies+1);p_outflow];
+%     p_outflow = mu(nspecies+3);
+%     ub(:,2) = [u(1:nspecies);u(nspecies+1);p_outflow];
+    ub(:,1) = u(:);
+    ub(:,2) = u(:); % TO BE MANUALLY MODIFIED
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
@@ -121,8 +95,8 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
     f = flux(u, q, w, v, x, t, mu, eta);
 
-    uinflow = mu(1:nspecies+2);
-    finflow = flux(uinflow, q, w, v, x, t, mu, eta);
+%     uinflow = mu(1:nspecies+2);
+%     finflow = flux(u, q, w, v, x, t, mu, eta);
 %     fb(:,1) = finflow*n(1) + tau(1)*(uinflow-uhat);
     fb(:,1) = f*n(1) + tau(1)*(u-uhat);
     fb(:,2) = f*n(1) + tau(1)*(u-uhat);

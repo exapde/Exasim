@@ -29,18 +29,19 @@ pde.mpiprocs = 1;              % number of MPI processors
 pde.porder = 1;          % polynomial degree
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-nt = 1e2;
-pde.dt = 1e-6*ones(1,nt);   % time step sizes
+nt = 50000 ;
+pde.dt = 1e-7*ones(1,nt);   % time step sizes
 pde.saveSolFreq = nt/100;
-% pde.soltime = 1:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
+pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
 
 %Solver params
 pde.linearsolveriter = 40;
 pde.GMRESrestart = 20;
 pde.linearsolvertol = 1e-3;
 pde.matvectol = 1e-5;
-pde.NLiter = 5;
+pde.NLiter = 2;
 pde.RBdim = 5;
+pde.NLtol = 1e-11;
 
 % rhoL = [0 0 0.000936356 0.000248905 0];
 % rhouL = 4.74105;
@@ -53,6 +54,9 @@ pde.RBdim = 5;
 % rhoE_pre = 9128.09;
 
 p_outflow = 16894.1;
+T_inflow = 6539.17131979989;
+Xi_inflow = [0, 0, 0, 0.76708248854242, 0.23291751145758];
+T_outflow = 3943.65524717381;
 
 % rho_post = [0 0 0 0.00672992 0.00178897 ];
 rho_post = [0 0 0 0.00655326 0.00199076 ];
@@ -74,16 +78,16 @@ pde.physicsparam = [rho_post(:)'/rho_inf,...
                     rhoE_post/(rho_inf * u_inf * u_inf),...
                     p_outflow/(rho_inf * u_inf * u_inf)];
 
-pde.externalparam = [rho_inf, u_inf];
+pde.externalparam = [rho_inf, u_inf, T_inflow, Xi_inflow, T_outflow];
 % pde.physicsparam = [rhoL(:)', rhouL, rhoEL,    rhoR(:)',  rhouR,  rhoER];
                 %    1:ns    ns+1   ns+2   ns+3:2*ns+2  2*ns+3  2*ns+4
 % pde.tau = [0.1, 0.1, 0.1, 0.1, 0.1, 10, 50000];           % DG stabilization parameter
-pde.tau = 2;
+pde.tau = 1.5;
 pde.dae_alpha = 0;
 pde.dae_beta = 1;
 % create a grid of 8 by 8 on the unit square
 % nDiv = 2^10;
-nDiv = 1200;
+nDiv = 512;
 
 [mesh.p,mesh.t] = linemesh(nDiv-1);
 a = 0; b = 1;
@@ -108,10 +112,11 @@ cd("app");
 eval('!./fixargsMPP_Mac.sh');
 % eval('!./movefiles.sh');
 % eval('!cp opuInituMPP.cpp opuInitu.cpp');  
+eval('!cp opuAppMPP.cpp opuApp.cpp');
 eval('!cp opuInitwdg_MPP.cpp opuInitwdg.cpp');
 eval('!cp opuSourcew_MPP.cpp opuSourcew.cpp');
-eval('!cp opuUbou_MPP.cpp opuUbou.cpp');
-% eval('!cp opuFbou_MPP.cpp opuFbou.cpp');
+eval('!cp opuUbouSubsonicMPP.cpp opuUbou.cpp');
+eval('!cp opuFbouSubsonicMPP.cpp opuFbou.cpp');
 % eval('!cp opuFlux_MPP.cpp opuFlux.cpp');
 % eval('!cp opuSource_MPP.cpp opuSource.cpp');
 % eval('!./compileMutation.sh');
@@ -124,27 +129,33 @@ runstr = runcode(pde);
 
 %% plot solution
 % sol = fetchsolution(pde,master,dmd, 'dataout');
-ti = nt;
-sol = getsolution(['dataout/out_t' num2str(ti)],dmd,master.npe);
-dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
-for i = 1:5    
-    u = sol(:,i,:);
-    subplot(1,3,1)
-    hold on
-    plot(dgnodes(:),u(:),'LineWidth',1.3)
+for ti = pde.saveSolFreq:pde.saveSolFreq:nt
+    sol = getsolution(['dataout/out_t' num2str(ti)],dmd,master.npe);
+    dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
+            clf
+
+    for i = 1:5    
+        u = sol(:,i,:);
+%         subplot(1,3,1)
+        hold on
+        plot(dgnodes(:),u(:),'LineWidth',1.3)
+    end
+%     u = sol(:,6,:);
+%     subplot(1,3,2)
+%     plot(dgnodes(:),u(:),'LineWidth',1.3);
+%     
+%     u = sol(:,7,:);
+%     subplot(1,3,3)
+%     plot(dgnodes(:), u(:),'LineWidth',1.3); 
+%     
+%     solw = getsolution(['dataout/out_wdg_t' num2str(ti)],dmd,master.npe);
+%     w = solw(:,6,:) * rho_inf * u_inf^2;
+%     disp(w(1));
+%     figure(2);
+%     semilogx(dgnodes(:),w(:));
+    set(gca, 'Xscale','log')
+    waitforbuttonpress
 end
-u = sol(:,6,:);
-subplot(1,3,2)
-plot(dgnodes(:),u(:),'LineWidth',1.3);
-
-u = sol(:,7,:);
-subplot(1,3,3)
-plot(dgnodes(:), u(:),'LineWidth',1.3)
-
-% solw = getsolution(['dataout/out_wdg_t' num2str(ti)],dmd,master.npe);
-% w = solw(:,6,:);
-% figure(2);
-% plot(dgnodes(:),w(:))
 
 
         

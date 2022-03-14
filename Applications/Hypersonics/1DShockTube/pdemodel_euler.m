@@ -78,7 +78,28 @@ function uin = uinflow(u, mu, eta)
 
     rho = mu(1);
     rhou = mu(2);
-    rhoE = mu(3);
+    rhoE = u(3);
+
+%     
+%     rho = u(1);
+%     rhou = u(2);
+%     rhoE = u(3);
+% 
+%     rhoinv = 1.0 / rho;
+%     uv = rhou * rhoinv; %velocity
+%     E = rhoE * rhoinv; %energy
+% 
+%     gamma = 1.4;
+%     gammam1 = gamma-1;
+%     p = gammam1 * (rhoE - 0.5 * rho * uv^2);
+% 
+%     uvin = mu(2);
+%     Minf = eta(4);
+%     Tin = eta(5);
+% 
+%     rho = 1.4 * Minf^2 * p/Tin;
+%     rhou = uvin * rho;
+%     rhoE = p/gammam1 + 0.5 * rho * uvin^2;
     uin = [rho; rhou; rhoE];
 end
 

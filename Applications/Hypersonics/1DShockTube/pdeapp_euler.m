@@ -19,17 +19,17 @@ pde.mpiprocs = 1;              % number of MPI processors
 pde.porder = 1;          % polynomial degree
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;           % time-stepping number of stages
-nt = 2000 ;
+nt = 50000 ;
 pde.dt = 5e-4*ones(1,nt);   % time step sizes
 pde.saveSolFreq = nt/100;
 pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
 pde.tau = 2;
 
 %% Mesh
-nDiv = 1024;
+nDiv = 256;
 
 [mesh.p,mesh.t] = linemesh(nDiv-1);
-a = 0; b = 2;
+a = 0; b = 10;
 mesh.p = a + (b-a)*mesh.p;
 % mesh.p = loginc(mesh.p, 10);
 % expressions for domain boundaries
@@ -61,9 +61,18 @@ u_inf = u_post;
 %%% Initial conditions roughly correspond to a nondimensionalition of the
 %%% original parameters...TODO: maybe this is not sensible? 
 pde.physicsparam = [1, 1, 20.88]; 
-pout = 8.5;
 
-pde.externalparam = [rho_inf, u_inf, pout];
+rhoin = pde.physicsparam(1);
+uin = pde.physicsparam(2)./rhoin;
+rhoEin = pde.physicsparam(3);
+pin = 0.4 * (rhoEin - 1/2 * rhoin * uin^2);
+
+pout = 9;
+Minf = 0.444658;
+
+Tin = 1.4 * Minf^2 * pin/rhoin;
+
+pde.externalparam = [rho_inf, u_inf, pout, Minf, Tin];
 
 %% call exasim to generate and run C++ code to solve the PDE model
 % [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
@@ -106,7 +115,9 @@ rhoE = sol(:,nspecies+2,:);
 % subplot(1,3,3)
 p = eulereval(sol,'p',1.4,0.55);
 % p = rho;   
-figure(1); plot(dgnodes(:),rho(:),'LineWidth',1.3); drawnow; waitforbuttonpress
+
+u = rho(:);
+figure(1); plot(dgnodes(:),u,'LineWidth',1.3); ylim([min(u), max(u)]); drawnow; waitforbuttonpress; 
 end
 % plot
 
