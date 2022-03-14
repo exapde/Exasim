@@ -5,6 +5,7 @@
 
 #ifdef _MUTATIONPP
 #include <mutation++.h>
+#include "mutationUtils.cpp"
 #endif
 
 #include "opuFlux.cpp"
