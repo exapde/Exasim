@@ -1,39 +1,37 @@
 template <typename T> void opuSource(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, Mutation::Mixture *mix)
 {
 	for (int i = 0; i <ng; i++) {
-		T wdg1 = wdg[0*ng+i];
-		T wdg2 = wdg[1*ng+i];
-		T wdg3 = wdg[2*ng+i];
-		T wdg4 = wdg[3*ng+i];
-		T wdg5 = wdg[4*ng+i];
-		T udg1 = udg[0*ng+i];
-		T udg2 = udg[1*ng+i];
-		T udg3 = udg[2*ng+i];
-		T udg4 = udg[3*ng+i];
-		T udg5 = udg[4*ng+i];
+		int nspecies = 5;
+		
+		T udg1 = fmax(udg[0*ng+i],0.0);
+		T udg2 = fmax(udg[1*ng+i],0.0);
+		T udg3 = fmax(udg[2*ng+i],0.0);
+		T udg4 = fmax(udg[3*ng+i],0.0);
+		T udg5 = fmax(udg[4*ng+i],0.0);
 		T udg6 = udg[5*ng+i];
 		T udg7 = udg[6*ng+i];
-		int nspecies = 5;
-		T rho_inf = 0.0085;
-		T u_inf = 542.0;
-		// double rhovec[5] = {udg1, udg2, udg3, udg4, udg5};
-		double rhovec[5] = {udg1*rho_inf, udg2*rho_inf, udg3*rho_inf, udg4*rho_inf, udg5*rho_inf};
+
+		T rho_scale = uinf[0];
+		T u_scale = uinf[1];
+		T rhoe_scale = uinf[2];
+		T omega_scale = rho_scale*u_scale;
+		double Ucons[7] = {udg1, udg2, udg3, udg4, udg5, udg6, udg7};
+		double Ustate[6];
 		double wdot[5];
-		double rhoe = abs(udg7-(udg6*udg6)*(udg1/2.0+udg2/2.0+udg3/2.0+udg4/2.0+udg5/2.0)*1.0/pow(udg1+udg2+udg3+udg4+udg5,2.0));
-		rhoe = rhoe * rho_inf * u_inf * u_inf;
-		// std::cout << rhoe << std::endl;
-		// if (rhoe < 0){
-		// 	std::cout << xdg1 << std::endl;
-		// }
+
+		dimensionalizeConsVars(Ucons, (double*)uinf, nspecies, 1);
+		conservativeToState(Ucons, Ustate, (double*)uinf, nspecies);
+		double rhovec[5] = {Ustate[0],Ustate[1],Ustate[2],Ustate[3],Ustate[4]};
+		double rhoe = Ustate[nspecies];
 
 		mix->setState(rhovec, &rhoe, 0);
 		mix->netProductionRates(wdot);
 
-		f[0*ng+i] = wdot[0];
-		f[1*ng+i] = wdot[1];
-		f[2*ng+i] = wdot[2];
-		f[3*ng+i] = wdot[3];
-		f[4*ng+i] = wdot[4];
+		f[0*ng+i] = wdot[0]/(omega_scale);
+		f[1*ng+i] = wdot[1]/(omega_scale);
+		f[2*ng+i] = wdot[2]/(omega_scale);
+		f[3*ng+i] = wdot[3]/(omega_scale);
+		f[4*ng+i] = wdot[4]/(omega_scale);
 		f[5*ng+i] = 0.0;
 		f[6*ng+i] = 0.0;
 	}

@@ -5,6 +5,37 @@ run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();
 
+pde.cpucompiler="/opt/homebrew/Cellar/llvm@12/12.0.1_1/bin/clang++";
+
+% Define a PDE model: governing equations, initial solutions, and boundary conditions
+pde.model = "ModelC";          % ModelC, ModelD, ModelW
+pde.modelfile = "pdemodel_inflow";    % name of a file defining the PDE model
+
+% Choose computing platform and set number of processors
+pde.mpiprocs = 1;              % number of MPI processors
+
+%% Set discretization parameters, physical parameters, and solver parameters
+pde.porder = 1;          % polynomial degree
+pde.torder = 1;          % time-stepping order of accuracy
+pde.nstage = 1;          % time-stepping number of stages
+
+tfinal = 0.01; % 1 with 1e-4 doesn't work super well
+nt = 1000;
+pde.dt = [dt/100*ones(1,nt*10), dt*ones(1,nt*9/10)];
+pde.saveSolFreq = 500;
+pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
+
+% Solver params
+pde.linearsolveriter = 40;
+pde.GMRESrestart = 39;
+pde.linearsolvertol = 1e-5;
+pde.matvectol = 1e-7;
+pde.NLiter = 5;
+pde.RBdim = 5;
+pde.NLtol = 1e-11;
+
+%% Mutation information
+% Mutation configuration 
 pde.mutationflag = 1;
 pde.mutationopts = {};
 pde.mutationopts{1} = "air_5";
@@ -12,94 +43,44 @@ pde.mutationopts{2} = "ChemNonEq1T";
 pde.mutationopts{3} = "RRHO";
 pde.mutationpath = "/Users/rloekvh/Mutationpp";
 
-pde.cpucompiler="/opt/homebrew/Cellar/llvm@12/12.0.1_1/bin/clang++";
-% pde.cpuappflags = "-arch x86_64";
-% pde.cpulibflags = "-arch x86_64";
-% pde.cpuflags = "-arch x86_64";
-
-% Define a PDE model: governing equations, initial solutions, and boundary conditions
-pde.model = "ModelC";          % ModelC, ModelD, ModelW
-pde.modelfile = "pdemodel_inflow";    % name of a file defining the PDE model
-
-% Choose computing platform and set number of processors
-%pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
-
-% Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 1;          % polynomial degree
-pde.torder = 1;          % time-stepping order of accuracy
-pde.nstage = 1;          % time-stepping number of stages
-nt = 50000 ;
-pde.dt = 1e-7*ones(1,nt);   % time step sizes
-pde.saveSolFreq = nt/100;
-pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
-
-%Solver params
-pde.linearsolveriter = 40;
-pde.GMRESrestart = 20;
-pde.linearsolvertol = 1e-3;
-pde.matvectol = 1e-5;
-pde.NLiter = 2;
-pde.RBdim = 5;
-pde.NLtol = 1e-11;
-
-% rhoL = [0 0 0.000936356 0.000248905 0];
-% rhouL = 4.74105;
-% rhoEL = 12226.7;
-% rhoR = [0 0 0.00691678 0.00183864 0];
-% rhouR = 4.74544;
-% rhoER = 72810.4;
-% rho_pre = [0 0 0 0.000911061 0.000242181 ];
-% rhou_pre = 4.61296;
-% rhoE_pre = 9128.09;
-
-p_outflow = 16894.1;
-T_inflow = 6539.17131979989;
+% Inflow BC: specify temperature, velocity, and mass fractions
+T_inflow = 6.539171319799890e+03;
 Xi_inflow = [0, 0, 0, 0.76708248854242, 0.23291751145758];
-T_outflow = 3943.65524717381;
+u_inflow = 5.415214474186620e+02;
+% Outflow BC: specify pressure
+p_outflow = 1.689038973365919e+04;
 
-% rho_post = [0 0 0 0.00672992 0.00178897 ];
-rho_post = [0 0 0 0.00655326 0.00199076 ];
-rhou_post = 4.63086;
-rhoE_post = 52267.1;
+% Inflow state variables if needed 
+rho_post = [6.523630530137378e-81 3.418389973844208e-42 2.304461955409462e-18 6.553622130237057e-03 1.989946818507937e-03 ];
+rhou_post = 4.626525823245526e+00;
+rhoE_post = 5.226378663945407e+04;
 
-rho_inf = sum(rho_post);
-u_inf = rhou_post/rho_inf;
+% Scaling parameters
+rho_scale = sum(rho_post);
+u_scale = u_inflow;
+rhoe_scale = rho_scale * u_scale * u_scale;
 
-% pde.physicsparam = [rho_pre(:)', rhou_pre, rhoE_pre, rho_post(:)', rhou_post, rhoE_post];
-% pde.physicsparam = [rho_pre(:)'/rho_inf,...
-%                     rhou_pre/(rho_inf * u_inf),...
-%                     rhoE_pre/(rho_inf * u_inf * u_inf),...
-%                     rho_post(:)'/rho_inf,...
-%                     rhou_post/(rho_inf*u_inf),...
-%                     rhoE_post/(rho_inf * u_inf * u_inf)];
-pde.physicsparam = [rho_post(:)'/rho_inf,...
-                    rhou_post/(rho_inf*u_inf),...
-                    rhoE_post/(rho_inf * u_inf * u_inf),...
-                    p_outflow/(rho_inf * u_inf * u_inf)];
+% Dimensional equilibrium state; used as initial conditions for outflow 
+rho_equil = [2.097903177177863e-05 2.595607445498073e-03 3.266988117157821e-04 9.417156962182115e-03 1.423035901034682e-04 ];
+rhou_equil = 4.626525823245757e+00;
+rhoE_equil = 8.315126885726860e+04;
 
-pde.externalparam = [rho_inf, u_inf, T_inflow, Xi_inflow, T_outflow];
-% pde.physicsparam = [rhoL(:)', rhouL, rhoEL,    rhoR(:)',  rhouR,  rhoER];
-                %    1:ns    ns+1   ns+2   ns+3:2*ns+2  2*ns+3  2*ns+4
-% pde.tau = [0.1, 0.1, 0.1, 0.1, 0.1, 10, 50000];           % DG stabilization parameter
-pde.tau = 1.5;
-pde.dae_alpha = 0;
-pde.dae_beta = 1;
-% create a grid of 8 by 8 on the unit square
-% nDiv = 2^10;
-nDiv = 512;
-
+pde.physicsparam = [rho_post(:)', rhou_post, rhoE_post, rho_equil(:)', rhou_equil, rhoE_equil,   Xi_inflow,    u_inflow, T_inflow, p_outflow];
+%                      1:N          N+1         N+2       N+3:2*N+2     2*N+3       2*N+4       2*N+5:3*N+4     3*N+5     3*N+6      3*N+7
+pde.externalparam = [rho_scale, u_scale, rhoe_scale, NaN]; 
+% Inf is a placeholder variable that's replaced with Mutation outputs
+%% Stabilization and mesh
+pde.tau = [5,5,5,5,5,5,5];
+nDiv = 1024;
 [mesh.p,mesh.t] = linemesh(nDiv-1);
-a = 0; b = 1;
+a = 0; b = 1.5; 
 mesh.p = a + (b-a)*mesh.p;
-% mesh.p = loginc(mesh.p, 15);
+mesh.p = loginc(mesh.p, 6);
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(1,:)-a)<1e-16, @(p) abs(p(1,:) - b)<1e-8}; %TODO: double check boundaries
 mesh.boundarycondition = [1;2]; % Set boundary condition for each boundary
 
-%% call exasim to generate and run C++ code to solve the PDE model
-% [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
-
+%% Call Exasim
 % search compilers and set options
 pde = setcompilers(pde);       
 
@@ -110,52 +91,17 @@ pde = setcompilers(pde);
 gencode(pde);
 cd("app");
 eval('!./fixargsMPP_Mac.sh');
-% eval('!./movefiles.sh');
-% eval('!cp opuInituMPP.cpp opuInitu.cpp');  
 eval('!cp opuAppMPP.cpp opuApp.cpp');
-eval('!cp opuInitwdg_MPP.cpp opuInitwdg.cpp');
-eval('!cp opuSourcew_MPP.cpp opuSourcew.cpp');
 eval('!cp opuUbouSubsonicMPP.cpp opuUbou.cpp');
-eval('!cp opuFbouSubsonicMPP.cpp opuFbou.cpp');
-% eval('!cp opuFlux_MPP.cpp opuFlux.cpp');
-% eval('!cp opuSource_MPP.cpp opuSource.cpp');
-% eval('!./compileMutation.sh');
+% eval('!cp opuFbouSubsonicMPP.cpp opuFbou.cpp');
+eval('!cp opuFbouSubsconicVectorTau.cpp opuFbou.cpp');
+eval('!cp opuFlux_MPP.cpp opuFlux.cpp');
+eval('!cp opuSource_MPP.cpp opuSource.cpp');
+eval('!cp opuOutput_MPP.cpp opuOutput.cpp');
 cd("..");
+
 % compile source codes to build an executable file and store it in app folder
 compilerstr = compilecode(pde);
 
 % run executable file to compute solution and store it in dataout folder
-runstr = runcode(pde);
-
-%% plot solution
-% sol = fetchsolution(pde,master,dmd, 'dataout');
-for ti = pde.saveSolFreq:pde.saveSolFreq:nt
-    sol = getsolution(['dataout/out_t' num2str(ti)],dmd,master.npe);
-    dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
-            clf
-
-    for i = 1:5    
-        u = sol(:,i,:);
-%         subplot(1,3,1)
-        hold on
-        plot(dgnodes(:),u(:),'LineWidth',1.3)
-    end
-%     u = sol(:,6,:);
-%     subplot(1,3,2)
-%     plot(dgnodes(:),u(:),'LineWidth',1.3);
-%     
-%     u = sol(:,7,:);
-%     subplot(1,3,3)
-%     plot(dgnodes(:), u(:),'LineWidth',1.3); 
-%     
-%     solw = getsolution(['dataout/out_wdg_t' num2str(ti)],dmd,master.npe);
-%     w = solw(:,6,:) * rho_inf * u_inf^2;
-%     disp(w(1));
-%     figure(2);
-%     semilogx(dgnodes(:),w(:));
-    set(gca, 'Xscale','log')
-    waitforbuttonpress
-end
-
-
-        
+runstr = runcode(pde);   
