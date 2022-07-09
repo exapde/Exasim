@@ -59,7 +59,7 @@ def compilecode(app):
         compilerstr[1] = "";
 
     if  size(gpucompiler)>0:
-        println("If compiling Enzyme AD for the GPU please add the following to pde.gpuappflags: --cuda-gpu-arch=sm_XX -L/path/to/cuda/lib64 -std=c++11 --cuda-path=/path/to/cuda/")
+        print("If compiling Enzyme AD for the GPU please add the following to pde.gpuappflags: --cuda-gpu-arch=sm_XX -L/path/to/cuda/lib64 -std=c++11 --cuda-path=/path/to/cuda/")
         compilerstr[2] = gpucompiler + " -D_FORCE_INLINES -O3 -c --compiler-options '-fPIC' gpuApp.cu";
         compilerstr[2] = compilerstr[2] + " " + gpuappflags
         compilerstr[3] = "ar -rvs gpuApp.a gpuApp.o";
