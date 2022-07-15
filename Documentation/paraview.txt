@@ -1,2 +1,0 @@
-ssh cuongng@jacobian.mit.edu -L 11150:localhost:11111 -g -C
-./pvserver --server-port=11111
