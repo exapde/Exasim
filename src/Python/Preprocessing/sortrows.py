@@ -23,7 +23,8 @@ def sortrows(a):
   elif (n==10):
     ind = argsort(a.view('int64,int64,int64,int64,int64,int64,int64,int64,int64,int64'), order=['f0','f1','f2','f3','f4','f5','f6','f7','f8','f9'], axis=0);
   else:
-      ind = 0;
+      ind = argsort(a.view('int64'), axis=0);
+      #ind = 0;
 
   ind = ind.flatten('F');
   b = a[ind,:];

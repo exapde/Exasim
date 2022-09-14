@@ -32,6 +32,8 @@ def localbasis(porder,dim,elemtype):
         phielem[:,1-1] = 1.0 - xi;
         phielem[:,2-1] = xi;
         phiface = [1.0];
+    
+        perm = perm.transpose();
     elif dim==2 and elemtype==0: # tri
         xi  = pelem[:,1-1];
         eta = pelem[:,2-1];
