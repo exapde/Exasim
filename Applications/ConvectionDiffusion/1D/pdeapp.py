@@ -26,14 +26,10 @@ pde['tau'] = numpy.array([2*numpy.pi]);            # DG stabilization parameter
 
 
 nDiv = 17
-def linemesh(m):
-    from numpy import linspace, array
-    p = array([linspace(0,1,m)])
-    t = array([[k,k+1] for k in range(0,m-1)])
-    t = t.transpose()
-    return p,t
+print(Mesh)
+mesh['p'], mesh['t'] = Mesh.linemesh(nDiv)
 
-mesh['p'], mesh['t'] = linemesh(nDiv)
+
 
 # expressions for domain boundaries
 mesh['boundaryexpr'] = [lambda p: (p[0,:] < 1e-3), lambda p: (p[0,:] > 1-1e-3)]
