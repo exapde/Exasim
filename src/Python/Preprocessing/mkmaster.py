@@ -42,8 +42,8 @@ def mkmaster(dim,porder,pgauss,elemtype,nodetype):
     else:
         gpf   = [0.0]
         gwf   = [1.0]
-        shapfg =[1.0]
-        shapfn =[1.0]
+        shapfg = reshape(array([[1.0]]),(1,1,1))
+        shapfn =reshape(array([[1.0]]),(1,1,1))
 
     npf = shapfg.shape[0];
     ngf = shapfg.shape[1];
