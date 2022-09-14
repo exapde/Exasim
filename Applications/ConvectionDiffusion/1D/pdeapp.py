@@ -24,12 +24,8 @@ pde['porder'] = 3;         # polynomial degree
 pde['physicsparam'] = [1.0, 2*numpy.pi];   # unit thermal conductivity
 pde['tau'] = numpy.array([2*numpy.pi]);            # DG stabilization parameter
 
-
 nDiv = 17
-print(Mesh)
 mesh['p'], mesh['t'] = Mesh.linemesh(nDiv)
-
-
 
 # expressions for domain boundaries
 mesh['boundaryexpr'] = [lambda p: (p[0,:] < 1e-3), lambda p: (p[0,:] > 1-1e-3)]
