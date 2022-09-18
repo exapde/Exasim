@@ -10,7 +10,7 @@ clc;
 for i = 1:n
     if string(mfiles(i).name) == "pdeapp.m"    
         s = string(mfiles(i).folder);
-        if contains(s,"Cone")==1 || contains(s,"hypersoniccylinder")==1 || contains(s,"TaylorGreenVortex")==1 || contains(s,"naca0012")==1 || contains(s,"Scattering")==1
+        if contains(s,"Cone")==1 || contains(s,"hypersoniccylinder")==1 || contains(s,"TaylorGreenVortex")==1 || contains(s,"naca0012")==1 || contains(s,"Scattering")==1 || contains(s,"Ring2D")==1
             disp(s);
         else
         filein = string(mfiles(i).folder) + '/' + string(mfiles(i).name);                 

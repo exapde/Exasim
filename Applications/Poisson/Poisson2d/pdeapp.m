@@ -27,7 +27,8 @@ mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(
 mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 
 % call exasim to generate and run C++ code to solve the PDE model
-[sol,pde,mesh] = exasim(pde,mesh);
+%[sol,pde,mesh] = exasim(pde,mesh);
+[sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
 % % visualize the numerical solution of the PDE model using Paraview
 % pde.visscalars = {"temperature", 1};  % list of scalar fields for visualization
