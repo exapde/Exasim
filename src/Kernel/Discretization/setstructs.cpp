@@ -103,11 +103,6 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.ncAV = app.problem[11];    // Flag for artificial viscosity. 0: No artificial viscosity; 1: Homogeneous artificial viscosity (C. Nguyen's formulation); 2: Hypersonic homogeneous artificial viscosity (C. Nguyen's formulation)
                                         //                                3: Isotropic artificial viscosity (D. Moro's formulation). 4: Latest version of the model (taking the best of all previous models)
                                         //                                8: Density smoothness sensor (Per's approach)    
-    common.AVsmoothingIter = app.problem[25]; //Number of times artificial viscosity is smoothed
-    common.frozenAVflag = app.problem[26]; // Flag deciding if artificial viscosity is calculated once per non-linear solve or in every residual evluation
-                                           //   0: AV not frozen, evaluated every iteration
-                                           //   1: AV frozen, evluated once per solve (default)          
-
     common.linearSolver = app.problem[12];  /* 0: GMRES; 1: CG; etc. */      
     common.nonlinearSolverMaxIter = app.problem[13];                
     common.linearSolverMaxIter = app.problem[14];        
@@ -121,6 +116,11 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.ibs = app.problem[22];   
     common.dae_steps = app.problem[23];  // number of dual time steps      
     common.saveResNorm = app.problem[24];   
+    common.AVsmoothingIter = app.problem[25]; //Number of times artificial viscosity is smoothed
+    common.frozenAVflag = app.problem[26]; // Flag deciding if artificial viscosity is calculated once per non-linear solve or in every residual evluation
+                                           //   0: AV not frozen, evaluated every iteration
+                                           //   1: AV frozen, evluated once per solve (default)          
+    common.ppdegree = app.problem[27]; // degree of polynomial preconditioner
     
     common.RBcurrentdim = 0; // current dimension of the reduced basis space
     common.RBremovedind = 0; // the vector to be removed from the RB space and replaced with new vector

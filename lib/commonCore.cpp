@@ -225,7 +225,7 @@ template <typename T> void cpuBackSolve(T *y, T *H, T *s, int i, int n)
 }
 template void cpuBackSolve(double*, double*, double*, int, int);
 template void cpuBackSolve(float*, float*, float*, int, int);
-
+        
 #endif
 
 

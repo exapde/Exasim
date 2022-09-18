@@ -64,6 +64,7 @@ mutable struct PDEStruct
     GMRESortho::IntP; # GMRES orthogonalization method
     preconditioner::IntP; # flag for preconditioner method
     precMatrixType::IntP; # flag for type of preconditioner matrix
+    ppdegree::IntP; # polynomial preconditioner 
     NLMatrixType::IntP;
     runmode::IntP; # flag for run mode
     tdfunc::IntP; # flag for time-dependent function associated with time-derivative
@@ -198,6 +199,7 @@ function initializepde(version)
     pde.GMRESortho = 0;
     pde.preconditioner = 0;
     pde.precMatrixType = 0;
+    pde.ppdegree = 10;
     pde.NLMatrixType = 0;
     pde.runmode = 0;
     pde.tdfunc = 1;

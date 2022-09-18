@@ -148,7 +148,8 @@ static void gpuComputeInverse(cublasHandle_t handle, dstype* A, dstype *C, Int n
     cudaFree(Cp_d); free(Cp_h);
     cudaFree(ipiv); cudaFree(info); 
 }
-#else       
+#endif     
+
 static void cpuComputeInverse(dstype* A, dstype* work, Int* ipiv, Int n)
 {
     Int lwork = n*n;
@@ -161,8 +162,7 @@ static void cpuComputeInverse(dstype* A, dstype* work, Int* ipiv, Int n)
     DGETRI(&n,A,&n,ipiv,work,&lwork,&info);
 #endif        
 }
-#endif        
-
+   
 static void Inverse(cublasHandle_t handle, dstype* A, dstype *C, Int *ipiv, Int n, Int batchSize, Int backend)
 {    
 #ifdef HAVE_CUDA        

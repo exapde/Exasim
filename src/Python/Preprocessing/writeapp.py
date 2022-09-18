@@ -10,7 +10,7 @@ def writeapp(app,filename):
     appname = 0;
     tmp = array([app['tdep'], app['wave'], app['linearproblem'], app['debugmode'], app['matvecorder'], app['GMRESortho'], app['preconditioner'], app['precMatrixType'], app['NLMatrixType'], app['runmode'], app['tdfunc'], app['source'], app['extFhat'], app['extUhat'], app['extStab'], app['modelnumber']]);
     app['flag'] =  concatenate([tmp,app['flag']]);
-    tmp = array([app['hybrid'], appname, app['temporalscheme'], app['torder'], app['nstage'], app['convStabMethod'], app['diffStabMethod'], app['rotatingFrame'], app['viscosityModel'], app['SGSmodel'], app['ALE'], app['AV'], app['linearsolver'], app['NLiter'], app['linearsolveriter'], app['GMRESrestart'], app['RBdim'], app['saveSolFreq'], app['saveSolOpt'], app['timestepOffset'], app['stgNmode'], app['saveSolBouFreq'], app['ibs'], app['dae_steps'], app['saveResNorm'], app['AVsmoothingIter'], app['frozenAVflag']]);
+    tmp = array([app['hybrid'], appname, app['temporalscheme'], app['torder'], app['nstage'], app['convStabMethod'], app['diffStabMethod'], app['rotatingFrame'], app['viscosityModel'], app['SGSmodel'], app['ALE'], app['AV'], app['linearsolver'], app['NLiter'], app['linearsolveriter'], app['GMRESrestart'], app['RBdim'], app['saveSolFreq'], app['saveSolOpt'], app['timestepOffset'], app['stgNmode'], app['saveSolBouFreq'], app['ibs'], app['dae_steps'], app['saveResNorm'], app['AVsmoothingIter'], app['frozenAVflag'], app['ppdegree']]);
     app['problem'] = concatenate([tmp, app['problem']]);
     tmp = array([app['time'], app['dae_alpha'], app['dae_beta'], app['dae_gamma'], app['dae_epsilon']])    
     app['factor'] = concatenate([tmp, app['factor']]);

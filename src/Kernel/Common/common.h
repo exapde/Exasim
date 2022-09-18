@@ -6,15 +6,17 @@
 #define SGEMM sgemm_
 #define SGETRF sgetrf_
 #define SGETRI sgetri_
+#define SGEEV sgeev_
 
 #define DDOT ddot_
 #define DGEMV dgemv_
 #define DGEMM dgemm_
+#define DGEEV dgeev_
 
-#ifndef HAVE_CUDA    
+//#ifndef HAVE_CUDA    
 #define DGETRF dgetrf_
 #define DGETRI dgetri_
-#endif
+//#endif
 
 #ifdef USE_FLOAT
 typedef float dstype;
@@ -77,7 +79,10 @@ extern "C" {
     void DGETRI(Int*,double*,Int*,Int*,double*,Int*,Int*);
     void DTRSM(char *, char*, char*, char *, Int *, Int *, double*, double*, Int*,
              double*, Int*);
-
+    void DGEEV( char* jobvl, char* jobvr, int* n, double* a,
+                int* lda, double* wr, double* wi, double* vl, int* ldvl,
+                double* vr, int* ldvr, double* work, int* lwork, int* info );    
+    
     float SNRM2(Int*,float*,Int*);  
     float SDOT(Int*,float*,Int*,float*,Int*);
     void SAXPY(Int*,float*,float*,Int*,float*,Int*);
@@ -87,7 +92,10 @@ extern "C" {
     void SGETRF(Int*,Int*,float*,Int*,Int*,Int*);    
     void SGETRI(Int*,float*,Int*,Int*,float*,Int*,Int*);
     void STRSM(char *, char*, char*, char *, Int *, Int*, float*, float*, Int*,
-             float*, Int*);    
+             float*, Int*);        
+    void SGEEV( char* jobvl, char* jobvr, int* n, double* a,
+                int* lda, double* wr, double* wi, double* vl, int* ldvl,
+                double* vr, int* ldvr, double* work, int* lwork, int* info );    
 }
 
 // global variables for BLAS  
@@ -99,6 +107,7 @@ char cht = 'T';
 char chl = 'L';
 char chu = 'U';
 char chr = 'R';
+char chv = 'V';
 Int inc1 = 1;
 
 // global variables for CUBLAS  
@@ -803,9 +812,14 @@ struct sysstruct {
     dstype *r=NULL;
     dstype *b=NULL;
     dstype *v=NULL;
-     
+    dstype *randvect=NULL;
+    dstype *q=NULL;
+    dstype *p=NULL;
+    
     // unified memory for GMRES solver
     dstype *tempmem=NULL;
+    dstype *lam=NULL;
+    Int *ipiv=NULL;
     
     // store PTC matrix
     dstype *PTCmatrix=NULL;
@@ -813,8 +827,6 @@ struct sysstruct {
 
     // for DIRK schemes
     dstype *utmp=NULL;
-    //dstype *w=NULL;
-    //dstype *wsrc=NULL;     
     dstype *wtmp=NULL;
     
     // previous solutions for time-dependent problems
@@ -829,14 +841,19 @@ struct sysstruct {
         
     void freememory(Int hostmemory)
     {
+       CPUFREE(lam);  
+       CPUFREE(ipiv);  
        if (hostmemory==1) {
             CPUFREE(x); 
             CPUFREE(u); 
             CPUFREE(r); 
             CPUFREE(b); 
             CPUFREE(v); 
+            CPUFREE(q); 
+            CPUFREE(p); 
+            CPUFREE(randvect);
             CPUFREE(tempmem);     
-            CPUFREE(utmp);
+            CPUFREE(utmp);            
             //CPUFREE(w);
             //CPUFREE(wsrc);             
             CPUFREE(wtmp);             
@@ -857,6 +874,9 @@ struct sysstruct {
             GPUFREE(r);
             GPUFREE(b);
             GPUFREE(v);
+            GPUFREE(q);
+            GPUFREE(p);
+            GPUFREE(randvect);
             cudaFreeHost(tempmem);      
             //GPUFREE(w);
             //GPUFREE(wsrc); 
@@ -955,7 +975,8 @@ struct commonstruct {
     Int nge;  // number of gauss poInts on master element
     Int ngf;  // number of gauss poInts on master face                    
     Int np1d;
-    Int ng1d;
+    Int ng1d;    
+    Int ppdegree=10; // polynomial preconditioner degree
     
     Int ne; // number of elements
     Int nf; // number of faces
