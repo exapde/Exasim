@@ -14,13 +14,14 @@ pde.porder = 2;             % polynomial degree
 % unit thermal conductivity, zero Dirichlet data, and Neumman data
 pde.physicsparam = [1 0.0 1.0 0.0 0.0];
 pde.tau = 2.0;              % DG stabilization parameter
-pde.linearsolveriter = 400;
-pde.GMRESrestart = 200;
+pde.linearsolveriter = 51;
+pde.GMRESrestart = 50;
 pde.NLtol = 1e-4;
-pde.GMRESortho = 1;
+%pde.GMRESortho = 1;
 pde.RBdim = 1;
 pde.NLiter = 8;
-
+pde.ppdegree = 0;
+ 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";      % choose this option if you want to run the C++ code on Nvidia GPUs
 pde.mpiprocs = 4;           % number of MPI processors

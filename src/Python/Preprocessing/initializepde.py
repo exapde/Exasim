@@ -75,7 +75,7 @@ def initializepde(version):
     pde['preconditioner'] = 0;
     pde['precMatrixType'] = 0;
     pde['NLMatrixType'] = 0;
-    pde['ppdegree'] = 10;
+    pde['ppdegree'] = 0;
     pde['runmode'] = 0;
     pde['tdfunc'] = 1;
     pde['source'] = 1;

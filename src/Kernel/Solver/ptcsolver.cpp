@@ -247,8 +247,8 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
     if  (disc.common.ppdegree > 1) {
         disc.evalResidual(sys.b, sys.u, backend);
         getPoly(disc, sys, sys.lam, sys.randvect, sys.ipiv, N, disc.common.ppdegree, backend);
-//         for (int i=0; i<disc.common.ppdegree; i++)
-//             if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
+        for (int i=0; i<disc.common.ppdegree; i++)
+            if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
     }    
     
     nrmr = PNORM(disc.common.cublasHandle, N, sys.u, backend);
