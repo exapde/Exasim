@@ -19,6 +19,7 @@ from nocodeelem3 import nocodeelem3
 from gencodeface import gencodeface
 from nocodeface import nocodeface
 from gencodeface2 import gencodeface2
+from gencodeface3 import gencodeface3
 from nocodeface2 import nocodeface2
 
 def gencode(app):
@@ -51,8 +52,8 @@ def gencode(app):
     nc = app['nc'];
     ncu = app['ncu'];
     u = udg[0:ncu];
-    u1 = udg1[ncu:];
-    u2 = udg2[ncu:];
+    u1 = udg1[0:ncu];
+    u2 = udg2[0:ncu];
     if nc>ncu:
         q = udg[ncu:];
         q1 = udg1[ncu:];
@@ -130,7 +131,7 @@ def gencode(app):
     if hasattr(pde, 'stab'):
         #f = pde.stab(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
         f = pde.stab(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
-        gencodeface2("Stab" + strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+        gencodeface3("Stab" + strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
     else:
         nocodeface2("Stab" + strn);
     if hasattr(pde, 'initu'):
