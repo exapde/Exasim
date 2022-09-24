@@ -45,6 +45,8 @@ else
     gwf   = 1.0;
     shapfg = reshape(1.0,1,1,1);
     shapfn = reshape(1.0,1,1,1);
+    
+    perm = perm';
 end
 
 npf = size(shapfg,1);

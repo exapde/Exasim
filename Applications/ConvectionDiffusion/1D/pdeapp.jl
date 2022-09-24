@@ -17,8 +17,8 @@ include("pdemodel.jl");          # include the PDE model file
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;                  # polynomial degree
-pde.physicsparam = [1.0 2*pi];    # thermal conductivity and boundary value
-pde.tau = [2*pi];                 # DG stabilization parameter
+pde.physicsparam = [1.0 20.0];    # thermal conductivity and boundary value
+pde.tau = [1.0];                 # DG stabilization parameter
 
 # Choose computing platform and set number of processors
 #pde.platform = "gpu";           # choose this option if NVIDIA GPUs are available
@@ -33,8 +33,4 @@ mesh.boundarycondition = [1 1]; # Set boundary condition for each disjoint bound
 # call exasim to generate and run C++ code to solve the PDE model
 sol, pde, mesh,~,~,~,~  = Postprocessing.exasim(pde,mesh);
 
-# visualize the numerical solution of the PDE model using Paraview
-pde.visscalars = ["temperature", 1];  # list of scalar fields for visualization
-pde.visvectors = ["temperature gradient", [2, 3]]; # list of vector fields for visualization
-Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
 print("Done!");
