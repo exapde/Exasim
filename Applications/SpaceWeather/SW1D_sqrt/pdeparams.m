@@ -83,7 +83,7 @@ else
     rho = neutrals(iSpecies,end)*m;
     expKappa = neutrals(iSpecies,4);
     kappa0 = neutrals(iSpecies,3)*(Tbot^expKappa);
-    crossSections_d = table2array(EUV(iSpeciesEUV,6:42))*table2array(EUV(iSpeciesEUV,4));     %m2
+    crossSections_d = table2array(EUV(iSpeciesEUV+4,6:42))*table2array(EUV(iSpeciesEUV+4,4));     %m2
 end
 lambda_d = (0.5*(table2array(EUV(1,6:42))+table2array(EUV(2,6:42))))*1e-10;    % initially in Armstrongs
 AFAC = table2array(EUV(4,6:42));
@@ -142,7 +142,7 @@ freqTimeSteps = ceil(freq*60/tstep);
 pde.porder = porder;          % polynomial degree
 pde.torder = 2;          % time-stepping order of accuracy
 pde.nstage = 2;          % time-stepping number of stages
-pde.dt = tstepStar*ones(nTimeSteps,1);   % time step sizes
+pde.dt = tstepStar*ones(360,1);   % time step sizes
 pde.visdt = pde.dt(1);         % visualization timestep size
 pde.saveSolFreq = freqTimeSteps;          % solution is saved every 100 time steps
 pde.soltime = freqTimeSteps:freqTimeSteps:length(pde.dt); % steps at which solution are collected
@@ -152,13 +152,10 @@ pde.timestepOffset = tRestart;
 %% Vectors of physical and external parameters
 pde.physicsparam = [gam Gr Pr Fr Keuv  M  rho T0 T1 R0 R1 H EUVeff model longitude latitude declinationSun tauA t0];
                    % 1  2  3  4   5    6   7  8  9  10 11 12 13     14      15      16           17         18  19
-                   
-% pde.physicsparam = [gam Re Pe Minf Fr2 St rho T0 T1 R0 R1 Keuv M H EUVeff model longitude latitude declinationSun 0 t0];
-                     % 1  2  3   4    5  6   7  8   9 10 11 12  13 14  15   16      17       18       19
 
 %External params (EUV)
 pde.externalparam = [lambda,crossSections,AFAC,F74113];
-         
+
 
 %% Solver parameters
 pde.extStab = 1;

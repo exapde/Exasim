@@ -13,7 +13,7 @@ pde,mesh = Preprocessing.initializeexasim();
 
 # Define a PDE model: governing equations and boundary conditions
 pde['model'] = "ModelD";       # ModelC, ModelD, ModelW
-pde['modelfile'] = "pdemodel"; # name of a file defining the PDE model
+pde['modelfile'] = "pdemodel1D"; # name of a file defining the PDE model
 
 # Choose computing platform and set number of processors
 #pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
@@ -21,7 +21,7 @@ pde['mpiprocs'] = 1;        # number of MPI processors
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['porder'] = 3;         # polynomial degree
-pde['physicsparam'] = numpy.array([1.0, 20.0]);   # unit thermal conductivity
+pde['physicsparam'] = [1.0];   # unit thermal conductivity
 pde['tau'] = numpy.array([1.0]);            # DG stabilization parameter
 
 nDiv = 17
@@ -35,6 +35,4 @@ mesh['boundarycondition'] = numpy.array([1, 1]); # Set boundary condition for ea
 sol, pde, mesh  = Postprocessing.exasim(pde,mesh)[0:3]
 
 print("Done!")
-
-
 

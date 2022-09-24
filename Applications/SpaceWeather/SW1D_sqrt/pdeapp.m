@@ -33,7 +33,7 @@ compilerstr = compilecode(pde);
 % % run executable file to compute solution and store it in dataout folder
 runstr = runcode(pde);
 
-% % get solution from output files in dataout folder
+%get solution from output files in dataout folder
 sol = fetchsolution(pde,master,dmd);
 res = fetchresidual(pde);
 
