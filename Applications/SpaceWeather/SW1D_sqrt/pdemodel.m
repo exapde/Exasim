@@ -52,7 +52,7 @@ function s = source(u, q, w, v, x, t, mu, eta)
     drdx  = -q(1);
     drvxdx = -q(2);
     drTdx = -q(3);
-    
+        
     dvxdx = sr1*drvxdx - 0.5*drdx*vx;
     dTdx = sr1*drTdx - 0.5*drdx*T;
     
@@ -269,12 +269,10 @@ function   tau = gettau(uhat, mu, eta, n)
     sr1 = 1/sr;
     T = srT*sr1;
 
-    vx = srvx*sr1;
-    c = sqrt(T);
-    
+%     vx = srvx*sr1;
+%     c = sqrt(T);    
 %     tauA = sqrt(vx*vx) + c;
     tauA = mu(18);
-    
 
     % Viscosity
     mustar = sqrt(T);

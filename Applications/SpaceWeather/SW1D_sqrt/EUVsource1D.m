@@ -52,15 +52,15 @@ function s_EUV = EUVsource1D(u, x, t, mu, eta)
 
     erfcy = Ierf*(a_erf + b_erf*y)/(c_erf + d_erf*y + y*y) + (1-Ierf)*f_erf/(g_erf + y);
     
-    IcosChi = 0.5*(1 + tanh(100000*cosChi));
-    IsinChi = 0.5*(1 + tanh(100000*(r*absSinChi - R0)));
+    IcosChi = 0.5*(1 + tanh(100*cosChi));
+    IsinChi = 0.5*(1 + tanh(100*(r*absSinChi - R0)));
     
     alpha1 = Rp*erfcy*sqrt(0.5*pi*Xp);
     auxXp = (1-IcosChi)*IsinChi*Xp*(1-absSinChi);
     Rg = rho*H*exp(auxXp);
     alpha2 = (2*Rg - Rp*erfcy)*sqrt(0.5*pi*Xp);
     
-    alpha = IcosChi*alpha1 + (1-IcosChi)*(IsinChi*alpha2 + (1-IsinChi)*1e32);
+    alpha = IcosChi*alpha1 + (1-IcosChi)*(IsinChi*alpha2 + (1-IsinChi)*1e2);
     
     Q = 0;
     for iWave = 1:37
@@ -81,5 +81,4 @@ function s_EUV = EUVsource1D(u, x, t, mu, eta)
     end
     
     eff = mu(13);
-    
     s_EUV = gam*gam1*eff*Q/K0;
