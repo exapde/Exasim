@@ -82,7 +82,6 @@ void stateToConsVars(double* Ucons, double u, double* Ustate, double* uinf, int 
     // Maps from state variables (r, re) and velocity (u) to cons vars (r, ru, rE)
     //Ucons[nspecies+2]: state variables rho_i, rhou, rhoE (dimensional)
     //Ustate[nspecies+1]: inputs for mutation: rho_i, rhoe (dimensional)
-
     // TODO: currently for 1D
     double rho = 0.0;
     for (int i=0; i<nspecies; i++)
@@ -100,7 +99,6 @@ void stateToConsVars(double* Ucons, double u, double* Ustate, double* uinf, int 
 void uinflow(double* Ucons, double p, double *param, double* uinf, Mutation::Mixture *mix)
 { // Subsonic inflow: use pressure from solution
   //                  and given Tinf, Yinf, uinf to solve for rho, rhou, rhoE
-  
     int nspecies = 5;
     // Scaling information
     double rho_inf = uinf[0];
@@ -191,3 +189,77 @@ void uoutflow(double* Ucons, double* param, double* uinf, Mutation::Mixture *mix
       // printf("rho state %i: %f\n", i, Ucons[i]);
     // }
 }
+
+void getdTdU(double* dTdU, double* Ucons, double* Uwork, Mutation::Mixture *mix, int nspecies, int ndim)
+{
+  // Uwork is a temporary array for storing things
+    double rho = 0.0;
+    for (int i=0; i<nspecies; i++)
+    {
+      Uwork[i] = Ucons[i]; //rho_i
+      rho = rho + Ucons[i];
+    }
+    for (int j = 0; j<ndim; j++)
+    {
+      Uwork[nspecies+j] = Ucons[nspecies+j] / rho; // u_i
+    }
+    Uwork[nspecies+ndim] = mix->mixtureEnergyMass() // OKAY SHOULD I DO THIS ALL IN DIMENSIONAL OR NONDIM COORDS...what did I do last time? 
+    double rhou = Ucons[nspecies];
+    double rhoE = Ucons[nspecies+1];
+
+}
+
+// void getdPdU()
+// {
+
+// }
+
+// double getdTdr(double* dTdr_i, double* Ucons, Mutation::Mixture *mix, int nspecies, int ndim)
+// {
+//     double rho = 0.0;
+//     for (int i=0; i<nspecies; i++)
+//     {
+//       Ustate[i] = Ucons[i]; //rho_i
+//       rho = rho + Ucons[i];
+//     }
+//     double rhou = Ucons[nspecies];
+//     double rhoE = Ucons[nspecies+1];
+//     // double e = rhoe/rho;
+//     // double denom = (rho*mixture->mixtureEquilibriumCvMass());
+//     // return -e/denom;
+// }
+
+// double getdTdr(Mutation::Mixture *mix)
+// {
+//     // double e = mixture->mixtureEnergyMass();
+//     // double rho = mixture->density();
+//     // double denom = (rho*mixture->mixtureEquilibriumCvMass());
+//     // return -e/denom;
+// }
+
+// double dTdru(double* rho_i, double* rhou)
+
+// double getdTdre(double rho, Mutation::Mixture *mix)
+// {
+//     // double Cv = mixture->mixtureEquilibriumCvMass();
+//     // double denom = rho * Cv;
+//     // return 1.0/denom;
+// }
+
+// double getdTdre(Mutation::Mixture *mix)
+// {
+// //     double Cv = mixture->mixtureEquilibriumCvMass();
+// //     double rho = mixture->density();
+// //     double denom = rho * Cv;
+// //     return 1.0/denom;
+// }
+
+// double getP()
+// {
+
+// }
+
+// double getKineticSource()
+// {
+
+// }

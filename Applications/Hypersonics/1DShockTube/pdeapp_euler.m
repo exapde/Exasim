@@ -19,19 +19,19 @@ pde.mpiprocs = 1;              % number of MPI processors
 pde.porder = 1;          % polynomial degree
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;           % time-stepping number of stages
-nt = 50000 ;
+nt = 10000;
 pde.dt = 5e-4*ones(1,nt);   % time step sizes
 pde.saveSolFreq = nt/100;
 pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
-pde.tau = 2;
+pde.tau = 4.0;
 
 %% Mesh
-nDiv = 256;
+nDiv = 1024;
 
 [mesh.p,mesh.t] = linemesh(nDiv-1);
-a = 0; b = 10;
+a = 0; b = 1;
 mesh.p = a + (b-a)*mesh.p;
-% mesh.p = loginc(mesh.p, 10);
+% mesh.p = loginc(mesh.p, 5);
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(1,:)-a)<1e-16, @(p) abs(p(1,:) - b)<1e-8}; %TODO: double check boundaries
 mesh.boundarycondition = [1;2]; % Set boundary condition for each boundary
@@ -40,39 +40,41 @@ mesh.boundarycondition = [1;2]; % Set boundary condition for each boundary
 %% Solver params
 pde.linearsolveriter = 40;
 pde.GMRESrestart = 20;
-pde.matvectol = 1e-6;
+pde.matvectol = 1e-3;
 pde.NLiter = 3;
-
+pde.NLtol = 1e-11;
 %%  Problem params
 
 % Postshock flow conditions 
+% Dimensional quantities used in nonequilibrium case
 rho_post = 0.0085;
 u_post = 542.0;
 rhou_post = rho_post*u_post;
 rhoE_post = 52157.2;
 
-rho_inf = rho_post;
-u_inf = u_post;
+p_post = 16101;
+p_outflow = 16894;
 % pde.physicsparam = [rho_post(:)'/rho_inf,...
 %                     rhou_post/(rho_inf*u_inf),...
 %                     rhoE_post/(rho_inf*u_inf^2)];
 % pout = 2.104849700000000e+04/(rho_inf*u_inf^2);
 
-%%% Initial conditions roughly correspond to a nondimensionalition of the
-%%% original parameters...TODO: maybe this is not sensible? 
-pde.physicsparam = [1, 1, 20.88]; 
+% Assumed equilibrium conditions used for outflow and initial conditions.  
+pde.physicsparam = [1, 0, 16.8925]; 
 
-rhoin = pde.physicsparam(1);
-uin = pde.physicsparam(2)./rhoin;
-rhoEin = pde.physicsparam(3);
+rhoin = 1.0;
+uin = 1.0;
+rhoEin = 20.888;
 pin = 0.4 * (rhoEin - 1/2 * rhoin * uin^2);
 
-pout = 9;
+% pout = p_outflow/(rho_post*u_post*u_post);
+pout = 2.0;
+% pout = 3.0;
 Minf = 0.444658;
 
 Tin = 1.4 * Minf^2 * pin/rhoin;
 
-pde.externalparam = [rho_inf, u_inf, pout, Minf, Tin];
+pde.externalparam = [rho_post, 1.0, pout, Minf, Tin];
 
 %% call exasim to generate and run C++ code to solve the PDE model
 % [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
@@ -91,36 +93,3 @@ compilerstr = compilecode(pde);
 % run executable file to compute solution and store it in dataout folder
 runstr = runcode(pde);
 
-%% plot solution
-% sol = fetchsolution(pde,master,dmd, 'dataout');
-for ti = pde.soltime
-% ti = nt;
-sol = getsolution(['dataout/out_t' num2str(ti)],dmd,master.npe);
-% sol = getsolution(['dataout/out'],dmd,master.npe);
-nspecies=1;
-dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
-for i = 1:nspecies 
-    rho = sol(:,i,:);
-%     subplot(1,3,1)
-%     hold on
-%     plot(dgnodes(:),u(:),'LineWidth',1.3)
-end
-rhou = sol(:,nspecies+1,:);
-% subplot(1,3,2)
-% plot(dgnodes(:),u(:),'LineWidth',1.3);
-
-rhoE = sol(:,nspecies+2,:);
-  
-% u = rhou./rho;
-% subplot(1,3,3)
-p = eulereval(sol,'p',1.4,0.55);
-% p = rho;   
-
-u = rho(:);
-figure(1); plot(dgnodes(:),u,'LineWidth',1.3); ylim([min(u), max(u)]); drawnow; waitforbuttonpress; 
-end
-% plot
-
-
-
-        

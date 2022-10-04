@@ -39,6 +39,7 @@ template <typename T> void opuSourcew(T *f, T *xdg, T *udg, T *odg, T *wdg, T *u
 		for (int ispecies = 0; ispecies < nspecies; ispecies++ )
 		{
 			f[j+npe*ispecies+npe*nce*k] = wdot[ispecies]/(rho_inf*u_inf);
+			// printf("w[%i]: %f\n", ispecies, f[j+npe*ispecies+npe*nce*k]);
 		}
 		f[j+npe*nspecies+npe*nce*k] = mix->P()/rhoe_inf;
 		// printf("sourcew: p=%f\n", mix->P()/rhoe_inf);

@@ -60,7 +60,7 @@ template <typename T> void opuUbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		f[3*ng+i] = Ucons[3];
 		f[4*ng+i] = Ucons[4];
 		f[5*ng+i] = Ucons[5];
-		uoutflow((double*) Ucons, (double*) param, (double*) uinf, mix);
+		uoutflow((double*) Ucons, (double*) param[25], (double*) uinf, mix);
 
 		f[6*ng+i] = Ucons[6];
 	}

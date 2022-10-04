@@ -1,6 +1,6 @@
  
 function pde = pdemodel
-    pde.mass = @mass;
+%     pde.mass = @mass;
     pde.flux = @flux;
     pde.source = @source;
     pde.fbou = @fbou;

@@ -19,7 +19,7 @@ sol = getsolution(['dataout/out_outputCG_t' num2str(ti)],dmd,master.npe);
         
 %         plot(dgnodes(:),u(:)./rho(:),'LineWidth',1.3); 
 % 
-plot(dgnodes(:),u(:),'LineWidth',1.3); 
+plot(dgnodes(:),rho(:),'LineWidth',1.3); 
 set(gca, 'Xscale','log'); 
 %         waitforbuttonpress
     end

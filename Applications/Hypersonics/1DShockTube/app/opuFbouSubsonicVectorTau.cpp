@@ -1,10 +1,6 @@
 template <typename T> void opuFbou1(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, Mutation::Mixture *mix)
 {
 	for (int i = 0; i <ng; i++) {
-		// Try longer time
-		// Try fixing inlet pressure
-		// Using exact solution 
-		// Average inlet flux
 		T tau1 = tau[0];
 		T tau2 = tau[1];
 		T tau3 = tau[2];
@@ -42,7 +38,6 @@ template <typename T> void opuFbou1(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 
 		mix->setState(rhovec, &rhoe, 0);
         T uinf4 = mix->P()/rhoe_scale;
-		// T uinf4 = 16894.0/rhoe_scale;
 
 		T t2 = 1.0/3.141592653589793;
 		T t3 = udg1*1.0E+3;
@@ -115,7 +110,6 @@ template <typename T> void opuFbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		double rhoe_scale = uinf[2];
 
 		double Ucons[7] = {udg1, udg2, udg3, udg4, udg5, udg6, udg7};
-        // double Ucons[7] = {uhg1, uhg2, uhg3, uhg4, uhg5, uhg6, uhg7};
 		double Ustate[6];
 		dimensionalizeConsVars(Ucons, (double*)uinf, nspecies, 1);
 		conservativeToState(Ucons, Ustate, (double*)uinf, nspecies);
@@ -123,7 +117,6 @@ template <typename T> void opuFbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		double rhoe = Ustate[nspecies];
 
 		mix->setState(rhovec, &rhoe, 0);
-        // T uinf4 = param[3*nspecies+6]/rhoe_scale;
         T uinf4 = mix->P()/rhoe_scale;
 
 		T t2 = 1.0/3.141592653589793;
@@ -191,13 +184,6 @@ template <typename T> void opuFbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		T t28h = t23h+t24h+t25h+t26h+t27h+1.591548900402584E-3;
 		T t29h = 1.0/t28h;
 		
-		// T fnug1 = nlg1*t3*udg1*udg6;
-		// T fnudg2  = nlg1*t3*udg2*udg6;
-		// T fnudg3 = nlg1*t3*udg3*udg6;
-		// T fnudg4 = nlg1*t3*udg4*udg6;
-		// T fnudg5 = nlg1*t3*udg5*udg6;
-		// T fnudg6 = nlg1*(wdg6+t3*(udg6*udg6));
-		// T fnudg7 = nlg1*udg6*(t3*udg7+t3*wdg6);
 		uinf4 = param[3*nspecies+6]/rhoe_scale;
 		T fnuhg1 = nlg1*t29h*uhg6*(t23h+3.183097800805168E-4);
 		T fnuhg2 = nlg1*t29h*uhg6*(t24h+3.183097800805168E-4);
@@ -207,20 +193,12 @@ template <typename T> void opuFbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		T fnuhg6 = nlg1*(uinf4+t29h*(uhg6*uhg6));
 		T fnuhg7 = nlg1*uhg6*(t29h*uhg7+t29h*uinf4);
 
-		// f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*t29*udg6*(t23+3.183097800805168E-4);
-		// f[1*ng+i] = tau2*(udg2-uhg2)+nlg1*t29*udg6*(t24+3.183097800805168E-4);
-		// f[2*ng+i] = tau3*(udg3-uhg3)+nlg1*t29*udg6*(t25+3.183097800805168E-4);
-		// f[3*ng+i] = tau4*(udg4-uhg4)+nlg1*t29*udg6*(t26+3.183097800805168E-4);
-		// f[4*ng+i] = tau5*(udg5-uhg5)+nlg1*t29*udg6*(t27+3.183097800805168E-4);
-		// f[5*ng+i] = nlg1*(uinf4+t29*(udg6*udg6))+tau6*(udg6-uhg6);
-		// f[6*ng+i] = tau7*(udg7-uhg7)+nlg1*udg6*(t29*udg7+t29*uinf4);
-
 		f[0*ng+i] = tau1*(udg1-uhg1)+ 0.5 * (fnudg1 + fnuhg1);
-		f[1*ng+i] = tau2*(udg2-uhg2)+0.5 * (fnudg2 + fnuhg2);
-		f[2*ng+i] = tau3*(udg3-uhg3)+0.5 * (fnudg3 + fnuhg3);
-		f[3*ng+i] = tau4*(udg4-uhg4)+0.5 * (fnudg4 + fnuhg4);
-		f[4*ng+i] = tau5*(udg5-uhg5)+0.5 * (fnudg5 + fnuhg5);
-		f[5*ng+i] = 0.5 * (fnudg6 + fnuhg6) +tau6*(udg6-uhg6);
+		f[1*ng+i] = tau2*(udg2-uhg2)+ 0.5 * (fnudg2 + fnuhg2);
+		f[2*ng+i] = tau3*(udg3-uhg3)+ 0.5 * (fnudg3 + fnuhg3);
+		f[3*ng+i] = tau4*(udg4-uhg4)+ 0.5 * (fnudg4 + fnuhg4);
+		f[4*ng+i] = tau5*(udg5-uhg5)+ 0.5 * (fnudg5 + fnuhg5);
+		f[5*ng+i] = 0.5 * (fnudg6 + fnuhg6) + tau6*(udg6-uhg6);
 		f[6*ng+i] = tau7*(udg7-uhg7)+0.5 * (fnudg7 + fnuhg7);
 	}
 }

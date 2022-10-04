@@ -17,10 +17,11 @@ end
 mpirun = app.mpirun;
 if app.platform == "cpu"    
     if app.mpiprocs==1
-        runstr = "!./app/serial" + mystr;        
+        runstr = "./app/serial" + mystr;        
     else
-        runstr = "!" + mpirun + " -np " + string(app.mpiprocs) + " ./app/mpi" + mystr;        
+        runstr = mpirun + " -np " + string(app.mpiprocs) + " ./app/mpi" + mystr;        
     end
+    runstr = "!source ~/.zprofile; " + runstr;
     eval(char(runstr));
 elseif app.platform == "gpu"
     if app.mpiprocs==1
