@@ -24,13 +24,16 @@ tfinal = 0.0324;
 % nt = 3240/10;
 % dt = tfinal/nt;
 % dt = 10*1e-5;
-nt = 500;
-dt = tfinal / nt;
+nt = 10000;
+% nt = 150
+% dt = tfinal / nt;
+dt = 3.240000000000000e-06;
 % pde.dt = [dt/100*ones(1,nt*10), dt*ones(1,nt*9/10)];
 pde.dt = [dt*ones(1,nt)];
 pde.saveSolFreq = ceil(nt/100);
+% pde.saveSolFreq = 1;
 pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
-% pde.timestepOffset = 2700;
+% pde.timestepOffset = 10000;
 
 % Solver params
 pde.linearsolveriter = 40;
@@ -54,9 +57,9 @@ nspecies = 5;
 %% Stabilization and mesh
 ndim = 1;
 pde.tau = [5, 5, 5, 5, 5, 5, 5];
-nDiv = 400;
-[mesh.p,mesh.t] = linemesh(nDiv-1);
-a = 0; b = 1.0;
+nDiv = 600;
+[mesh.p,mesh.t] = linemesh(nDiv);
+a = 0.2; b = 0.645;
 mesh.p = a + (b-a)*mesh.p;
 
 mesh.boundaryexpr = {@(p) abs(p(1,:)-a)<1e-16, @(p) abs(p(1,:) - b)<1e-8}; %TODO: double check boundaries
@@ -84,8 +87,8 @@ pde.physicsparam = [
                         0.0                 % rhou_R
                         -9783.724551855581  % rhoE_R
                         pde.porder          % p for h/p scaling
-                        1.5                % bulk viscosity scaling parameter
-                        0.02             % cutoff dilitation
+                        1.5               % bulk viscosity scaling parameter
+                        0.0002             % cutoff dilitation
                         2.5                % maximum dilitation 18
                         Xi_inflow(:)     % 19 20 21 22 23
                         u_inflow         % 24
@@ -123,13 +126,17 @@ pde.externalparam = zeros(3*nspecies + 3 + ndim);
 pde.externalparam(1) = 0.11566313067881752; % rho_inf
 pde.externalparam(2) = 347.764810747843;    % u_inf
 pde.externalparam(3) = 13988.341078772399;  % rhoE_inf
+pde.externalparam(4) = 300;
+pde.externalparam(5) = 1.9423965904207942e-05;
+pde.externalparam(6) = 0.028469303787820466;
 
 % mesh size
 mesh.dgnodes = createnodes(mesh.p, mesh.t, pde.porder);
 mesh.vdg = zeros(size(mesh.dgnodes,1),2,size(mesh.dgnodes,3));
-mesh.vdg(:,2,:) = (1.0 / (2*nDiv)) * ones(size(mesh.dgnodes,1), 1, size(mesh.dgnodes,3));
+mesh.vdg(:,2,:) = (1.0 / (nDiv)) * ones(size(mesh.dgnodes,1), 1, size(mesh.dgnodes,3));
 
 pde.AV = 1;      
+pde.nco = 10;
 %% Call Exasim
 % search compilers and set options
 pde = setcompilers(pde);       
@@ -145,7 +152,8 @@ eval('!cp opuApp_MPP.cpp opuApp.cpp');
 eval('!cp opuFlux_MPP.cpp opuFlux.cpp'); %X manually switch these 
 eval('!cp opuFbou_MPP.cpp opuFbou.cpp'); %X
 eval('!cp opuSource_MPP.cpp opuSource.cpp'); %X
-eval('!cp opuOutput_MPP.cpp opuOutput.cpp'); %X
+% eval('!cp opuOutput_MPP_sensors.cpp opuOutput.cpp'); %X
+eval('!cp opuOutput_viscTerms.cpp opuOutput.cpp');
 eval('!cp opuAvfield_MPP.cpp opuAvfield.cpp') %X
 eval('!cp opuInitu_MPP.cpp opuInitu.cpp') %X
 % eval('!cp opuUbou_MPP.cpp opuUbou.cpp')

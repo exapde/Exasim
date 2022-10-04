@@ -39,7 +39,7 @@ template <typename T> void opuFbou1(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		double Ucons[7] = {udg1, udg2, udg3, udg4, udg5, udg6, udg7};
 		double Ustate[6];
 		dimensionalizeConsVars(Ucons, (double*)uinf, nspecies, 1);
-		conservativeToState(Ucons, Ustate, (double*)uinf, nspecies);
+		conservativeToState(Ucons, Ustate, (double*)uinf, nspecies, 1);
 		double rhovec[5] = {Ustate[0],Ustate[1],Ustate[2],Ustate[3],Ustate[4]};
 		double rhoe = Ustate[nspecies];
 
@@ -134,7 +134,7 @@ template <typename T> void opuFbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 		double Ucons[7] = {udg1, udg2, udg3, udg4, udg5, udg6, udg7};
 		double Ustate[6];
 		dimensionalizeConsVars(Ucons, (double*)uinf, nspecies, 1);
-		conservativeToState(Ucons, Ustate, (double*)uinf, nspecies);
+		conservativeToState(Ucons, Ustate, (double*)uinf, nspecies, 1);
 		double rhovec[5] = {Ustate[0],Ustate[1],Ustate[2],Ustate[3],Ustate[4]};
 		double rhoe = Ustate[nspecies];
 

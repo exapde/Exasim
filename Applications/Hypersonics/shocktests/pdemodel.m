@@ -32,7 +32,7 @@ function avField = avfieldLaplacian(u, q, w, v, x, t, mu, eta, nspecies, nd)
     sbmax = mu(18);% / sqrt(gam*gam - 1.0); %2.5 TODO: unsure that this should be changing 
 
     % regularization parameters
-    alpha = 1.0e3;
+    alpha = 1.0e12;
     rmin = 0.0;
     Hmin = 1.0e-4;
 
@@ -101,7 +101,7 @@ end
 
 function fv = fluxlaplacian(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     rmin = 0.0;
-    alpha = 1.0e3;
+    alpha = 1.0e12;
     eps_av = v(1);
 %     hm = v(2);
     %TODO: CHECK GAS OUTPUTS TO INPUTS USED BY HTR GROUP 
@@ -120,7 +120,7 @@ function fi = fluxinviscid(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     rho = sym(0);
 
     rmin = 0.0;
-    alpha = 1.0e3;
+    alpha = 1.0e12;
 
     % Conservative Variables
     for ispecies = 1:nspecies
@@ -163,16 +163,15 @@ function fv = fluxviscous(u, q, w, v, x, t, mu, eta)
     nspecies = 5;
     nenergy = 1;
     ndim = 1;
+    alpha = 1e9;
 
-    rho_i = sym(zeros(nspecies,1));
-    drhodx_i = sym(zeros(nspecies,1));
-    Y_i = sym(zeros(nspecies,1));
-    drhodx_i = sym(zeros(nspecies,1));
-    rho = sym(0);
-    drhodx = sym(0);
-    Tx = sym(0);
-    J_i = sym(zeros(nspecies,1));
-    dTdr_i = sym(zeros(nspecies,1));
+    Pr = mu(18);
+    Re = mu(19);
+
+    avb = v(1);
+    avs = v(2);
+    avk = v(3);
+    avDvec = v(4:3+nspecies);
 
     % Data layout
     %   [D_1, ..., D_ns, h_1, ..., h_ns, mu, kappa, dTdri, dTdrhou, dTdrhoE]
@@ -180,31 +179,32 @@ function fv = fluxviscous(u, q, w, v, x, t, mu, eta)
     h_vec = eta(nspecies+1:2*nspecies);
     viscshear = eta(2*nspecies+1);
     kappa = eta(2*nspecies+2);
-    dTdr_i = eta(2*nspecies+3:3*nspecies+2);
-    dTdrhou = eta(3*nspecies+2:3*nspecies+2+ndim);
-    dTdrhoE = eta(3*nspecies+3+ndim);
+    dT_drho_i = eta(2*nspecies+3:3*nspecies+2);
+    dT_drhoe = eta(3*nspecies+3);
 
-    % Conservative variables and their gradients
-    for ispecies = 1:nspecies
-        rho_i(ispecies) = rmin + lmax(u(ispecies)-rmin,alpha); %subspecies density
-        drhodx_i(ispecies) = q(ispecies) * dlmax(u(ispecies)-rmin,alpha) %TODO: do we need to regularize? It seems like they were in the previous case 
-        rho = rho + rho_i(ispecies); %total mixture density
-        drhodx = drhodx + drhodx_i(ispecies);
-    end
+    rho_i = rmin + lmax(u(1:nspecies) - rmin, alpha);
+    drho_dx_i = -q(1:nspecies) .* dlmax(u(1:nspecies)-rmin,alpha)
+    rho = sum(rho_i);
+    drho_dx = sum(drho_dx_i);
+    rhou     = u(nspecies+1);
+    drhou_dx = -q(nspecies+1);
+    rhoE     = u(nspecies+ndim+1);
+    drhoE_dx = -q(nspecies+ndim+1);
 
-    rhou = u(nspecies+1);
-    drhoudx = q(nspecies+1);
-    rhoE = u(nspecies+ndim+1);
-    drhoEdx = q(nspecies+ndim+2);
-    % if nenergy == 2
-    %     rhoev = u(nspecies+ndim+nenergy)
-    % end
-
-    rhoinv = 1.0 / rho;
-    drhodxinv = 1.0 / drhodx;
-    uv = rhou * rhoinv; %velocity
-    dudx = (drhoudx - drhodx*uv)*rinv;
-
+    % Some useful derived quantities 
+    rho_inv = 1.0 / rho;
+    drho_dx_inv = 1.0 / drho_dx;
+    uv = rhou * rho_inv; %velocity
+    dudx = (drhou_dx - drho_dx*uv)*rho_inv;
+    % re = rhoE - rho * (0.5 * uTu); 
+    uTu2 = 0.5 * uv * uv;
+    duTu2_dx = uv; 
+    dre_drho = -uTu2;
+    dre_duTu2 = -rho;
+    dre_drhoE = 1.0;
+    dre_dx = dre_drho * drho_dx + dre_duTu2 * duTu2_dx + dre_drhoE * drhoE_dx;
+    Tx = sum(dT_drho_i .* drho_dx_i) +  dT_drhoe * dre_dx;
+    
     %%%%%%%% Modify appropriate coefficients 
     kappa = kappa + avk;
     viscshear = viscshear + avs;
@@ -212,19 +212,20 @@ function fv = fluxviscous(u, q, w, v, x, t, mu, eta)
     D_vec = D_vec + avDvec;
 
     %%%%%%%% Calculation of J_i
-    for ispecies = 1:nspecies
-        Y_i(ispecies) = rho_i(ispecies) / rho;
-        dYdx_i(ispecies) = (q(ispecies) * rho - rho_i(ispecies) * drhodx) * drhodxinv^2;
-    end
+    % for ispecies = 1:nspecies
+    %     Y_i(ispecies) = rho_i(ispecies) / rho;
+    %     dYdx_i(ispecies) = (q(ispecies) * rho - rho_i(ispecies) * drhodx) * drhodxinv^2;
+    % end
+    Y_i = rho_i ./ rho;
+    dY_dx_i = (drho_dx_i * rho - rho_i * drho_dx) * rho_inv * rho_inv;
     
-    for ispecies = 1:nspecies
-        J_i(ispecies) = -rho * D_vec(ispecies) * dYdx_i(ispecies) + rho_i(ispecies) * sum(D_vec .* dYdx_i);
-    end
+    % for ispecies = 1:nspecies
+        % J_i(ispecies) = -rho * D_vec(ispecies) * dYdx_i(ispecies) + rho_i(ispecies) * sum(D_vec .* dYdx_i);
+    % end
+    J_i = -rho * D_vec .* dY_dx_i + rho_i .* sum(D_vec .* dY_dx_i);
 
     %%%%%%%% Stress tensor tau
-    txx = viscshear * 4.0/3.0 * dudx + viscbulk * dudx; %TODO: check sign
-
-    Tx = sum(dTdr_i .* drhodx_i) + dTdrhou * drhoudx + dTdrhoE * drhoEdx;
+    txx = 1.0 / Re * viscshear * 4.0/3.0 * du_dx + viscbulk * du_dx; %TODO: check sign
 
     %%%%%%%% Final viscous fluxes
     for ispecies = 1:nspecies
@@ -232,7 +233,7 @@ function fv = fluxviscous(u, q, w, v, x, t, mu, eta)
     end
 
     fv(nspecies + 1) = txx;
-    fv(nspecies + 2) = uv * txx - (sum(h_vec.*J_i) - kappa * Tx);
+    fv(nspecies + 2) = uv * txx - (sum(h_vec.*J_i) - kappa * dT_dx * 1.0 / (Re * Pr));
 end
 
 
@@ -240,7 +241,7 @@ function s = source(u, q, w, v, x, t, mu, eta)
     
     nspecies = 5;
     rmin = 0.0;
-    alpha = 1.0e3;
+    alpha = 1.0e12;
     rvec = u(1:nspecies);
     s(1:nspecies) = rmin + lmax(rvec-rmin,alpha);
 end
@@ -269,7 +270,7 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 end
 
 function u0 = initu(x, mu, eta)
-    nspecies = 1;
+    nspecies = 5;
 
     % pde.physicsparam = [rho_post(:)', rhou_post, rhoE_post, rho_equil(:)', rhou_equil, rhoE_equil,   Xi_inflow,    u_inflow, T_inflow, p_outflow];
     %                    %  1:N          N+1         N+2       N+3:2*N+2     2*N+3       2*N+4       2*N+5:3*N+4     3*N+5     3*N+6      3*N+7
@@ -296,12 +297,12 @@ function u0 = initu(x, mu, eta)
     rhoE_L_nondim = rhoE_L/rhoe_scale;
 
 %     u0 = [rho_R_vec_nondim(:) + rho_L_vec_nondim(:); rhou_R_nondim + rhou_L_nondim; rhoE_R_nondim + rhoE_L_nondim];
-    stepsize = 0.000001; 
+    stepsize = 0.001; 
     midpoint = 0.5;
     u0(1) = smoothstep_down(x-midpoint, rho_L_vec_nondim(1), rho_R_vec_nondim(1), stepsize);
     u0(2) = smoothstep_down(x-midpoint, rho_L_vec_nondim(2), rho_R_vec_nondim(2), stepsize);
     u0(3) = smoothstep_down(x-midpoint, rho_L_vec_nondim(3), rho_R_vec_nondim(3), stepsize);
-    u0(4) = smoothstep_down(x-midpoint, rho_L_vec_nondim(4), rho_R_vec_nondim(4), stepsize);
+    u0(4) = smoothstep_up(x-midpoint, rho_L_vec_nondim(4), rho_R_vec_nondim(4), stepsize);
     u0(5) = smoothstep_up(x-midpoint, rho_L_vec_nondim(5), rho_R_vec_nondim(5), stepsize);
     u0(nspecies+1) = 0.0;
     u0(nspecies+2) = smoothstep_down(x-midpoint, rhoE_L_nondim, rhoE_R_nondim, stepsize);
@@ -310,34 +311,39 @@ end
 
 function o = output(u, q, w, v, x, t, mu, eta)
     
-    nspecies = 5;
+    % nspecies = 5;
 
-    o = sym(zeros(2,1));
-    nspecies = 5;
-    alpha = 1.0e3;
-    rmin = 0.0;
+    % o = sym(zeros(10,1));
+    % nspecies = 5;
+    % alpha = 1.0e3;
+    % rmin = 0.0;
 
-    f = sym(zeros(nspecies + 2,1));
-    rho_i = sym(zeros(5,1));
-    rho = sym(0);
+    % f = sym(zeros(nspecies + 2,1));
+    % rho_i = sym(zeros(5,1));
+    % rho = sym(0);
 
-    % Conservative Variables
-    for ispecies = 1:nspecies
-        rho_i(ispecies) = rmin + lmax(u(ispecies)-rmin,alpha); %subspecies density
-        rho = rho + rho_i(ispecies); %total mixture density
-    end
+    % % Conservative Variables
+    % for ispecies = 1:nspecies
+    %     rho_i(ispecies) = rmin + lmax(u(ispecies)-rmin,alpha); %subspecies density
+    %     rho = rho + rho_i(ispecies); %total mixture density
+    % end
 
-    rhou = u(nspecies+1);
-    rhoE = u(nspecies+2);
+    % rhou = u(nspecies+1);
+    % rhoE = u(nspecies+2);
 
-    rhoinv = 1.0 / rho;
-    uv = rhou * rhoinv; %velocity
-    E = rhoE*rhoinv; %energy
+    % rhoinv = 1.0 / rho;
+    % uv = rhou * rhoinv; %velocity
+    % E = rhoE*rhoinv; %energy
 
-    o(1) = u(1);
-    o(2) = u(2);
+    % o(1) = u(1);
+    % o(2) = u(2);
+    % o(3) = u(3);
+    % o(4) = u(4);
+    % o(5) = u(5);
+    hm = v(2);
+    o = sensor_outputs(u, q, w, v, x, t, mu, eta, hm);
 end
 
-function dout = dlmax(x, alpha)
-    dout = atan(alpha*(x))/pi + (alpha*(x))./(pi*(alpha^2*(x).^2 + 1)) + 1/2;
-end
+% function dout = dlmax(x, alpha)
+%     dout = atan(alpha*(x))/pi + (alpha*(x))./(pi*(alpha^2*(x).^2 + 1)) + 1/2;
+% end

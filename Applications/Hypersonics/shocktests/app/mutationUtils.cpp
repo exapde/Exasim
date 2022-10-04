@@ -15,6 +15,47 @@ void nondimensionalizeConsVars(double* Ucons, double* uinf, int nspecies, int nd
   Ucons[nspecies+nd] = Ucons[nspecies+nd] / (rhoe_scale);
 }
 
+void nondimensionalize_dT_dUstate(double* dTdU, double* uinf, int nspecies, int nd)
+{
+  // Modifies Ucons vector in place to have nondimensional quantities
+  double rho_scale = uinf[0];
+  double u_scale = uinf[1];
+  double rhoe_scale = uinf[2];
+  double T_scale = uinf[3];
+  for (int i=0; i<nspecies; i++)
+  {
+    dTdU[i] = dTdU[i] * rho_scale / T_scale;
+  }
+  // for (int i=0; i<nd; i++)
+  // {
+  //   Ucons[nspecies+i] = Ucons[nspecies+i] / (rho_scale * u_scale);
+  // }
+  dTdU[nspecies] = dTdU[nspecies] * rhoe_scale / T_scale;
+}
+
+void nondimensionalize_diffusionCoeffs(double* D_i, double* uinf, int nspecies, int nd)
+{
+  // Modifies Ucons vector in place to have nondimensional quantities
+  double rho_scale = uinf[0];
+  double u_scale = uinf[1];
+  double rhoe_scale = uinf[2];
+  double T_scale = uinf[3];
+  for (int i=0; i<nspecies; i++)
+  {
+    D_i[i] = D_i[i] / u_scale;
+  }
+}
+
+void nondimensionalize_enthalpies(double* h_i, double* uinf, int nspecies, int nd)
+{
+  // Modifies h_i vector in place to have nondimensional quantities
+  double u_scale2 = uinf[1] * uinf[1];
+  for (int i=0; i<nspecies; i++)
+  {
+    h_i[i] = h_i[i] / u_scale2;
+  }
+}
+
 void dimensionalizeConsVars(double* Ucons, double* uinf, int nspecies, int nd)
 {
   // Modifies Ucons vector in place to have dimensional quantities
@@ -60,21 +101,27 @@ void dimensionalizeStateVars(double* Ustate, double* uinf, int nspecies)
   // TODO: allow multiple energy equations 
 }
 
-void conservativeToState(double* Ucons, double* Ustate, double* uinf, int nspecies)
+void conservativeToState(double* Ucons, double* Ustate, double* uinf, int nspecies, int ndim)
 {   
     // Maps from conservative fluid variables (r, ru, rE, rEv) to state variables (r, re, rev)
     //Ucons[nspecies+2]: state variables rho_i, rhou, rhoE (dimensional)
     //Ustate[nspecies+1]: inputs for mutation: rho_i, rhoe (dimensional)
     double rho = 0.0;
+    double ruTu2 = 0.0;
+    // int ndim = 1;
     for (int i=0; i<nspecies; i++)
     {
       Ustate[i] = Ucons[i]; //rho_i
       rho = rho + Ucons[i];
     }
-    double rhou = Ucons[nspecies];
-    double rhoE = Ucons[nspecies+1];
-    double u = rhou/rho;
-    Ustate[nspecies] = rhoE - 0.5 * rho * u * u; //rhoe
+    for (int i = 0; i<ndim; i++)
+    {
+      ruTu2 = ruTu2 + 0.5 * Ucons[nspecies+i] * Ucons[nspecies+i] / rho; 
+    }
+    // double rhou = Ucons[nspecies];
+    double rhoE = Ucons[nspecies+ndim];
+    // double u = rhou/rho;
+    Ustate[nspecies] = rhoE - ruTu2; //rhoe
 }
 
 void stateToConsVars(double* Ucons, double u, double* Ustate, double* uinf, int nspecies)
@@ -244,7 +291,7 @@ void uoutflow(double* Ucons, double outP, double* scales, Mutation::Mixture *mix
     double rho = 0.0;
 
     dimensionalizeConsVars(Ucons, scales, nspecies, 1);
-    conservativeToState(Ucons, Ustate, scales, nspecies);
+    conservativeToState(Ucons, Ustate, scales, nspecies, 1);
 
     // Pressure outlet
     double P_out = outP;
@@ -278,31 +325,26 @@ void uoutflow(double* Ucons, double outP, double* scales, Mutation::Mixture *mix
     nondimensionalizeConsVars(Ucons, scales, nspecies, 1);
 }
 
-// void getdTdU(double* dTdU, double* Ucons, double* Uwork, Mutation::Mixture *mix, int nspecies, int ndim)
-// {
-//   // Uwork is a temporary array for storing things
-//     double rho = 0.0;
-//     for (int i=0; i<nspecies; i++)
-//     {
-//       Uwork[i] = Ucons[i]; //rho_i
-//       rho = rho + Ucons[i];
-//     }
-//     for (int j = 0; j<ndim; j++)
-//     {
-//       Uwork[nspecies+j] = Ucons[nspecies+j] / rho; // u_i
-//     }
-//     Uwork[nspecies+ndim] = mix->mixtureEnergyMass() // OKAY SHOULD I DO THIS ALL IN DIMENSIONAL OR NONDIM COORDS...what did I do last time? 
-//     double rhou = Ucons[nspecies];
-//     double rhoE = Ucons[nspecies+1];
-
-// }
+void dT_dUstate(double* dTdU, double* Ustate, double* Uwork, int nspecies, int ndim, Mutation::Mixture *mix)
+{
+  // Uwork is a temporary array for storing things
+  // Ustate = (rho_i, rhoe, rhoev)
+  // Works entirely in dimensional variables, must be nondimensionalized after the fact. 
+    double denom = mix->density() * mix->mixtureFrozenCvMass();
+    mix->getEnergiesMass(Uwork);
+    for (int i = 0; i<nspecies; i++)
+    {
+      dTdU[i] = -Uwork[i] / denom;
+    }
+    dTdU[nspecies] = 1.0 / denom;
+}
 
 // void getdPdU()
 // {
 
 // }
 
-// double getdTdr(double* dTdr_i, double* Ucons, Mutation::Mixture *mix, int nspecies, int ndim)
+// double dT_drho_i(double* dTdr_i, double* Ucons, Mutation::Mixture *mix, double denom, int nspecies, int ndim)
 // {
 //     double rho = 0.0;
 //     for (int i=0; i<nspecies; i++)
