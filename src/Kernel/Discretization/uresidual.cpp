@@ -84,7 +84,7 @@ void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     // = dw/dxi_i * (sum_j Flux_j(u) * Xx(:,j,i)) 
     Gauss2Node(handle, &res.Rue[npe*ncu*e1], &tmp.tempg[n3], master.shapegw, nge*(nd+1), npe, ncu*ne, backend);                
       
-#ifdef DEBUG                       
+#ifdef EXADEBUG                       
     writearray2file(common.fileout + "RuElem_uge.bin", &tmp.tempg[n3], nge*nc*ne, backend);  
     writearray2file(common.fileout + "RuElem_fge.bin", &tmp.tempg[n4], nge*ncu*nd*ne, backend);  
     writearray2file(common.fileout + "RuElem_rne.bin", tmp.tempn, npe*ncu*ne, backend);
@@ -194,7 +194,7 @@ void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
         nge, nd, ncu, ne, backend);
     Gauss2Node(handle, &res.dRue[npe*ncu*e1], &tmp.tempg[n9], master.shapegw, nge*(nd+1), npe, ncu*ne, backend);                
 
-#ifdef DEBUG                       
+#ifdef EXADEBUG                       
     writearray2file(common.fileout + "EnzymeRuElem_uge.bin", &tmp.tempg[n3], nge*nc*ne, backend);  
     writearray2file(common.fileout + "EnzymeRuElem_fge.bin", &tmp.tempg[n4], nge*ncu*nd*ne, backend);  
     writearray2file(common.fileout + "EnzymeRuElem_rne.bin", tmp.tempn, npe*ncu*ne, backend);
@@ -284,7 +284,7 @@ void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     // <fhat, w>_F = <jac fhat, w>_T = w * (fhg * jac): npf*ncu*nf        
     Gauss2Node(handle, &res.Rh[npf*ncu*f1], &tmp.tempg[n3], master.shapfgw, ngf, npf, nf*ncu, backend);            
     
-#ifdef DEBUG                           
+#ifdef EXADEBUG                           
     writearray2file(common.fileout + NumberToString(ib) + "RuFace_uhgf.bin", &tmp.tempg[n3], ngf*ncu*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RuFace_fgf.bin", &tmp.tempg[n4], ngf*ncu*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RuFace_rnf.bin", tmp.tempn, npf*ncu*nf, backend);
@@ -404,7 +404,7 @@ void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     // evaluate dfhg * jac
     ApplyJac(&tmp.tempg[n9], &tmp.tempg[n14], &sol.faceg[nm+n2], nga, ncu, ngf, backend);
     Gauss2Node(handle, &res.dRh[npf*ncu*f1], &tmp.tempg[n9], master.shapfgw, ngf, npf, nf*ncu, backend);   
-#ifdef DEBUG                           
+#ifdef EXADEBUG                           
     writearray2file(common.fileout + NumberToString(ib) + "RuFace_uhgf.bin", &tmp.tempg[n3], ngf*ncu*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RuFace_fgf.bin", &tmp.tempg[n4], ngf*ncu*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RuFace_rnf.bin", tmp.tempn, npf*ncu*nf, backend);

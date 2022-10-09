@@ -28,7 +28,7 @@ void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     Gauss2Node(handle, &res.Rqe[npe*ncq*e1], &tmp.tempg[n1], &master.shapegw[npe*nge], 
             nge*nd, npe, ncq*ne, backend);        
         
-#ifdef DEBUG                       
+#ifdef EXADEBUG                       
     writearray2file(common.fileout + "RqElem_uge.bin", &tmp.tempg[n0], nge*ncu*ne, backend);  
     writearray2file(common.fileout + "RqElem_fge.bin", &tmp.tempg[n1], nge*ncq*ne, backend);  
     writearray2file(common.fileout + "RqElem_rqe.bin", res.Rqe, npe*ncq*common.ne1, backend);
@@ -80,7 +80,7 @@ void RqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     // <uhat, v dot n>_F = <jac uhat, v dot n>_T = v * (uhg * jac * nlg)            
     Gauss2Node(handle, &res.Rh[npf*ncq*f1], &tmp.tempg[n4], master.shapfgw, ngf, npf, nf*ncq, backend);            
     
-#ifdef DEBUG                           
+#ifdef EXADEBUG                           
     writearray2file(common.fileout + NumberToString(ib) + "RqFace_uhgf.bin", &tmp.tempg[n3], ngf*ncu*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RqFace_fgf.bin", &tmp.tempg[n4], ngf*ncq*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RqFace_rnf.bin", tmp.tempn, npf*ncq*nf, backend);
@@ -135,7 +135,7 @@ void dRqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     Gauss2Node(handle, &res.dRqe[npe*ncq*e1], &tmp.tempg[n1], &master.shapegw[npe*nge], 
             nge*nd, npe, ncq*ne, backend);        
         
-#ifdef DEBUG                       
+#ifdef EXADEBUG                       
     writearray2file(common.fileout + "RqElem_uge.bin", &tmp.tempg[n0], nge*ncu*ne, backend);  
     writearray2file(common.fileout + "RqElem_fge.bin", &tmp.tempg[n1], nge*ncq*ne, backend);  
     writearray2file(common.fileout + "RqElem_rqe.bin", res.Rqe, npe*ncq*common.ne1, backend);
@@ -187,7 +187,7 @@ void dRqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     // <uhat, v dot n>_F = <jac uhat, v dot n>_T = v * (uhg * jac * nlg)            
     Gauss2Node(handle, &res.dRh[npf*ncq*f1], &tmp.tempg[n4], master.shapfgw, ngf, npf, nf*ncq, backend);            
     
-#ifdef DEBUG                           
+#ifdef EXADEBUG                           
     writearray2file(common.fileout + NumberToString(ib) + "RqFace_uhgf.bin", &tmp.tempg[n3], ngf*ncu*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RqFace_fgf.bin", &tmp.tempg[n4], ngf*ncq*nf, backend);  
     writearray2file(common.fileout + NumberToString(ib) + "RqFace_rnf.bin", tmp.tempn, npf*ncq*nf, backend);

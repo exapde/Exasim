@@ -55,6 +55,8 @@ void readappstruct(string filename, appstruct &app)
         Mutation::MixtureOptions opts(MixtureName);
         opts.setStateModel(StateModel);
         opts.setThermodynamicDatabase(ThermoDB);
+        opts.setViscosityAlgorithm("Gupta-Yos");
+        opts.setThermalConductivityAlgorithm("Wilke");
         
         app.mix = new Mutation::Mixture(opts);
         printf("Mutation mixture initialized\n");
