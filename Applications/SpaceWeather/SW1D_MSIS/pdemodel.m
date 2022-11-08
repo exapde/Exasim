@@ -9,34 +9,33 @@ pde.stab = @stab;
 end
 
 function m = mass(u, q, w, v, x, t, mu, eta)
- m = sym([1.0; 1.0; 1.0]); 
+    m = sym([1.0; 1.0; 1.0]); 
 end
 
 function f = flux(u, q, w, v, x, t, mu, eta)
-    fi = fluxInviscid(u,mu);
-    fv = fluxViscous(u,q,x,mu);
+    fi = fluxInviscid(u,x,mu,eta);
+    fv = fluxViscous(u,q,x,mu,eta);
       
     f = fi+fv;
 end
 
 function f = fluxWall(u, q, w, v, x, t, mu, eta)
-    fi = fluxInviscidWall(u,mu);
-    fv = fluxViscousWall(u,q,x,mu);
+    fi = fluxInviscidWall(u,x,mu,eta);
+    fv = fluxViscousWall(u,q,x,mu,eta);
       
     f = fi+fv;
 end
 
 function s = source(u, q, w, v, x, t, mu, eta)
     x1 = x(1);
-    c0 = mu(16);
 
     gam = mu(1);
     gam1 = gam-1;
-    Re = mu(2);
-    Pe = mu(3);
-    Minf = mu(4);
-    M2 = Minf^2;
+    Gr = mu(2);
+    Pr = mu(3);
     c23 = 2.0/3.0;
+    
+    [mw,dmdr] = weightedMass(x,mu,eta);
     
     r = u(1);
     srvx = u(2);
@@ -49,8 +48,7 @@ function s = source(u, q, w, v, x, t, mu, eta)
     
     vx = srvx*sr1;
     T = srT*sr1;
-    
-    p = srT/(gam*M2);
+    p = srT/(gam*mw);
     
     drdx  = -q(1);
     drvxdx = -q(2);
@@ -60,32 +58,42 @@ function s = source(u, q, w, v, x, t, mu, eta)
     dTdx = sr1*drTdx - 0.5*drdx*T;
     
     % Viscosity
-    mustar = sqrt(T);
-    kstar = T^0.75;
-    nu = mustar*sr1/Re;
-    fc = kstar*sr1*gam/Pe;
+    expmu = mu(12);
+    expkappa = mu(13);
+    nuEddy = mu(14);
+    alphaEddy = mu(15);
     
-    trr = nu*c23*2*dvxdx - c23*c0*vx/x1;
-    trd = nu*2*c0*(dvxdx-vx/x1)/x1;
+    mustar = T^expmu;
+%     k0 = ThermalConductivity(x,mu,eta);
+    k0 = 1;
+    kstar = k0*T^expkappa;
+    nu = (mustar*sr1 + sr*nuEddy)/sqrt(gam*Gr);
+    fc = (kstar*sr1 + sr*alphaEddy)*mw*sqrt(gam/Gr)/Pr;
     
-    R0 = mu(10);
-    gravity0 = mu(5);
+    trr = nu*c23*2*dvxdx - 2*c23*vx/x1;
+    trd = 4*nu*(dvxdx-vx/x1)/x1;
+    
+    R0 = mu(16);
+    gravity0 = 1/gam;
     gravity = gravity0*R0^2/(x1^2);
-    omega = mu(6);
-    ar = -gravity + x1*omega^2;
+    Fr = mu(4);
+    ar = -gravity + x1*Fr^2/gam;
     
-    trp = 2*c23*nu*(dvxdx^2 - c0*vx*dvxdx/x1 + 0.5*c0*(3-c0)*vx^2/x1^2);
-    SigmadV = gam*gam1*M2*trp;
+    trp = 2*c23*nu*mw*(dvxdx^2 - 2*vx*dvxdx/x1 + vx^2/x1^2);
+    SigmadV = gam*gam1*trp;
     
     q_EUV = EUVsource1D(u, x, t, mu, eta);
     
-    s = [r_1*dvxdx - c0*vx/x1; ...
-        sr*ar + 0.5*(dvxdx-c0*vx/x1)*srvx - 0.5*p*drdx + 0.5*trr*drdx + 0.5*trd; ...
-        sr*q_EUV + (3/2-gam)*srT*dvxdx + c0*(1/2-gam)*srT*vx/x1 + fc*dTdx*(c0/x1 + 0.5*drdx) + SigmadV];
+    %source due to mass variation;
+    qcv = (srT*vx - fc*dTdx)*dmdr/mw;
+    
+    s = [r_1*dvxdx - 2*vx/x1; ...
+        sr*ar + 0.5*(dvxdx-2*vx/x1)*srvx - 0.5*p*drdx + 0.5*trr*drdx + 0.5*trd; ...
+        sr*q_EUV + (3/2-gam)*srT*dvxdx + 2*(1/2-gam)*srT*vx/x1 + fc*dTdx*(2/x1 + 0.5*drdx) + SigmadV + qcv];
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-    tau = gettau(uhat, mu, eta, n);
+    tau = gettau(uhat, mu, eta, x, n);
 
     f = fluxWall(u, q, w, v, x, t, mu, eta);
     fw = f*n; % numerical flux at freestream boundary
@@ -94,7 +102,7 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fw(3) = fw(3) + tau(3)*(u(3)-uhat(3));
     
     % Inviscid outer boundary
-    fi2 = fluxInviscid(u,mu);
+    fi2 = fluxInviscid(u,x,mu,eta);
     ft = fi2*n;    
     ft(1) = ft(1) + tau(1)*(u(1)-uhat(1));
     ft(2) = ft(2) + tau(2)*(u(2)-uhat(2));
@@ -104,7 +112,7 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-    Tbot = mu(8);
+    Tbot = 1.0;
 
     % Isothermal Wall
     r = u(1);
@@ -125,23 +133,21 @@ end
 function u0 = initu(x, mu, eta)
     x1 = x(1);
     
-    gam = mu(1);
-    Minf = mu(4);
-    M2 = Minf^2;
-    Fr2 = mu(5);
-    omega = mu(6);
+    Fr = mu(4);
 
-    Tbot = mu(8);
-    Ttop = mu(9);
-    R0 = mu(10);
-    Ldim = mu(14);
-    h0 = 40000/Ldim;
+    mw = weightedMass(x,mu,eta);
+    
+    Tbot = 1.0;
+    Ttop = 6.0;
+    R0 = mu(16);
+    Ldim = mu(18);
+    h0 = 35000/Ldim;
 
-    a0 = gam*M2*(-Fr2 + omega^2*R0);
+    a0 = (-1 + Fr^2*R0);
     
     T = Ttop - (Ttop-Tbot)*exp(-(x1-R0)/h0);
-    logp_p0 = a0*h0/Ttop*log(1+Ttop/Tbot*(exp((x1-R0)/h0)-1));
-    rtilde = logp_p0 - log(T);
+    logp_p0 = a0*mw*h0/Ttop*log(1+Ttop/Tbot*(exp((x1-R0)/h0)-1));
+    rtilde = logp_p0 - log(T) + log(mw);
     rho = exp(rtilde);
     srT = sqrt(rho)*T;
     
@@ -151,7 +157,7 @@ end
 
 function ftau = stab(u1, q1, w1, v1, x, t, mu, eta, uhat, n, tau, u2, q2, w2, v2) 
     uhat = 0.5*(u1+u2);
-    tau = gettau(uhat, mu, eta, n);
+    tau = gettau(uhat, mu, eta, x, n);
     
     ftau(1) = tau(1)*(u1(1) - u2(1));
     ftau(2) = tau(2)*(u1(2) - u2(2));
@@ -159,11 +165,8 @@ function ftau = stab(u1, q1, w1, v1, x, t, mu, eta, uhat, n, tau, u2, q2, w2, v2
 end
 
 
-function fi = fluxInviscid(u,mu)
-    gam = mu(1);
-    Minf = mu(4);
-    M2 = Minf^2;
-    
+function fi = fluxInviscid(u,x,mu,eta)
+    gam = mu(1);    
     r = u(1);
     srvx = u(2);
     srT = u(3);
@@ -174,36 +177,35 @@ function fi = fluxInviscid(u,mu)
     
     vx = srvx*sr1;
     
-    p = srT/(gam*M2);
+    mw = weightedMass(x,mu,eta);
+    p = srT/(gam*mw);
 
     fi = [r*vx; srvx*vx+p; srT*vx];
 end
 
-function fi = fluxInviscidWall(u,mu)
+function fi = fluxInviscidWall(u,x,mu,eta)
     gam = mu(1);
-    Minf = mu(4);
-    M2 = Minf^2;
     
     r = u(1);
     rho = exp(r);
     sr = sqrt(rho);
     
-    Tbot = mu(8);
-    %srT = u(3);    
-    p = sr*Tbot/(gam*M2);
+    Tbot = 1.0;
+    mw = weightedMass(x,mu,eta);
+    p = sr*Tbot/(gam*mw);
 
     fi = [0; p; 0];
 end
 
 
-function fv = fluxViscous(u,q,x,mu)
+function fv = fluxViscous(u,q,x,mu,eta)
     x1 = x(1);
-    c0 = mu(16);
     
     gam = mu(1);
-    Re = mu(2);
-    Pe = mu(3);
+    Gr = mu(2);
+    Pr = mu(3);
     c23 = 2.0/3.0;
+    mw = weightedMass(x,mu,eta);
     
     r = u(1);
     srvx = u(2);
@@ -212,7 +214,7 @@ function fv = fluxViscous(u,q,x,mu)
     rho = exp(r);
     sr = sqrt(rho);
     sr1 = 1/sr;
-    
+
     vx = srvx*sr1;
     T = srT*sr1;
         
@@ -224,35 +226,38 @@ function fv = fluxViscous(u,q,x,mu)
     dTdx = sr1*drTdx - 0.5*drdx*T;
 
     % Viscosity
-    mustar = sqrt(T);
-    kstar = T^0.75;
-    nu = mustar*sr1/Re;
-    fc = kstar*sr1*gam/Pe;
+    expmu = mu(12);
+    expkappa = mu(13);
+    nuEddy = mu(14);
+    alphaEddy = mu(15);
     
-    trr = nu*c23*2*dvxdx - c23*c0*vx/x1;
+    mustar = T^expmu;
+%     k0 = ThermalConductivity(x,mu,eta);
+    k0 = 1;
+    kstar = k0*T^expkappa;
+    nu = (mustar*sr1 + sr*nuEddy)/sqrt(gam*Gr);
+    fc = (kstar*sr1 + sr*alphaEddy)*mw*sqrt(gam/Gr)/Pr;
+    
+    trr = nu*c23*2*dvxdx - 2*c23*vx/x1;
     
     fv = [0; -trr; -fc*dTdx];
 end
 
-function fv = fluxViscousWall(u,q,x,mu)
+function fv = fluxViscousWall(u,q,x,mu,eta)
     x1 = x(1);
-    c0 = mu(16);
     
     gam = mu(1);
-    Re = mu(2);
-    Pe = mu(3);
+    Gr = mu(2);
+    Pr = mu(3);
     c23 = 2.0/3.0;
+    mw = weightedMass(x,mu,eta);
     
-    r = u(1);
-    srT = u(3);
-    
+    r = u(1);    
     rho = exp(r);
     sr = sqrt(rho);
     sr1 = 1/sr;
-    
     vx = 0.0;
-    T = mu(8);
-    %T = srT*sr1;
+    T = 1.0;
         
     drdx  = -q(1);
     drvxdx = -q(2);
@@ -262,44 +267,57 @@ function fv = fluxViscousWall(u,q,x,mu)
     dTdx = sr1*drTdx - 0.5*drdx*T;
 
     % Viscosity
-    mustar = sqrt(T);
-    kstar = T^0.75;
-    nu = mustar*sr1/Re;
-    fc = kstar*sr1*gam/Pe;
+    expmu = mu(12);
+    expkappa = mu(13);
+    nuEddy = mu(14);
+    alphaEddy = mu(15);
     
-    trr = nu*c23*2*dvxdx - c23*c0*vx/x1;
+    mustar = T^expmu;
+%     k0 = ThermalConductivity(x,mu,eta);
+    k0 = 1;
+    kstar = k0*T^expkappa;
+    nu = (mustar*sr1 + sr*nuEddy)/sqrt(gam*Gr);
+    fc = (kstar*sr1 + sr*alphaEddy)*mw*sqrt(gam/Gr)/Pr;
+    
+    trr = nu*c23*2*dvxdx - 2*c23*vx/x1;
     
     fv = [0; -trr; -fc*dTdx];
 end
 
-function   tau = gettau(uhat, mu, eta, n)
+function   tau = gettau(uhat, mu, eta, x, n)
     gam = mu(1);
-    Re = mu(2);
-    Pe = mu(3);
-    Minf = mu(4);
-    M2 = Minf*Minf;
+    Gr = mu(2);
+    Pr = mu(3);
+    mw = weightedMass(x,mu,eta);
     
     r = uhat(1);
-    srv = uhat(2);
+    srvx = uhat(2);
     srT = uhat(3);
     
     rho = exp(r);
     sr = sqrt(rho);
     sr1 = 1/sr;
     T = srT*sr1;
-    vx = srv*sr1;
-    c = sqrt(T/M2);
+
+    vx = srvx*sr1;
+    c = sqrt(T);
     
-    tauA = 50;
+%     tauA = sqrt(vx*vx) + c;
+    tauA = mu(22);
     
     % Viscosity
-    mustar = sqrt(T);
-    kstar = T^0.75;
-    tauDv = mustar*sr1/Re;
-    tauDT = kstar*sr1*gam/Pe;
+    expmu = mu(12);
+    expkappa = mu(13);
+    nuEddy = mu(14);
+    alphaEddy = mu(15);
     
-    tau = 0*uhat;
-
+    mustar = T^expmu;
+%     k0 = ThermalConductivity(x,mu,eta);
+    k0 = 1;
+    kstar = k0*T^expkappa;
+    tauDv = (mustar*sr1 + sr*nuEddy)/sqrt(gam*Gr);
+    tauDT = (kstar*sr1 + sr*alphaEddy)*mw*sqrt(gam/Gr)/Pr;
+    
     tau(1) = tauA;
     tau(2) = tauA + tauDv;
     tau(3) = tauA + tauDT; 
