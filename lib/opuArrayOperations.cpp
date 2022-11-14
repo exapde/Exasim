@@ -414,6 +414,154 @@ template <typename T> void opuArrayDG2CG2(T *ucg, T *udg, int *colent2elem, int 
 //             ucg[k+npe*i] = vcg[cgelcon[k+npe*i]];       
 // }
 
+template <typename T> void opuArrayInverseMatrix11(T *A, int N)
+{        
+    // A[N*1*1] -> inverse(A)[N*1*1]    
+    for (int i=0; i<N; i++)    
+        A[i] = 1.0/A[i];    
+}
+
+template <typename T> void opuArrayInverseMatrix22(T *A, int N)
+{        
+    // A[N*2*2] -> inverse(A)[N*2*2]    
+    for (int i=0; i<N; i++)
+    {
+        double a11 = A[i + N*0];
+        double a21 = A[i + N*1];
+        double a12 = A[i + N*2];
+        double a22 = A[i + N*3];
+        double detA = (a11*a22- a12*a21);
+      
+        A[i + N*0] = a22/detA;
+        A[i + N*1] = -a21/detA;
+        A[i + N*2] = -a12/detA;
+        A[i + N*3] = a11/detA;
+    }            
+}
+
+template <typename T> void opuArrayInverseMatrix33(T *A, int N)
+{        
+    // A[N*3*3] -> inverse(A)[N*3*3]    
+    for (int i=0; i<N; i++)
+    {
+        double a11 = A[i + N*0];
+        double a21 = A[i + N*1];
+        double a31 = A[i + N*2];
+        double a12 = A[i + N*3];
+        double a22 = A[i + N*4];
+        double a32 = A[i + N*5];
+        double a13 = A[i + N*6];
+        double a23 = A[i + N*7];
+        double a33 = A[i + N*8];        
+        double detA = (a11*a22*a33 - a11*a23*a32 - a12*a21*a33 + a12*a23*a31 + a13*a21*a32 - a13*a22*a31);
+      
+        A[i + N*0] = (a22*a33 - a23*a32)/detA;
+        A[i + N*1] = (a23*a31 - a21*a33)/detA;
+        A[i + N*2] = (a21*a32 - a22*a31)/detA;
+        A[i + N*3] = (a13*a32 - a12*a33)/detA;
+        A[i + N*4] = (a11*a33 - a13*a31)/detA;
+        A[i + N*5] = (a12*a31 - a11*a32)/detA;
+        A[i + N*6] = (a12*a23 - a13*a22)/detA;
+        A[i + N*7] = (a13*a21 - a11*a23)/detA;
+        A[i + N*8] = (a11*a22 - a12*a21)/detA;            
+    }            
+}
+
+template <typename T> void opuArrayMatrixMultiplication(T *C, T *A, T *B, int S, int I, int J, int K)
+{        
+    // C[S*I*J] = A[S*I*K] x B[S*K*J]
+    int M = I*J;
+    int N = M*S;
+    for (int idx=0; idx<N; idx++)
+    {
+        int l = idx%M; //   [1, I*J]        
+        int i = l%I;   //   [1, I]
+        int j = (l-i)/I; // [1, J]
+        int s = (idx-l)/M;//[1, S]  
+        C[s + S*i + S*I*j] = 0.0;
+        for (int k=0; k<K; k++)
+            C[s + S*i + S*I*j] += A[s + S*i + S*I*k]*B[s + S*k + S*K*j];
+    }            
+}
+
+template <typename T> void opuArrayEosInverseMatrix11(T *A, int npe, int ncw, int ne)
+{            
+    int N = npe*ne;
+    for (int i=0; i<N; i++)    
+        A[i] = 1.0/A[i];    
+}
+
+template <typename T> void opuArrayEosInverseMatrix22(T *A, int npe, int ncw, int ne)
+{        
+    int N = npe*ne;
+    int M = npe*ncw*ncw;
+    for (int i=0; i<N; i++)
+    {
+        int j = i%npe;    // [1, npe]
+        int k = (i-j)/npe; //[1, ne]
+        double a11 = A[j + npe*0 + M*k];
+        double a21 = A[j + npe*1 + M*k];
+        double a12 = A[j + npe*2 + M*k];
+        double a22 = A[j + npe*3 + M*k];
+        double detA = (a11*a22- a12*a21);      
+        A[j + npe*0 + M*k] = a22/detA;
+        A[j + npe*1 + M*k] = -a21/detA;
+        A[j + npe*2 + M*k] = -a12/detA;
+        A[j + npe*3 + M*k] = a11/detA;
+    }            
+}
+
+template <typename T> void opuArrayEosInverseMatrix33(T *A, int npe, int ncw, int ne)
+{            
+    int N = npe*ne;
+    int M = npe*ncw*ncw;
+    for (int i=0; i<N; i++)
+    {
+        int j = i%npe;    // [1, npe]
+        int k = (i-j)/npe; //[1, ne]
+        double a11 = A[j + npe*0 + M*k];
+        double a21 = A[j + npe*1 + M*k];
+        double a31 = A[j + npe*2 + M*k];
+        double a12 = A[j + npe*3 + M*k];
+        double a22 = A[j + npe*4 + M*k];
+        double a32 = A[j + npe*5 + M*k];
+        double a13 = A[j + npe*6 + M*k];
+        double a23 = A[j + npe*7 + M*k];
+        double a33 = A[j + npe*8 + M*k];        
+        double detA = (a11*a22*a33 - a11*a23*a32 - a12*a21*a33 + a12*a23*a31 + a13*a21*a32 - a13*a22*a31);
+      
+        A[j + npe*0 + M*k] = (a22*a33 - a23*a32)/detA;
+        A[j + npe*1 + M*k] = (a23*a31 - a21*a33)/detA;
+        A[j + npe*2 + M*k] = (a21*a32 - a22*a31)/detA;
+        A[j + npe*3 + M*k] = (a13*a32 - a12*a33)/detA;
+        A[j + npe*4 + M*k] = (a11*a33 - a13*a31)/detA;
+        A[j + npe*5 + M*k] = (a12*a31 - a11*a32)/detA;
+        A[j + npe*6 + M*k] = (a12*a23 - a13*a22)/detA;
+        A[j + npe*7 + M*k] = (a13*a21 - a11*a23)/detA;
+        A[j + npe*8 + M*k] = (a11*a22 - a12*a21)/detA;            
+    }            
+}
+
+template <typename T> void opuArrayEosMatrixMultiplication(T *C, T *A, T *B, int npe, int ncw, int ne, int ncu)
+{        
+    // C[npe*ncw*ncu*ne] = A[npe*ncw*ncw*ne] x B[npe*ncw*ncu*ne]
+    int N = npe*ne;
+    int K = npe*ncw;
+    int P = K*ncu;
+    int Q = K*ncw;    
+    for (int i=0; i<N; i++)
+    {
+        int j = i%npe;    // [1, npe]
+        int k = (i-j)/npe; //[1, ne]        
+        for (int b=0; b<ncu; b++)
+          for (int a=0; a<ncw; a++) {
+            C[j + npe*a + K*b + P*k] = 0.0;
+            for (int m=0; m<ncw; m++)
+              C[j + npe*a + K*b + P*k] += A[j + npe*a + K*m + Q*k]*B[j + npe*m + K*b + P*k];
+          }        
+    }            
+}
+
 template void opuGetArrayAtIndex(double*, double*, int*, int);
 template void opuPutArrayAtIndex(double*, double*, int*, int);
 template void opuArrayPlusXAtIndex(double*, double*, int*, int);
@@ -540,6 +688,24 @@ template void opuArrayAXPB(int*, int*, int, int, int);
 template void opuArrayAXPBY(int*, int*, int*, int, int, int);
 template void opuArrayExtract(int*, int*, int, int, int, int, int, int, int, int, int);
 template void opuArrayInsert(int*, int*, int, int, int, int, int, int, int, int, int);
+
+template void opuArrayInverseMatrix11(double*, int);
+template void opuArrayInverseMatrix11(float*, int);
+template void opuArrayInverseMatrix22(double*, int);
+template void opuArrayInverseMatrix22(float*, int);
+template void opuArrayInverseMatrix33(double*, int);
+template void opuArrayInverseMatrix33(float*, int);
+template void opuArrayMatrixMultiplication(double*, double*, double*, int, int, int, int);
+template void opuArrayMatrixMultiplication(float*, float*, float*, int, int, int, int);
+
+template void opuArrayEosInverseMatrix11(double*, int, int, int);
+template void opuArrayEosInverseMatrix11(float*, int, int, int);
+template void opuArrayEosInverseMatrix22(double*, int, int, int);
+template void opuArrayEosInverseMatrix22(float*, int, int, int);
+template void opuArrayEosInverseMatrix33(double*, int, int, int);
+template void opuArrayEosInverseMatrix33(float*, int, int, int);
+template void opuArrayEosMatrixMultiplication(double*, double*, double*, int, int, int, int);
+template void opuArrayEosMatrixMultiplication(float*, float*, float*, int, int, int, int);
 
 #endif
 

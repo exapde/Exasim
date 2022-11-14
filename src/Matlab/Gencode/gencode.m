@@ -54,6 +54,34 @@ if isfield(pde, 'source')
 else    
     nocodeelem("Source" + strn);
 end
+if isfield(pde, 'eos')
+    f = pde.eos(u, q, wdg, odg, xdg, time, param, uinf);
+    gencodeelem2("EoS" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    
+    nf = length(f);
+    nu = length(u);
+    nw = length(wdg);
+    
+    dfdu = sym(zeros(nf,nu));
+    for m = 1:nf
+      for n = 1:nu
+        dfdu(m,n) = diff(f(m),u(n));      
+      end
+    end
+    gencodeelem2("EoSdu" + strn, dfdu, xdg, udg, odg, wdg, uinf, param, time);    
+    
+    dfdw = sym(zeros(nf,nw));
+    for m = 1:nf
+      for n = 1:length(wdg)
+        dfdw(m,n) = diff(f(m),wdg(n));      
+      end
+    end
+    gencodeelem2("EoSdw" + strn, dfdw, xdg, udg, odg, wdg, uinf, param, time);    
+else    
+    nocodeelem2("EoS" + strn);
+    nocodeelem2("EoSdu" + strn);
+    nocodeelem2("EoSdw" + strn);
+end
 if isfield(pde, 'sourcew')    
     f = pde.sourcew(u, q, wdg, odg, xdg, time, param, uinf);
     gencodeelem2("Sourcew" + strn, f, xdg, udg, odg, wdg, uinf, param, time);

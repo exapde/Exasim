@@ -1030,6 +1030,230 @@ template <typename T> void gpuArrayDG2CG2(T *ucg, T *udg, int *colent2elem, int 
     gpuTemplateArrayDG2CG2<<<gridDim, blockDim>>>(ucg, udg, colent2elem, rowent2elem, nent, npe);
 }
 
+template <typename T> __global__ void gpuTemplateArrayInverseMatrix11(T *A, int N)
+{        
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    while (i < N) {
+        A[i] = 1.0/A[i];    
+        i += blockDim.x * gridDim.x;
+    }
+}
+
+template <typename T> void gpuArrayInverseMatrix11(T *A, int N)
+{
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayInverseMatrix11<<<gridDim, blockDim>>>(A, N);
+}
+
+template <typename T> __global__ void gpuTemplateArrayInverseMatrix22(T *A, int N)
+{        
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    while (i < N) {
+        double a11 = A[i + N*0];
+        double a21 = A[i + N*1];
+        double a12 = A[i + N*2];
+        double a22 = A[i + N*3];
+        double detA = (a11*a22- a12*a21);
+      
+        A[i + N*0] = a22/detA;
+        A[i + N*1] = -a21/detA;
+        A[i + N*2] = -a12/detA;
+        A[i + N*3] = a11/detA;
+        i += blockDim.x * gridDim.x;
+    }            
+}
+
+template <typename T> void gpuArrayInverseMatrix22(T *A, int N)
+{
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayInverseMatrix22<<<gridDim, blockDim>>>(A, N);
+}
+
+template <typename T> __global__ void gpuTemplateArrayInverseMatrix33(T *A, int N)
+{        
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    while (i < N) {
+        double a11 = A[i + N*0];
+        double a21 = A[i + N*1];
+        double a31 = A[i + N*2];
+        double a12 = A[i + N*3];
+        double a22 = A[i + N*4];
+        double a32 = A[i + N*5];
+        double a13 = A[i + N*6];
+        double a23 = A[i + N*7];
+        double a33 = A[i + N*8];        
+        double detA = (a11*a22*a33 - a11*a23*a32 - a12*a21*a33 + a12*a23*a31 + a13*a21*a32 - a13*a22*a31);
+      
+        A[i + N*0] = (a22*a33 - a23*a32)/detA;
+        A[i + N*1] = (a23*a31 - a21*a33)/detA;
+        A[i + N*2] = (a21*a32 - a22*a31)/detA;
+        A[i + N*3] = (a13*a32 - a12*a33)/detA;
+        A[i + N*4] = (a11*a33 - a13*a31)/detA;
+        A[i + N*5] = (a12*a31 - a11*a32)/detA;
+        A[i + N*6] = (a12*a23 - a13*a22)/detA;
+        A[i + N*7] = (a13*a21 - a11*a23)/detA;
+        A[i + N*8] = (a11*a22 - a12*a21)/detA;        
+        i += blockDim.x * gridDim.x;
+    }            
+}
+
+template <typename T> void gpuArrayInverseMatrix33(T *A, int N)
+{
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayInverseMatrix33<<<gridDim, blockDim>>>(A, N);
+}
+
+template <typename T> __global__ void gpuTemplateArrayMatrixMultiplication(T *C, T *A, T *B, 
+        int S, int I, int J, int K, int M, int N)
+{        
+    // C[S*I*J] = A[S*I*K] x B[S*K*J]
+    //int M = I*J;
+    //int N = M*S;
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    while (idx < N) {
+        int l = idx%M; //   [1, I*J]        
+        int i = l%I;   //   [1, I]
+        int j = (l-i)/I; // [1, J]
+        int s = (idx-l)/M;//[1, S]  
+        C[s + S*i + S*I*j] = 0.0;
+        for (int k=0; k<K; k++)
+            C[s + S*i + S*I*j] += A[s + S*i + S*I*k]*B[s + S*k + S*K*j];
+        idx += blockDim.x * gridDim.x;
+    }            
+}
+
+template <typename T> void gpuArrayMatrixMultiplication(T *C, T *A, T *B, int S, int I, int J, int K)
+{        
+    int M = I*J;
+    int N = M*S;
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayMatrixMultiplication<<<gridDim, blockDim>>>(C, A, B, S, I, J, K, M, N);
+}
+
+template <typename T> __global__ void gpuTemplateArrayEosInverseMatrix11(T *A, int N)
+{        
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    while (i < N) {
+        A[i] = 1.0/A[i];    
+        i += blockDim.x * gridDim.x;
+    }
+}
+
+template <typename T> void gpuArrayEosInverseMatrix11(T *A, int npe, int ncw, int ne)
+{
+    int N = npe*ne;
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayEosInverseMatrix11<<<gridDim, blockDim>>>(A, int N);
+}
+
+template <typename T> __global__ void gpuTemplateArrayEosInverseMatrix22(T *A, int N, int M, int npe)
+{        
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    while (i < N) {
+        int j = i%npe;    // [1, npe]
+        int k = (i-j)/npe; //[1, ne]
+        double a11 = A[j + npe*0 + M*k];
+        double a21 = A[j + npe*1 + M*k];
+        double a12 = A[j + npe*2 + M*k];
+        double a22 = A[j + npe*3 + M*k];
+        double detA = (a11*a22- a12*a21);      
+        A[j + npe*0 + M*k] = a22/detA;
+        A[j + npe*1 + M*k] = -a21/detA;
+        A[j + npe*2 + M*k] = -a12/detA;
+        A[j + npe*3 + M*k] = a11/detA;
+        i += blockDim.x * gridDim.x;
+    }            
+}
+
+template <typename T> void gpuArrayEosInverseMatrix22(T *A, int npe, int ncw, int ne)
+{
+    int N = npe*ne;
+    int M = npe*ncw*ncw;
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayEosInverseMatrix22<<<gridDim, blockDim>>>(A, N, M, npe);
+}
+
+template <typename T> __global__ void gpuTemplateArrayEosInverseMatrix33(T *A, int N, int M, int npe)
+{        
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    while (i < N) {
+        int j = i%npe;    // [1, npe]
+        int k = (i-j)/npe; //[1, ne]
+        double a11 = A[j + npe*0 + M*k];
+        double a21 = A[j + npe*1 + M*k];
+        double a31 = A[j + npe*2 + M*k];
+        double a12 = A[j + npe*3 + M*k];
+        double a22 = A[j + npe*4 + M*k];
+        double a32 = A[j + npe*5 + M*k];
+        double a13 = A[j + npe*6 + M*k];
+        double a23 = A[j + npe*7 + M*k];
+        double a33 = A[j + npe*8 + M*k];        
+        double detA = (a11*a22*a33 - a11*a23*a32 - a12*a21*a33 + a12*a23*a31 + a13*a21*a32 - a13*a22*a31);
+      
+        A[j + npe*0 + M*k] = (a22*a33 - a23*a32)/detA;
+        A[j + npe*1 + M*k] = (a23*a31 - a21*a33)/detA;
+        A[j + npe*2 + M*k] = (a21*a32 - a22*a31)/detA;
+        A[j + npe*3 + M*k] = (a13*a32 - a12*a33)/detA;
+        A[j + npe*4 + M*k] = (a11*a33 - a13*a31)/detA;
+        A[j + npe*5 + M*k] = (a12*a31 - a11*a32)/detA;
+        A[j + npe*6 + M*k] = (a12*a23 - a13*a22)/detA;
+        A[j + npe*7 + M*k] = (a13*a21 - a11*a23)/detA;
+        A[j + npe*8 + M*k] = (a11*a22 - a12*a21)/detA;            
+        i += blockDim.x * gridDim.x;
+    }            
+}
+
+template <typename T> void gpuArrayEosInverseMatrix33(T *A, int npe, int ncw, int ne)
+{
+    int N = npe*ne;
+    int M = npe*ncw*ncw;
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayEosInverseMatrix33<<<gridDim, blockDim>>>(A, N, M, npe);
+}
+
+template <typename T> __global__ void gpuTemplateArrayEosMatrixMultiplication(T *C, T *A, T *B, 
+        int npe, int ncw, int ncu, int N, int K, int P, int Q)
+{        
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    while (idx < N) {
+        int j = idx%npe;    // [1, npe]
+        int k = (i-j)/npe;  // [1, ne]        
+        for (int b=0; b<ncu; b++)
+          for (int a=0; a<ncw; a++) {
+            C[j + npe*a + K*b + P*k] = 0.0;
+            for (int m=0; m<ncw; m++)
+              C[j + npe*a + K*b + P*k] += A[j + npe*a + K*m + Q*k]*B[j + npe*m + K*b + P*k];
+          }        
+        idx += blockDim.x * gridDim.x;
+    }            
+}
+
+template <typename T> void gpuArrayEosMatrixMultiplication(T *C, T *A, T *B, int npe, int ncw, int ne, int ncu)
+{        
+    int N = npe*ne;
+    int K = npe*ncw;
+    int P = K*ncu;
+    int Q = K*ncw;    
+    int blockDim = 256;
+    int gridDim = (N + blockDim - 1) / blockDim;
+    gridDim = (gridDim>1024)? 1024 : gridDim;
+    gpuTemplateArrayEosMatrixMultiplication<<<gridDim, blockDim>>>(C, A, B, npe, ncw, ncu, N, K, P, Q);
+}
+
 template void gpuPrint2DArray(double*, int, int);
 template void gpuPrint3DArray(double*, int, int, int);
 template void gpuArraySetValue(double*, double, int);
@@ -1141,6 +1365,24 @@ template void gpuArrayGemmBatch(float*, float*, float*, int, int, int, int);
 template void gpuArrayGemmBatch1(float*, float*, float*, int, int, int, int);
 template void gpuArrayDG2CG(float*, float*, int*, int*, int);
 template void gpuArrayDG2CG2(float*, float*, int*, int*, int, int);
+
+template void gpuArrayInverseMatrix11(double*, int);
+template void gpuArrayInverseMatrix11(float*, int);
+template void gpuArrayInverseMatrix22(double*, int);
+template void gpuArrayInverseMatrix22(float*, int);
+template void gpuArrayInverseMatrix33(double*, int);
+template void gpuArrayInverseMatrix33(float*, int);
+template void gpuArrayMatrixMultiplication(double*, double*, double*, int, int, int, int);
+template void gpuArrayMatrixMultiplication(float*, float*, float*, int, int, int, int);
+
+template void gpuArrayEosInverseMatrix11(double*, int, int, int);
+template void gpuArrayEosInverseMatrix11(float*, int, int, int);
+template void gpuArrayEosInverseMatrix22(double*, int, int, int);
+template void gpuArrayEosInverseMatrix22(float*, int, int, int);
+template void gpuArrayEosInverseMatrix33(double*, int, int, int);
+template void gpuArrayEosInverseMatrix33(float*, int, int, int);
+template void gpuArrayEosMatrixMultiplication(double*, double*, double*, int, int, int, int);
+template void gpuArrayEosMatrixMultiplication(float*, float*, float*, int, int, int, int);
 
 #endif
 

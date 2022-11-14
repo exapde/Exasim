@@ -114,5 +114,15 @@ template <typename T> void opuStgHomoTurb(T *up, T *xdg, T *stgdata, T *uc, T t,
 template <typename T> void opuStgHomoTurb(T *up, T *xdg, T *stgdata, T *ui, T *uc, T *c, T *param, T t, int M, int N, int nd);
 template <typename T> void opuStgHomoTurb2(T *up, T *xdg, T *stgdata, T *ui, T *uc, T *c, T *param, T t, int M, int N, int nd);
 
+template <typename T> void opuArrayInverseMatrix11(T *A, int N);
+template <typename T> void opuArrayInverseMatrix22(T *A, int N);
+template <typename T> void opuArrayInverseMatrix33(T *A, int N);
+template <typename T> void opuArrayMatrixMultiplication(T *C, T *A, T *B, int S, int I, int J, int K);
+
+template <typename T> void opuArrayEosInverseMatrix11(T *A, int npe, int ncw, int ne);
+template <typename T> void opuArrayEosInverseMatrix22(T *A, int npe, int ncw, int ne);
+template <typename T> void opuArrayEosInverseMatrix33(T *A, int npe, int ncw, int ne);
+template <typename T> void opuArrayEosMatrixMultiplication(T *C, T *A, T *B, int npe, int ncw, int ne, int ncu);
+
 #endif  
 

@@ -120,6 +120,15 @@ template <typename T> void gpuStgHomoTurb(T *up, T *xdg, T *stgdata, T *uc, T t,
 template <typename T> void gpuStgHomoTurb(T *up, T *xdg, T *stgdata, T *ui, T *uc, T *c, T *param, T t, int M, int N, int nd);
 template <typename T> void gpuStgHomoTurb2(T *up, T *xdg, T *stgdata, T *ui, T *uc, T *c, T *param, T t, int M, int N, int nd);
 
+template <typename T> void gpuArrayInverseMatrix11(T *A, int N);
+template <typename T> void gpuArrayInverseMatrix22(T *A, int N);
+template <typename T> void gpuArrayInverseMatrix33(T *A, int N);
+template <typename T> void gpuArrayMatrixMultiplication(T *C, T *A, T *B, int S, int I, int J, int K);
+
+template <typename T> void gpuArrayEosInverseMatrix11(T *A, int npe, int ncw, int ne);
+template <typename T> void gpuArrayEosInverseMatrix22(T *A, int npe, int ncw, int ne);
+template <typename T> void gpuArrayEosInverseMatrix33(T *A, int npe, int ncw, int ne);
+template <typename T> void gpuArrayEosMatrixMultiplication(T *C, T *A, T *B, int npe, int ncw, int ne, int ncu);
 
 #endif  
 

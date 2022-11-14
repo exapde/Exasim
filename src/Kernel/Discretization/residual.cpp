@@ -94,47 +94,76 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];
-                
+                        
         if (common.wave==1) {
             // dw/dt = u
             dstype scalar = one/common.dtfactor;
             ArrayExtract(tmp.tempn, sol.udg, common.npe, common.nc, common.ne1, 0, common.npe, 0, common.ncu, e1, e2, backend);                                                  
             ArrayAXPBY(&sol.wdg[npe*ncw*e1], tmp.tempn, &sol.wsrc[npe*ncw*e1], scalar, scalar, npe*ncw*(e2-e1), backend);                        
         }        
-        else if (common.wave==0) { // alpha * dw/dt + beta w = sourcew(u,q,v)
-            // calculate the source term Sourcew(xdg, udg, odg, wdg)
-            SourcewDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
-                    &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
-            if (common.dae_steps==0) { // alpha * dw/dt + beta w = sourcew(u,q,v)
-                // 1.0/(alpha*dirkd/dt + beta)
-                dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta);
-                
-                //cout<<common.dae_alpha<<" "<<common.dtfactor<<" "<<scalar<<" "<<app.physicsparam[0]<<endl;
-
-                // calculate w = (1/(alpha*dirkd/dt + beta))*(alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
-                ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wsrc[npe*ncw*e1], tmp.tempn, common.dae_alpha*scalar, scalar, npe*ncw*(e2-e1), backend);                    
+        else if (common.wave==0) {             
+            if ((fabs(common.dae_alpha) < 1e-10) && (fabs(common.dae_beta) < 1e-10)) {
+                // use Newton to solve the nonlinear system F(w, u) = 0 to obtain w for given u                
+                for (int iter=0; iter<10; iter++) {
+                  // evaluate nonlinear system F(w, u)
+                  EosDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                      &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
+                  
+                  int nn = npe*(e2-e1);                  
+                  // check convergence
+                  dstype nrm = NORM(common.cublasHandle, nn*ncw, tmp.tempn, backend);                   
+                  if (nrm < 1e-6) break;                                       
+                  
+                  // compute jacobian matrix dF/dw
+                  EosdwDriver(tmp.tempg, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                      &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
+                                  
+                  // compute the inverse of jacobian matrix
+                  if (ncw==1) 
+                    ArrayEosInverseMatrix11(tmp.tempg, npe, ncw, e2-e1, backend);
+                  else if (ncw==2)
+                    ArrayEosInverseMatrix22(tmp.tempg, npe, ncw, e2-e1, backend);
+                  else if (ncw==3)
+                    ArrayEosInverseMatrix33(tmp.tempg, npe, ncw, e2-e1, backend);
+                  else {
+                    error("Equation of states functionality supports at most three dependent variables.");
+                  }
+                  
+                  // perform dw = inverse(dF/dw) * F(w, u)
+                  ArrayEosMatrixMultiplication(&tmp.tempn[nn*ncw], tmp.tempg, tmp.tempn, npe, ncw, e2-e1, 1, backend);
+                  
+                  // update w = w - dw
+                  ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wdg[npe*ncw*e1], &tmp.tempn[nn*ncw], one, minusone, nn*ncw, backend);                    
+                }                                
             }
             else {
-                // calculate tmp = alpha*wsrc + Sourcew(xdg, udg, odg, wdg)) 
-                ArrayAXPBY(tmp.tempn, &sol.wsrc[npe*ncw*e1], tmp.tempn, common.dae_alpha, one, npe*ncw*(e2-e1), backend);                    
+                // alpha * dw/dt + beta w = sourcew(u,q,v)
+                // calculate the source term Sourcew(xdg, udg, odg, wdg)
+                SourcewDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                        &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
+                if (common.dae_steps==0) { // alpha * dw/dt + beta w = sourcew(u,q,v)
+                    // 1.0/(alpha*dirkd/dt + beta)
+                    dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta);
 
-                // 1.0/(alpha*dirkd/dt + beta)
-                dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta + common.dae_gamma);
-                
-                //cout<<scalar<<endl;
-                
-                // calculate w = (1/(alpha*dirkd/dt + beta + gamma))*(gamma*walg + alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
-                ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wdual[npe*ncw*e1], tmp.tempn, common.dae_gamma*scalar, scalar, npe*ncw*(e2-e1), backend);                                    
-            }                
-        }
-        else {
-            //printf("Using EoS\n");
-            EosDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
-                    &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
-                        
-            // calculate w = Sourcew(xdg, udg, odg, wdg)  
-            ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wsrc[npe*ncw*e1], tmp.tempn, zero, one, npe*ncw*(e2-e1), backend);                    
-        }
+                    //cout<<common.dae_alpha<<" "<<common.dtfactor<<" "<<scalar<<" "<<app.physicsparam[0]<<endl;
+
+                    // calculate w = (1/(alpha*dirkd/dt + beta))*(alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
+                    ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wsrc[npe*ncw*e1], tmp.tempn, common.dae_alpha*scalar, scalar, npe*ncw*(e2-e1), backend);                    
+                }
+                else {
+                    // calculate tmp = alpha*wsrc + Sourcew(xdg, udg, odg, wdg)) 
+                    ArrayAXPBY(tmp.tempn, &sol.wsrc[npe*ncw*e1], tmp.tempn, common.dae_alpha, one, npe*ncw*(e2-e1), backend);                    
+
+                    // 1.0/(alpha*dirkd/dt + beta + gamma)
+                    dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta + common.dae_gamma);
+
+                    //cout<<scalar<<endl;
+
+                    // calculate w = (1/(alpha*dirkd/dt + beta + gamma))*(gamma*walg + alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
+                    ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wdual[npe*ncw*e1], tmp.tempn, common.dae_gamma*scalar, scalar, npe*ncw*(e2-e1), backend);                                    
+                }                
+            }
+        }        
     }    
 }
 

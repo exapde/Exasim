@@ -1,7 +1,7 @@
-#ifndef __EOSDRIVER
-#define __EOSDRIVER
+#ifndef __EOSDWDRIVER
+#define __EOSDWDRIVER
 
-void EosDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, meshstruct &mesh, 
+void EosdwDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int npe, Int e1, Int e2, Int backend)
 { 
@@ -18,20 +18,20 @@ void EosDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, mes
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
-        opuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                                      
+        opuEoSdw(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw*ncw, npe, ne);                
     }
 #endif              
 #ifdef HAVE_OPENMP        
     if (backend==1) {
-        cpuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
+        cpuEoSdw(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw*ncw, npe, ne);                        
     }    
 #endif            
 #ifdef HAVE_CUDA             
     if (backend==2) {
-        gpuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
+        gpuEoSdw(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw*ncw, npe, ne);                        
     }
 #endif    
 }
