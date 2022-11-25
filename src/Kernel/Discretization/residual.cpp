@@ -86,6 +86,7 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
 {        
+    if (common.subproblem==0) {
     Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncw = common.ncw;// number of compoments of (w)
     Int nco = common.nco;// number of compoments of (o)
@@ -94,7 +95,7 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];
-                        
+                
         if (common.wave==1) {
             // dw/dt = u
             dstype scalar = one/common.dtfactor;
@@ -163,8 +164,9 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
                     ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wdual[npe*ncw*e1], tmp.tempn, common.dae_gamma*scalar, scalar, npe*ncw*(e2-e1), backend);                                    
                 }                
             }
-        }        
+        }
     }    
+    }
 }
 
 void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
@@ -402,7 +404,6 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     if (common.ncw>0)         
         GetW(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
     
-
     if (common.ncAV>0 && common.frozenAVflag == 0)
     /// FROM MEETING: MUST MOVE THE VOLUME RESIDUAL AND EVALUATE 0 to common.npe2 if unfrozen for mpi
         GetAv(sol, res, app, master, mesh, tmp, common, handle, backend);

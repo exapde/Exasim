@@ -75,6 +75,37 @@ def gencode(app):
         gencodeelem("Source" + strn, f, xdg, udg, odg, wdg, uinf, param, time);
     else:
         nocodeelem("Source" + strn);
+    if hasattr(pde, 'eos'):
+        f = pde.eos(u, q, wdg, odg, xdg, time, param, uinf);
+        gencodeelem2("EoS" + strn, f, xdg, udg, odg, wdg, uinf, param, time);      
+
+        nf = len(f);
+        nu = len(u);
+        nw = len(wdg);
+        
+        dfdu = array(symbols("dfdu1:" + str(nu*nf+1)));
+        k = 0;
+        for n in range(0, nu): 
+          for m in range(0, nf):  
+            dfdu[k] = diff(f[m],u[n]);      
+            k = k + 1;
+          end
+        end        
+        gencodeelem2("EoSdu" + strn, dfdu, xdg, udg, odg, wdg, uinf, param, time);      
+
+        dfdw = array(symbols("dfdw1:" + str(nw*nf+1)));
+        k = 0;
+        for n in range(0, nw): 
+          for m in range(0, nf):  
+            dfdw[k] = diff(f[m],w[n]);      
+            k = k + 1;
+          end
+        end        
+        gencodeelem2("EoSdw" + strn, dfdw, xdg, udg, odg, wdg, uinf, param, time);      
+    else:
+        nocodeelem2("EoS" + strn);
+        nocodeelem2("EoSdu" + strn);
+        nocodeelem2("EoSdw" + strn);
     if hasattr(pde, 'sourcew'):
         f = pde.sourcew(u, q, wdg, odg, xdg, time, param, uinf);
         gencodeelem2("Sourcew" + strn, f, xdg, udg, odg, wdg, uinf, param, time);

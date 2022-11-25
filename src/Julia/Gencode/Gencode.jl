@@ -98,6 +98,38 @@ if isdefined(pdemodel, Symbol("source"))
 else
     nocodeelem("Source" * strn);
 end
+if isdefined(pdemodel, Symbol("eos"))
+    f = pdemodel.eos(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem2("Eos" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+
+    nf = length(f);
+    nu = length(u);
+    nw = length(wdg);
+        
+    dfdu = [SymPy.symbols("dfdu$i") for i=1:(nf*nu)];
+    for n = 1:nu
+      for m = 1:nf      
+        dfdu[m + nf*(n-1)] = diff(f[m],u[n]);      
+      end
+    end        
+    gencodeelem2("EoSdu" + strn, dfdu, xdg, udg, odg, wdg, uinf, param, time);    
+
+    dfdw = [SymPy.symbols("dfdw$i") for i=1:(nf*nw)];
+    for n = 1:nw
+      for m = 1:nf      
+        dfdw[m + nf*(n-1)] = diff(f[m],w[n]);      
+      end
+    end        
+    gencodeelem2("EoSdw" + strn, dfdw, xdg, udg, odg, wdg, uinf, param, time);    
+else
+    nocodeelem2("EoS" * strn);
+    nocodeelem2("EoSdu" * strn);
+    nocodeelem2("EoSdw" * strn);
+end
 if isdefined(pdemodel, Symbol("sourcew"))
     f = pdemodel.sourcew(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1

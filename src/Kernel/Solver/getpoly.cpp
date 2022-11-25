@@ -1,7 +1,35 @@
 #ifndef __GETPOLY
 #define __GETPOLY
 
-void makeH(CDiscretization &disc, sysstruct &sys, dstype *H, dstype *r, Int N, Int m, Int backend)
+void ComputeComponentNorm(CDiscretization& disc, dstype *normu, dstype* udg, dstype *utm, Int ncudg, Int ncu, Int npe, Int ne, Int backend)
+{
+    for (Int i=0; i<ncu; i++) {
+        ArrayExtract(utm, udg, npe, ncudg, ne, 0, npe, i, i+1, 0, ne, backend);                 
+        normu[i] = PNORM(disc.common.cublasHandle, npe*ne, utm, backend);            
+    }
+}
+
+void ApplyComponentNorm(CDiscretization& disc, dstype *normu, dstype* udg, dstype *utm, Int ncudg, Int ncu, Int npe, Int ne, Int backend)
+{
+    for (Int i=0; i<ncu; i++) {
+        ArrayExtract(utm, udg, npe, ncudg, ne, 0, npe, i, i+1, 0, ne, backend);                      
+        ArrayMultiplyScalar(utm, 1.0/normu[i], npe*ne, backend);
+        ArrayInsert(udg, utm, npe, ncudg, ne, 0, npe, i, i+1, 0, ne, backend);          
+    }
+}
+
+void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int backend)
+{
+    for (Int k = 0; k < m; k++) {
+        PDOT(handle, N, &V[m*N], inc1, &V[k*N], inc1, &H[k], backend);
+        ArrayAXPBY(&V[m*N], &V[m*N], &V[k*N], one, -H[k], N, backend);
+    }
+    PDOT(handle, N, &V[m*N], inc1, &V[m*N], inc1, &H[m], backend);
+    H[m] = sqrt(H[m]);    
+    ArrayMultiplyScalar(&V[m*N], one/H[m], N, backend);
+}
+void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+        dstype *H, dstype *r, Int N, Int m, Int backend)
 {
     int m1 = m + 1;
     for(int i=0; i<m*m1; i++)
@@ -10,7 +38,9 @@ void makeH(CDiscretization &disc, sysstruct &sys, dstype *H, dstype *r, Int N, I
     double normr = PNORM(disc.common.cublasHandle, N, r, backend);    
     ArrayAXPB(sys.v, r, 1.0/normr, 0.0, N, backend);    
     for (int j=0; j<m; j++) {                    
-        disc.evalMatVec(&sys.v[(j+1)*N], &sys.v[j*N], sys.u, sys.b, backend);                    
+        disc.evalMatVec(&sys.v[(j+1)*N], &sys.v[j*N], sys.u, sys.b, backend);      
+        prec.ApplyPreconditioner(&sys.v[(j+1)*N], sys, disc, backend);            
+        //ApplyComponentNorm(disc, sys.normcu, &sys.v[(j+1)*N], sys.r, disc.common.ncu, disc.common.ncu, disc.common.npe, disc.common.ne1, backend);
         MGS(disc.common.cublasHandle, sys.v, &H[m1*j], N, j+1, backend);
     }
 }
@@ -100,8 +130,8 @@ void LejaSort(dstype *sr, dstype *si, dstype *lr, dstype *li, dstype *product, i
         j += 1;        
     }            
 }
-void getPoly(CDiscretization &disc, sysstruct &sys, dstype  *lam, 
-        dstype *r, int *ipiv, int N, int m, int backend)
+void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+        dstype  *lam, dstype *r, int *ipiv, int N, int m, int backend)
 {
     dstype *Hm = &lam[0];    
     dstype *Ht = &lam[m+m*m];      
@@ -120,7 +150,7 @@ void getPoly(CDiscretization &disc, sysstruct &sys, dstype  *lam,
         em[i] = 0.0;
     em[m-1] = 1.0;           
     
-    makeH(disc, sys, Hm, r, N, m, backend);
+    makeH(disc, prec, sys, Hm, r, N, m, backend);
     eigH(Ht, Hm, em, work, ipiv, m);        
     DGEEV(&chv, &chv, &m, Ht, &m, wr, wi, work, &m, work, &m, work, &lwork, &info );               
     LejaSort(lamr, lami, wr, wi, work, m);

@@ -4,8 +4,8 @@
 #include "solver.h"
 #include "setsysstruct.cpp"
 #include "conjgrad.cpp"
-#include "gmres.cpp"
 #include "getpoly.cpp"
+#include "gmres.cpp"
 #include "lmsolver.cpp"
 #include "ptcsolver.cpp"
 

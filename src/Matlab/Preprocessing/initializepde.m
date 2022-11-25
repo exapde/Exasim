@@ -44,6 +44,7 @@ pde.hybrid = 0;
 pde.tdep = 0;
 pde.wave = 0;
 pde.linearproblem = 0;
+pde.subproblem = 0;
 pde.debugmode = 0;
 pde.stgNmode = 0;
 pde.porder = 1;

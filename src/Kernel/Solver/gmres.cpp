@@ -1,15 +1,5 @@
 #ifndef __GMRESSOLVER
 #define __GMRESSOLVER 
-void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int backend)
-{
-    for (Int k = 0; k < m; k++) {
-        PDOT(handle, N, &V[m*N], inc1, &V[k*N], inc1, &H[k], backend);
-        ArrayAXPBY(&V[m*N], &V[m*N], &V[k*N], one, -H[k], N, backend);
-    }
-    PDOT(handle, N, &V[m*N], inc1, &V[m*N], inc1, &H[m], backend);
-    H[m] = sqrt(H[m]);    
-    ArrayMultiplyScalar(&V[m*N], one/H[m], N, backend);
-}
 void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N, Int m, Int backend)
 {
     PGEMTV(handle, N, m, &one, V, N, &V[m*N], inc1, &zero, H, inc1, temp, backend);
@@ -19,7 +9,8 @@ void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N, Int m
     ArrayMultiplyScalar(&V[m*N], one/H[m], N, backend);
 }
 
-void ApplyPoly(dstype *w, CDiscretization &disc, sysstruct &sys, dstype *q, dstype *p, int N, int backend)
+void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+        sysstruct &sys, dstype *q, dstype *p, int N, int backend)
 {
     int m = disc.common.ppdegree;
     dstype *sr = &sys.lam[2*m];
@@ -33,8 +24,9 @@ void ApplyPoly(dstype *w, CDiscretization &disc, sysstruct &sys, dstype *q, dsty
     
     while (i<(m-1)) {
         if (si[i] == 0) {
-           ArrayAXPBY(w, w, q, 1.0, 1.0/sr[i], N, backend);        
+           ArrayAXPBY(w, w, q, 1.0, 1.0/sr[i], N, backend);                
            disc.evalMatVec(p, q, sys.u, sys.b, backend);      
+           prec.ApplyPreconditioner(p, sys, disc, backend);
            ArrayAXPBY(q, q, p, 1.0, -1.0/sr[i], N, backend);                   
            i = i + 1;            
         }        
@@ -42,11 +34,13 @@ void ApplyPoly(dstype *w, CDiscretization &disc, sysstruct &sys, dstype *q, dsty
             a = sr[i];
             b = si[i];
             a2b2 = a*a + b*b;
-            disc.evalMatVec(p, q, sys.u, sys.b, backend);      
+            disc.evalMatVec(p, q, sys.u, sys.b, backend);   
+            prec.ApplyPreconditioner(p, sys, disc, backend);
             ArrayAXPBY(p, q, p, 2*a, -1.0, N, backend);      
             ArrayAXPBY(w, w, p, 1.0, 1.0/a2b2, N, backend);                
            if ( i < (m - 2) ) {
                disc.evalMatVec(p, p, sys.u, sys.b, backend);      
+               prec.ApplyPreconditioner(p, sys, disc, backend);
                ArrayAXPBY(q, q, p, 1.0, -1.0/a2b2, N, backend);   
            }
            i += 2; 
@@ -86,12 +80,26 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     cs = &sys.tempmem[2*n1];
     sn = &sys.tempmem[3*n1];
     H = &sys.tempmem[4*n1];
-            
-//     int m = disc.common.ppdegree;
-//     getPoly(disc, sys, sys.lam, sys.randvect, sys.ipiv, N, m, backend);
-//     for (int i=0; i<m; i++)
-//         if (disc.common.mpiRank==0) cout<<sys.lam[2*m+i]<<"  "<<sys.lam[3*m+i]<<endl;
-        
+    
+    // calculate Ritz values of polynomial preconditioner
+    if  (disc.common.ppdegree > 1) {
+        getPoly(disc, prec, sys, sys.lam, sys.randvect, sys.ipiv, N, disc.common.ppdegree, backend);        
+        dstype lmin=1.0e10, lmax=-1.0e10, smax=0.0; 
+        int m = disc.common.ppdegree;
+        for (int i=0; i<m; i++) {
+            lmax = (sys.lam[2*m+i] > lmax) ? sys.lam[2*m+i] : lmax;
+            lmin = (sys.lam[2*m+i] < lmin) ? sys.lam[2*m+i] : lmin;
+            smax = (fabs(sys.lam[3*m+i]) > smax) ? fabs(sys.lam[3*m+i]) : smax;
+        }        
+        if (smax == 0.0) {
+            for (int i=1; i<=m; i++) 
+                sys.lam[i-1] = lmin + (lmax-lmin)*(0.5 - 0.5*cos((2*i-1)*M_PI/(2*m))/cos(M_PI/(2*m)));            
+            LejaSort(&sys.lam[2*m], &sys.lam[3*m], sys.lam, &sys.lam[3*m], &sys.lam[4*m], m);
+        }        
+//         for (int i=0; i<disc.common.ppdegree; i++)
+//             if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
+    }    
+    
     // compute b
     //disc.evalResidual(sys.b, sys.u, backend);            
     nrmb = PNORM(disc.common.cublasHandle, N, sys.b, backend);    
@@ -121,11 +129,16 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     //disc.common.ppdegree = 0;
     
     // compute r = P*r
-    if (disc.common.ppdegree>1)
-        ApplyPoly(sys.r, disc, sys, sys.q, sys.p, N, backend);    
-    else if (disc.common.RBcurrentdim>=0)
+    if (disc.common.ppdegree>1) {
         prec.ApplyPreconditioner(sys.r, sys, disc, backend);
-        
+        //ApplyComponentNorm(disc, sys.normcu, sys.r, disc.res.Ru, ncu, ncu, npe, ne, backend);
+        ApplyPoly(sys.r, disc, prec, sys, sys.q, sys.p, N, backend);    
+    }
+    else if (disc.common.RBcurrentdim>=0) {
+        prec.ApplyPreconditioner(sys.r, sys, disc, backend);
+        //ApplyComponentNorm(disc, sys.normcu, sys.r, disc.res.Ru, ncu, ncu, npe, ne, backend);
+    }
+    
     // compute ||r||
     nrmb = PNORM(disc.common.cublasHandle, N, sys.r, backend);
     nrmr = nrmb;
@@ -150,10 +163,15 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
                                     
             START_TIMING;                                    
             // compute v[m] = P*v[m]
-            if (disc.common.ppdegree>1)
-                ApplyPoly(&sys.v[m*N], disc, sys, sys.q, sys.p, N, backend);
-            else if (disc.common.RBcurrentdim>=0) 
-                prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, backend);                            
+            if (disc.common.ppdegree>1) {
+                prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, backend);   
+                //ApplyComponentNorm(disc, sys.normcu, &sys.v[m*N], disc.res.Ru, ncu, ncu, npe, ne, backend);
+                ApplyPoly(&sys.v[m*N], disc, prec, sys, sys.q, sys.p, N, backend);
+            }
+            else if (disc.common.RBcurrentdim>=0) {
+                prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, backend);   
+                //ApplyComponentNorm(disc, sys.normcu, &sys.v[m*N], disc.res.Ru, ncu, ncu, npe, ne, backend);
+            }
             END_TIMING_DISC(2);    
                         
             // orthogonalize Krylov vectors
@@ -187,10 +205,15 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
         ArrayAXPBY(sys.r, sys.b, sys.r, minusone, minusone, N, backend);
         
         // r = P*r = P*(-b-A*x)
-        if (disc.common.ppdegree>1)
-            ApplyPoly(sys.r, disc, sys, sys.q, sys.p, N, backend);
-        else if (disc.common.RBcurrentdim>=0)
+        if (disc.common.ppdegree>1) {
             prec.ApplyPreconditioner(sys.r, sys, disc, backend);            
+            //ApplyComponentNorm(disc, sys.normcu, sys.r, disc.res.Ru, ncu, ncu, npe, ne, backend);
+            ApplyPoly(sys.r, disc, prec, sys, sys.q, sys.p, N, backend);
+        }
+        else if (disc.common.RBcurrentdim>=0) {
+            prec.ApplyPreconditioner(sys.r, sys, disc, backend);            
+            //ApplyComponentNorm(disc, sys.normcu, sys.r, disc.res.Ru, ncu, ncu, npe, ne, backend);
+        }
         
         // compute relative error
         nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);

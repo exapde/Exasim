@@ -5,6 +5,10 @@ gencodeelemface("Flux", npm, 1);
 gencodeelemface("Source", npm, 1);
 gencodeelemface("Tdfunc", npm, 1);
 
+gencodeelemface("EoS", npm, 2);
+gencodeelemface("EoSdu", npm, 2);
+gencodeelemface("EoSdw", npm, 2);
+
 gencodeelemface("Avfield", npm, 2);
 gencodeelemface("Output", npm, 2);
 gencodeelemface("Sourcew", npm, 2);

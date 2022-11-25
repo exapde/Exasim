@@ -188,9 +188,17 @@ int main(int argc, char** argv)
             pdemodel[i]->disc.common.ncarray[j] = pdemodel[j]->disc.common.nc;            
             pdemodel[i]->disc.sol.udgarray[j] = &pdemodel[j]->disc.sol.udg[0]; // model[i], model[j]
         }    
-    
-    // time-dependent problems
-    if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
+   
+    if (pdemodel[0]->disc.common.subproblem==1) { // subproblem
+        for (int i=0; i<nomodels; i++) {
+            if (restart>0) {
+                pdemodel[i]->disc.common.currentstep = -1;
+                pdemodel[i]->ReadSolutions(backend);  
+            }            
+        }      
+        pdemodel[0]->SolveProblem(pdemodel[1], backend);               
+    }
+    else if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
                 
         // initialize 
         for (int i=0; i<nomodels; i++) {
@@ -257,7 +265,7 @@ int main(int argc, char** argv)
             time = time + pdemodel[0]->disc.common.dt[istep];                    
         }                   
     }
-    else {
+    else {        
         for (int i=0; i<nomodels; i++) {                                
             if (pdemodel[i]->disc.common.runmode==0) {
                 if (restart>0) {

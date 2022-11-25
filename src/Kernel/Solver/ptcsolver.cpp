@@ -170,20 +170,6 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, o
     //disc.common.Wcurrentdim = disc.common.RBcurrentdim;
 }
 
-void MGS(cublasHandle_t handle, dstype *V, Int N, Int M, Int m, Int backend)
-{            
-    dstype scalar;
-    for (Int k = 0; k < M; k++) {
-        if (k!=m) {
-            PDOT(handle, N, &V[m*N], inc1, &V[k*N], inc1, &scalar, backend);         
-            ArrayAXPBY(&V[m*N], &V[m*N], &V[k*N], one, -scalar, N, backend);  
-        }
-    }            
-    PDOT(handle, N, &V[m*N], inc1, &V[m*N], inc1, &scalar, backend);     
-    scalar = sqrt(scalar);
-    ArrayMultiplyScalar(&V[m*N], one/scalar, N, backend);
-}
-
 void UpdatePTC(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
         dstype normrold, dstype normrnew, Int backend)
 {
@@ -204,37 +190,24 @@ void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int 
 {
     Int N = disc.common.ndof1;
                     
-    //if (((disc.common.currentstep+1) % 20) == 0) {     
-//     if (disc.common.RBcurrentdim==disc.common.RBdim) {
-//         // reset the reduced basis after every 100 time steps
-//         disc.common.RBremovedind = 0;
-//         disc.common.RBcurrentdim = 0;
-//         ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);          
-//         //MGS(disc.common.cublasHandle, prec.precond.W, N, disc.common.RBcurrentdim, disc.common.RBremovedind, backend);
-//         disc.common.RBcurrentdim = 1;
-//         disc.common.RBremovedind = 1;
-//     }
-//     else {
-        dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
-        if (nrmr>zero) {
-        // update the reduced basis        
-        ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);  
+    dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
+    if (nrmr>zero) {
+    // update the reduced basis        
+    ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);  
 
-        // orthogonalize the reduced basis
-        //MGS(disc.common.cublasHandle, prec.precond.W, N, disc.common.RBcurrentdim, disc.common.RBremovedind, backend);
+    // orthogonalize the reduced basis
+    //MGS(disc.common.cublasHandle, prec.precond.W, N, disc.common.RBcurrentdim, disc.common.RBremovedind, backend);
 
-        // update the current dimension of the RB dimension
-        if (disc.common.RBcurrentdim<disc.common.RBdim) 
-            disc.common.RBcurrentdim += 1;                    
+    // update the current dimension of the RB dimension
+    if (disc.common.RBcurrentdim<disc.common.RBdim) 
+        disc.common.RBcurrentdim += 1;                    
 
-        // update the position of the RB vector to be replaced  
-        disc.common.RBremovedind += 1;
-        if (disc.common.RBremovedind==disc.common.RBdim) 
-            disc.common.RBremovedind = 0;                
-        }
-    //}
+    // update the position of the RB vector to be replaced  
+    disc.common.RBremovedind += 1;
+    if (disc.common.RBremovedind==disc.common.RBdim) 
+        disc.common.RBremovedind = 0;                
+    }
 }
-
 
 Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int backend)       
 {
@@ -242,14 +215,34 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
     dstype nrmr, tol;
     tol = disc.common.nonlinearSolverTol; // tolerance for the residual
-
+    
+//     disc.evalResidual(sys.b, sys.u, backend);
+//     ArrayCopy(sys.v, sys.randvect, N, backend);                 
+//     disc.evalMatVec(sys.v, sys.v, sys.u, sys.b, backend);      
+//     prec.ApplyPreconditioner(sys.v, sys, disc, backend);                    
+//     ComputeComponentNorm(disc, sys.normcu, sys.v, sys.r, disc.common.ncu, disc.common.ncu, disc.common.npe, disc.common.ne1, backend);    
+//     for (int i=0; i<disc.common.ncu; i++)
+//         if (disc.common.mpiRank==0) cout<<sys.normcu[i]<<endl;
+    
     // calculate Ritz values of polynomial preconditioner
-    if  (disc.common.ppdegree > 1) {
-        disc.evalResidual(sys.b, sys.u, backend);
-        getPoly(disc, sys, sys.lam, sys.randvect, sys.ipiv, N, disc.common.ppdegree, backend);
-//         for (int i=0; i<disc.common.ppdegree; i++)
-//             if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
-    }    
+//     if  (disc.common.ppdegree > 1) {        
+//         disc.evalResidual(sys.b, sys.u, backend);
+//         getPoly(disc, prec, sys, sys.lam, sys.randvect, sys.ipiv, N, disc.common.ppdegree, backend);        
+//         dstype lmin=1.0e10, lmax=-1.0e10, smax=0.0; 
+//         int m = disc.common.ppdegree;
+//         for (int i=0; i<m; i++) {
+//             lmax = (sys.lam[2*m+i] > lmax) ? sys.lam[2*m+i] : lmax;
+//             lmin = (sys.lam[2*m+i] < lmin) ? sys.lam[2*m+i] : lmin;
+//             smax = (fabs(sys.lam[3*m+i]) > smax) ? fabs(sys.lam[3*m+i]) : smax;
+//         }
+//         if (smax == 0.0) {
+//             for (int i=1; i<=m; i++) 
+//                 sys.lam[i-1] = lmin + (lmax-lmin)*(0.5 - 0.5*cos((2*i-1)*M_PI/(2*m))/cos(M_PI/(2*m)));            
+//             LejaSort(&sys.lam[2*m], &sys.lam[3*m], sys.lam, &sys.lam[3*m], &sys.lam[4*m], m);
+//         }        
+// //         for (int i=0; i<disc.common.ppdegree; i++)
+// //             if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
+//     }    
     
     nrmr = PNORM(disc.common.cublasHandle, N, sys.u, backend);
     if (disc.common.mpiRank==0)
