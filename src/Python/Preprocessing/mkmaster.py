@@ -9,6 +9,9 @@ from mkshape import *
 def mkmaster(dim,porder,pgauss,elemtype,nodetype):
 
     xpe,telem,xpf,tface,perm = masternodes(porder,dim,elemtype)
+    if dim==1:
+        xpf = [0]
+        tface = [1]
 
     gpe, gwe = gaussnodes(pgauss,dim,elemtype)
     gpe = array(gpe,float)
@@ -44,6 +47,8 @@ def mkmaster(dim,porder,pgauss,elemtype,nodetype):
         gwf   = [1.0]
         shapfg = reshape(array([[1.0]]),(1,1,1))
         shapfn =reshape(array([[1.0]]),(1,1,1))
+
+        perm = perm.transpose()
 
     npf = shapfg.shape[0];
     ngf = shapfg.shape[1];

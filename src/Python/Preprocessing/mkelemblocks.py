@@ -2,11 +2,12 @@ from numpy import *
 #from importlib import reload
 
 def mkelemblocks(ne,ns):
-
+    epsilon = 1e-3
+    
     ns = min(ns,ne);
     nb = floor(ne/ns);  # number of blocks
     na = round(ne/nb); # number of elements per block
-    nk = arange(1,ne,na);
+    nk = arange(1,ne+epsilon,na,dtype=int32);
     m = nk.size;
     if (m==1):
         nm = array([1, ne]).reshape(2,1);

@@ -6,8 +6,7 @@ function source(u, q, w, v, x, t, mu, eta)
     x1 = x[1];
     nu = mu[1];
     c = mu[2];
-    c2 = c^2;
-    s = c2*nu*(sin(c*x1) - cos(c*x1));
+    s = (2*pi*pi)*sin(pi*x1) + (2*pi*c/nu)*cos(pi*x1);
     return s;
 end
 function ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)

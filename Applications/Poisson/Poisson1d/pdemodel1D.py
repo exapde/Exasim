@@ -2,16 +2,13 @@ from numpy import array
 from sympy import sin, cos, pi
 
 def flux(u, q, w, v, x, t, mu, eta):
-    f = mu[0]*q + u[0]*mu[1]
+    f = mu*q
     return f
 
 def source(u, q, w, v, x, t, mu, eta):
-    x1 = x[0]
-    nu = mu[0]
-    c = mu[1]
-
-    s = array([(2*pi*pi)*sin(pi*x1) + (2*pi*c/nu)*cos(pi*x1)]); 
-    return s
+    x1 = x[0];
+    s = array([(2*pi*pi)*sin(pi*x1)]);
+    return s;
 
 def fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau):
     f = flux(u, q, w, v, x, t, mu, eta)

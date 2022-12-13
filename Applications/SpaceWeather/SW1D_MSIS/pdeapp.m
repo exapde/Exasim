@@ -1,7 +1,7 @@
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/Installation/setpath.m");
-
+tic
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();
 pde.saveResNorm = 1;
@@ -22,6 +22,8 @@ pde = setcompilers(pde);
 % generate input files and store them in datain folder
 [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
+save('inputFiles','pde','mesh','master','dmd');
+
 % generate source codes and store them in app folder
 gencode(pde);
 
@@ -31,25 +33,31 @@ compilerstr = compilecode(pde);
 % % run executable file to compute solution and store it in dataout folder
 runstr = runcode(pde);
 
-% % get solution from output files in dataout folder
-sol = fetchsolution(pde,master,dmd);
-res = fetchresidual(pde);
-
-dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
-figure(1);clf;
-for i=1:size(sol,4)
-    rho = sol(:,1,:,i); 
-    vr = sol(:,2,:,i)./sqrt(exp(rho));
-    T = sol(:,3,:,i)./sqrt(exp(rho));
-    
-    plot(dgnodes(:),T(:),'linewidth',2);
-    axis([min(dgnodes(:)) max(dgnodes(:)) -18 10])
-    hold on
-    plot(dgnodes(:),vr(:),'linewidth',2);
-    plot(dgnodes(:),rho(:),'linewidth',2);
-    
-    pause(.1)
-    hold off
-end
+% % % get solution from output files in dataout folder
+% sol = fetchsolution(pde,master,dmd);
+% res = fetchresidual(pde);
+% 
+% dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
+% figure(1);clf;
+% for i=1:size(sol,4)
+%     rho = sol(:,1,:,i); 
+%     vr = sol(:,2,:,i)./sqrt(exp(rho));
+%     T = sol(:,3,:,i)./sqrt(exp(rho));
+%     
+%     plot(dgnodes(:),T(:),'linewidth',2);
+%     axis([min(dgnodes(:)) max(dgnodes(:)) -15 9])
+%     hold on
+%     grid on
+%     grid minor
+%     plot(dgnodes(:),vr(:),'linewidth',2);
+%     plot(dgnodes(:),log10(exp(rho(:))),'linewidth',2);
+%     
+%     text(min(dgnodes(:)) + 10,-11,sprintf('t = %d',i))
+% 
+%     
+%     pause(.1)
+%     hold off
+% end
 
 disp("Done!");
+toc

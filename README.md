@@ -10,6 +10,8 @@ What make Exasim unique are the following distinctive features:
    - simplifies numerical modeling and simulation with simple scripts
    - produces implicit high-order discontinuous Galerkin solutions of a wide variety of PDEs   
    - generates stand-alone C++ production code tailored to specific applications on different platforms 
+   - leverage automatic differentiation of Enzym to compute Jacobian vector products
+   - leverage Muttation++ to incorposrate thermodynamic, transport, chemistry, and energy transfer properties
    - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs   
    - can be called from Julia, Python, and Matlab. 
    
