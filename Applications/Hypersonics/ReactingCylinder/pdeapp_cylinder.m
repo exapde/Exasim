@@ -15,13 +15,13 @@ pde.cpucompiler="/opt/homebrew/Cellar/llvm@12/12.0.1_1/bin/clang++";
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelD";          % ModelC, ModelD, ModelW
-pde.modelfile = "pdemodel_2d";    % name of a file defining the PDE model
+pde.modelfile = "pdemodel_inviscid";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde.mpiprocs = 1;              % number of MPI processors
 
 %% Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 2;          % polynomial degree
+pde.porder = 1;          % polynomial degree
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
 
@@ -30,29 +30,32 @@ tfinal = 0.0324;
 % nt = 3240/10;
 % dt = tfinal/nt;
 % dt = 10*1e-5;
-nt = 1000;
+nt = 2200;
 % nt = 150
 % dt = tfinal / nt;
-dt = 1.0000000000000e-5;
-pde.dt = [dt*ones(1,5*nt)]; %, 10*dt*ones(1, nt), 100*dt*ones(1,8*nt)];
+dt = 2.500000000000e-5 * 10;
+pde.dt = [dt*ones(1,nt)]; %, 10*dt*ones(1, nt), 100*dt*ones(1,8*nt)];
 % tfinal = dt*nt + 10*dt*nt + 100*dt*8*nt
 % pde.dt = [dt*ones(1,nt)];
-pde.saveSolFreq = ceil(nt/100);
+% pde.saveSolFreq = ceil(nt/100);
+pde.saveSolFreq = 1;
 % pde.saveSolFreq = 100;
 % pde.soltime = pde.saveSolFreq:pde.saveSolFreq:length(pde.dt); % steps at which solution are collected
-pde.timestepOffset = 600;
+% pde.timestepOffset = 1400;
 
 % Solver params
 pde.linearsolveriter = 80;
-pde.GMRESrestart = 19;
-pde.linearsolvertol = 1e-5;
+pde.GMRESrestart = 39;
+pde.linearsolvertol = 1e-4;
 pde.matvectol = 1e-7;
-pde.NLiter = 4;
-pde.RBdim = 40;
+pde.NLiter = 2;
+pde.RBdim = 5;
 pde.NLtol = 1e-9;
+% pde.matvecorder = 1;
 
 pde.AV = 1;      
-% pde.nce = 12;
+% pde.frozenAVflag = 0;
+pde.nce = 12;
 
 %% Mutation information
 % Mutation configuration 
@@ -60,7 +63,7 @@ pde.mutationflag = 1;
 pde.mutationopts = {};
 pde.mutationopts{1} = "air_5";
 pde.mutationopts{2} = "ChemNonEq1T";
-pde.mutationopts{3} = "RRHO";
+pde.mutationopts{3} = "NASA-9";
 pde.mutationpath = "/Users/rloekvh/Mutationpp";
 nspecies = 5;
 
@@ -69,9 +72,12 @@ ndim = 2;
 pde.tau = [5, 5, 5, 5, 5, 5, 5, 5];
 
 % mesh size
-rbody = 0.045;
-rdomain = 0.12;
-[mesh.p,mesh.t,mesh.dgnodes] = mkmesh_circincirc_Ma17b(pde.porder,61,61,rbody,rdomain,1);
+% rbody = 0.045;
+% rdomain = 0.12;
+L_ref = 0.045;
+rbody = 1;
+rdomain = 3;
+[mesh.p,mesh.t,mesh.dgnodes] = mkmesh_uniform(pde.porder,81,81,rbody,rdomain,1);
 mesh.boundaryexpr = {@(p) sqrt(p(1,:).^2+p(2,:).^2)<rbody+1e-6, @(p) p(1,:)>-1e-7, @(p) abs(p(1,:))<20};
 % adiabatic wall, supersonic outflow, supersonic inflow
 mesh.boundarycondition = [3;2;1]; 
@@ -99,29 +105,35 @@ mesh.vdg(:,2,:) = hh.*tanh(1000*dist);
 
 % Dimensional inflow quantities
 rho_inf = [1.0055500000000001e-09 0.00035318161606 1.5872374699999997e-05 0.00116691299088 1.103201281e-05];
-rhou_inf = 9.213932;
+% rhou_inf = 9.213932;
+rhou_inf = 6.1199319999999995;
 rhov_inf = 0.0;
-rhoE_inf = 33563.20282790763;
+% rhoE_inf = 33563.20282790763;
+rhoE_inf = 18229.338827907628;
 
 % Reference quantities for nondimensionalizing
 rho_ref = 0.001547;
 % u_ref = 665.5369622053455;
-u_ref = 5956;
+% u_ref = 5956;
+u_ref = 3956;
 % rhoE_ref = 685.2273261511706;
 rhoE_ref = rho_ref * u_ref^2;
-T_ref = 374.6764014579334;
+T_ref = 374.6764014579334 * (0.4);
 mu_ref = 4.415107627874723e-05;
 kappa_ref = 0.07663957108841235;
 
 % Nondimensional quantities 
-Re = 23319.605484391683;
-Pr = 0.681045690355942;
+cp = 1182.1920097928833;
+% Re = 23319.605484391683;
+% Pr = 0.681045690355942;
+Re = rho_ref * L_ref * u_ref / mu_ref;
+Pr = mu_ref * cp / kappa_ref;
 
 % Av params
 kb = 1.5;
-sb0 = 0.001;
+sb0 = 0.01;
 sbmax = 2.5;
-
+% pde.frozenAVflag=0;
 % Load into Exasim data structures
 pde.physicsparam(1:nspecies) = rho_inf;
 pde.physicsparam(nspecies+1) = rhou_inf;
@@ -131,8 +143,8 @@ pde.physicsparam(15) = pde.porder;
 pde.physicsparam(16) = kb;
 pde.physicsparam(17) = sb0;
 pde.physicsparam(18) = sbmax;
-pde.physicsparam(19) = Re;
-pde.physicsparam(20) = Pr;
+pde.physicsparam(19) = Pr;
+pde.physicsparam(20) = Re;
 
 pde.externalparam = zeros(3*nspecies + 3 + ndim);
 pde.externalparam(1) = rho_ref; % rho_inf
@@ -141,13 +153,22 @@ pde.externalparam(3) = rhoE_ref;  % rhoE_inf
 pde.externalparam(4) = T_ref;
 pde.externalparam(5) = mu_ref;
 pde.externalparam(6) = kappa_ref;
+pde.externalparam(7) = L_ref;
 
 % intial solution
 ui = [rho_inf(:)'/rho_ref rhou_inf/(rho_ref*u_ref) rhov_inf/(rho_ref*u_ref) rhoE_inf/rhoE_ref];
 UDG = initu(mesh,{ui(1),ui(2),ui(3),ui(4),ui(5),ui(6),ui(7),ui(8),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}); % freestream 
 UDG(:,nspecies+1,:) = UDG(:,nspecies+1,:).*tanh(100*dist);
 UDG(:,nspecies+2,:) = UDG(:,nspecies+2,:).*tanh(100*dist);
+rhoe_dim = rhoE_inf - 1/2 * sum(rho_inf) * u_ref^2;
+rhoe = rhoe_dim / (rhoE_ref);
+% UDG(:,nspecies+ndim+1,:) = rhoe + 1/2 * (UDG(:,nspecies+1,:).^2 + UDG(:,nspecies+2,:).^2) ./ sum( UDG(:,1:nspecies,:), 2 ); 
 mesh.udg = UDG;
+% 
+% tmp = load('/Users/rloekvh/Exasim/Applications/Hypersonics/ReactingCylinder/supercloud_data/Oct10Test/dmdn80.mat');
+% dmdtmp = getfield(tmp, 'dmd');
+% Uout = getsolution( '/Users/rloekvh/Exasim/Applications/Hypersonics/ReactingCylinder/supercloud_data/Oct10Test/p1n80Ma8/out_t20000',dmdtmp,master.npe);
+% mesh.udg = Uout;
 
 %% Call Exasim
 % search compilers and set options
@@ -161,16 +182,26 @@ gencode(pde);
 cd("app");
 eval('!./fixargsMPP_Mac.sh');
 eval('!cp opuApp_MPP.cpp opuApp.cpp');
-eval('!cp opuFlux_2d_MPP.cpp opuFlux.cpp'); %TODO
-eval('!cp opuFbou_2d_MPP.cpp opuFbou.cpp'); %TODO
-eval('!cp opuSource_2d_MPP.cpp opuSource.cpp'); %X
+% % eval('!cp opuFlux_2d_MPP.cpp opuFlux.cpp'); %TODO
+% % eval('!cp opuFbou_2d_MPP.cpp opuFbou.cpp'); %TODO
+% eval('!cp opuFlux_2d_MPP.cpp opuFlux.cpp'); %TODO
+% eval('!cp opuFbou_2d_inviscid_MPP.cpp opuFbou.cpp'); %TODO
+% eval('!cp opuSource_2d_MPP.cpp opuSource.cpp'); %X
 eval('!cp opuOutput_2d_MPP.cpp opuOutput.cpp'); %TODO
-eval('!cp opuAvfield_2d_MPP.cpp opuAvfield.cpp') %X
+% eval('!cp opuAvfield_2d_MPP.cpp opuAvfield.cpp') %X
 % eval('!cp opuUbou_MPP.cpp opuUbou.cpp')
+eval('!cp ../app_inviscid_regen/opuFlux_laplacian_manual.cpp opuFlux.cpp'); %TODO
+eval('!cp ../app_inviscid_regen/opuFbou.cpp opuFbou.cpp');
+eval('!cp ../app_inviscid_regen/opuSource.cpp opuSource.cpp'); %X
+eval('!cp ../app_inviscid_regen/opuAvfield.cpp opuAvfield.cpp') %X
+eval('!cp ../app_inviscid_regen/opuUbou.cpp opuUbou.cpp');
+
+
 cd("..");
 
 % compile source codes to build an executable file and store it in app folder
 compilerstr = compilecode(pde);
 
 % run executable file to compute solution and store it in dataout folder
-runstr = runcode(pde);   
+% runstr = runcode(pde);   
+disp("Done!");

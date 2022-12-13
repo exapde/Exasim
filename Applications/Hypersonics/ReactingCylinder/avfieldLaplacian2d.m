@@ -15,7 +15,8 @@ function avField = avfieldLaplacian2d(u, q, w, v, x, t, mu, eta, nspecies, nd)
     sbmax = mu(18);% / sqrt(gam*gam - 1.0); %2.5 TODO: unsure that this should be changing 
 
     % regularization parameters
-    alpha = 1.0e12;
+    alpha = mu(22);
+    sigm = mu(23);
     rmin = 0.0;
     Hmin = 1.0e-4;
 
@@ -40,33 +41,35 @@ function avField = avfieldLaplacian2d(u, q, w, v, x, t, mu, eta, nspecies, nd)
 
     % Regularization 
     rho_i = rmin + lmax(rho_i-rmin,alpha); % need to double check regularizatino here
-    drho_dx_i = drho_dx_i .*  dlmax(u(1:nspecies)-rmin,alpha);
-    drho_dy_i = drho_dy_i .*  dlmax(u(1:nspecies)-rmin,alpha);
+%     drho_dx_i = drho_dx_i .*  dlmax(u(1:nspecies)-rmin,alpha);
+%     drho_dy_i = drho_dy_i .*  dlmax(u(1:nspecies)-rmin,alpha);
     drho_dx = sum(drho_dx_i);
     drho_dy = sum(drho_dy_i);
     % Simple derived working quantities
     rho = sum(rho_i);
-    rhoinv = 1./rho;
-    uv = rhou.*rhoinv;
-    vv = rhov.*rhoinv;
-    E = rhoE * rhoinv; %energy
-    H = E + p*rhoinv; %enthalpy
+    rho_inv = 1./rho;
+    uv = rhou.*rho_inv;
+    vv = rhov.*rho_inv;
+    E = rhoE * rho_inv; %energy
+    H = E + p*rho_inv; %enthalpy
     H = Hmin + lmax(H - Hmin, alpha);
 
     % Critical speed of Sound
     c_star = sqrt((2.*gam1.*H) ./ (gam+1)); %TODO: this is fine for 1 temp but not 2
 
     % Computing derivatives for the sensors
-    du_dx = (drhou_dx - drho_dx.*uv).*rhoinv;
-    dv_dy = (drhov_dy - drho_dy.*vv).*rhoinv;
+    du_dx = (drhou_dx - drho_dx.*uv).*rho_inv;
+    dv_dy = (drhov_dy - drho_dy.*vv).*rho_inv;
+    du_dy = (drhou_dy - drho_dy*uv)*rho_inv;
+    dv_dx = (drhov_dx - drho_dx*vv)*rho_inv;
+
     div_v = (du_dx + dv_dy); %TODO: check signs. Actually this probably is important, we want to make sure it's applied in negative v. pos dilitation
-                  %      pretty sure my signs are okay. There is something strange about the code I was given. Trhouly don't understand the signs 
+                  %      pretty sure my signs are okay. There is something strange about the code I was given. Trhouly don't understand the signs     
     % limit  divergence and vorticity
-    sigm = 1e4;
     div_v = limiting(div_v,-sigm,sigm,alpha,-sigm);
 
-    % % Dilatation Sensor sb
-    sb = - (hm./porder) .* (div_v./c_star);
+    DucrosRatio = 1;
+    sb = - (hm./porder) .* (div_v./c_star) .* DucrosRatio;
     sb = limiting(sb,sbmin,sbmax,alpha,sb0); % TODO: what should sbmin, sbmax, alpha, and sb0 be 
 
     % Artificial Bulk viscosity

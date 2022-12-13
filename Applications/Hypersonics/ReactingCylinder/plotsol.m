@@ -2,31 +2,41 @@ mesh.nd = master.dim;
 mesh.plocal = master.xpe;
 mesh.tlocal = master.telem;
 mesh.porder = pde.porder;
-ti = 2000;
+ti = 100;
+
 % Uout = getsolution(['dataout/out'],dmd,master.npe);
 Uout = getsolution(['dataout/out_t' num2str(ti)],dmd,master.npe);
 UCGout = getsolution(['dataout/out_outputCG_t' num2str(ti)],dmd,master.npe);
 % out = eulereval(Uout,'r',gam,Minf);
 rho = sum(Uout(:,1:5,:),2);
-out = Uout(:,1,:);
+out = UCGout(:,10,:);
+figure(1000); clf; scaplot(mesh,out,[0 1e-4],1);
+xlim([-1 0])
+ylim([0 2])
+figure(1001); clf; scaplot(mesh, Uout(:,7,:));
 % out = rho;
 % out = rho;
 % outCG = 
-[om,ind] = max(abs(out(:)));
-figure(100); clf; scaplot(mesh,out,[],1);
-x = mesh.dgnodes(:,1,:);
-y = mesh.dgnodes(:,2,:);
-hold on;
-plot(x(ind),y(ind),'o');
-colormap('jet');
+% indBad  = 172;
+% for ii = 9
+%         gammaTmp = UCGout(:,ii,:);
+%         [om,ind] = max(abs(gammaTmp(:)));
+%         figure(10); clf; scaplot(mesh,gammaTmp,[],1);
+%         x = mesh.dgnodes(:,1,:);
+%         y = mesh.dgnodes(:,2,:);
+%         hold on;
+%         plot(x(ind),y(ind),'x', 'MarkerSize',20, 'LineWidth',20);
+%         colormap('jet');
+%         waitforbuttonpress
+% end
 %%
 titles = ["w1","w2","w3","w4","w5","p","t","gam","rhoe","sb0"];
-for i = 1:10
+for i = 1:5
 %     if i ~= 9
         figure(i); clf
         wcurr = UCGout(:,i,:);
         scaplot(mesh,wcurr,[],1);
-        title(titles(i))
+        title(titles(i)); colormap('jet'); drawnow; 
 %         waitforbuttonpress
 %     end
 end
@@ -35,6 +45,27 @@ P = UCGout(:,6,:);
 T = UCGout(:,7,:);
 gam = UCGout(:,8,:);
 sb0 = UCGout(:,10,:);
+rhoe = UCGout(:,9,:);
+%%
+% ncu = 5 + 2 + 1;
+% rhoinv = 1./rho;
+% uv = Uout(:,6,:);
+% vv = Uout(:,7,:);
+% drhou_dx = Uout(:,ncu+5+1,:);
+% drhov_dx = Uout(:,ncu+5+2,:);
+% drhou_dy = Uout(:,ncu+ncu+5+1,:);
+% drhov_dy = Uout(:,ncu+ncu+5+2,:);
+% du_dx = (drhou_dx - drho_dx.*uv).*rhoinv;
+% dv_dx = (drhov_dx - drho_dx.*vv).*rhoinv;
+% du_dy = (drhou_dy - drho_dy.*uv).*rhoinv;
+% dv_dy = (drhov_dy - drho_dy.*vv).*rhoinv;
+% div_v = du_dx + dv_dy;
+% vort = (dv_dx - du_dy);
+% vort = sqrt(vort.*vort);
+%  DucrosRatio = div_v.*div_v ./ (div_v.*div_v + vort.*vort + 1.0e-16);
+% figure(1); clf; scaplot(mesh, div_v, [], 1, 0);
+% figure(2); clf; scaplot(mesh, vort, [], 1, 0);
+% figure(3); clf; scaplot(mesh, DucrosRatio, [], 1, 0);
 % figure(1)
 % out = Uout(:,8,:);
 % % outCG = 

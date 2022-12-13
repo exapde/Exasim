@@ -16,74 +16,6 @@ function f = avfield(u, q, w, v, x, t, mu, eta)
     f = avfieldLaplacian2d(u, q, w, v, x, t, mu, eta, nspecies, nd);
 end
 
-% function avField = avfieldLaplacian(u, q, w, v, x, t, mu, eta, nspecies, nd)
-%     % Mutation outputs
-%     p = eta(1);
-%     gam = eta(2);
-%     gam1 = gam - 1;
-%     
-%     % artificial viscosity
-%     porder = mu(15);
-% 
-%     % regularization parameters for the bulk viscosity
-%     kb = mu(16);
-%     sb0   = mu(17); %0.02 
-%     sbmin = 0.0;
-%     sbmax = mu(18);% / sqrt(gam*gam - 1.0); %2.5 TODO: unsure that this should be changing 
-% 
-%     % regularization parameters
-%     alpha = 1.0e12;
-%     rmin = 0.0;
-%     Hmin = 1.0e-4;
-% 
-%     % mesh size
-%     hm = v(2);
-% 
-%     % Get base variables
-%     rvec = u(1:nspecies);
-%     ru = u(nspecies+1);
-%     rv = u(nspecies+nd);
-%     rE = u(nspecies+nd+1);
-% 
-%     rx = sum(-q(1:nspecies));
-%     rux = -q(nspecies+1);
-%     rvx = -q(nspecies+nd);
-% 
-%     % Regularization 
-%     rvec = rmin + lmax(rvec-rmin,alpha); % need to double check regularizatino here
-%     
-%     % Simple derived working quantities
-%     r = sum(rvec);
-%     r1 = 1./r;
-%     uv = ru.*r1;
-%     vv = rv.*r1;
-%     E = rE * r1; %energy
-%     H = E + p*r1; %enthalpy
-%     H = Hmin + lmax(H - Hmin, alpha);
-% 
-%     % Critical speed of Sound
-%     c_star = sqrt((2.*gam1.*H) ./ (gam+1)); %TODO: this is fine for 1 temp but not 2
-% 
-%     % Computing derivatives for the sensors
-%     ux = (rux - rx.*uv).*r1;
-%     vx = (rvx - rx.*vv).*r1;
-%     div_v = (ux + vx); %TODO: check signs. Actually this probably is important, we want to make sure it's applied in negative v. pos dilitation
-%                   %      pretty sure my signs are okay. There is something strange about the code I was given. Truly don't understand the signs 
-%     % limit  divergence and vorticity
-%     sigm = 1e4;
-%     div_v = limiting(div_v,-sigm,sigm,alpha,-sigm);
-% 
-%     % % Dilatation Sensor sb
-%     sb = - (hm./porder) .* (div_v./c_star);
-%     sb = limiting(sb,sbmin,sbmax,alpha,sb0); % TODO: what should sbmin, sbmax, alpha, and sb0 be 
-% %     sb = log(1 + exp(alpha * (sb - 0.01)))/alpha;
-%     % Artificial Bulk viscosity
-%     avb = (kb.*hm./(porder)) .* (abs(uv) + abs(vv) + abs(c_star)) .* sb;
-%     
-%     % Assign artificial viscosities
-%     avField(1) = avb;  %  bulk
-% end
-
 function m = mass(u, q, w, v, x, t, mu, eta)
     nspecies = 5;
     ndim = 2;
@@ -93,19 +25,16 @@ end
 function f = flux(u, q, w, v, x, t, mu, eta)
     nspecies = 5;
     nd = 2;
-    % % Clipper utilities
-    % alpha = 1.0e3;
-    % rmin = 0.0;
 
     fi = fluxinviscid(u, q, w, v, x, t, mu, eta, nspecies, nd);
-    fv = fluxviscous(u, q, w, v, x, t, mu, eta, nspecies, nd);
+    fv = fluxviscousLa(u, q, w, v, x, t, mu, eta, nspecies, nd);
     fl = fluxlaplacian(u, q, w, v, x, t, mu, eta, nspecies, nd);
     f = fi - fv - fl;
 end
 
 function fv = fluxlaplacian(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     rmin = 0.0;
-    alpha = 1.0e12;
+    alpha = mu(21);
     eps_av = v(1);
     nenergy = 1;
     ncu = nspecies + ndim + nenergy;
@@ -115,11 +44,11 @@ function fv = fluxlaplacian(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     r_vec = u(1:nspecies);
     dr = dlmax(r_vec-rmin,alpha); % Regularize derivative 
 
-    drho_dx_i = -q(1:nspecies) .* dlmax(u(1:nspecies)-rmin,alpha);
+    drho_dx_i = -q(1:nspecies).*dr; %.* dlmax(u(1:nspecies)-rmin,alpha);
     drhou_dx  = -q(nspecies+1);
     drhov_dx  = -q(nspecies+2);
     drhoE_dx  = -q(nspecies+ndim+1);
-    drho_dy_i = -q(ncu+1:ncu+nspecies) .* dlmax(q(ncu+1:ncu+nspecies)-rmin,alpha);
+    drho_dy_i = -q(ncu+1:ncu+nspecies) .*dr;% .* dlmax(q(ncu+1:ncu+nspecies)-rmin,alpha);
     drhou_dy  = -q(ncu+nspecies+1);
     drhov_dy  = -q(ncu+nspecies+2);
     drhoE_dy  = -q(ncu+nspecies+ndim+1);
@@ -143,7 +72,7 @@ function fi = fluxinviscid(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     rho = sym(0);
 
     rmin = 0.0;
-    alpha = 1.0e12;
+    alpha = mu(21);
 
     % Conservative Variables
     for ispecies = 1:nspecies
@@ -190,14 +119,14 @@ end
 
 
 
-function fv = fluxviscous(u, q, w, v, x, t, mu, eta, nspecies, ndim)
+function fv = fluxviscousLa(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     %TODO for thursday:
     %      - double check with papers: consistent with may, gnoffo. Maybe typo in su2mpp? 
     %      - double check with NS code (TODO: REALLY CONFUSED ABOUT SIGN OF STRESS TENSOR)
     %      - add AV options: tomorrow, be clear about shear, bulk, thermal, and how density should come into this (let's discuss)
     %      - try to generate 
     rmin = 0.0;
-    alpha = 1e12;
+    alpha = mu(22);
     nenergy=1;
     ncu = nspecies + ndim + nenergy;
 
@@ -216,16 +145,17 @@ function fv = fluxviscous(u, q, w, v, x, t, mu, eta, nspecies, ndim)
     beta = 0.0;
 
     rho_i = rmin + lmax(u(1:nspecies) - rmin, alpha);
+    dr = dlmax(u(1:nspecies)-rmin,alpha); % Regularize derivative 
 
     rhou = u(nspecies+1);
     rhov = u(nspecies+2);
     rhoE = u(nspecies+ndim+1);
     
-    drho_dx_i = -q(1:nspecies) .* dlmax(u(1:nspecies)-rmin,alpha);
+    drho_dx_i = -q(1:nspecies) .* dr;
     drhou_dx  = -q(nspecies+1);
     drhov_dx  = -q(nspecies+2);
     drhoE_dx  = -q(nspecies+ndim+1);
-    drho_dy_i = -q(ncu+1:ncu+nspecies) .* dlmax(q(ncu+1:ncu+nspecies)-rmin,alpha);
+    drho_dy_i = -q(ncu+1:ncu+nspecies) .* dr;
     drhou_dy  = -q(ncu+nspecies+1);
     drhov_dy  = -q(ncu+nspecies+2);
     drhoE_dy  = -q(ncu+nspecies+ndim+1);
@@ -327,9 +257,10 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     ndim = 2;
     fb = sym(zeros(nspecies+ndim+1, 3));
 
-    f = flux(u, q, w, v, x, t, mu, eta);
+    f = fluxinviscid(u, q, w, v, x, t, mu, eta, nspecies, ndim); % maybe should be uhat here? 
     fn = f(:,1)*n(1) + f(:,2)*n(2) + tau.*(u-uhat);
 
+%     OH maybe I need to change 
     fadiabatic = fn;
     fadiabatic(1:nspecies) = 0.0;
     fadiabatic(nspecies+ndim+1) = 0.0;

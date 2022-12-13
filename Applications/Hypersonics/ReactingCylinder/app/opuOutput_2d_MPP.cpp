@@ -6,7 +6,8 @@ template <typename T> void opuOutput(T *f, T *xdg, T *udg, T *odg, T *wdg, T *ui
 	double rho_scale = uinf[0];
 	double u_scale = uinf[1];
 	double rhoe_scale = uinf[2];
-	double omega_scale = rho_scale*u_scale;
+	double L_scale = uinf[6];
+	double omega_scale = rho_scale*u_scale/L_scale;
     double wdot[5];
         // std::cout << "START OUTPUT" << std::endl;
 

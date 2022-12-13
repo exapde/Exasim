@@ -6,8 +6,9 @@ template <typename T> void opuSource(T* __restrict__ f, T* __restrict__ xdg, T* 
 	double rho_scale = uinf[0];
 	double u_scale = uinf[1];
 	double rhoe_scale = uinf[2];
-	double omega_scale = rho_scale*u_scale;
-        // std::cout << "START SOURCE" << std::endl;
+    double L_scale = uinf[6];
+	double omega_scale = rho_scale*u_scale/L_scale;
+//         std::cout << "START SOURCE: " << L_scale << std::endl;
 
 	for (int i = 0; i <ng; i++) {
 		T udg1 = udg[0*ng+i];
@@ -36,6 +37,14 @@ template <typename T> void opuSource(T* __restrict__ f, T* __restrict__ xdg, T* 
 		double wdot[5];
 		mix->netProductionRates(wdot);
 
+		// f[0*ng+i] = 0.0;
+		// f[1*ng+i] = 0.0;
+		// f[2*ng+i] = 0.0;
+		// f[3*ng+i] = 0.0;
+		// f[4*ng+i] = 0.0;
+// 		f[5*ng+i] = 0.0;
+// 		f[6*ng+i] = 0.0;
+// 		f[7*ng+i] = 0.0;
 		f[0*ng+i] = wdot[0]/(omega_scale);
 		f[1*ng+i] = wdot[1]/(omega_scale);
 		f[2*ng+i] = wdot[2]/(omega_scale);

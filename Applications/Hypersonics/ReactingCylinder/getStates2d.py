@@ -82,10 +82,12 @@ if __name__=="__main__":
     print("kappa_ref = " + str(kappa_inf))
 
     print("MISC Terms")
+    print("cp: " + str(mix.mixtureFrozenCpMass()))
+    print("gamma: " + str(mix.mixtureFrozenGamma()))
     print("T_ref from cp: " + str(u_scale**2 / mix.mixtureFrozenCpMass()))
     print("Re =  " + str(rho_inf * u_scale / mu_inf))
     print("Pr = " + str(mu_inf * mix.mixtureFrozenCpMass() / kappa_inf))
-
+    print("Ma = " + str(u_inf / a_inf))
 
 
 
