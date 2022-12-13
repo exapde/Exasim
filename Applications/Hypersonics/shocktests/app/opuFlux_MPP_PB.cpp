@@ -12,8 +12,8 @@ template <typename T> void opuFlux(T* __restrict__ f, T* __restrict__ xdg, T* __
 
 	for (int i = 0; i <ng; i++) {
 		T param1 = param[0];
-		T param18 = param[17];
-		T param19 = param[18];
+		T param18 = param[18]; // TODO: fix this
+		T param19 = param[19];
 		T uinf1 = uinf[0];
 		T uinf2 = uinf[1];
 		T uinf3 = uinf[2];

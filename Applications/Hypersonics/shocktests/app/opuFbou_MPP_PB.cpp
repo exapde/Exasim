@@ -10,8 +10,8 @@ template <typename T> void opuFbou1(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 
 	for (int i = 0; i <ng; i++) {
 		T param1 = param[0];
-		T param18 = param[17];
-		T param19 = param[18];
+		T param18 = param[18];
+		T param19 = param[19];
 		T uinf1 = uinf[0];
 		T uinf2 = uinf[1];
 		T uinf3 = uinf[2];
@@ -266,8 +266,8 @@ template <typename T> void opuFbou2(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg
 
 	for (int i = 0; i <ng; i++) {
 		T param1 = param[0];
-		T param18 = param[17];
-		T param19 = param[18];
+		T param18 = param[18];
+		T param19 = param[19];
 		T uinf1 = uinf[0];
 		T uinf2 = uinf[1];
 		T uinf3 = uinf[2];

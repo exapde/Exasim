@@ -6,7 +6,7 @@ function pde = pdemodel
     pde.fbou = @fbou;
     pde.ubou = @ubou;
     pde.initu = @initu;
-    pde.output = @output;
+%     pde.output = @output;
     pde.avfield = @avfield;
 end
 

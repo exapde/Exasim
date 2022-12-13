@@ -60,7 +60,7 @@ template <typename T> void opuAvfield(T *f, T *xdg, T *udg, T *odg, T *wdg, T *u
 		uinf2 = mix->mixtureFrozenGamma(); // gamma
         // uinf3 = (mix->frozenThermalConductivity() / uinf[5]) / (mix->viscosity() / uinf[4]); // cp / Pr^*
         // uinf3 = 0.0;
-        uinf3 = 1.0/0.9;
+        uinf3 = (mix->mixtureFrozenCpMass() / 1010.7825217371519) /0.9;
 
 		T t2 = udg6*udg6;
 		T t3 = uinf2*2.0;
@@ -157,14 +157,15 @@ template <typename T> void opuAvfield(T *f, T *xdg, T *udg, T *odg, T *wdg, T *u
 		T t94 = t89*t93;
 		T t95 = -t94;
 		T t96 = t87+t95;
-		f[j+npe*0+npe*nce*k] = odg9*param16*t7*t39*t75*t96;
-		f[j+npe*1+npe*nce*k] = 1e-3;
-		f[j+npe*2+npe*nce*k] = odg9*param16*t7*t39*t75*t96*uinf3;
-		f[j+npe*3+npe*nce*k] = 1e-4;
-		f[j+npe*4+npe*nce*k] = 1e-4;
-		f[j+npe*5+npe*nce*k] = 1e-4;
-		f[j+npe*6+npe*nce*k] = 1e-4;
-		f[j+npe*7+npe*nce*k] = 1e-4;
+		f[j+npe*0+npe*nce*k] = odg9*param16*t7*t39*t75*t96; 		// bulk
+		f[j+npe*1+npe*nce*k] = 0.0;									// shear
+		f[j+npe*2+npe*nce*k] = odg9*param16*t7*t39*t75*t96*uinf3;   // kappa
+		// f[j+npe*2+npe*nce*k] = 0.0;   // kappa
+		f[j+npe*3+npe*nce*k] = 0.0;								// D1
+		f[j+npe*4+npe*nce*k] = 0.0;								// D2
+		f[j+npe*5+npe*nce*k] = 0.0;								// D3
+		f[j+npe*6+npe*nce*k] = 0.0;								// D4
+		f[j+npe*7+npe*nce*k] = 0.0;								// D5
 	}
 }
 

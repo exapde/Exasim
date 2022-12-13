@@ -15,7 +15,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 pde.mpiprocs = 1;              % number of MPI processors
 
 %% Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 2;          % polynomial degree
+pde.porder = 3;          % polynomial degree
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
 
@@ -24,10 +24,10 @@ tfinal = 0.0324;
 % nt = 3240/10;
 % dt = tfinal/nt;
 % dt = 10*1e-5;
-nt = 10000;
+nt = 1000;
 % nt = 150
 % dt = tfinal / nt;
-dt = 3.240000000000000e-06;
+dt = 3.240000000000000e-06*10;
 % pde.dt = [dt/100*ones(1,nt*10), dt*ones(1,nt*9/10)];
 pde.dt = [dt*ones(1,nt)];
 pde.saveSolFreq = ceil(nt/100);
@@ -43,6 +43,8 @@ pde.matvectol = 1e-7;
 pde.NLiter = 5;
 pde.RBdim = 5;
 pde.NLtol = 1e-8;
+pde.precMatrixType = 2;
+pde.ptcMatrixType = 0;
 
 %% Mutation information
 % Mutation configuration 
@@ -57,9 +59,9 @@ nspecies = 5;
 %% Stabilization and mesh
 ndim = 1;
 pde.tau = [5, 5, 5, 5, 5, 5, 5];
-nDiv = 600;
+nDiv = 400;
 [mesh.p,mesh.t] = linemesh(nDiv);
-a = 0.2; b = 0.645;
+a = 0; b = 1;
 mesh.p = a + (b-a)*mesh.p;
 
 mesh.boundaryexpr = {@(p) abs(p(1,:)-a)<1e-16, @(p) abs(p(1,:) - b)<1e-8}; %TODO: double check boundaries
@@ -152,8 +154,8 @@ eval('!cp opuApp_MPP.cpp opuApp.cpp');
 eval('!cp opuFlux_MPP.cpp opuFlux.cpp'); %X manually switch these 
 eval('!cp opuFbou_MPP.cpp opuFbou.cpp'); %X
 eval('!cp opuSource_MPP.cpp opuSource.cpp'); %X
-% eval('!cp opuOutput_MPP_sensors.cpp opuOutput.cpp'); %X
-eval('!cp opuOutput_viscTerms.cpp opuOutput.cpp');
+eval('!cp opuOutput_MPP.cpp opuOutput.cpp'); %X
+% eval('!cp opuOutput_viscTerms.cpp opuOutput.cpp');
 eval('!cp opuAvfield_MPP.cpp opuAvfield.cpp') %X
 eval('!cp opuInitu_MPP.cpp opuInitu.cpp') %X
 % eval('!cp opuUbou_MPP.cpp opuUbou.cpp')
