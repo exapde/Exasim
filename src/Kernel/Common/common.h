@@ -819,6 +819,7 @@ struct sysstruct {
     // unified memory for GMRES solver
     dstype *tempmem=NULL;
     dstype *lam=NULL;
+    dstype *normcu=NULL;
     Int *ipiv=NULL;
     
     // store PTC matrix
@@ -842,6 +843,7 @@ struct sysstruct {
     void freememory(Int hostmemory)
     {
        CPUFREE(lam);  
+       CPUFREE(normcu);  
        CPUFREE(ipiv);  
        if (hostmemory==1) {
             CPUFREE(x); 
@@ -1028,6 +1030,7 @@ struct commonstruct {
     Int tdep;      // 0: steady-state; 1: time-dependent;  
     Int wave;      //     
     Int linearProblem; // 0: nonlinear problem;  1: linear problem
+    Int subproblem=0;
     Int saveSolFreq;
     Int saveSolOpt;
     Int timestepOffset=0;

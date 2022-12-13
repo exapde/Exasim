@@ -1089,5 +1089,133 @@ static void StgHomoTurb2(dstype *up, dstype *xdg, dstype *stgdata, dstype *ui, d
 #endif                  
 }
 
+static void ArrayInverseMatrix11(dstype *A, int N, Int backend)
+{
+#ifdef HAVE_ONETHREAD         
+    if (backend == 0)       // One thread CPU
+        opuArrayInverseMatrix11(A, N);
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayInverseMatrix11(A, N);
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayInverseMatrix11(A, N);
+#endif                  
+}
+
+static void ArrayInverseMatrix22(dstype *A, int N, Int backend)
+{
+#ifdef HAVE_ONETHREAD         
+    if (backend == 0)       // One thread CPU
+        opuArrayInverseMatrix22(A, N);
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayInverseMatrix22(A, N);
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayInverseMatrix22(A, N);
+#endif                  
+}
+
+static void ArrayInverseMatrix33(dstype *A, int N, Int backend)
+{
+#ifdef HAVE_ONETHREAD         
+    if (backend == 0)       // One thread CPU
+        opuArrayInverseMatrix33(A, N);
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayInverseMatrix33(A, N);
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayInverseMatrix33(A, N);
+#endif                  
+}
+
+static void ArrayMatrixMultiplication(dstype *C, dstype *A, dstype *B, Int S, Int I, Int J, Int K, Int backend)
+{
+#ifdef HAVE_ONETHREAD      
+    if (backend == 0)        // One thread CPU
+        opuArrayMatrixMultiplication(C, A, B, S, I, J, K);    
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayMatrixMultiplication(C, A, B, S, I, J, K);    
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayMatrixMultiplication(C, A, B, S, I, J, K);    
+#endif                  
+}
+
+static void ArrayEosInverseMatrix11(dstype *A, int npe, int ncw, int ne, Int backend)
+{
+#ifdef HAVE_ONETHREAD         
+    if (backend == 0)       // One thread CPU
+        opuArrayEosInverseMatrix11(A, npe, ncw, ne);
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayEosInverseMatrix11(A, npe, ncw, ne);
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayEosInverseMatrix11(A, npe, ncw, ne);
+#endif                  
+}
+
+static void ArrayEosInverseMatrix22(dstype *A, int npe, int ncw, int ne, Int backend)
+{
+#ifdef HAVE_ONETHREAD         
+    if (backend == 0)       // One thread CPU
+        opuArrayEosInverseMatrix22(A, npe, ncw, ne);
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayEosInverseMatrix22(A, npe, ncw, ne);
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayEosInverseMatrix22(A, npe, ncw, ne);
+#endif                  
+}
+
+static void ArrayEosInverseMatrix33(dstype *A, int npe, int ncw, int ne, Int backend)
+{
+#ifdef HAVE_ONETHREAD         
+    if (backend == 0)       // One thread CPU
+        opuArrayEosInverseMatrix33(A, npe, ncw, ne);
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayEosInverseMatrix33(A, npe, ncw, ne);
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayEosInverseMatrix33(A, npe, ncw, ne);
+#endif                  
+}
+
+static void ArrayEosMatrixMultiplication(dstype *C, dstype *A, dstype *B, Int npe, Int ncw, Int ne, Int ncu, Int backend)
+{
+#ifdef HAVE_ONETHREAD      
+    if (backend == 0)        // One thread CPU
+        opuArrayEosMatrixMultiplication(C, A, B, npe, ncw, ne, ncu);    
+#endif                   
+#ifdef HAVE_OPENMP        
+    if (backend == 1)  // Open MP
+        cpuArrayEosMatrixMultiplication(C, A, B, npe, ncw, ne, ncu);    
+#endif                 
+#ifdef HAVE_CUDA            
+    if (backend == 2)  // CUDA C                
+        gpuArrayEosMatrixMultiplication(C, A, B, npe, ncw, ne, ncu);    
+#endif                  
+}
+
 #endif  
 

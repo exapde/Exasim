@@ -10,7 +10,7 @@ public:
     masterstruct master; 
     meshstruct mesh;
     tempstruct tmp;    
-    commonstruct common;        
+    commonstruct common;
 
     // constructor for CPU 
     CDiscretization(string filein, string fileout, Int mpiprocs, Int mpirank, Int ompthreads, Int omprank); 

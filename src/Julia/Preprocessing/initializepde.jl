@@ -39,6 +39,7 @@ mutable struct PDEStruct
     tdep::IntP; # flag for steady-state or time-dependent problem
     wave::IntP; # flag for wave problem
     linearproblem::IntP; # flag for linear problem
+    subproblem::IntP; # flag for subproblem
     debugmode::IntP; # flag for debug mode
     stgNmode::IntP; # number of synthetic turbulence generation modes
 
@@ -175,6 +176,7 @@ function initializepde(version)
     pde.tdep = 0;
     pde.wave = 0;
     pde.linearproblem = 0;
+    pde.subproblem = 0;
     pde.debugmode = 0;
     pde.stgNmode = 0;
     pde.porder = 1;

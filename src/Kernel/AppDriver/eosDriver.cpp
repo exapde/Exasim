@@ -18,20 +18,20 @@ void EosDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, mes
     /* 2. Compute physical source */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
-//         opuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-//                     numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                
+        opuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                                      
     }
 #endif              
 #ifdef HAVE_OPENMP        
     if (backend==1) {
-//         cpuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-//                     numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
+        cpuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
     }    
 #endif            
 #ifdef HAVE_CUDA             
     if (backend==2) {
-//         gpuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
-//                     numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
+        gpuEoS(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, common.modelnumber,
+                    numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                        
     }
 #endif    
 }

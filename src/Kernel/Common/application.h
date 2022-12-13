@@ -8,6 +8,12 @@ template <typename T> void opuSource(T *s, T *pg, T *udg, T *odg, T *wdg, T *uin
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void opuSourcew(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void opuEoS(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void opuEoSdu(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void opuEoSdw(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
 template <typename T> void opuTdfunc(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void opuFbou(T *fh, T *pg, T *udg, T *odg, T *wdg,  T *uhg, T *nl, 
@@ -64,6 +70,12 @@ template <typename T> void cpuSource(T *s, T *pg, T *udg, T *odg, T *wdg, T *uin
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void cpuSourcew(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void opuEoS(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void cpuEoSdu(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void cpuEoSdw(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
 template <typename T> void cpuTdfunc(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void cpuFbou(T *fh, T *pg, T *udg, T *odg, T *wdg,  T *uhg, T *nl, 
@@ -98,6 +110,12 @@ template <typename T> void gpuFlux(T *f, T *pg, T *udg, T *odg, T *wdg, T *uinf,
 template <typename T> void gpuSource(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);
 template <typename T> void gpuSourcew(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void gpuEoS(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void gpuEoSdu(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
+        T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
+template <typename T> void gpuEoSdw(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw, int nce, int npe, int ne);
 template <typename T> void gpuTdfunc(T *s, T *pg, T *udg, T *odg, T *wdg, T *uinf, T *param, 
         T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw);

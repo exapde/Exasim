@@ -3,6 +3,8 @@
 
 #include "../AppDriver/sourcewDriver.cpp"
 #include "../AppDriver/eosDriver.cpp"
+#include "../AppDriver/eosduDriver.cpp"
+#include "../AppDriver/eosdwDriver.cpp"
 
 // // Calculate Rwe = (u, nabla r)_K for a given u
 // void RwElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 

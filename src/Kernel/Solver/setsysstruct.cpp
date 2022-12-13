@@ -124,23 +124,27 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
         sys.cpuMemory = 1;    
     }
     
-    if (common.ppdegree > 1) {
-        sys.lam = (dstype *) malloc((6*common.ppdegree + 2*common.ppdegree*common.ppdegree)*sizeof(dstype));
-        sys.ipiv = (Int *) malloc((common.ppdegree)*sizeof(Int));
-        N = npe*ncu*ne;    
-        TemplateMalloc(&sys.randvect, N, backend);         
-        TemplateMalloc(&sys.q, N, backend);       
-        TemplateMalloc(&sys.p, N, backend);       
-                
+    sys.normcu = (dstype *) malloc(ncu*sizeof(dstype));    
+    
+    N = npe*ncu*ne;                 
+    TemplateMalloc(&sys.randvect, N, backend);    
 #ifdef HAVE_CUDA                               
-        dstype *rvec = (dstype *) malloc((common.ndof)*sizeof(dstype));
-        for (int i=0; i<common.ndof; i++) rvec[i] = rand_normal(0.0, 1.0);   
-        CHECK( cudaMemcpy(sys.randvect, rvec, common.ndof*sizeof(dstype), cudaMemcpyHostToDevice ) );  
-        free(rvec);
+    dstype *rvec = (dstype *) malloc((N)*sizeof(dstype));
+    for (int i=0; i<N; i++) rvec[i] = rand_normal(0.0, 1.0);   
+    CHECK( cudaMemcpy(sys.randvect, rvec, N*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+    free(rvec);
 #endif                
 #ifndef HAVE_CUDA      
-        for (int i=0; i<common.ndof; i++) sys.randvect[i] = rand_normal(0.0, 1.0);        
-#endif               
+    for (int i=0; i<N; i++) sys.randvect[i] = rand_normal(0.0, 1.0);        
+#endif                   
+    double normr = PNORM(common.cublasHandle, N, sys.randvect, backend);    
+    ArrayMultiplyScalar(sys.randvect, 1.0/normr, N, backend);                       
+    
+    if (common.ppdegree > 1) {
+        sys.lam = (dstype *) malloc((6*common.ppdegree + 2*common.ppdegree*common.ppdegree)*sizeof(dstype));
+        sys.ipiv = (Int *) malloc((common.ppdegree)*sizeof(Int));             
+        TemplateMalloc(&sys.q, N, backend);     
+        TemplateMalloc(&sys.p, N, backend);                       
     }
 }
 

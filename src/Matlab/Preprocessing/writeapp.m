@@ -4,7 +4,7 @@ appname = 0;
 %app.stgNmode = size(app.stgdata,1);
 app.flag   = [app.tdep app.wave app.linearproblem app.debugmode app.matvecorder app.GMRESortho...  
               app.preconditioner app.precMatrixType app.NLMatrixType app.runmode app.tdfunc app.source ...
-              app.modelnumber app.extFhat app.extUhat app.extStab app.flag];
+              app.modelnumber app.extFhat app.extUhat app.extStab app.subproblem app.flag];
 app.problem  = [app.hybrid appname app.temporalscheme app.torder app.nstage app.convStabMethod...
                app.diffStabMethod app.rotatingFrame app.viscosityModel app.SGSmodel app.ALE app.AV...
                app.linearsolver app.NLiter app.linearsolveriter app.GMRESrestart app.RBdim ...
@@ -69,7 +69,7 @@ fwrite(fileID,app.tau(:),'double',endian);
 fwrite(fileID,app.stgdata(:),'double',endian);
 fwrite(fileID,app.stgparam(:),'double',endian);
 fwrite(fileID,app.stgib(:),'double',endian);
-if app.nco>0    
+if (length(app.vindx(:)) > 1)    
     fwrite(fileID,app.vindx(:)-1,'double',endian);
 end
 fwrite(fileID,app.dae_dt(:),'double',endian);
