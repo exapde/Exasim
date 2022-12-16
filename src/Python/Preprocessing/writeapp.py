@@ -103,6 +103,14 @@ def writeapp(app,filename):
         app['dae_dt'] = array(app['dae_dt']).flatten(order = 'F');
         app['dae_dt'].astype('float64').tofile(fileID);
 
+    if app['mutationflag']:
+        app['mutationopts']['MixtureName'] = array((app['mutationopts']['MixtureName'] +'X').encode())
+        app['mutationopts']['MixtureName'].tofile(fileID)
+        app['mutationopts']['StateModel'] = array((app['mutationopts']['StateModel'] +'X').encode())
+        app['mutationopts']['StateModel'].tofile(fileID)
+        app['mutationopts']['ThermoDB'] = array((app['mutationopts']['ThermoDB'] +'X').encode())
+        app['mutationopts']['ThermoDB'].tofile(fileID)
+        
     fileID.close();
 
     return app;

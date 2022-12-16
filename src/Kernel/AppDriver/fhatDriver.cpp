@@ -21,8 +21,13 @@ void FhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
     if (common.extFhat==1) { 
 #ifdef HAVE_ONETHREAD            
         if (backend==0) {
+            #ifdef HAVE_MPP
             opuFhat(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
-                    time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+                    time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, app.mix);
+            #else
+            opuFhat(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
+            time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            #endif
         }
 #endif              
 #ifdef HAVE_OPENMP                        
@@ -55,8 +60,13 @@ void FhatDriver(dstype *fg, dstype *xg, dstype *ug1, dstype *ug2, dstype * og1,
     if (common.extStab>=1) { 
 #ifdef HAVE_ONETHREAD            
         if (backend==0) {
+            #ifdef HAVE_MPP
+            opuStab(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
+                    time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, app.mix);
+            #else
             opuStab(fg, xg, ug1, ug2, og1, og2, wg1, wg2, uh, nl, app.tau, app.uinf, app.physicsparam, 
                     time, common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+            #endif
         }
 #endif              
 #ifdef HAVE_OPENMP                        

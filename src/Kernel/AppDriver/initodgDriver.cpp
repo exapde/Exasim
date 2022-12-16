@@ -9,7 +9,11 @@ void InitodgDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int nco, Int 
     /* 2. Compute output field */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
-        opuInitodg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nco, npe, ne);                
+        #ifdef HAVE_MPP
+        opuInitodg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nco, npe, ne, app.mix);        
+        #else        
+        opuInitodg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nco, npe, ne);   
+        #endif
     }
 #endif              
 #ifdef HAVE_OPENMP        

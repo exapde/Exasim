@@ -90,6 +90,11 @@ if nsize[14]>0
     write(fileID,app.dae_dt[:]);
 end
 
+if app.mutationflag == 1
+    write(fileID, app.mutationopts["MixtureName"] * "X")
+    write(fileID, app.mutationopts["StateModel"] * "X")
+    write(fileID, app.mutationopts["ThermoDB"] * "X")
+end
 close(fileID);
 
 return app;

@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef _MUTATIONPP
+#include <mutation++.h>
+#include "mutationUtils.cpp"
+#endif
+
 #include "opuFlux.cpp"
 #include "opuSource.cpp"
 #include "opuSourcew.cpp"

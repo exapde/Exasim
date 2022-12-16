@@ -9,7 +9,11 @@ void InitvDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int nc, Int npe
     /* 2. Compute output field */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
-        opuInitv(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);                
+        #ifdef HAVE_MPP
+        opuInitv(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne, app.mix);  
+        #else
+        opuInitv(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);
+        #endif
     }
 #endif              
 #ifdef HAVE_OPENMP        

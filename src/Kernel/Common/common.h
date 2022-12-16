@@ -58,6 +58,10 @@ typedef int Int;
 // int enzyme_const, enzyme_dup;
 // #endif
 
+#ifdef HAVE_MPP
+#include <mutation++.h>
+#endif
+
 #define MKL_INT int
 
 #define CPUFREE(x)                                                           \
@@ -336,6 +340,9 @@ struct appstruct {
     dstype *dtcoef_q=NULL;    /* factor when discretizing the time derivative of the Q equation. Allow scalar field for local time stepping in steady problems? */
     dstype *dtcoef_p=NULL;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
     
+    #ifdef HAVE_MPP
+    Mutation::Mixture *mix=NULL;
+    #endif
     // custom destructor
     void freememory(Int hostmemory)
     {

@@ -12,6 +12,7 @@ gpucompiler = app.gpucompiler;
 enzyme = app.enzyme;
 cpuflags = app.cpuflags;
 gpuflags = app.gpuflags;
+mutationflag = app.mutationflag;
 cpuappflags = app.cpuappflags;
 gpuappflags = app.gpuappflags;
 
@@ -47,11 +48,25 @@ for i = 1:12
     compilerstr{i} = "";
 end
 
+if mutationflag
+    mutationpath = app.mutationpath;
+
+    mutationinclude = " -D _MUTATIONPP";
+    mutationinclude = append(mutationinclude, " -I ", mutationpath, "/install/include/mutation++/");
+    mutationinclude = append(mutationinclude, " -I ", mutationpath, "/thirdparty/eigen/");
+    mutationinclude = append(mutationinclude, " -I ", mutationpath, "/install/");
+
+    mutationlib = append(" -L ", mutationpath, "/install/lib/ -lmutation++");
+end
+
 if ~isempty(cpucompiler)
     if (~isempty(enzyme))   
         compilerstr{1} = cpucompiler + " -D _ENZYME -fPIC -O3 -c opuApp.cpp" + " -Xclang -load -Xclang " + coredir + enzyme;
     else
         compilerstr{1} = cpucompiler + " -fPIC -O3 -c opuApp.cpp";
+    end
+    if mutationflag
+        compilerstr{1} = append(compilerstr{1}, mutationinclude);
     end
     compilerstr{1} = compilerstr{1} + " " + cpuappflags;
     compilerstr{2} = "ar -rvs opuApp.a opuApp.o";
@@ -69,6 +84,8 @@ if ~isempty(gpucompiler)
     compilerstr{4} = "ar -rvs gpuApp.a gpuApp.o";
 end
 
+
+
 if (~isempty(cpuflags)>0) && (~isempty(cpucompiler)>0)    
     str2 = coredir + "commonCore.a " + coredir + "opuCore.a " + "opuApp.a ";
     str3 = cpuflags;
@@ -78,6 +95,9 @@ if (~isempty(cpuflags)>0) && (~isempty(cpucompiler)>0)
     else
         str1 = cpucompiler + " -std=c++11 " + maindir + "main.cpp " + "-o serial" + appname + " ";
         compilerstr{5} = str1 + str2 + str3;
+    end
+    if mutationflag
+        compilerstr{5} = append(compilerstr{5}, mutationinclude, mutationlib);
     end
 end
 
@@ -90,6 +110,9 @@ if (~isempty(cpuflags)) && (~isempty(mpicompiler)>0)
     str2 = coredir + "commonCore.a " + coredir + "opuCore.a " + "opuApp.a ";
     str3 = cpuflags;
     compilerstr{6} = str1 + str2 + str3;
+    if mutationflag
+        compilerstr{6} = append(compilerstr{6}, mutationinclude, mutationlib);
+    end
 end
 
 if (~isempty(cpuflags)>0) && (~isempty(cpucompiler)>0) && (~isempty(gpucompiler)>0) && (~isempty(gpuflags)>0)

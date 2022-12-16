@@ -13,6 +13,7 @@ gpucompiler = app.gpucompiler;
 enzyme = app.enzyme;
 cpuflags = app.cpuflags;
 gpuflags = app.gpuflags;
+mutationflag = app.mutationflag
 cpuappflags = app.cpuappflags
 gpuappflags = app.gpuappflags
 
@@ -47,12 +48,26 @@ cp(appdriverdir * "gpuApp.cu", cdir * "/gpuApp.cu", force=true);
 
 compilerstr = Array{String, 1}(undef, 12);
 
+if mutationflag == 1
+    mutationpath = app.mutationpath;
+
+    mutationinclude = " -D _MUTATIONPP";
+    mutationinclude = mutationinclude * " -I " * mutationpath * "/install/include/mutation++/"
+    mutationinclude = mutationinclude * " -I " * mutationpath * "/thirdparty/eigen/"
+    mutationinclude = mutationinclude * " -I " * mutationpath * "/install/"
+
+    mutationlib = " -L " * mutationpath * "/install/lib/ -lmutation++"
+end
+
 if length(cpucompiler)>0
     if (length(enzyme)>0)   
         compilerstr[1] = cpucompiler * " -D _ENZYME -fPIC -O3 -c opuApp.cpp" * " -stdlib=libc++ -Xclang -load -Xclang " * coredir * enzyme;
     else
         compilerstr[1] = cpucompiler * " -fPIC -O3 -c opuApp.cpp";
     end    
+    if mutationflag == 1
+        compilerstr[1] = compilerstr[1] * mutationinclude
+    end
     if length(cpuappflags) > 0
         compilerstr[1] = compilerstr[1] * " " * cpuappflags
     end
@@ -92,6 +107,9 @@ if (length(cpuflags)>0) && (length(cpucompiler)>0)
         str1 = cpucompiler * " -std=c++11 " * maindir * "main.cpp " * "-o serial" * appname * " ";
         compilerstr[5] = str1 * str2 * str3;
     end
+    if mutationflag == 1
+        compilerstr[5] = compilerstr[5] * mutationinclude * mutationlib
+    end
 end
 
 if (length(cpuflags)>0) && (length(mpicompiler)>0)
@@ -103,6 +121,9 @@ if (length(cpuflags)>0) && (length(mpicompiler)>0)
     str2 = coredir * "commonCore.a " * coredir * "opuCore.a " * "opuApp.a ";
     str3 = cpuflags;
     compilerstr[6] = str1 * str2 * str3;
+    if mutationflag == 1
+        compilerstr[6]= compilerstr[6] * mutationinclude * mutationlib
+    end
 end
 
 if (length(cpuflags)>0) && (length(cpucompiler)>0) && (length(gpucompiler)>0) && (length(gpuflags)>0)

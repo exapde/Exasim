@@ -9,7 +9,11 @@ void InitudgDriver(dstype *f, dstype *xg, appstruct &app, Int ncx, Int nc, Int n
     /* 2. Compute output field */
 #ifdef HAVE_ONETHREAD        
     if (backend==0) {
-        opuInitudg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);                
+        #ifdef HAVE_MPP
+        opuInitudg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne, app.mix);
+        #else
+        opuInitudg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);
+        #endif                
     }
 #endif              
 #ifdef HAVE_OPENMP        

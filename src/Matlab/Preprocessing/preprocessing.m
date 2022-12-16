@@ -131,6 +131,8 @@ for i = 1:mpiprocs
     ndims(10) = app.nco;
     ndims(11) = app.nch;
     ndims(12) = app.ncx;
+    app.nce=2;
+    ndims(13) = app.nce;
 
     nsize = zeros(20,1);
     nsize(1) = length(ndims(:));

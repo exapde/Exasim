@@ -73,6 +73,11 @@ if (length(app.vindx(:)) > 1)
     fwrite(fileID,app.vindx(:)-1,'double',endian);
 end
 fwrite(fileID,app.dae_dt(:),'double',endian);
+if app.mutationflag
+    fwrite(fileID,strcat(app.mutationopts{1}, "X"),'char',endian); % Mixture name
+    fwrite(fileID,strcat(app.mutationopts{2}, "X"),'char',endian); % State model
+    fwrite(fileID,strcat(app.mutationopts{3}, "X"),'char',endian); % Thermo DB
+end
 fclose(fileID);
 
 
