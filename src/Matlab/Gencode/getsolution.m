@@ -3,6 +3,7 @@ function UDG = getsolution(filename,dmd,npe)
 nproc = length(dmd);
 if nproc==1
     fileID = fopen([filename '_np0.bin'],'r');
+    disp(fileID)
     UDG = fread(fileID,'double');
     fclose(fileID);
     ne = length(dmd{1}.elempart(:));

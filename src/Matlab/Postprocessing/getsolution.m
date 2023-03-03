@@ -4,7 +4,7 @@ nproc = length(dmd);
 if nproc==1
     fileID = fopen([filename '_np0.bin'],'r');
     UDG = fread(fileID,'double');
-    fclose(fileID);
+    fclose(fileID); 
     ne = length(dmd{1}.elempart(:));
     nc = numel(UDG)/(npe*ne);
     UDG = reshape(UDG,npe,nc,ne);

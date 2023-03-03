@@ -46,6 +46,7 @@ else
 end
 
 % Open VTK output file
+disp(filename)
 fid = fopen(filename, 'w');
 % VTK DataFile Version
 fprintf(fid,'<?xml version="1.0"?>\n');

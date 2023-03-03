@@ -1,0 +1,184 @@
+%% Compute homogeneous poisson solution - first time through the sim only
+
+% clear exasim data from memory
+% clear pde_poisson mesh master dmd sol;
+clear mesh;
+
+% Add Exasim to Matlab search path
+cdir = pwd(); ii = strfind(cdir, "Exasim");
+run(cdir(1:(ii+5)) + "/Installation/setpath.m");
+
+% initialize pde structure and mesh structure
+[pde_poisson,mesh] = initializeexasim();
+
+% Define a PDE model: governing equations, initial solutions, and boundary conditions
+pde_poisson.model = "ModelD";          % ModelC, ModelD, ModelW
+pde_poisson.modelfile = "pdemodel_poisson";    % name of a file defining the PDE model
+
+% Choose computing platform and set number of processors
+%pde_poisson.platform = "gpu";         % choose this option if NVIDIA GPUs are available
+pde_poisson.mpiprocs = 1;              % number of MPI processors
+
+% Physical parameters
+Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
+Knp = 2e-13;             % mu[2] Recombination coeff - pos ions and electrons [m^3/s]
+mu_p = 2.43e-4;          % mu[3] Pos ion mobility [m^2/(Vs)]
+mu_n = 2.7e-4;           % mu[4] Neg mobility [m^2/(Vs)]
+De = 0.18;               % mu[5] Electron diff coefficient [m^2/s]
+Dp = 0.028e-4;           % mu[6] Pos ion diff coefficient [m^2/s]
+Dn = 0.043e-4;           % mu[7] Neg diff coefficient [m^2/s]
+Nmax = 1e16;             % mu[8] Max number density for initial charge distribution [particles/m^3]
+r0 = 0.0;                % mu[9] r-pos of emitter tip in reference frame [m]
+z0 = 0.045;              % mu[10]z-pos of emitter tip in reference frame [m]
+s0 = 1e-2;               % mu[11]Std deviation of initial charge distribution [m]
+e = 1.6022e-19;          % mu[12]Charge on electron [C]
+epsilon = 8.854e-12;     % mu[13]absolute permittivity of air [C^2/(N*m^2)]
+Ua = -10e3;              % mu[14]Emitter potential relative to ground [V]
+gamma = 0.001;           % mu[15]Secondary electron emission coefficient [1/m]
+E_bd = 3e6;              % mu[16]Breakdown E field in air [V/m]
+r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
+
+% Set discretization parameters, physical parameters, and solver parameters
+                        %    1   2    3     4     5   6   7    8    9   10  11  12   13     14   15     16     17
+pde_poisson.physicsparam = [Kep, Knp, mu_p, mu_n, De, Dp, Dn, Nmax, r0, z0, s0, e, epsilon, Ua, gamma, E_bd, r_tip];
+pde_poisson.tau = 1.0;           % DG stabilization parameter
+
+% set indices to obtain v from the solutions of the other PDE models 
+% first column : model index
+% second column: solution index
+pde_poisson.porder = 2;          % polynomial degree
+% pde_poisson.vindx = [1 1; 1 2; 1 3]; % first column -> model, second column -> solution index for that model. Originally this used to be "v"
+% 4, 5 6, 7 would be grad ne_x, grad ne_y, grad ne_x, etc
+% pde_poisson.subproblem = 1;
+
+pde_poisson.NLtol = 1.0e-6;
+pde_poisson.linearsolvertol = 1.0e-8;
+pde_poisson.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
+
+[mesh.p,mesh.t] = gmsh2pt(['chen_geom_coarse.msh'],2, 0);
+
+% expressions for domain boundaries
+eps = 1e-4;
+xmin = min(mesh.p(1,:));
+xmax = max(mesh.p(1,:));
+ymin = min(mesh.p(2,:));
+ymax = max(mesh.p(2,:));
+x2 = 0.017;
+x3 = 0.015;
+
+symmetry_axis = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
+X_farfield = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    
+Y_farfield = @(p) (p(2,:) > ymax - eps);  % open boundary 2                                     
+outflow_bdry = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % grounded boundary - open
+ground_and_cylinder = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary                                    
+ground_and_cylinder = @(p) (p(2,:) < 0.04);                            % grounded boundary - cylinder
+needle = @(p) (p(1,:) < x2+eps);                          % needle tip          
+
+% Boundary mapping:
+% Sam boundary {bdry#}:     1 2 3 4 5 6 7
+% Chen boundary:            2 5 6 3 4 4 1
+% Simulation boundaries:
+% 1 - ground
+% 2 - needle tip 
+% 3 - axisymmetric
+
+% Sam boundaries:
+% 1: symmetry axis
+% 2: +X farfield
+% 3: +Y farfield
+% 4: -Y open boundary, outflow
+% 5: -Y ground and cylinder
+% 6: -Y ground and cylinder
+% 7: needle
+
+ENUM_GROUND_BC = 1;
+ENUM_NEEDLE_BC = 2;
+ENUM_SYMMETRY_BC = 3;
+
+mesh.boundaryexpr = {symmetry_axis,
+                    X_farfield,
+                    Y_farfield,
+                    outflow_bdry,
+                    ground_and_cylinder,
+                    ground_and_cylinder,
+                    needle};
+
+mesh.boundarycondition = [ENUM_SYMMETRY_BC,
+                        ENUM_GROUND_BC,
+                        ENUM_GROUND_BC,
+                        ENUM_GROUND_BC,
+                        ENUM_GROUND_BC,
+                        ENUM_GROUND_BC,
+                        ENUM_NEEDLE_BC]; % Set boundary condition for each boundary
+
+% Preload initial forcing term: 0 across the entire domain
+sol0 = getsolution('dataout/out', dmd, master.npe)*0;    % Zero out the entire solution but use the skeleton format of the data structure - the domain starts out with no space charge
+mesh.vdg=sol0;
+
+disp('----------------------- RUNNING INITIAL POISSON -----------------------')
+[sol_poisson,pde_poisson,mesh,master,dmd,compilerstr,runstr] = exasim(pde_poisson,mesh);
+
+pde.visscalars = {"T1", 1};  % list of scalar fields for visualization
+pde.visvectors = {"temperature gradient", [2 3]}; % list of vector fields for visualization
+xdg = vis(sol,pde,mesh); % visualize the numerical solution
+disp("Finished initial poisson");
+
+%% End computation of poisson solution
+
+
+%% Setup pde_drift_diff model but don't solve until we get to the for loop
+[pde_drift_diff,~] = initializeexasim();
+pde_drift_diff.model = "ModelD";          % ModelC, ModelD, ModelW
+pde_drift_diff.modelfile = "pdemodel";    % name of a file defining the PDE model
+pde_drift_diff.mpiprocs = 1;              % number of MPI processors
+
+pde_drift_diff.physicsparam = pde_poisson.physicsparam
+pde_drift_diff.tau = 1.0;
+pde_drift_diff.porder = 2.0;
+
+pde_drift_diff.NLtol = 1.0e-6;
+pde_drift_diff.linearsolvertol = 1.0e-8;
+pde_drift_diff.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
+pde_drift_diff.torder = 1;          % time-stepping order of accuracy
+pde_drift_diff.nstage = 1;          % time-stepping number of stages
+pde_drift_diff.dt = 1.0e-3*ones(1,1);   % time step sizes -> NOTE: we are only taking one time step
+pde_drift_diff.visdt = 1;        % visualization timestep size
+pde_drift_diff.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
+pde_drift_diff.GMRESrestart=25;            % number of GMRES restarts
+pde_drift_diff.linearsolveriter=50;        % number of GMRES iterations
+pde_drift_diff.NLiter=2;                   % Newton iterations
+
+%% End setup of pde_drift_diff model
+
+num_timesteps = 3;
+dt_sim = 1e-4;
+
+for i=1:num_timesteps
+    % Solve diffusion model at the current time step
+    disp('----------------------- RUNNING DRIFT DIFFUSION -----------------------')
+
+    mesh.vdg = sol_poisson      % CRITICAL COUPLING STEP
+    [sol_drift_diff,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);    % Solve the drift diffusion equation for a single time step
+    pde.visscalars = {"T1", 1};  % list of scalar fields for visualization  #TODO: make pde model name
+    pde.visvectors = {"temperature gradient", [2 3]}; % list of vector fields for visualization
+    xdg = vis(sol,pde,mesh); % visualize the numerical solution
+    disp("Finished drift diff at the current step:");
+    disp(i);
+
+    % Compute the electrostatics forcing term per Chen Eqn 5
+    % For now, we only have one species, but we have to extend this to multiple species later
+    % For the electrostatics case, we only need the number densities. We don't care about the gradients.
+    % When we add the other equations, we'll have to take columns 4:6 and 7:9 for n_p and n_n, etc, and add them onto n_e.
+    forcing_term = -pde_poisson.physicsparam(12)/pde_poisson.physicsparam(13) * (-sol_drift_diff (:,1:3,:) + sol_drift_diff(:,4:6,:) - sol_drift_diff(:,7:9,:));   % This also modifies the gradients, but we're going to throw them away later so it doesn't matter.
+    mesh.vdg = forcing_term;
+
+    disp('----------------------- RUNNING POISSON -----------------------')
+    % Solve electrostatics model at the current time step
+    [sol_poisson,pde_poisson,mesh,master,dmd,compilerstr,runstr] = exasim(pde_poisson,mesh);
+    pde.visscalars = {"T1", 1};  % list of scalar fields for visualization
+    pde.visvectors = {"temperature gradient", [2 3]}; % list of vector fields for visualization
+    xdg = vis(sol,pde,mesh); % visualize the numerical solution
+    disp("Finished poisson at the current step:");
+    disp(i);
+    
+end

@@ -1,62 +1,110 @@
-function [p,t] = gmsh2pt(fname,elemtype)
+function [p,t] = gmsh2pt(fname,nd,elemtype)
 
-fid = fopen(fname,'r');
-if fid == -1
-    error('Can''t open file');
-end
-
-% 1	2-node line	Edge Lagrange P1
-% 2	3-node triangle	Triangle Lagrange P1
-% 3	4-node quadrangle	Quadrilateral Lagrange P1
-% 4	4-node tetrahedron	Tetrahedron Lagrange P1
-% 5	8-node hexahedron	Hexahedron Lagrange P1
-% 6	6-node prism	Wedge Lagrange P1
-if (elemtype==2) 
-    nd = 2; nn = 3;
-elseif (elemtype==3)
-    nd = 2; nn = 4;
-elseif (elemtype==4)
-    nd = 3; nn = 4;    
-elseif (elemtype==5)
-    nd = 3; nn = 8;    
-end
-    
-readuntil(fid, '$Nodes');
-np = fscanf(fid, '%d', 1);
-p = zeros(np,nd);
-for ii = 1:np
-    foo = fscanf(fid, '%d', 1);
-    p(ii,:) = fscanf(fid, '%f', nd)';
-    fgetl(fid);
-end
-
-readuntil(fid, '$Elements');
-nt = fscanf(fid, '%d', 1);
-t = zeros(nt,nn);
-for ii = 1:nt
-    foo = fscanf(fid, '%d', 1);
-    eltype = fscanf(fid, '%d', 1);
-    if eltype == elemtype
-        foo = fscanf(fid, '%d', 3);
-        t(ii,:) = fscanf(fid, '%d', nn)';
+    % NOTE: this was modified on Jan 13, 2022 (from Cuong)
+    fid = fopen(fname,'r');
+    if fid == -1
+        error('Cannot open file');
     end
-    t(ii,:)
-    fgetl(fid);
-    pause
-end
-
-t = t(any(t~=0,2),:);
-
-fclose(fid);
-
-end
-
-function readuntil(fid,str)
     
-    while ~feof(fid)
-        fline = fgetl(fid);
-        if ~isempty(fline) & ~isempty(strmatch(str, fline))
-            break;
+    % 1	2-node line	Edge Lagrange P1
+    % 2	3-node triangle	Triangle Lagrange P1
+    % 3	4-node quadrangle	Quadrilateral Lagrange P1
+    % 4	4-node tetrahedron	Tetrahedron Lagrange P1
+    % 5	8-node hexahedron	Hexahedron Lagrange P1
+    % 6	6-node prism	Wedge Lagrange P1    
+    if nd==1 % line
+        nve = 2;
+        wcase = 1;
+    elseif nd==2 && elemtype==0 % tri
+        nve = 3;
+        wcase = 2;
+    elseif nd==2 && elemtype==1 % quad
+        nve = 4;
+        wcase = 3;
+    elseif nd==3 && elemtype==0 % tet
+        nve = 4;
+        wcase = 4;
+    elseif nd==3 && elemtype==1 % hex
+        nve = 8;
+        wcase = 5;
+    end
+    
+    readuntil(fid, '$Nodes');
+    np = fscanf(fid, '%d', 1);
+    p = zeros(nd,np);
+    for ii = 1:np
+        foo = fscanf(fid, '%d', 1);
+        p(1:nd,ii) = fscanf(fid, '%f', nd);
+        fgetl(fid);
+    end
+    
+    readuntil(fid, '$Elements');
+    ne = fscanf(fid, '%d', 1);
+    t = zeros(nve,ne);
+    m = 0;
+    for ii = 1:ne  
+        eltype = fscanf(fid, '%d', 2);
+        if (eltype(2) == wcase)
+            m = m + 1;
+            tii = fscanf(fid, '%d', 2+nve);
+            t(:,m) = tii(3:end);
+        end
+        fgetl(fid);
+    end
+    t = t(:,1:m);
+    fclose(fid);
+    
+    % nve = 0;
+    % wcase = 0;
+    % for ii = 1:ne    
+    %     eltype = fscanf(fid, '%d', 2);
+    %     if eltype(2) == 2
+    %         nve = 3;
+    %         tmp = fscanf(fid, '%d', 2+nve);
+    %         t1 = tmp(3:end);        
+    %     elseif (eltype(2) == 3) || (eltype(2) == 4)
+    %         nve = 4;
+    %         tmp = fscanf(fid, '%d', 2+nve);
+    %         t1 = tmp(3:end);        
+    %     elseif eltype(2) == 5
+    %         nve = 8;
+    %         tmp = fscanf(fid, '%d', 2+nve);
+    %         t1 = tmp(3:end);                        
+    %     end
+    %     fgetl(fid);
+    %     if nve>0
+    %         wcase = eltype(2);
+    %         break;
+    %     end
+    % end
+    % 
+    % if nve>0
+    %     t = zeros(nve,ne);
+    %     t(:,1) = t1;
+    %     j = ii+1;
+    %     for ii = j:ne
+    %         eltype = fscanf(fid, '%d', 2);
+    %         if eltype(2)==wcase
+    %             tmp = fscanf(fid, '%d', 2+nve);
+    %             t(:,ii) = tmp(3:end);      
+    %         end
+    %         fgetl(fid);
+    %     end    
+    %     t = t(:,any(t~=0,1));
+    % else
+    %     fclose(fid);
+    %     error("Reading gmsh file failed");
+    % end
+    % fclose(fid);
+    
+    end
+    
+    function readuntil(fid,str)
+        
+        while ~feof(fid)
+            fline = fgetl(fid);
+            if ~isempty(fline) && strcmp(str, fline)
+                break;
+            end
         end
     end
-end
