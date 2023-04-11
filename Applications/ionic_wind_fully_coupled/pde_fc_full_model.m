@@ -10,34 +10,34 @@ run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelD";          % ModelC, ModelD, ModelW
-pde.modelfile = "pdemodel_fc_3eqns";    % name of a file defining the PDE model
+pde.modelfile = "pdemodel_full_model";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
 
 % Physical parameters
-Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
-Knp = 2e-13;             % mu[2] Recombination coeff - pos ions and electrons [m^3/s]
-mu_p = 2.43e-4;          % mu[3] Pos ion mobility [m^2/(Vs)]
-mu_n = 2.7e-4;           % mu[4] Neg mobility [m^2/(Vs)]
-De = 0.18;               % mu[5] Electron diffusion coefficient [m^2/s]
-Dp = 0.028e-4;           % mu[6] Pos ion diffusion coefficient [m^2/s]
-Dn = 0.043e-4;           % mu[7] Neg diffusion coefficient [m^2/s]
-Nmax = 1e16;             % mu[8] Max number density for initial charge distribution [particles/m^3]
 r0 = 0.0;                % mu[9] r-pos of emitter tip in reference frame [m]
-z0 = 0.045;              % mu[10]z-pos of emitter tip in reference frame [m]
-s0 = 1e-2;               % mu[11]Std deviation of initial charge distribution [m]
+z0 = 0.0;                % mu[10]z-pos of emitter tip in reference frame [m]
+s0 = 25e-6;               % mu[11]Std deviation of initial charge distribution [m]
+Nmax = 1e16;             % mu[8] Max number density for initial charge distribution [particles/m^3]
 e = 1.6022e-19;          % mu[12]Charge on electron [C]
-epsilon = 8.854e-12;     % mu[13]absolute permittivity of air [C^2/(N*m^2)]
+epsilon0 = 8.854e-12;     % mu[13]absolute permittivity of air [C^2/(N*m^2)] or [m-3 kg-1 s4 A2]
 Ua = -10e3;              % mu[14]Emitter potential relative to ground [V]
 gamma = 0.001;           % mu[15]Secondary electron emission coefficient [1/m]
 E_bd = 3e6;              % mu[16]Breakdown E field in air [V/m]
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
+n_ref = epsilon0*E_bd/(e*r_tip);     % Yes, this is redundant and could be recomputed from the above variables. But it saves having to recompute it each time in the functions.
+
+P = 101325; % Pa
+V = 1; % m^3
+T = 273.15; % K
+k_b = 1.380649e-23; % m2 kg s-2 K-1
+N = P*V/(k_b*T);     % Neutral number density
 
 % Set discretization parameters, physical parameters, and solver parameters
-              %     1     2    3     4     5  6   7    8    9   10  11  12   13     14   15     16     17
-pde.physicsparam = [Kep, Knp, mu_p, mu_n, De, Dp, Dn, Nmax, r0, z0, s0, e, epsilon, Ua, gamma, E_bd, r_tip];
+              %     1   2    3   4    5      6     7     8     9      10    11    12
+pde.physicsparam = [r0, z0, s0, Nmax, e, epsilon0, Ua, gamma, E_bd, r_tip, n_ref, N];
 pde.tau = 1.0;           % DG stabilization parameter
 
 % set indices to obtain v from the solutions of the other PDE models 
@@ -50,16 +50,26 @@ pde.porder = 3;          % polynomial degree
 
 pde.NLtol = 1.0e-14;
 pde.linearsolvertol = 1.0e-14;
-pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we arent using the PPC
+pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
 % pde.precMatrixType = 2;
 
 % solver parameters
+% Notes on computing the nondimensional timestep:
+% - mue at Ebd and N computed at STP = 2e-4
+
+mue_ref = 2e-4;
+dt_sec = 1.0e-5;     % This is the dimensional timestep, in seconds
+
+% dt_star = dt_sec*mue_ref*E_bd/r_tip;     % This is the nondimensional timestep, delta t*
+dt_star = 1e-3;     % Setting it to 1e-3 for testing
+% disp('The nondimensional timestep is')
+% disp(dt_star)
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-pde.dt = 1.0e-5*ones(1,3);   % time step sizes
+pde.dt = dt_star*ones(1,3);   % time step sizes
 pde.visdt = 1.0;        % visualization timestep size
 pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
-pde.GMRESrestart=200;            % number of GMRES restarts
+pde.GMRESrestart=50;            % number of GMRES restarts
 pde.linearsolveriter=1000;        % number of GMRES iterations
 pde.NLiter=3;                   % Newton iterations
 
@@ -71,21 +81,16 @@ xmin = min(mesh.p(1,:));
 xmax = max(mesh.p(1,:));
 ymin = min(mesh.p(2,:));
 ymax = max(mesh.p(2,:));
-% x1 = 4.5e-3;
 x2 = 0.017;
 x3 = 0.015;
 
-bdry1 = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
-bdry2 = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    
-bdry3 = @(p) (p(2,:) > ymax - eps);  % open boundary 2                                     
-bdry4 = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % grounded boundary - open
-bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary                                    
-bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);                            % grounded boundary - cylinder
-bdry7 = @(p) (p(1,:) < x2+eps);                          % needle tip          
-
-ENUM_GROUND_BC = 1;
-ENUM_SYMMETRY_BC = 2;
-ENUM_NEEDLE_BC = 3;
+bdry1 = @(p) (p(1,:) < xmin+eps);    % Chen bdry 2 - symmetry boundary
+bdry2 = @(p) (p(1,:) > xmax - eps);  % Chen bdry 5 - +r farfield
+bdry3 = @(p) (p(2,:) > ymax - eps);  % Chen bdry 6 - +z farfield
+bdry4 = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % Chen bdry 3 - outflow boundary
+bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary - Chen bdry 4 - ground plane
+bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);           % grounded boundary - Chen bdry 4 - cylinder
+bdry7 = @(p) (p(1,:) < x2+eps);                          % Chen bdry 1 - needle
 
 mesh.boundaryexpr = {bdry1,
                     bdry2,
@@ -97,14 +102,14 @@ mesh.boundaryexpr = {bdry1,
 
 mesh.boundarycondition = [2, 5, 5, 3, 4, 4, 1]; % Set boundary condition for each boundary
 
-load poisson_sol.mat sol;
-mesh.vdg = sol;
+% load poisson_sol.mat sol;
+% mesh.vdg = sol;
 % call exasim to generate and run C++ code to solve the PDE models
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
-for i = 1:size(sol,4) % Last field is the number of timesteps
-    sol(:,[4 8 12],:,i) = sol(:,[4 8 12],:,i) + mesh.vdg;
-end
+% for i = 1:size(sol,4) % Last field is the number of timesteps
+%     sol(:,[4 8 12],:,i) = sol(:,[4 8 12],:,i) + mesh.vdg;
+% end
 
 % visualize the numerical solution of the PDE model using Paraview
 pde.visscalars = {"ne", 1, "np", 2, "nn", 3, 'phi', 4};  % list of scalar fields for visualization

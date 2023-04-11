@@ -2,7 +2,9 @@ template <typename T>  __device__  void devicegpuFlux(T *f, T *xdg, T *udg, T *o
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	while (i<ng) {
-		T param5 = param[4];
+		T param1 = param[0];
+		T param9 = param[8];
+		T param10 = param[9];
 		T xdg1 = xdg[0*ng+i];
 		T udg1 = udg[0*ng+i];
 		T udg2 = udg[1*ng+i];
@@ -15,18 +17,16 @@ template <typename T>  __device__  void devicegpuFlux(T *f, T *xdg, T *udg, T *o
 		T udg10 = udg[9*ng+i];
 		T udg11 = udg[10*ng+i];
 		T udg12 = udg[11*ng+i];
-		T odg2 = odg[1*ng+i];
-		T odg3 = odg[2*ng+i];
-		T t2 = odg2+udg8;
-		T t3 = odg3+udg12;
-		f[0*ng+i] = xdg1*(param5*udg5+t2*udg1);
-		f[1*ng+i] = xdg1*(param5*udg6+t2*udg2);
-		f[2*ng+i] = xdg1*(param5*udg7+t2*udg3);
-		f[3*ng+i] = t2*xdg1;
-		f[4*ng+i] = xdg1*(param5*udg9+t3*udg1);
-		f[5*ng+i] = xdg1*(param5*udg10+t3*udg2);
-		f[6*ng+i] = xdg1*(param5*udg11+t3*udg3);
-		f[7*ng+i] = t3*xdg1;
+		T t2 = 1.0/param9;
+		T t3 = 1.0/param10;
+		f[0*ng+i] = -xdg1*(udg1*udg8+t2*t3*udg5*(8.0E+2/1.89E+2));
+		f[1*ng+i] = -xdg1*(udg2*udg8*6.19047619047619E-3+t2*t3*udg6*(8.0E+2/1.89E+2));
+		f[2*ng+i] = -xdg1*((udg3*udg8)/1.4E+2+t2*t3*udg7*(8.0E+2/1.89E+2));
+		f[3*ng+i] = udg8*xdg1;
+		f[4*ng+i] = -xdg1*(udg1*udg12+t2*t3*udg9*(8.0E+2/1.89E+2));
+		f[5*ng+i] = -xdg1*(udg2*udg12*6.19047619047619E-3+t2*t3*udg10*(8.0E+2/1.89E+2));
+		f[6*ng+i] = -xdg1*((udg3*udg12)/1.4E+2+t2*t3*udg11*(8.0E+2/1.89E+2));
+		f[7*ng+i] = udg12*xdg1;
 		i += blockDim.x * gridDim.x;
 	}
 }

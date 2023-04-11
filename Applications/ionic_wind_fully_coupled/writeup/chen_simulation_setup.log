@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2022.10.25)  16 DEC 2022 09:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2023.3.23)  9 APR 2023 20:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/saustin/Documents/exasim_new/Exasim/Applications/research/chen_test_subproblem/writeup/chen_simulation_setup.tex
-(/home/saustin/Documents/exasim_new/Exasim/Applications/research/chen_test_subproblem/writeup/chen_simulation_setup.tex
+**/home/saustin/Documents/exasim_new/Exasim/Applications/ionic_wind_fully_coupled/writeup/chen_simulation_setup.tex
+(/home/saustin/Documents/exasim_new/Exasim/Applications/ionic_wind_fully_coupled/writeup/chen_simulation_setup.tex
 LaTeX2e <2021-11-15> patch level 1
 L3 programming layer <2022-01-21> (/usr/share/texlive/texmf-dist/tex/latex/base/report.cls
 Document Class: report 2021/10/04 v1.4n Standard LaTeX document class
@@ -398,24 +398,24 @@ l.141 \section
 LaTeX Font Info:    Trying to load font information for TS1+ppl on input line 194.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ppl.fd
 File: ts1ppl.fd 2001/06/04 font definitions for TS1/ppl.
-)
-Underfull \hbox (badness 10000) in paragraph at lines 217--219
+) [3]
+Underfull \hbox (badness 10000) in paragraph at lines 228--230
 
  []
 
-[3] [4] [5]
-Overfull \hbox (26.24391pt too wide) in paragraph at lines 342--350
+[4] [5]
+Overfull \hbox (26.24391pt too wide) in paragraph at lines 301--309
  [][] 
  []
 
 [6
 
 ]
-Overfull \hbox (26.24391pt too wide) in paragraph at lines 371--379
+Overfull \hbox (26.24391pt too wide) in paragraph at lines 330--338
  [][] 
  []
 
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 385.
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 344.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 ) [7
@@ -425,15 +425,15 @@ File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 ] [9] [10
 
 ] [11] [12] [13] [14]
-<indicator_fcn.png, id=471, 1146.2825pt x 907.39pt>
+<indicator_fcn.png, id=472, 1146.2825pt x 907.39pt>
 File: indicator_fcn.png Graphic file (type png)
 <use indicator_fcn.png>
-Package pdftex.def Info: indicator_fcn.png  used on input line 737.
+Package pdftex.def Info: indicator_fcn.png  used on input line 696.
 (pdftex.def)             Requested size: 375.80542pt x 297.48738pt.
-<exasim_bc_index.png, id=474, 2068.72874pt x 1269.74374pt>
+<exasim_bc_index.png, id=475, 2068.72874pt x 1269.74374pt>
 File: exasim_bc_index.png Graphic file (type png)
 <use exasim_bc_index.png>
-Package pdftex.def Info: exasim_bc_index.png  used on input line 745.
+Package pdftex.def Info: exasim_bc_index.png  used on input line 704.
 (pdftex.def)             Requested size: 465.06001pt x 285.42815pt.
 
 
@@ -445,17 +445,17 @@ Package rerunfilecheck Info: File `chen_simulation_setup.out' has not changed.
  ) 
 Here is how much of TeX's memory you used:
  14298 strings out of 480247
- 218724 string characters out of 5896150
+ 218709 string characters out of 5896151
  819871 words of memory out of 5000000
  31669 multiletter control sequences out of 15000+600000
  490820 words of font info for 95 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 60i,17n,63p,564b,1860s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on chen_simulation_setup.pdf (17 pages, 823104 bytes).
+ 60i,17n,63p,559b,1860s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
+Output written on chen_simulation_setup.pdf (17 pages, 830819 bytes).
 PDF statistics:
- 653 PDF objects out of 1000 (max. 8388607)
- 590 compressed objects within 6 object streams
+ 658 PDF objects out of 1000 (max. 8388607)
+ 593 compressed objects within 6 object streams
  377 named destinations out of 1000 (max. 500000)
  135 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -197,113 +197,72 @@ Note that in the integrals in the second and third lines the {\em effective} $dV
 \end{itemize}
 
 \section{Nondimensionalization}
-
-Because of the wide range of scales used in this problem, it is important to nondimensionalize the quantities being solved for to prevent numerical instability.
+\noindent
+Because of the wide range of scales used, it is important to nondimensionalize the problem to prevent numerical instability. The solution variables as well as spatial and temporal variables were nondimensionalized.
 
 \subsection{Nondimensional groups}
 The following nondimensional groups were chosen:
 
 \begin{itemize}
-    \item $n_e^* = \frac{n_e}{N_{max}}$
-    \item $n_p^* = \frac{n_p}{N_{max}}$
-    \item $n_n^* = \frac{n_n}{N_{max}}$
-    \item $\vec{E^*} = \frac{\vec{E}}{E_{bd}}$
-    \item $\Phi^* = \frac{\Phi}{E_{bd}r_{tip}}$
-    \item $t^* = \frac{t\mu_eE_{bd}}{r_{tip}}$
-    \item $r^* = \frac{r}{r_{tip}}$
-    \item $z^* = \frac{z}{r_{tip}}$
+    \item $n_{ref} = \frac{\epsilon_0 E_{bd}}{e r_{tip}}$
+    \item $E_{ref} = E_{bd}$
+    \item $\Phi_{ref} = E_{bd}r_{tip}$
+    \item $t_{ref} = \frac{r_{tip}}{\mu_e E_{bd}}$
+    \item $l_{ref} = r_{tip}$
+\end{itemize}
+
+\noindent
+Thus, the independent and dependent variables may be expressed as the following. The asterisk indicates a nondimensional quantity.
+
+\begin{itemize}
+    \item $n_e^* = \frac{n_e}{n_{ref}}$
+    \item $n_p^* = \frac{n_p}{n_{ref}}$
+    \item $n_n^* = \frac{n_n}{n_{ref}}$
+    \item $\vec{E^*} = \frac{\vec{E}}{E_{ref}}$
+    \item $\Phi^* = \frac{\Phi}{\Phi_{ref}}$
+    \item $t^* = \frac{t}{t_{ref}}$
+    \item $r^* = \frac{r}{l_{ref}}$
+    \item $z^* = \frac{z}{l_{ref}}$
 \end{itemize}
 
 \noindent
 Where $r_{tip}$ is the needle tip radius of curvature, 220$\mu m$, and $E_{bd}$ is the breakdown electric field strength in air, $3\times10^6 \frac{V}{m}$.\\
 
 \noindent
-We can re-write the governing equations (section 2) using the nondimensional groups:
+We can re-write the governing equations (section 2) using the nondimensional groups, taking care to nondimensionalize the partial derivatives with respect to space and time as well:
 
 \begin{align*}
-        \frac{\partial (n_e^* \mu_e E_{bd} N_{max})}{\partial (t^*r_{tip})} + \nabla \cdot (-\mu_e(\vec{E^*}E_{bd})(n_e^*N_{max}) - D_e\nabla (n_e^*N_{max})) = \\ \alpha (n_e^*N_{max})|\mu_e(\vec{E^*}E_{bd})| -\eta (n_e^*N_{max})|\mu_e(\vec{E^*}E_{bd})| - k_{ep}(n_e^*N_{max})(n_p^*N_{max})
+        \frac{\partial (n_e^* n_{ref})}{\partial \left(\frac{t^*r_{tip}}{\mu_e E_{bd}}  \right)} + \nabla \cdot\frac{\left( -\mu_e\vec{E^*}E_{bd}(n_e^*n_{ref}) - D_e\nabla \left(\frac{n_e^* n_{ref}}{r_{tip}}  \right) \right)}{r_{tip}} = \\ (\alpha - \eta) (n_e^*n_{ref})|\mu_e(\vec{E^*}E_{bd})| - k_{ep}n_e^*n_p^*n_{ref}^2
 \end{align*}
 
 \begin{align*}
-    \frac{\partial (n_p^* \mu_e E_{bd} N_{max})}{\partial (t^*r_{tip})} + \nabla \cdot (\mu_p(\vec{E^*}E_{bd})(n_p^*N_{max}) - D_p\nabla (n_p^*N_{max})) = \\ \alpha (n_e^*N_{max})|\mu_e(\vec{E^*}E_{bd})| - k_{np}(n_n^*N_{max})(n_p^*N_{max}) - k_{ep}(n_e^*N_{max})(n_p^*N_{max})
+    \frac{\partial (n_p^* n_{ref})}{\partial \left(\frac{t^*r_{tip}}{\mu_e E_{bd}}  \right)} + \nabla \cdot\frac{\left(\mu_p\vec{E^*}E_{bd}(n_p^*n_{ref}) - D_p\nabla \left(\frac{n_p^* n_{ref}}{r_{tip}}  \right) \right)}{r_{tip}} = \\ \alpha n_e^*n_{ref} |\mu_e(\vec{E^*}E_{bd})| - n_p^*n_{ref}^2\left(k_{np}n_n^* + k_{ep}n_e^*\right)
 \end{align*}
 
 \begin{align*}
-    \frac{\partial (n_n^* \mu_e E_{bd} N_{max})}{\partial (t^*r_{tip})} + \nabla \cdot (-\mu_n(\vec{E^*}E_{bd})(n_n^*N_{max}) - D_n\nabla (n_n^*N_{max})) = \\ \eta (n_e^*N_{max})|\mu_e(\vec{E^*}E_{bd})| - k_{np}(n_n^*N_{max})(n_p^*N_{max})
+    \frac{\partial (n_n^* n_{ref})}{\partial \left(\frac{t^*r_{tip}}{\mu_e E_{bd}}  \right)} + \nabla \cdot\frac{\left(-\mu_n\vec{E^*}E_{bd}(n_n^*n_{ref}) - D_n\nabla \left(\frac{n_n^* n_{ref}}{r_{tip}}  \right) \right)}{r_{tip}} = \\ \eta n_e^*n_{ref}|\mu_e(\vec{E^*}E_{bd})| - k_{np}n_n^*n_p^*n_{ref}^2
 \end{align*}
 
 \begin{align*}
-    \nabla^2(\Phi^*E_{bd}r_{tip}) = -\frac{eN_{max}(n_p^*-n_e^*-n_n^*)}{\epsilon}
-\end{align*}
-
-
-\noindent
-For now, consider the homogeneous case with no source terms:
-
-\begin{align*}
-        \frac{\partial (n_e^* \mu_e E_{bd} N_{max})}{\partial (t^*r_{tip})} + \nabla \cdot (-\mu_e(\vec{E^*}E_{bd})(n_e^*N_{max}) - D_e\nabla (n_e^*N_{max})) = 0
-\end{align*}
-
-
-
-\begin{align*}
-    \frac{\partial (n_p^* \mu_e E_{bd} N_{max})}{\partial (t^*r_{tip})} + \nabla \cdot (\mu_p(\vec{E^*}E_{bd})(n_p^*N_{max}) - D_p\nabla (n_p^*N_{max})) = 0
-\end{align*}
-
-
-
-
-\begin{align*}
-    \frac{\partial (n_n^* \mu_e E_{bd} N_{max})}{\partial (t^*r_{tip})} + \nabla \cdot (-\mu_n(\vec{E^*}E_{bd})(n_n^*N_{max}) - D_n\nabla (n_n^*N_{max})) = 0
-\end{align*}
-
-\begin{align*}
-    \nabla^2(\Phi^*E_{bd}r_{tip}) = 0
+    \nabla^2 \left(\frac{\Phi^*E_{bd}r_{tip}}{r_{tip}^2}\right) = -\frac{\epsilon_0 e E_{bd}}{\epsilon_0 e r_{tip}} (n_p^*-n_e^*-n_n^*)
 \end{align*}
 
 \noindent
 Simplifying:
 \begin{align*}
-        \frac{\partial n_e^* }{\partial t^*} + r_{tip} \nabla \cdot \left(-(\vec{E^*})(n_e^*) - \frac{{D_e}}{\mu_e E_{bd}}\nabla (n_e^*)\right) = 0
+        \frac{\partial n_e^* }{\partial t^*} + \nabla \cdot \left(-\vec{E^*}n_e^* - \frac{{D_e}}{\mu_e E_{bd}r_{tip}}\nabla (n_e^*)\right) = (\alpha - \eta)r_{tip} n_e^*|\vec{E^*}| - \frac{k_{ep} \epsilon_0}{e \mu_e} n_e^*n_p^*
 \end{align*}
 
 \begin{align*}
-    \frac{\partial n_p^*}{\partial t^*} + r_{tip}\nabla \cdot \left(\frac{\mu_p}{\mu_e}(\vec{E^*})(n_p^*) - \frac{D_p}{\mu_eE_{bd}}\nabla (n_p^*)\right) = 0
-\end{align*}
-
-
-\begin{align*}
-    \frac{\partial n_n^*}{\partial t^*} + r_{tip}\nabla \cdot \left(-\frac{\mu_n}{\mu_e}(\vec{E^*})(n_n^*) - \frac{D_n}{\mu_e E_{bd}}\nabla (n_n^*)\right) = 0
-\end{align*}
-
-
-\begin{align*}
-    E_{bd}r_{tip}\nabla^2\Phi^* = 0
-\end{align*}
-
-\noindent
-We now treat the spatial derivatives:
-
-\begin{align*}
-    \nabla \cdot () = \frac{\partial()}{\partial r} + \frac{\partial()}{\partial z} = \frac{\partial()}{\partial (r^*r_{tip})} + \frac{\partial()}{\partial (z^*r_{tip})} = \frac{1}{r_{tip}}\left(\frac{\partial()}{\partial r^*} + \frac{\partial()}{\partial z^*}\right)
-\end{align*}
-
-\noindent
-Resulting in:
-\begin{align*}
-        \frac{\partial n_e^* }{\partial t^*} +  \nabla \cdot \left(-(\vec{E^*})(n_e^*) - \frac{{D_e}}{r_{tip}\mu_e E_{bd}}\nabla (n_e^*)\right) = 0
+        \frac{\partial n_p^* }{\partial t^*} + \nabla \cdot \left(\frac{\mu_p}{\mu_e} \vec{E^*}n_p^* - \frac{{D_p}}{\mu_e E_{bd}r_{tip}}\nabla (n_p^*)\right) = \alpha r_{tip} n_e^*|\vec{E^*}| - \left(\frac{\epsilon_0 n_p^*}{e \mu_e} \right) \left(k_{np}n_n^* + k_{ep}n_e^*\right)
 \end{align*}
 
 \begin{align*}
-    \frac{\partial n_p^*}{\partial t^*} + \nabla \cdot \left(\frac{\mu_p}{\mu_e}(\vec{E^*})(n_p^*) - \frac{D_p}{r_{tip}\mu_eE_{bd}}\nabla (n_p^*N_{max})\right) = 0
+        \frac{\partial n_n^* }{\partial t^*} + \nabla \cdot \left(-\frac{\mu_n}{\mu_e} \vec{E^*}n_n^* - \frac{{D_n}}{\mu_e E_{bd}r_{tip}}\nabla (n_n^*)\right) = \eta r_{tip} n_e^*|\vec{E^*}| - \left(\frac{k_{np} \epsilon_0}{e \mu_e} \right) n_n^*n_p^*
 \end{align*}
 
 \begin{align*}
-    \frac{\partial n_n^*}{\partial t^*} + \nabla \cdot \left(-\frac{\mu_n}{\mu_e}(\vec{E^*})(n_n^*) - \frac{D_n}{r_{tip}\mu_e E_{bd}}\nabla (n_n^*)\right) = 0
-\end{align*}
-
-\begin{align*}
-    \nabla^2\Phi^* = 0
+    \nabla^2\Phi^* = n_p^*-n_e^*-n_n^*
 \end{align*}
 
 \section{\bf \large Boundary Conditions}
