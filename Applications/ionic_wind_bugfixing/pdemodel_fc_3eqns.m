@@ -32,28 +32,98 @@ end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     f = flux(u, q, w, v, x, t, mu, eta);
-    fb_conv_e = f(1,1)*n(1) + f(1,2)*n(2) + tau*(u(1)-uhat(1));
-    fb1 = [0; 0; 0; fb_conv_e; 0].';
 
-    fb_conv_p = f(2,1)*n(1) + f(2,2)*n(2) + tau*(u(2)-uhat(2));
-    fb2 = [0; 0; 0; fb_conv_p; 0].';
-
-    fb_conv_n = f(3,1)*n(1) + f(3,2)*n(2) + tau*(u(3)-uhat(3));
-    fb3 = [0; 0; 0; fb_conv_n; 0].';
-
+    fb_e = f(1,1)*n(1) + f(1,2)*n(2) + tau*(u(1)-uhat(1));
+    fb_p = f(2,1)*n(1) + f(2,2)*n(2) + tau*(u(2)-uhat(2));
+    fb_n = f(3,1)*n(1) + f(3,2)*n(2) + tau*(u(3)-uhat(3));
     fb_poi = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4));
-    fb4 = [fb_poi; 0; 0; fb_poi; 0].';
 
-    fb = [fb1; fb2; fb3; fb4];
+    % fb1 = [0; 0; 0; fb_e; 0].';
+    % fb2 = [0; 0; 0; fb_p; 0].';
+    % fb3 = [0; 0; 0; fb_n; 0].';
+    % fb4 = [fb_poi; 0; 0; fb_poi; 0].';
+    % fb = [fb1; fb2; fb3; fb4];
+
+    % Read "flux for equation x, boundary y"
+    feq1b1 = 0;
+    feq2b1 = 0;
+    feq3b1 = 0;
+    feq4b1 = fb_poi;
+    
+    % BC 2 is an axisymmetric BC, so inhomogeneous neumann conditions are applied to each equation.
+    feq1b2 = 0;
+    feq2b2 = 0;
+    feq3b2 = 0;
+    feq4b2 = 0;
+    
+    feq1b3 = 0;
+    feq2b3 = 0;
+    feq3b3 = 0;
+    feq4b3 = 0;
+    
+    feq1b4 = fb_e;
+    feq2b4 = fb_p;
+    feq3b4 = fb_n;
+    feq4b4 = fb_poi;
+    
+    feq1b5 = 0;
+    feq2b5 = 0;
+    feq3b5 = 0;
+    feq4b5 = 0;
+
+    feq1 = [feq1b1; feq1b2; feq1b3; feq1b4; feq1b5].';
+    feq2 = [feq2b1; feq2b2; feq2b3; feq2b4; feq2b5].';
+    feq3 = [feq3b1; feq3b2; feq3b3; feq3b4; feq3b5].';
+    feq4 = [feq4b1; feq4b2; feq4b3; feq4b4; feq4b5].';
+    
+    fb = [feq1; feq2; feq3; feq4];
 end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-    ub1 = [u(1); u(1); u(1); 0; u(1)].';
-    ub2 = [u(2); u(2); u(2); 0; u(2)].';
-    ub3 = [u(3); u(3); u(3); 0; u(3)].';
-    ub4 = [0;    u(4); u(4); 0; u(4)].';
+    % ub1 = [u(1); u(1); u(1); 0; u(1)].';
+    % ub2 = [u(2); u(2); u(2); 0; u(2)].';
+    % ub3 = [u(3); u(3); u(3); 0; u(3)].';
+    % ub4 = [0;    u(4); u(4); 0; u(4)].';
+    % ub = [ub1; ub2; ub3; ub4];
 
-    ub = [ub1; ub2; ub3; ub4];
+
+    ne = u(1);
+    np = u(2);
+    nn = u(3);
+    phi = u(4);
+
+    ueq1b1 = ne;
+    ueq2b1 = np;
+    ueq3b1 = nn;
+    ueq4b1 = 0;
+    
+    % BC 2 is an axisymmetric BC, so inhomogeneous neumann conditions are applied to each equation.
+    ueq1b2 = ne;
+    ueq2b2 = np;
+    ueq3b2 = nn;
+    ueq4b2 = phi;
+    
+    ueq1b3 = ne;
+    ueq2b3 = np;
+    ueq3b3 = nn;
+    ueq4b3 = phi;
+    
+    ueq1b4 = 0;
+    ueq2b4 = 0;
+    ueq3b4 = 0;
+    ueq4b4 = 0;
+    
+    ueq1b5 = ne;
+    ueq2b5 = np;
+    ueq3b5 = nn;
+    ueq4b5 = phi;
+
+    ueq1 = [ueq1b1; ueq1b2; ueq1b3; ueq1b4; ueq1b5].';
+    ueq2 = [ueq2b1; ueq2b2; ueq2b3; ueq2b4; ueq2b5].';
+    ueq3 = [ueq3b1; ueq3b2; ueq3b3; ueq3b4; ueq3b5].';
+    ueq4 = [ueq4b1; ueq4b2; ueq4b3; ueq4b4; ueq4b5].';
+
+    ub = [ueq1; ueq2; ueq3; ueq4];
 end
 
 function u0 = initu(x, mu, eta)

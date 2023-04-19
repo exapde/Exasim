@@ -195,7 +195,7 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     %%%%%%
 
     f = flux(u, q, w, v, x, t, mu, eta);
-    ndotE = n(1)*Er + n(2)*Ez;  % electron mobility
+    ndotE = n(1)*Er + n(2)*Ez;
     alpha = 1000*tanh(ndotE);
     % alpha is 0 when ndotE < 0 => neumann
     % alpha is 1 when ndotE > 0 => homogeneous dirichlet
@@ -214,7 +214,7 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fb_conv_p =  np*(mup/mue)* (n(1)*Er + n(2)*Ez) + tau*(u(2)-uhat(2));
     fb_conv_n = -nn*(mun/mue)* (n(1)*Er + n(2)*Ez) + tau*(u(3)-uhat(3));
 
-    % Read "flux for equation x, boundary y"
+    % Read "flux for equation x, boundary y". Note it is the flux, not the derivative of the function. The two are different with the addition of the convective term.
     feq1b1 = (gamma*np*normE - ne*(n(1)*Er + n(2)*Ez))/D_star;
     feq2b1 = fb_conv_p;
     feq3b1 = fb_n;

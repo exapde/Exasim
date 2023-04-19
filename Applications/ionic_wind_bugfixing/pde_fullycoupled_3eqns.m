@@ -15,7 +15,7 @@ pde.modelfile = "pdemodel_fc_3eqns";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 4;              % number of MPI processors
+pde.mpiprocs = 5;              % number of MPI processors
 
 % Physical parameters
 Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
@@ -121,9 +121,21 @@ isol = readsolstruct('datain/sol.bin');
 mesh.dgnodes = reshape(isol.xdg, [size(mesh.xpe,1) 2 size(mesh.t,2)]);
 vdg = reshape(isol.vdg, [size(mesh.xpe,1) 3 size(mesh.t,2)]);
 mesh.porder = pde.porder;
-figure(1); clf; scaplot(mesh,sol(:,1,:,end),[0 1]); title('ne');
-figure(2); clf; scaplot(mesh,sol(:,2,:,end),[0 1]); title('np');
-figure(3); clf; scaplot(mesh,sol(:,3,:,end),[0 1]); title('nn');
-figure(4); clf; scaplot(mesh,sol(:,4,:,end),[0 1]); title('Phi');
+clf;
+
+tiledlayout(2,2);
+nexttile
+scaplot(mesh,sol(:,1,:,end),[0 1]); title('ne');
+nexttile
+scaplot(mesh,sol(:,2,:,end),[0 1]); title('np');
+nexttile
+scaplot(mesh,sol(:,3,:,end),[0 1]); title('nn');
+nexttile
+scaplot(mesh,sol(:,4,:,end),[0 1]); title('Phi');
 
 disp("Done!");
+
+
+% Need to install metis and MPI on your computer for it to work
+% sudo apt install metis
+% sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev
