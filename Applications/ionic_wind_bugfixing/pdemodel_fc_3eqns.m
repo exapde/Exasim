@@ -51,7 +51,7 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     ub1 = [u(1); u(1); u(1); 0; u(1)].';
     ub2 = [u(2); u(2); u(2); 0; u(2)].';
     ub3 = [u(3); u(3); u(3); 0; u(3)].';
-    ub4 = [0; u(4); u(4); 0; u(4)].';
+    ub4 = [0;    u(4); u(4); 0; u(4)].';
 
     ub = [ub1; ub2; ub3; ub4];
 end

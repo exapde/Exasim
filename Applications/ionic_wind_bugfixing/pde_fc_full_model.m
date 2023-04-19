@@ -107,12 +107,13 @@ mesh.boundarycondition = [2, 5, 5, 3, 4, 4, 1]; % Set boundary condition for eac
 % call exasim to generate and run C++ code to solve the PDE models
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
-% for i = 1:size(sol,4) % Last field is the number of timesteps
-%     sol(:,[4 8 12],:,i) = sol(:,[4 8 12],:,i) + mesh.vdg;
-% end
+for i = 1:size(sol,4) % Last field is the number of timesteps
+    sol(:,[4 8 12],:,i) = sol(:,[4 8 12],:,i) + mesh.vdg;
+end
 
-% visualize the numerical solution of the PDE model using Paraview
-pde.visscalars = {"ne", 1, "np", 2, "nn", 3, 'phi', 4};  % list of scalar fields for visualization
-pde.visvectors = {"grad ne", [5 9], "grad np", [6 10], "grad nn", [7 11], "grad phi", [8 12]}; % list of vector fields for visualization
-xdg = vis(sol,pde,mesh); % visualize the numerical solution
-disp("Done!");
+% % visualize the numerical solution of the PDE model using Paraview
+% pde.visscalars = {"ne", 1, "np", 2, "nn", 3, 'phi', 4};  % list of scalar fields for visualization
+% pde.visvectors = {"grad ne", [5 9], "grad np", [6 10], "grad nn", [7 11], "grad phi", [8 12]}; % list of vector fields for visualization
+% xdg = vis(sol,pde,mesh); % visualize the numerical solution
+% disp("Done!");
+

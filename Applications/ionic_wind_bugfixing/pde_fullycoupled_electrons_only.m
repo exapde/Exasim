@@ -11,11 +11,11 @@ run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelD";          % ModelC, ModelD, ModelW
-pde.modelfile = "pdemodel_fc_3eqns";    % name of a file defining the PDE model
+pde.modelfile = "pdemodel_electrons_only";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 4;              % number of MPI processors
+pde.mpiprocs = 5;              % number of MPI processors
 
 % Physical parameters
 Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
@@ -57,7 +57,7 @@ pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we
 % solver parameters
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-pde.dt = 1.0e-5*ones(1,2);   % time step sizes
+pde.dt = 1.0e-5*ones(1,30);   % time step sizes
 pde.visdt = 1.0;        % visualization timestep size
 pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
 pde.GMRESrestart=200;            % number of GMRES restarts
@@ -84,10 +84,6 @@ bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary
 bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);                            % grounded boundary - cylinder
 bdry7 = @(p) (p(1,:) < x2+eps);                          % needle tip          
 
-ENUM_GROUND_BC = 1;
-ENUM_SYMMETRY_BC = 2;
-ENUM_NEEDLE_BC = 3;
-
 mesh.boundaryexpr = {bdry1,
                     bdry2,
                     bdry3,
@@ -99,7 +95,7 @@ mesh.boundaryexpr = {bdry1,
 mesh.boundarycondition = [2, 5, 5, 3, 4, 4, 1]; % Set boundary condition for each boundary
 
 load poisson_sol.mat sol;
-mesh.vdg = sol;
+mesh.vdg = sol*-1;  % -1 because we are using a negative DC dischage while the solution was for a positive dirichlet BC
 % call exasim to generate and run C++ code to solve the PDE models
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
@@ -109,7 +105,7 @@ mesh.vdg = sol;
 % Ex: u1, u2, gradx1, gradx2, grady1, grady2
 
 for i = 1:size(sol,4) % Last field is the number of timesteps
-    sol(:,[4 8 12],:,i) = sol(:,[4 8 12],:,i) + mesh.vdg;
+    sol(:,[2 4 6],:,i) = sol(:,[2 4 6],:,i) + mesh.vdg;
 end
 
 % % visualize the numerical solution of the PDE model using Paraview
@@ -121,9 +117,11 @@ isol = readsolstruct('datain/sol.bin');
 mesh.dgnodes = reshape(isol.xdg, [size(mesh.xpe,1) 2 size(mesh.t,2)]);
 vdg = reshape(isol.vdg, [size(mesh.xpe,1) 3 size(mesh.t,2)]);
 mesh.porder = pde.porder;
-figure(1); clf; scaplot(mesh,sol(:,1,:,end),[0 1]); title('ne');
-figure(2); clf; scaplot(mesh,sol(:,2,:,end),[0 1]); title('np');
-figure(3); clf; scaplot(mesh,sol(:,3,:,end),[0 1]); title('nn');
-figure(4); clf; scaplot(mesh,sol(:,4,:,end),[0 1]); title('Phi');
+plotsol(size(sol,4), 0);    % Plot the result from the last timestep
 
 disp("Done!");
+
+
+% Need to install metis and MPI on your computer for it to work
+% sudo apt install metis
+% sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev

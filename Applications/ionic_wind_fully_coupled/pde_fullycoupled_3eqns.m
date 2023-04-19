@@ -56,7 +56,7 @@ pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we
 % solver parameters
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-pde.dt = 1.0e-5*ones(1,3);   % time step sizes
+pde.dt = 1.0e-5*ones(1,200);   % time step sizes
 pde.visdt = 1.0;        % visualization timestep size
 pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
 pde.GMRESrestart=200;            % number of GMRES restarts
