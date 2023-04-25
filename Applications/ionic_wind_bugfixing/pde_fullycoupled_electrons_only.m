@@ -15,7 +15,7 @@ pde.modelfile = "pdemodel_electrons_only";    % name of a file defining the PDE 
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 5;              % number of MPI processors
+pde.mpiprocs = 6;              % number of MPI processors
 
 % Physical parameters
 Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
@@ -64,7 +64,8 @@ pde.GMRESrestart=200;            % number of GMRES restarts
 pde.linearsolveriter=1000;        % number of GMRES iterations
 pde.NLiter=3;                   % Newton iterations
 
-[mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse.msh',2, 0);
+% [mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse2.msh',2, 0);
+[mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse2.msh',2, 0);
 
 % expressions for domain boundaries
 eps = 1e-4;
@@ -94,8 +95,10 @@ mesh.boundaryexpr = {bdry1,
 
 mesh.boundarycondition = [2, 5, 5, 3, 4, 4, 1]; % Set boundary condition for each boundary
 
-load poisson_sol.mat sol;
-mesh.vdg = sol*-1;  % -1 because we are using a negative DC dischage while the solution was for a positive dirichlet BC
+load sol_poi.mat sol;
+load dgnodes.mat dgnodes;
+mesh.dgnodes = dgnodes;
+mesh.vdg = sol*-15.15;  % -1 because we are using a negative DC dischage while the solution was for a positive dirichlet BC
 % call exasim to generate and run C++ code to solve the PDE models
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
@@ -113,9 +116,9 @@ end
 % pde.visvectors = {"grad ne", [5 9], "grad np", [6 10], "grad nn", [7 11], "grad phi", [8 12]}; % list of vector fields for visualization
 % xdg = vis(sol,pde,mesh); % visualize the numerical solution
 
-isol = readsolstruct('datain/sol.bin');
-mesh.dgnodes = reshape(isol.xdg, [size(mesh.xpe,1) 2 size(mesh.t,2)]);
-vdg = reshape(isol.vdg, [size(mesh.xpe,1) 3 size(mesh.t,2)]);
+% The readsolstruct.m script only works for 1 core serial.
+% isol = readsolstruct('datain/sol.bin');
+% vdg = reshape(isol.vdg, [size(mesh.xpe,1) 3 size(mesh.t,2)]);
 mesh.porder = pde.porder;
 plotsol(size(sol,4), 0);    % Plot the result from the last timestep
 
