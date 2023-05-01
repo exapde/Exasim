@@ -30,15 +30,25 @@ r0 = 0.0;                % mu[9] r-pos of emitter tip in reference frame [m]
 z0 = 0.045;              % mu[10]z-pos of emitter tip in reference frame [m]
 s0 = 1e-2;               % mu[11]Std deviation of initial charge distribution [m]
 e = 1.6022e-19;          % mu[12]Charge on electron [C]
-epsilon = 8.854e-12;     % mu[13]absolute permittivity of air [C^2/(N*m^2)]
+epsilon0 = 8.854e-12;     % mu[13]absolute permittivity of air [C^2/(N*m^2)]
 Ua = -10e3;              % mu[14]Emitter potential relative to ground [V]
 gamma = 0.001;           % mu[15]Secondary electron emission coefficient [1/m]
 E_bd = 3e6;              % mu[16]Breakdown E field in air [V/m]
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
+D = 0.11736375131509072;     % Taken from swarm_params.py evaluated at E=3e6 V/m
+n_ref = epsilon0*E_bd/(e*r_tip);  % Yes, this is redundant and could be recomputed from the above variables. But it saves having to recompute it each time in the functions.
+
+P = 101325; % Pa
+V = 1; % m^3
+T = 273.15; % K
+k_b = 1.380649e-23; % m2 kg s-2 K-1
+N = P*V/(k_b*T);
+mue_ref = 0.04266918357567234;   % m^2/(V*s)
+D_star = D/(mue_ref*E_bd*r_tip);   % Nondimensionalized diffusion coefficient
 
 % Set discretization parameters, physical parameters, and solver parameters
-              %     1     2    3     4     5  6   7    8    9   10  11  12   13     14   15     16     17
-pde.physicsparam = [Kep, Knp, mu_p, mu_n, De, Dp, Dn, Nmax, r0, z0, s0, e, epsilon, Ua, gamma, E_bd, r_tip];
+              %      1  2    3   4    5      6     7     8     9     10      11   12   13       14
+pde.physicsparam = [r0, z0, s0, Nmax, e, epsilon0, Ua, gamma, E_bd, r_tip, n_ref, N, mue_ref, D_star];
 pde.tau = 1.0;           % DG stabilization parameter
 
 % set indices to obtain v from the solutions of the other PDE models 
@@ -98,7 +108,7 @@ mesh.boundarycondition = [2, 5, 5, 3, 4, 4, 1]; % Set boundary condition for eac
 load sol_poi.mat sol;
 load dgnodes.mat dgnodes;
 mesh.dgnodes = dgnodes;
-mesh.vdg = sol*-15.15;  % -1 because we are using a negative DC dischage while the solution was for a positive dirichlet BC
+mesh.vdg = sol*Ua/(E_bd*r_tip);  % -1 because we are using a negative DC dischage while the solution was for a positive dirichlet BC
 % call exasim to generate and run C++ code to solve the PDE models
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 

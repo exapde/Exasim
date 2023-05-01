@@ -21,7 +21,31 @@ function f = flux(u, q, w, v, x, t, mu, eta)
     Ex = v(2) + q(2); % CHANGE INDEXING eventually
     Ey = v(3) + q(4); % CHANGE INDEXING eventually
 
-    f1 = r*(-[Ex, Ey].*ne + .1*[dne_dr dne_dz]);
+    % Physics parameters
+    r0 = mu(1);
+    z0 = mu(2);
+    s0 = mu(3);
+    Nmax = mu(4);
+    e = mu(5);
+    epsilon0 = mu(6);
+    Ua = mu(7);
+    gamma = mu(8);
+    E_bd = mu(9);
+    r_tip = mu(10);
+    n_ref = mu(11);
+    N = mu(12);
+    mue_ref = mu(13);
+    D_star = mu(14);
+
+    alpha_T = 1.19e-21;
+    eta = 2.28e-19;
+    beta = 2e-13;
+    mu_e = .0378;
+    mu_p = 2.34e-4;
+    mu_n = -2.7e-4;
+    % End setup
+
+    f1 = r*(-(mu_e/mue_ref)*[Ex, Ey].*ne + D_star*[dne_dr dne_dz]);
     f4 = r*[Ex Ey];
     f = [f1; f4];
 end
@@ -41,10 +65,34 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     Ex = v(2) + q(2); % CHANGE INDEXING eventually
     Ey = v(3) + q(4); % CHANGE INDEXING eventually
 
+    % Physics parameters
+    r0 = mu(1);
+    z0 = mu(2);
+    s0 = mu(3);
+    Nmax = mu(4);
+    e = mu(5);
+    epsilon0 = mu(6);
+    Ua = mu(7);
+    gamma = mu(8);
+    E_bd = mu(9);
+    r_tip = mu(10);
+    n_ref = mu(11);
+    N = mu(12);
+    mue_ref = mu(13);
+    D_star = mu(14);
+
+    alpha_T = 1.19e-21;
+    eta = 2.28e-19;
+    beta = 2e-13;
+    mu_e = .0378;
+    mu_p = 2.34e-4;
+    mu_n = -2.7e-4;
+    % End setup
+
     ndotE = n(1)*Ex + n(2)*Ey;
     alpha = 0.5*(tanh(1000*ndotE)+1);
 
-    fb_conv_e = -r*ne*ndotE + tau*(u(1)-uhat(1));    % Bringing (-) out front
+    fb_conv_e = -r*ne*(mu_e/mue_ref)*ndotE + tau*(u(1)-uhat(1));    % Bringing (-) out front
 
     % 1. Needle
     % 2. Axisymmetric
@@ -64,7 +112,6 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     feq4b4 = fb_poi;
     feq4b5 = 0;
 
-
     feq1 = [feq1b1; feq1b2; feq1b3; feq1b4; feq1b5].';
     feq4 = [feq4b1; feq4b2; feq4b3; feq4b4; feq4b5].';
     
@@ -76,6 +123,31 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     phi = u(2); % CHANGE INDEXING eventually
     Ex = v(2) + q(2); % CHANGE INDEXING eventually
     Ey = v(3) + q(4); % CHANGE INDEXING eventually
+    
+    % Physics parameters
+    r0 = mu(1);
+    z0 = mu(2);
+    s0 = mu(3);
+    Nmax = mu(4);
+    e = mu(5);
+    epsilon0 = mu(6);
+    Ua = mu(7);
+    gamma = mu(8);
+    E_bd = mu(9);
+    r_tip = mu(10);
+    n_ref = mu(11);
+    N = mu(12);
+    mue_ref = mu(13);
+    D_star = mu(14);
+
+    alpha_T = 1.19e-21;
+    eta = 2.28e-19;
+    beta = 2e-13;
+    mue = .0378;
+    mup = 2.34e-4;
+    mun = -2.7e-4;
+    % End setup
+
     ndotE = n(1)*Ex + n(2)*Ey;
     alpha = 0.5*(tanh(1000*ndotE)+1);
     

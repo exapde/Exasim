@@ -75,3 +75,4 @@ print(N)
 alpha, eta2, beta, D, mue, mup, mun = get_swarm_params(3e6, N)
 
 print(f'mue at E_bd: {mue}')
+print(f'D at E_bd: {D}')
