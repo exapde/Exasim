@@ -20,11 +20,45 @@ pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-6; % GMRES tolerance
 pde.ppdegree = 4;          % degree of polynomial preconditioner
 
-% create a grid of 8 by 8 on the unit square
-[mesh.p,mesh.t] = squaremesh(33,33,1,1);
+[mesh.p,mesh.t] = gmsh2pt(['chen_geom_coarse.msh'],2, 0);
+
 % expressions for domain boundaries
-mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(2,:)-1)<1e-8, @(p) abs(p(1,:))<1e-8};
-mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
+eps = 1e-4;
+xmin = min(mesh.p(1,:));
+xmax = max(mesh.p(1,:));
+ymin = min(mesh.p(2,:));
+ymax = max(mesh.p(2,:));
+% x1 = 4.5e-3;
+x2 = 0.017;
+x3 = 0.015;
+
+bdry1 = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
+bdry2 = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    
+bdry3 = @(p) (p(2,:) > ymax - eps);  % open boundary 2                                     
+bdry4 = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % grounded boundary - open
+bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary                                    
+bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);                            % grounded boundary - cylinder
+bdry7 = @(p) (p(1,:) < x2+eps);                          % needle tip          
+
+ENUM_GROUND_BC = 1;
+ENUM_NO_FLUX_BC = 2;
+ENUM_NEEDLE_BC = 3;
+
+mesh.boundaryexpr = {bdry1,
+                    bdry2,
+                    bdry3,
+                    bdry4,
+                    bdry5,
+                    bdry6,
+                    bdry7};
+
+mesh.boundarycondition = [ENUM_NO_FLUX_BC,...
+                        ENUM_NO_FLUX_BC,...
+                        ENUM_NO_FLUX_BC,...
+                        ENUM_GROUND_BC,...
+                        ENUM_GROUND_BC,...
+                        ENUM_GROUND_BC,...
+                        ENUM_NEEDLE_BC]; % Set boundary condition for each boundary
 
 % call exasim to generate and run C++ code to solve the PDE model
 %[sol,pde,mesh] = exasim(pde,mesh);

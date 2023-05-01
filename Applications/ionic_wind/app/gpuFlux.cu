@@ -3,10 +3,19 @@ template <typename T>  __device__  void devicegpuFlux(T *f, T *xdg, T *udg, T *o
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	while (i<ng) {
 		T xdg1 = xdg[0*ng+i];
-		T udg2 = udg[1*ng+i];
+		T udg1 = udg[0*ng+i];
 		T udg3 = udg[2*ng+i];
-		f[0*ng+i] = udg2*xdg1;
-		f[1*ng+i] = udg3*xdg1;
+		T udg4 = udg[3*ng+i];
+		T udg5 = udg[4*ng+i];
+		T udg6 = udg[5*ng+i];
+		T odg2 = odg[1*ng+i];
+		T odg3 = odg[2*ng+i];
+		T t2 = odg2+udg4;
+		T t3 = odg3+udg6;
+		f[0*ng+i] = xdg1*(udg3/1.0E+1-t2*udg1);
+		f[1*ng+i] = t2*xdg1;
+		f[2*ng+i] = xdg1*(udg5/1.0E+1-t3*udg1);
+		f[3*ng+i] = t3*xdg1;
 		i += blockDim.x * gridDim.x;
 	}
 }

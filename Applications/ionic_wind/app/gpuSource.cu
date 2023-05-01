@@ -3,6 +3,7 @@ template <typename T>  __device__  void devicegpuSource(T *f, T *xdg, T *udg, T 
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	while (i<ng) {
 		f[0*ng+i] = 0.0;
+		f[1*ng+i] = 0.0;
 		i += blockDim.x * gridDim.x;
 	}
 }

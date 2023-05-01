@@ -1,5 +1,6 @@
 % clear exasim data from memory
-% clear pde mesh master dmd sol;
+clear pde mesh master dmd sol;
+% clear pde master sol;
 
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
@@ -10,11 +11,11 @@ run(cdir(1:(ii+5)) + "/Installation/setpath.m");
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelD";          % ModelC, ModelD, ModelW
-pde.modelfile = "pdemodel_poisson";    % name of a file defining the PDE model
+pde.modelfile = "pdemodel_electrons_only";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
+pde.mpiprocs = 6;              % number of MPI processors
 
 % Physical parameters
 Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
@@ -36,37 +37,35 @@ E_bd = 3e6;              % mu[16]Breakdown E field in air [V/m]
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
 
 % Set discretization parameters, physical parameters, and solver parameters
-                    %    1   2    3     4     5  6   7    8    9   10  11  12   13     14   15     16     17
+              %     1     2    3     4     5  6   7    8    9   10  11  12   13     14   15     16     17
 pde.physicsparam = [Kep, Knp, mu_p, mu_n, De, Dp, Dn, Nmax, r0, z0, s0, e, epsilon, Ua, gamma, E_bd, r_tip];
 pde.tau = 1.0;           % DG stabilization parameter
 
 % set indices to obtain v from the solutions of the other PDE models 
 % first column : model index
 % second column: solution index
-pde.porder = 2;          % polynomial degree
+pde.porder = 3;          % polynomial degree
 % pde.vindx = [1 1; 1 2; 1 3]; % first column -> model, second column -> solution index for that model. Originally this used to be "v"
 % 4, 5 6, 7 would be grad ne_x, grad ne_y, grad ne_x, etc
 % pde.subproblem = 1;
 
-pde.NLtol = 1.0e-6;
-pde.linearsolvertol = 1.0e-8;
-pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
+pde.NLtol = 1.0e-14;
+pde.linearsolvertol = 1.0e-14;
+pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we arent using the PPC
 % pde.precMatrixType = 2;
 
 % solver parameters
-% pde.torder = 1;          % time-stepping order of accuracy
-% pde.nstage = 1;          % time-stepping number of stages
-% pde.dt = 1.0e-7*ones(1,3);   % time step sizes
-% pde.visdt = 1.0;        % visualization timestep size
-% pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
-% pde.GMRESrestart=25;            % number of GMRES restarts
-% pde.linearsolveriter=50;        % number of GMRES iterations
-% pde.NLiter=2;                   % Newton iterations
+pde.torder = 1;          % time-stepping order of accuracy
+pde.nstage = 1;          % time-stepping number of stages
+pde.dt = 1.0e-5*ones(1,10);   % time step sizes
+pde.visdt = 1.0;        % visualization timestep size
+pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
+pde.GMRESrestart=200;            % number of GMRES restarts
+pde.linearsolveriter=1000;        % number of GMRES iterations
+pde.NLiter=3;                   % Newton iterations
 
-
-% [mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse.msh", 2, 0);
-
-[mesh.p,mesh.t] = gmsh2pt(['chen_geom_coarse.msh'],2, 0);
+% [mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse2.msh',2, 0);
+[mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse1656.msh',2, 0);
 
 % expressions for domain boundaries
 eps = 1e-4;
@@ -86,19 +85,46 @@ bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary
 bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);                            % grounded boundary - cylinder
 bdry7 = @(p) (p(1,:) < x2+eps);                          % needle tip          
 
-mesh.boundaryexpr    = {bdry1, bdry2, bdry3, bdry4, bdry5, bdry6, bdry7};
-% mesh.boundarycondition = [2,     5,     5,     3,     4,     4,    1]; % Set boundary condition for each boundary
-% mesh.boundarycondition = [4,     4,     4,     4,     4,     4,    1]; % Set boundary condition for each boundary
-mesh.boundarycondition = [2, 1, 1, 1, 1, 1, 1]; % Set boundary condition for each boundary
+mesh.boundaryexpr = {bdry1,...
+                    bdry2,...
+                    bdry3,...
+                    bdry4,...
+                    bdry5,...
+                    bdry6,...
+                    bdry7};
 
-mesh.vdg=so
+mesh.boundarycondition = [2, 5, 5, 3, 4, 4, 1]; % Set boundary condition for each boundary
+
+load sol_poi.mat sol;
+load dgnodes.mat dgnodes;
+mesh.dgnodes = dgnodes;
+mesh.vdg = sol*-15.15;  % -1 because we are using a negative DC dischage while the solution was for a positive dirichlet BC
 % call exasim to generate and run C++ code to solve the PDE models
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
+% sol is (ndofperelem, numsolfields, numelem, numtimesteps)
+% solfields goes (all solution fields), (all x-derivatives), (all
+% y-derivatives)
+% Ex: u1, u2, gradx1, gradx2, grady1, grady2
 
-% visualize the numerical solution of the PDE model using Paraview
-% pde.visscalars = {"T1", 1, "T2", 2, "T3", 3, "T4", 4};  % list of scalar fields for visualization
-pde.visscalars = {"T1", 1};  % list of scalar fields for visualization
-pde.visvectors = {"temperature gradient", [2 3]}; % list of vector fields for visualization
-xdg = vis(sol,pde,mesh); % visualize the numerical solution
+for i = 1:size(sol,4) % Last field is the number of timesteps
+    sol(:,[2 4 6],:,i) = sol(:,[2 4 6],:,i) + mesh.vdg;
+end
+
+% % visualize the numerical solution of the PDE model using Paraview
+% pde.visscalars = {"ne", 1, "np", 2, "nn", 3, 'phi', 4};  % list of scalar fields for visualization
+% pde.visvectors = {"grad ne", [5 9], "grad np", [6 10], "grad nn", [7 11], "grad phi", [8 12]}; % list of vector fields for visualization
+% xdg = vis(sol,pde,mesh); % visualize the numerical solution
+
+% The readsolstruct.m script only works for 1 core serial.
+% isol = readsolstruct('datain/sol.bin');
+% vdg = reshape(isol.vdg, [size(mesh.xpe,1) 3 size(mesh.t,2)]);
+mesh.porder = pde.porder;
+plotsol(size(sol,4), 0);    % Plot the result from the last timestep
+
 disp("Done!");
+
+
+% Need to install metis and MPI on your computer for it to work
+% sudo apt install metis
+% sudo apt-get install openmpi-bin openmpi-doc libopenmpi-dev

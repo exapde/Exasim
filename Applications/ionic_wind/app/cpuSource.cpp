@@ -3,6 +3,7 @@ template <typename T> void cpuSource(T *f, T *xdg, T *udg, T *odg, T *wdg, T *ui
 	#pragma omp parallel for
 	for (int i = 0; i <ng; i++) {
 		f[0*ng+i] = 0.0;
+		f[1*ng+i] = 0.0;
 	}
 }
 

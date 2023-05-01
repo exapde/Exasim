@@ -6,7 +6,8 @@ template <typename T> void cpuInitu(T *f, T *xdg, T *uinf, T *param, int modelnu
 		int k = (i-j)/npe;
 		T xdg1 = xdg[j+npe*0+npe*ncx*k];
 		T xdg2 = xdg[j+npe*1+npe*ncx*k];
-		f[j+npe*0+npe*nce*k] = 0.0;
+		f[j+npe*0+npe*nce*k] = exp((xdg1*xdg1)*-5.0E+3-(xdg2*xdg2)*5.0E+3);
+		f[j+npe*1+npe*nce*k] = 0.0;
 	}
 }
 
