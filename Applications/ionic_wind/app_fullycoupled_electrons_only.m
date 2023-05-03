@@ -27,8 +27,8 @@ Dp = 0.028e-4;           % mu[6] Pos ion diffusion coefficient [m^2/s]
 Dn = 0.043e-4;           % mu[7] Neg diffusion coefficient [m^2/s]
 Nmax = 1e16;             % mu[8] Max number density for initial charge distribution [particles/m^3]
 r0 = 0.0;                % mu[9] r-pos of emitter tip in reference frame [m]
-z0 = 0.045;              % mu[10]z-pos of emitter tip in reference frame [m]
-s0 = 1e-2;               % mu[11]Std deviation of initial charge distribution [m]
+z0 = 0.0;              % mu[10]z-pos of emitter tip in reference frame [m]
+s0 = 2e-3;               % mu[11]Std deviation of initial charge distribution [m]
 e = 1.6022e-19;          % mu[12]Charge on electron [C]
 epsilon0 = 8.854e-12;     % mu[13]absolute permittivity of air [C^2/(N*m^2)]
 Ua = -10e3;              % mu[14]Emitter potential relative to ground [V]
@@ -37,6 +37,7 @@ E_bd = 3e6;              % mu[16]Breakdown E field in air [V/m]
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
 D = 0.11736375131509072;     % Taken from swarm_params.py evaluated at E=3e6 V/m
 n_ref = epsilon0*E_bd/(e*r_tip);  % Yes, this is redundant and could be recomputed from the above variables. But it saves having to recompute it each time in the functions.
+% ^=7.5357e+17
 
 P = 101325; % Pa
 V = 1; % m^3
@@ -67,32 +68,34 @@ pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we
 % solver parameters
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-pde.dt = 1.0e-5*ones(1,10);   % time step sizes
+pde.dt = 1.5*ones(1,20);   % time step sizes
 pde.visdt = 1.0;        % visualization timestep size
 pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
 pde.GMRESrestart=200;            % number of GMRES restarts
 pde.linearsolveriter=1000;        % number of GMRES iterations
 pde.NLiter=3;                   % Newton iterations
 
-% [mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse2.msh',2, 0);
-[mesh.p,mesh.t] = gmsh2pt('chen_geom_coarse1656.msh',2, 0);
+r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse1656.msh", 2, 0);
+mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
 
 % expressions for domain boundaries
-eps = 1e-4;
+eps = max(mesh.p(1,:))*1e-5;
 xmin = min(mesh.p(1,:));
 xmax = max(mesh.p(1,:));
 ymin = min(mesh.p(2,:));
 ymax = max(mesh.p(2,:));
-% x1 = 4.5e-3;
-x2 = 0.017;
-x3 = 0.015;
+x2 = 0.017/r_tip;
+x3 = 0.015/r_tip;
+x_cyl_min = 0.01/r_tip;
+x_cyl_max = 0.02/r_tip;
 
 bdry1 = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
 bdry2 = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    
 bdry3 = @(p) (p(2,:) > ymax - eps);  % open boundary 2                                     
 bdry4 = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % grounded boundary - open
 bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary                                    
-bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);                            % grounded boundary - cylinder
+bdry6 = @(p) (p(1,:) < x_cyl_max) && (p(1,:) > x_cyl_min);                            % grounded boundary - cylinder
 bdry7 = @(p) (p(1,:) < x2+eps);                          % needle tip          
 
 mesh.boundaryexpr = {bdry1,...
@@ -122,8 +125,8 @@ for i = 1:size(sol,4) % Last field is the number of timesteps
 end
 
 % % visualize the numerical solution of the PDE model using Paraview
-% pde.visscalars = {"ne", 1, "np", 2, "nn", 3, 'phi', 4};  % list of scalar fields for visualization
-% pde.visvectors = {"grad ne", [5 9], "grad np", [6 10], "grad nn", [7 11], "grad phi", [8 12]}; % list of vector fields for visualization
+% pde.visscalars = {"ne", 1, 'phi', 2};  % list of scalar fields for visualization
+% pde.visvectors = {"grad ne", [3 5], "grad phi", [4 6]}; % list of vector fields for visualization
 % xdg = vis(sol,pde,mesh); % visualize the numerical solution
 
 % The readsolstruct.m script only works for 1 core serial.

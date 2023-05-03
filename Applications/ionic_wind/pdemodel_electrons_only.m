@@ -102,7 +102,8 @@ function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
     feq1b1 = 0;     % Note it is the flux, not the derivative of the function. The two are different with the addition of the convective term.
     feq1b2 = 0;
-    feq1b3 = (1-alpha)*fb_conv_e + alpha*fb_e;        % BC option 1
+    % feq1b3 = (1-alpha)*fb_conv_e + alpha*fb_e;        % BC option 1
+    feq1b3 = fb_e;        % BC option 1
     feq1b4 = fb_conv_e;
     feq1b5 = 0;
 
@@ -148,12 +149,14 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     mun = -2.7e-4;
     % End setup
 
-    ndotE = n(1)*Ex + n(2)*Ey;
+    ndotE = n(1)*Ex + n(2)*Ey;       % FIX negative beacuse we are considering the sign of the convective velocity out of the domain
+    % alpha > 0 when negative species are trying to leave the domain, alpha < 0 when negative species are trying to enter/backflow into the domain (which is not possible because the surface is grounded so negative species cannot be emitted.)
     alpha = 0.5*(tanh(1000*ndotE)+1);
     
     ueq1b1 = ne;
     ueq1b2 = ne;
-    ueq1b3 = (1-alpha)*ne + alpha*0;
+    % ueq1b3 = alpha*ne + (1-alpha)*0;      % Neumann outflow (left, alpha>0), dirichlet inflow (right, alpha<0)
+    ueq1b3 = 0;
     ueq1b4 = ne;
     ueq1b5 = ne;
 
@@ -170,15 +173,35 @@ function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 end
 
 function u0 = initu(x, mu, eta)
-    x1 = x(1);
-    y1 = x(2);
-    sige = 0.01;
-    x0 = 0.0;
-    y0 = 0.0;
+    r = x(1);
+    z = x(2);
 
-    u0_ne = exp(-0.5*( (x1-x0)^2/sige^2 + (y1-y0)^2/sige^2));
+    % Physics parameters
+    r0 = mu(1);
+    z0 = mu(2);
+    s0 = mu(3);
+    Nmax = mu(4);
+    e = mu(5);
+    epsilon0 = mu(6);
+    Ua = mu(7);
+    gamma = mu(8);
+    E_bd = mu(9);
+    r_tip = mu(10);
+    n_ref = mu(11);
+    N = mu(12);
+    mue_ref = mu(13);
+    D_star = mu(14);
 
-    u0 = [u0_ne; 0];
+    % Nondimensionalization
+    r0_star = r0/r_tip;
+    z0_star = z0/r_tip;
+    sig0_star = s0/r_tip;
+    n_max_star = Nmax/n_ref;
+
+    % "star" indicating it is a nondimensional quantity
+    n0_star = n_max_star* exp(-1/(2*sig0_star^2) * ((r-r0_star)^2 + (z-z0_star)^2));
+
+    u0 = [n0_star; 0];    % Only set the seed particles for the electrons and positives
 end
 
 % Notes: changed indexing into q, changed the way we handle the phi solution so that mu_e isn't singular

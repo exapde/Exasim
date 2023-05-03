@@ -22,7 +22,10 @@ pde.NLtol = 1.0e-6;
 pde.linearsolvertol = 1.0e-8;
 pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
 
-[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse2.msh", 2, 0);
+r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse4015.msh", 2, 0);
+% mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
+mesh.p = mesh.p;     % Nondimensionalize the mesh
 
 % expressions for domain boundaries
 eps = 1e-4;
@@ -30,16 +33,21 @@ xmin = min(mesh.p(1,:));
 xmax = max(mesh.p(1,:));
 ymin = min(mesh.p(2,:));
 ymax = max(mesh.p(2,:));
-% x1 = 4.5e-3;
+% x2 = 0.017/r_tip;
+% x3 = 0.015/r_tip;
+% x_cyl_min = 0.01/r_tip;
+% x_cyl_max = 0.02/r_tip;
 x2 = 0.017;
 x3 = 0.015;
+x_cyl_min = 0.01;
+x_cyl_max = 0.02;
 
-bdry1 = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
-bdry2 = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    
+bdry1 = @(p) (abs(p(1,:)-xmin) < eps);    % axis symmetric boundary            
+bdry2 = @(p) (abs(p(1,:)-xmax) > eps);  % open boundary 1                                    
 bdry3 = @(p) (p(2,:) > ymax - eps);  % open boundary 2                                     
 bdry4 = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % grounded boundary - open
 bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary                                    
-bdry6 = @(p) (p(1,:) < .02) && (p(1,:) > .01);                            % grounded boundary - cylinder
+bdry6 = @(p) (p(1,:) < x_cyl_max) && (p(1,:) > x_cyl_min);                            % grounded boundary - cylinder
 bdry7 = @(p) (p(1,:) < x2+eps);                          % needle tip          
 
 ENUM_GROUND_BC = 1;
@@ -67,8 +75,15 @@ mesh.boundarycondition = [ENUM_NO_FLUX_BC,...
 
 isol = readsolstruct('datain/sol.bin');
 dgnodes = reshape(isol.xdg, [size(mesh.xpe,1) 2 size(mesh.t,2)]);
+mesh.dgnodes = dgnodes;
 save dgnodes.mat dgnodes;
 save sol_poi.mat sol;
+
+mesh.porder=pde.porder;
+mesh.plocal=master.xpe;
+mesh.tlocal=master.telem;
+mesh.elemtype=0;
+plotsol_poisson(0); % Don't show the mesh
 
 % visualize the numerical solution of the PDE model using Paraview
 % pde.visscalars = {"T1", 1, "T2", 2, "T3", 3, "T4", 4};  % list of scalar fields for visualization
