@@ -23,12 +23,12 @@ pde.linearsolvertol = 1.0e-8;
 pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
 
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
-[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse4015.msh", 2, 0);
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse1656.msh", 2, 0);
 % mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
 mesh.p = mesh.p;     % Nondimensionalize the mesh
 
 % expressions for domain boundaries
-eps = 1e-4;
+eps = max(mesh.p(1,:))*1e-6;
 xmin = min(mesh.p(1,:));
 xmax = max(mesh.p(1,:));
 ymin = min(mesh.p(2,:));
@@ -42,8 +42,8 @@ x3 = 0.015;
 x_cyl_min = 0.01;
 x_cyl_max = 0.02;
 
-bdry1 = @(p) (abs(p(1,:)-xmin) < eps);    % axis symmetric boundary            
-bdry2 = @(p) (abs(p(1,:)-xmax) > eps);  % open boundary 1                                    
+bdry1 = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
+bdry2 = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    
 bdry3 = @(p) (p(2,:) > ymax - eps);  % open boundary 2                                     
 bdry4 = @(p) (p(2,:) < ymin+eps) && (p(1,:) < x3+eps);   % grounded boundary - open
 bdry5 = @(p) (p(2,:) < ymin+eps) && (p(1,:) > x2-eps);   % grounded boundary                                    
