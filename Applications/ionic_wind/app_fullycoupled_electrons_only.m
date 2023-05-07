@@ -15,7 +15,7 @@ pde.modelfile = "pdemodel_electrons_only";    % name of a file defining the PDE 
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 6;              % number of MPI processors
+pde.mpiprocs = 8;              % number of MPI processors
 
 % Physical parameters
 Kep = 2e-13;             % mu[1] Recombination coeff - pos and neg ions [m^3/s]
@@ -76,7 +76,7 @@ pde.linearsolveriter=1000;        % number of GMRES iterations
 pde.NLiter=3;                   % Newton iterations
 
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
-[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse1656.msh", 2, 0);
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse4015.msh", 2, 0);
 mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
 
 % expressions for domain boundaries

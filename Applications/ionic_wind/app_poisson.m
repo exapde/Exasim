@@ -21,9 +21,11 @@ pde.porder = 3;          % polynomial degree
 pde.NLtol = 1.0e-6;
 pde.linearsolvertol = 1.0e-8;
 pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we aren't using the PPC
+pde.NLiter=40;
+pde.precMatrixType=2;
 
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
-[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse1656.msh", 2, 0);
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse4015.msh", 2, 0);
 % mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
 mesh.p = mesh.p;     % Nondimensionalize the mesh
 
