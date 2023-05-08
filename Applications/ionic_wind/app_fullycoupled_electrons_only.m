@@ -68,7 +68,7 @@ pde.ppdegree = 0;      % polynomial preconditioner degree -> set to 0 because we
 % solver parameters
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
-pde.dt = 1.5*ones(1,20);   % time step sizes
+pde.dt = 1e-5*ones(1,8);   % time step sizes
 pde.visdt = 1.0;        % visualization timestep size
 pde.soltime = 1:pde.visdt:length(pde.dt); % steps at which solution are collected
 pde.GMRESrestart=200;            % number of GMRES restarts
@@ -76,11 +76,11 @@ pde.linearsolveriter=1000;        % number of GMRES iterations
 pde.NLiter=3;                   % Newton iterations
 
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
-[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse4015.msh", 2, 0);
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse1656.msh", 2, 0);
 mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
 
 % expressions for domain boundaries
-eps = max(mesh.p(1,:))*1e-5;
+eps = max(mesh.p(1,:))*1e-6;
 xmin = min(mesh.p(1,:));
 xmax = max(mesh.p(1,:));
 ymin = min(mesh.p(2,:));

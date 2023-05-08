@@ -25,8 +25,8 @@ pde.NLiter=40;
 pde.precMatrixType=2;
 
 r_tip = 220e-6;          % mu[17] Tip radius of curvature [m]
-[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse4015.msh", 2, 0);
-% mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
+[mesh.p,mesh.t] = gmshcall(pde, "chen_geom_coarse1656.msh", 2, 0);
+mesh.p = mesh.p/r_tip;     % Nondimensionalize the mesh
 mesh.p = mesh.p;     % Nondimensionalize the mesh
 
 % expressions for domain boundaries
@@ -35,14 +35,10 @@ xmin = min(mesh.p(1,:));
 xmax = max(mesh.p(1,:));
 ymin = min(mesh.p(2,:));
 ymax = max(mesh.p(2,:));
-% x2 = 0.017/r_tip;
-% x3 = 0.015/r_tip;
-% x_cyl_min = 0.01/r_tip;
-% x_cyl_max = 0.02/r_tip;
-x2 = 0.017;
-x3 = 0.015;
-x_cyl_min = 0.01;
-x_cyl_max = 0.02;
+x2 = 0.017/r_tip;
+x3 = 0.015/r_tip;
+x_cyl_min = 0.01/r_tip;
+x_cyl_max = 0.02/r_tip;
 
 bdry1 = @(p) (p(1,:) < xmin+eps);    % axis symmetric boundary            
 bdry2 = @(p) (p(1,:) > xmax - eps);  % open boundary 1                                    

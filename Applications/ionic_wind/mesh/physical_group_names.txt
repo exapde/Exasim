@@ -1,0 +1,13 @@
+Physical group names
+
+Curves:
+Upper surface - 1
+Right surface - 13
+Grounded surface/cylinder - 9-12
+outflow - 8
+Axisymmetric - 7
+Needle body - 2, 3, 4
+Needle tip - 5, 6
+
+Points:
+Needle tip - 7

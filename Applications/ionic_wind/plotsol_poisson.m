@@ -18,9 +18,9 @@ nexttile
 scaplot(mesh,phi,[min(min(phi)) max(max(phi))],0,shwmsh); title('Phi');
 nexttile
 % scaplot(mesh,Er,[min(min(Er)) max(max(Er))],0,shwmsh); title('Er');
-scaplot(mesh,Er,[-1000, 1000],0,shwmsh); title('Er');
+scaplot(mesh,Er,[-1000*220e-6, 1000*220e-6],0,shwmsh); title('Er');
 nexttile
-scaplot(mesh,Ez,[0 2000],0,shwmsh); title('Ez');
+scaplot(mesh,Ez,[0 2000*220e-6],0,shwmsh); title('Ez');
 nexttile
 ndotE = -Ez;    % n=(0,-1)
 alpha = 0.5*(tanh(1000000*ndotE)+1);
