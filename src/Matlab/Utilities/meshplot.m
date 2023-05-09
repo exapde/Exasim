@@ -16,9 +16,10 @@ if length(opts)<3, opts=[opts,0]; end
 if length(opts)<4, opts=[opts,0]; end
 if length(opts)<5, opts=[opts,0]; end
 
-p=mesh.p;
-t=mesh.t;
+p=mesh.p';
+t=mesh.t';
 f=mesh.f;
+mesh.elemtype=0;
 dim=size(p,2);
 dpl=size(mesh.plocal,2);
 

@@ -2,6 +2,9 @@ template <typename T> void cpuFlux(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uinf
 {
 	#pragma omp parallel for
 	for (int i = 0; i <ng; i++) {
+		T param1 = param[0];
+		T param13 = param[12];
+		T param14 = param[13];
 		T xdg1 = xdg[0*ng+i];
 		T udg1 = udg[0*ng+i];
 		T udg3 = udg[2*ng+i];
@@ -12,9 +15,10 @@ template <typename T> void cpuFlux(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uinf
 		T odg3 = odg[2*ng+i];
 		T t2 = odg2+udg4;
 		T t3 = odg3+udg6;
-		f[0*ng+i] = xdg1*(udg3/1.0E+1-t2*udg1);
+		T t4 = 1.0/param13;
+		f[0*ng+i] = xdg1*(param14*udg3-t2*t4*udg1*3.78E-2);
 		f[1*ng+i] = t2*xdg1;
-		f[2*ng+i] = xdg1*(udg5/1.0E+1-t3*udg1);
+		f[2*ng+i] = xdg1*(param14*udg5-t3*t4*udg1*3.78E-2);
 		f[3*ng+i] = t3*xdg1;
 	}
 }

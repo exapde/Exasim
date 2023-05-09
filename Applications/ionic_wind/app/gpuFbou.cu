@@ -42,6 +42,9 @@ template <typename T>  __device__  void devicegpuFbou3(T *f, T *xdg, T *udg, T *
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	while (i<ng) {
+		T param1 = param[0];
+		T param13 = param[12];
+		T param14 = param[13];
 		T tau1 = tau[0];
 		T xdg1 = xdg[0*ng+i];
 		T udg1 = udg[0*ng+i];
@@ -58,15 +61,8 @@ template <typename T>  __device__  void devicegpuFbou3(T *f, T *xdg, T *udg, T *
 		T nlg2 = nlg[1*ng+i];
 		T t2 = odg2+udg4;
 		T t3 = odg3+udg6;
-		T t4 = -uhg1;
-		T t5 = t4+udg1;
-		T t7 = nlg1*t2*1.0E+3;
-		T t8 = nlg2*t3*1.0E+3;
-		T t6 = t5*tau1;
-		T t9 = t7+t8;
-		T t10 = tanh(t9);
-		T t11 = t10/2.0;
-		f[0*ng+i] = -(t6-udg1*xdg1*(nlg1*t2+nlg2*t3))*(t11-1.0/2.0)+(t11+1.0/2.0)*(t6+nlg1*xdg1*(udg3/1.0E+1-t2*udg1)+nlg2*xdg1*(udg5/1.0E+1-t3*udg1));
+		T t4 = 1.0/param13;
+		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*xdg1*(param14*udg3-t2*t4*udg1*3.78E-2)+nlg2*xdg1*(param14*udg5-t3*t4*udg1*3.78E-2);
 		f[1*ng+i] = tau1*(udg2-uhg2)+nlg1*t2*xdg1+nlg2*t3*xdg1;
 		i += blockDim.x * gridDim.x;
 	}
@@ -81,6 +77,8 @@ template <typename T>  __device__  void devicegpuFbou4(T *f, T *xdg, T *udg, T *
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	while (i<ng) {
+		T param1 = param[0];
+		T param13 = param[12];
 		T tau1 = tau[0];
 		T xdg1 = xdg[0*ng+i];
 		T udg1 = udg[0*ng+i];
@@ -95,7 +93,7 @@ template <typename T>  __device__  void devicegpuFbou4(T *f, T *xdg, T *udg, T *
 		T nlg2 = nlg[1*ng+i];
 		T t2 = odg2+udg4;
 		T t3 = odg3+udg6;
-		f[0*ng+i] = tau1*(udg1-uhg1)-udg1*xdg1*(nlg1*t2+nlg2*t3);
+		f[0*ng+i] = tau1*(udg1-uhg1)-(udg1*xdg1*(nlg1*t2+nlg2*t3)*3.78E-2)/param13;
 		f[1*ng+i] = tau1*(udg2-uhg2)+nlg1*t2*xdg1+nlg2*t3*xdg1;
 		i += blockDim.x * gridDim.x;
 	}

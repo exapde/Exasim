@@ -2,5 +2,7 @@
 *.vtu
 lib/Linux/*
 lib/Mac/*
-**/dataout
-**/datain
+dataout/
+datain/
+app/
+# Not sure why datain/ and app/ aren't working

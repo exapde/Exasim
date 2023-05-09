@@ -35,14 +35,7 @@ template <typename T>  __device__  void devicegpuUbou3(T *f, T *xdg, T *udg, T *
 {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 	while (i<ng) {
-		T udg1 = udg[0*ng+i];
-		T udg4 = udg[3*ng+i];
-		T udg6 = udg[5*ng+i];
-		T odg2 = odg[1*ng+i];
-		T odg3 = odg[2*ng+i];
-		T nlg1 = nlg[0*ng+i];
-		T nlg2 = nlg[1*ng+i];
-		f[0*ng+i] = -udg1*(tanh(nlg1*(odg2+udg4)*1.0E+3+nlg2*(odg3+udg6)*1.0E+3)/2.0-1.0/2.0);
+		f[0*ng+i] = 0.0;
 		f[1*ng+i] = 0.0;
 		i += blockDim.x * gridDim.x;
 	}
