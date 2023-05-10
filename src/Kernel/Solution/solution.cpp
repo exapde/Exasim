@@ -184,7 +184,10 @@ void CSolution::InitSolution(Int backend)
     
     // copy sol.udg to sys.u
     ArrayExtract(solv.sys.u, disc.sol.udg, disc.common.npe, disc.common.nc, disc.common.ne1, 
-            0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1, backend);                                                  
+            0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1, backend);     
+    // copy sol.dudg to sys.v; should get overwritten if matvec is used by solver   
+    ArrayExtract(solv.sys.v, disc.sol.dudg, disc.common.npe, disc.common.nc, disc.common.ne1, 
+        0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1, backend);                                               
         
     // save solutions into binary files
     this->SaveNodesOnBoundary(backend);     
@@ -319,6 +322,23 @@ void CSolution::SolveProblem(ofstream &out, Int backend)
         if (disc.common.nce>0)
             this->SaveOutputCG(backend);    
     }        
+}
+
+void CSolution::SolveProblemRJv(ofstream &out, Int backend) 
+{          
+    this->InitSolution(backend); 
+
+    // calls R(U) with mesh.udg, stored in solv.sys.b
+    disc.evalResidual(solv.sys.b, solv.sys.u, backend);
+
+    // calls dR/dU(U) v for v loaded in solv.sys.v
+    disc.evalMatVec(solv.sys.v, solv.sys.v, solv.sys.u, solv.sys.b, backend); 
+
+    string filenameR = disc.common.fileout + "_Ru_test_np" + NumberToString(disc.common.mpiRank) + ".bin";        
+    string filenameJv = disc.common.fileout + "_Jv_test_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+           
+    writearray2file(filenameR, solv.sys.b, disc.common.ndof1, backend);
+    writearray2file(filenameJv, solv.sys.v, disc.common.ndof1, backend);
 }
 
 void CSolution::SaveSolutions(Int backend) 

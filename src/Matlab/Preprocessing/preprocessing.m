@@ -108,6 +108,7 @@ for i = 1:mpiprocs
         xdg = mesh.dgnodes(:,:,dmd{i}.elempart);
     else
         xdg = createdgnodes(mesh.p,mesh.t(:,dmd{i}.elempart),mesh.f(:,dmd{i}.elempart),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
+        mesh.dgnodes = xdg;
     end    
     %xdg = createdgnodes(mesh.p,mesh.t(:,dmd{i}.elempart),mesh.f(:,dmd{i}.elempart),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
     
@@ -149,6 +150,9 @@ for i = 1:mpiprocs
     if isfield(mesh, 'wdg')        
         nsize(5) = numel(mesh.wdg(:,:,dmd{i}.elempart));
     end
+    if isfield(mesh, 'dudg')        
+        nsize(6) = numel(mesh.dudg(:,:,dmd{i}.elempart));
+    end
 
     fwrite(fileID1,length(nsize(:)),'double',endian);
     fwrite(fileID1,nsize(:),'double',endian);
@@ -165,6 +169,9 @@ for i = 1:mpiprocs
     end
     if isfield(mesh, 'wdg')        
         fwrite(fileID1,mesh.wdg(:,:,dmd{i}.elempart),'double',endian);                
+    end
+    if isfield(mesh, 'dudg')        
+        fwrite(fileID1,mesh.dudg(:,:,dmd{i}.elempart),'double',endian);    
     end
     fclose(fileID1);         
 

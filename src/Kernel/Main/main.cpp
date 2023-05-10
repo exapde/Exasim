@@ -206,6 +206,11 @@ int main(int argc, char** argv)
         }      
         pdemodel[0]->SolveProblem(pdemodel[1], backend);               
     }
+    else if ((pdemodel[0]->disc.common.runmode>5)) {
+        // Temporary: if runmode > 5, just run R(U) and dR(U)/dU v 
+        printf("\n Running R(u) and Jv only\n");
+        pdemodel[0]->SolveProblemRJv(out[0], backend); 
+    }
     else if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
                 
         // initialize 

@@ -45,6 +45,9 @@ public:
     void SolveProblem(Int backend);    
     
     void SolveProblem(ofstream &out, Int backend);    
+
+    // helper function to just return steady state residual R and jacobian-vector product
+    void SolveProblemRJv(ofstream &out, Int backend);    
     
     void SolveProblem(CSolution *subprob, Int backend);    
     

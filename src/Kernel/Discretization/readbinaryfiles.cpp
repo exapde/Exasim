@@ -488,10 +488,6 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     else
         error("Input files are incorrect");
-    #ifdef HAVE_ENZYME
-        sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
-        ArraySetValue(sol.dudg, zero, npe*nc*ne, 0);
-    #endif
 
     if ((sol.nsize[3] >0) && (sol.nsize[3] == npe*nco*ne)) {
         readarray(in, &sol.odg, sol.nsize[3]);    
@@ -513,6 +509,21 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.wdg = (dstype*) malloc (sizeof (dstype)*npe*ncw*ne);    
         InitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
         sol.nsize[4] = npe*ncw*ne;
+    }
+
+    //// Note: most "shadow" variables (dXdg) are only used for autodiff and are therefore beneath ENZYME directives
+    ////       However, for just calling the residual and jacobian-vector product, we init Jv with dudg variable. 
+    sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
+    ArraySetValue(sol.dudg, zero, npe*nc*ne, 0);
+
+    if ((sol.nsize[5] >0) && (sol.nsize[5] == npe*ncu*ne)) {
+        //// If mesh.dudg is defined in script, read in to sol.dudg  
+        // TODO: is it okay to zero out the "gradient" components? 
+        dstype *tmp2;
+        readarray(in, &tmp2,     sol.nsize[2]);    
+        ArraySetValue(sol.dudg, zero, npe*nc*ne, 0);
+        ArrayInsert(sol.dudg, tmp2, npe, nc, ne, 0, npe, 0, ncu, 0, ne, 0); 
+        CPUFREE(tmp2);
     }
     
 //     sol.nsize[1] = npe*ncx*ne;
