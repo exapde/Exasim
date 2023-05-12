@@ -8,6 +8,7 @@ addpath(char(srcdir + "/Mesh/lesmesh"));
 addpath(char(srcdir + "/Preprocessing"));
 addpath(char(srcdir + "/Postprocessing"));
 addpath(char(srcdir + "/Utilities"));
+addpath(char(srcdir + "/Utilities/rom"));
 
 % Set Matlab's PATH enviroment variable so that Exasim can call external packages    
 setenv('PATH', '/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin');

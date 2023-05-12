@@ -1,0 +1,96 @@
+function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, dmd, opt)
+% System to solve is W^T R(W u_rb) = 0 or || R(W u_rb) ||
+% W = reduced basis
+% u_rb = generalized coordinates
+
+% TODOs:  
+% - weight with Cholesky factorization of matrix; simpler to keep track of
+% - 
+    pde.physicsparam = mu;
+    fileapp = "datain/app.bin";
+    pde.runmode = 20; % run mode > 5: R(u,mu) and J(u,mu) v
+    writeapp(pde,fileapp,'native');
+
+    maxiter = 20;
+    nltol = 1e-8;
+    iter = 1;
+    galerkin_flag = 0; lspg_flag = 0; 
+
+    if opt == "galerkin" || opt == "Galerkin" || opt == "g" || opt=="G"
+        galerkin_flag = 1;
+    end
+    if opt == "lspg" || opt == "LSPG" || opt == "L" || opt == "lspg"
+        lspg_flag = 1;
+    end
+
+
+    npe = master.npe;
+    ncu = pde.ncu;
+    ne = pde.ne;
+    u_shape = [npe ncu ne];
+    u_flat = [npe*ncu*ne 1];
+    p_rb = size(Phi, 2);
+
+    u_rb = u_0;
+    Phiu = Phi * u_rb;
+    mesh.udg = reshape(Phiu, [master.npe, pde.ncu, pde.ne]);
+    mesh.dudg = 0*mesh.udg;
+    writesol(pde,mesh,master,dmd)
+    runcode(pde);
+
+    R0 = reshape(getsolution('dataout/out_Ru_test',dmd,npe),u_flat);
+    JPhi = 0*R0;
+
+    if galerkin_flag
+        b = -Phi' * R0;
+    elseif lspg_flag 
+        b = R0' * R0; %TODO: should be weighted norm
+        JPhi = 0*R0;
+        WJPhi = 0*JPhi;
+        [Mi, M] = massinv(pde, master,mesh);
+        weight = Mi;
+    end
+
+    %TODO: flag for recording history
+    %   include u_rb, tolerance, etc. 
+    u_rb_history = cell(maxiter,1);
+    u_rb_history{1} = u_rb;
+
+
+    while conv_check > nltol && iter < maxiter
+        Phiu = Phi * u_rb;
+        mesh.udg = reshape(Phiu, u_shape);
+        for i = 1:p_rb
+            % Evaluate JPhi by calling Exasim's Jv against each column of Phi
+            mesh.dudg = reshape(Phi(:,i), u_shape);
+            writesol(pde,mesh,master,dmd)
+            runcode(pde);
+            Jv = reshape(getsolution('dataout/out_Jv_test',dmd,npe),u_flat);
+            JPhi(:,i) = Jv;
+            if lspg_flag % Weighting for L2 norm
+                WJPhi(:,i) = apply_weight_to_vector(weight, JPhi(:,i), pde, master);
+            end
+        end
+        R = reshape(getsolution('dataout/out_Ru_test',dmd,npe),u_flat);
+    %%%%%%%%% Galerkin
+    if galerkin_flag
+        A =  Phi' * JPhi;
+        b = -Phi' * R;
+    end
+    %%%%%%%%%
+    
+    %%%%%%%%%% Gauss Newton 
+    %%% Could do Minv inside Exasim
+    if lspg_flag
+        A =  JPhi' * WJPhi;
+        b = -(WJPhi)' * R;
+    end
+    %%%%%%%%%%
+    
+        du_rb = A\b;
+        u_rb = u_rb + du_rb;
+        u_rb_history{iter+1} = u_rb;
+        iter = iter+1;
+        disp(norm(b));
+    end
+end

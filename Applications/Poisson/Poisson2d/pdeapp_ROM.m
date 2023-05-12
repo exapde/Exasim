@@ -13,8 +13,7 @@ pde.modelfile = "pdemodel"; % name of a file defining the PDE model
 % pde.enzyme = "ClangEnzyme-15.dylib";
 
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 1;             % polynomial degree
-physicsparam = 1:10; % unit thermal conductivity and zero boundary data
+pde.porder = 2;             % polynomial degree
 pde.tau = 1.0;              % DG stabilization parameter
 pde.physicsparam=1.0; % placeholder for gencode
 % Choose computing platform and set number of processors
@@ -29,8 +28,7 @@ mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 mesh.porder = pde.porder;
 
 % call exasim to generate and run C++ code to solve the PDE model
-% run FOM to initialize everything
-% [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
+% run FOM to initialize structures
 pde = setcompilers(pde);       
 
 % generate input files and store them in datain folder
@@ -43,134 +41,51 @@ gencode(pde);
 compilerstr = compilecode(pde);
 
 %% Get snapshots
-%TODO: would be nice if we could save to multiple out directories 
-fileapp = "datain/app.bin";
-snapshots = {}
-for i = 1:length(physicsparam)
-    pde.physicsparam = physicsparam(i);
-    writeapp(pde,fileapp,'native');
-    runcode(pde);
-    sol = fetchsolution(pde,master,dmd);
-    snapshots{i} = sol;
+%TODO: would be nice if we could save to multiple out directories  
+
+% Initialize training set
+n_train = 10;
+parameters = cell(n_train,1);
+for itrain = 1:10
+    parameters{itrain} = itrain;
 end
+
+% Run training cases
+snapshots = run_parameter_ensemble(parameters, pde, master, dmd);
 
 %% arrange snapshots in a matrix
-% only use components related to u, not gradient
-n_train = length(physicsparam);
-snapshots_mat = zeros(numel(snapshots{1}(:,1,:)), n_train);
-for i = 1:n_train
-    tmp = snapshots{i}(:,1,:);
-    snapshots_mat(:,i) = reshape(tmp, [master.npe*pde.ncu*pde.ne, 1]);
-end
+Phi = snapshot_struct_to_matrix(snapshots, pde, master);
 
 %% build POD basis by taking the SVD
-% TODO: do correct POD formulation, eigenvecs u of Phi^T Phi and then W = Phi u
-% [U,S,V] = svd(snapshots_mat);
-[V,D] = eig(snapshots_mat'*snapshots_mat);
-[d,ind] = sort(diag(D),'descend');
-Ds = D(ind,ind);
-Vs = V(:,ind);
-Phi_POD = snapshots_mat*Vs;
+[Mi, M] = massinv(pde, master,mesh);
+weight = M;
+[W_POD_full, svals] = snapshot_POD(Phi, weight, pde, master);
+figure(1); clf; semilogy(abs(svals)./svals(1),'LineWidth',2); title("Singular values");
 
-%% Extract reduced basis. Here we take the 5 leading singular vectors
-figure(1); clf; semilogy(diag(Ds),'LineWidth',2); title("Singular values");
+%% Extract reduced basis. 
 p_rb = 3;
-% Phi = U(:,1:p_rb);
+W_RB = Phi(:,[1, 2, 3]);
+W_POD = W_POD_full(:,1:p_rb);
 
 
-Phi_RB = snapshots_mat(:,[1, 2, 3]);
-
+W = W_POD; % Take leading POD vectors
+% W = W_RB; % RBM basis 
 %% Initialize Galerkin ROM
-% We have Phi...now we should do a quick galerkin test
-
-Phi = Phi_POD(:,1:p_rb);
-% Set up runmode and parameter
-mu_test = 2.5;
-pde.runmode = 0;
-pde.physicsparam = mu_test;
-writeapp(pde,fileapp,'native')
-runcode(pde);
-solTrue = fetchsolution(pde,master,dmd);
-solTrue = solTrue(:,1,:);
-
-
-pde.runmode = 20; % run mode > 5: R(u,mu) and J(u,mu) v
-writeapp(pde,fileapp,'native')
-
-% Set up newton step initializations
-u_rb = zeros(p_rb,1);
-mesh.udg = reshape(Phi * u_rb, size(snapshots{1}(:,1,:)));
-mesh.dudg = 0*mesh.udg;
-writesol(pde,mesh,master,dmd)
-runcode(pde);
-R0 = getsolution('dataout/out_Ru_test',dmd,master.npe);
-Jv0 = getsolution('dataout/out_Jv_test',dmd,master.npe);
-b = Phi'*reshape(R0, [master.npe*pde.ncu*pde.ne, 1]); %TODO: probably need to be more careful about sizings here
+% Set up test set
+n_test = 1;
+mu_test = cell(n_test,1);
+mu_test{1} = 2.5;
+snapshots_test = run_parameter_ensemble(mu_test, pde, master, dmd);
 
 %% Run Galerkin ROM
 % System to solve is Phi^T R(Phi u_rb) = 0
-% First step: let's set up 
-maxiter = 20;
-iter = 1;
-JPhi = 0*Phi;
-% for k = 1:5
-while norm(b) > 1e-8 && iter < maxiter
-    Phiu = Phi * u_rb;
-    mesh.udg = reshape(Phiu, [master.npe, pde.ncu, pde.ne]);
-    for i = 1:p_rb
-        % Evaluate JPhi by calling Exasim's Jv against each column of Phi
-        mesh.dudg = reshape(snapshots_mat(:,i), [master.npe, pde.ncu, pde.ne]);
-        writesol(pde,mesh,master,dmd)
-        runcode(pde);
-        Jv = reshape(getsolution('dataout/out_Jv_test',dmd,master.npe),[master.npe*pde.ncu*pde.ne, 1]);
-        JPhi(:,i) = Jv;
-    end
-    R = reshape(getsolution('dataout/out_Ru_test',dmd,master.npe),[master.npe*pde.ncu*pde.ne, 1]);
-%%%%%%%%% Galerkin
-    A =  Phi' * JPhi;
-    b = -Phi' * R;
-%%%%%%%%%
+u_0 = zeros(p_rb,1);
+[u_rb, u_rb_history] = run_steady_ROM(mu_test{1}, u_0, W, pde, mesh,master, dmd, "G");
 
-%%%%%%%%%% Gauss Newton TODO: weighted inner product...
-%%% Could do Minv inside code or not...
-%     A =  JPhi' * JPhi;
-%     b = -JPhi' * R;
-%%%%%%%%%%
 
-    du_rb = A\b;
-    u_rb = u_rb + du_rb;
-    iter = iter+1;
-    disp(norm(b));
-end
-%% Evalute R(u) and J(u)v
-
-% %update app to run just R, Jv
-% pde.runmode = 20;
-% fileapp = "datain/app.bin";
-% writeapp(pde,fileapp,'native');
-% 
-% % load in u to mesh.udg and v to mesh.dudg
-% Uout = getsolution('dataout/out',dmd,master.npe);
-% mesh.udg = Uout(:,1:1,:);
-% mesh.dudg = mesh.udg;
-% % write to binary
-% 
-% runcode(pde);
-% Rout = getsolution('dataout/out_Ru_test',dmd,master.npe);
-% Jvout = getsolution('dataout/out_Jv_test',dmd,master.npe);
-
+solTrue = snapshots_test{1}(:,1,:);
 figure(1); clf; scaplot(mesh, solTrue); title("True solution")
-figure(2); clf; scaplot(mesh, Phi*u_rb); title("Galerkin ROM")
+figure(2); clf; scaplot(mesh, W*u_rb); title("ROM")
 % figure(3); scaplot(mesh, Phi*u_rb - solTrue(:)); title("Error")
-fprintf('Maximum absolute error: %g\n',max(abs(Phi*u_rb-solTrue(:))));
-
-%%
-% visualize the numerical solution of the PDE model using Paraview
-% pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
-% pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
-% dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
-% x = dgnodes(:,1,:); y = dgnodes(:,2,:); z = dgnodes(:,3,:);
-% uexact = sin(pi*x).*sin(pi*y).*sin(pi*z);           % exact solution
-% uh = sol(:,1,:);                                    % numerical solution
-% fprintf('Maximum absolute error: %g\n',max(abs(uh(:)-uexact(:))));
+fprintf('Maximum absolute error: %g\n',max(abs(W*u_rb-solTrue(:))));
 disp("Done!");
