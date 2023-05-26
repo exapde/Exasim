@@ -5,9 +5,9 @@ function [snapshots_matrix] = snapshot_struct_to_matrix(snapshots, pde, master)
     ne  = pde.ne;
     npe = master.npe;
     
-    snapshots_matrix = zeros(numel(snapshots{1}(:,1:ncu,:)), n_train);
+    snapshots_matrix = zeros(numel(snapshots{1}(:,1:ncu,:,1)), n_train);
     for i = 1:n_train
-        tmp = snapshots{i}(:,1:ncu,:);
+        tmp = snapshots{i}(:,1:ncu,:,end);
         snapshots_matrix(:,i) = reshape(tmp, [npe*ncu*ne, 1]);
     end
 end

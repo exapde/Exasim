@@ -12,6 +12,6 @@ for i = 1:n_param
     writeapp(pde,fileapp,'native');
     runcode(pde);
     sol = fetchsolution(pde,master,dmd);
-    snapshots{i} = sol;
+    snapshots{i} = sol(:,:,:,end);
 end
 end

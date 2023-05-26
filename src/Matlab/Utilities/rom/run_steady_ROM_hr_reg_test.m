@@ -1,4 +1,4 @@
-function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, dmd, opt,ii)
+function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, dmd, opt,ii,JPhi_train)
 % System to solve is W^T R(W u_rb) = 0 or || R(W u_rb) ||
 % W = reduced basis
 % u_rb = generalized coordinates
@@ -8,7 +8,6 @@ function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, 
 % - probably make separate functions for LSPG, Galerkin
 % - need appropriate measures of convergence for each 
 % - make a rom data structure to hold all parameters
-    if nargin < 9; ii = 1:pde.ne; end
 
     pde.physicsparam = mu;
     fileapp = "datain/app.bin";
@@ -31,7 +30,6 @@ function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, 
     npe = master.npe;
     ncu = pde.ncu;
     ne = pde.ne;
-    
     u_shape = [npe ncu ne];
     u_flat = [npe*ncu*ne 1];
     p_rb = size(Phi, 2);
@@ -61,9 +59,16 @@ function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, 
     u_rb_history = cell(maxiter,1);
     u_rb_history{1} = u_rb;
 
+    [ne, p_rb_2, n_train] = size(JPhi_train);
     ne_hr = length(ii);
+    JPhi_train_subsampled = zeros(ne_hr*ncu*npe, size(JPhi_train, 2), size(JPhi_train, 3));
     JPhi_subsampled = zeros(ne_hr*ncu*npe, p_rb);
-    Phi_subsampled = zeros(ne_hr*ncu*npe, p_rb);
+    for j = 1:p_rb_2
+        for k = 1:n_train
+            JPhi_train_subsampled(:,j,k) = subsample_vector(JPhi_train(:,j,k), pde, master, ii);
+        end
+    end
+
 
     while norm(b) > nltol && iter < maxiter
         Phiu = Phi * u_rb;
@@ -75,44 +80,49 @@ function [u_rb, u_rb_history] = run_steady_ROM(mu, u_0, Phi, pde, mesh, master, 
             runcode(pde);
             Jv = reshape(getsolution('dataout/out_Jv_test',dmd,npe),u_flat);
             JPhi(:,i) = Jv;
-            if lspg_flag % Weighting for L2 norm
-                WJPhi(:,i) = apply_weight_to_vector(weight, JPhi(:,i), pde, master);
-            end
         end
+%         JPhi_subsampled = JPhi(ii,:);
+%         JPhi_subsampled = subsample_vector(JPhi, pde, master, ii);
+        for j = 1:p_rb_2
+            JPhi_subsampled(:,j) = subsample_vector(JPhi(:,j), pde, master, ii);
+        end
+%         JPhi_train_subsampled = JPhi_train(ii,:,:);
+%         for k = 1:n_train
+%             JPhi_train_subsampled = 
+%         end
+%         [ne_hr, p_rb_2, n_train] = size(JPhi_train_subsampled);
+
+        A_hr = reshape(JPhi_train_subsampled, [ne_hr*ncu*npe*p_rb_2 n_train]);
+        b_hr = JPhi_subsampled(:);
+
+        theta = (A_hr'*A_hr)\(A_hr'*b_hr);
+        JPhi = 0;
+        for k = 1:n_train
+            JPhi = JPhi + theta(k) * JPhi_train(:,:,k);
+        end
+
         R = reshape(getsolution('dataout/out_Ru_test',dmd,npe),u_flat);
     %%%%%%%%% Galerkin
     if galerkin_flag
-        for j = 1:p_rb
-            JPhi_subsampled(:,j) = subsample_vector(JPhi(:,j), pde, master, ii);
-            Phi_subsampled(:,j) = subsample_vector(Phi(:,j), pde, master, ii);
-        end
-%         Phi_subsampled = subsample_vector(Phi, pde, master, ii);
-        R_subsampled = subsample_vector(R, pde, master, ii);
-%         A =  Phi(ii,:)' * JPhi(ii,:);
-%         b = -Phi(ii,:)' * R(ii,:);
-        A =  Phi_subsampled' * JPhi_subsampled;
-        b = -Phi_subsampled' * R_subsampled;
+        A =  Phi' * JPhi;
+        b = -Phi' * R;
     end
-    %%%%%%%%%
-    
-    %%%%%%%%%% Gauss Newton 
-    %%% Could do Minv inside Exasim
     if lspg_flag
-        for j = 1:p_rb
-            JPhi_subsampled(:,j) = subsample_vector(JPhi(:,j), pde, master, ii);
-            Phi_subsampled(:,j) = subsample_vector(Phi(:,j), pde, master, ii);
-        end
-%         Phi_subsampled = subsample_vector(Phi, pde, master, ii);
-        R_subsampled = subsample_vector(R, pde, master, ii);
+%         for j = 1:p_rb
+%             JPhi_subsampled(:,j) = subsample_vector(JPhi(:,j), pde, master, ii);
+%             Phi_subsampled(:,j) = subsample_vector(Phi(:,j), pde, master, ii);
+%         end
+% %         Phi_subsampled = subsample_vector(Phi, pde, master, ii);
+%         R_subsampled = subsample_vector(R, pde, master, ii);
 %         A =  Phi(ii,:)' * JPhi(ii,:);
 %         b = -Phi(ii,:)' * R(ii,:);
-        A =  JPhi_subsampled' * JPhi_subsampled;
-        b = -JPhi_subsampled' * R_subsampled;
+        A =  JPhi' * JPhi;
+        b = -JPhi' * R;
 
 %         A =  JPhi' * WJPhi;
 %         b = -(WJPhi)' * R;
     end
-    %%%%%%%%%%
+    %%%%%%%%%
     
         du_rb = A\b;
         u_rb = u_rb + du_rb;
