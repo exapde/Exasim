@@ -328,6 +328,8 @@ void CSolution::SolveProblemRJv(ofstream &out, Int backend)
 {          
     this->InitSolution(backend); 
 
+    // Assuming steady problems, we want the steady residual
+    disc.common.tdep = 0;
     // calls R(U) with mesh.udg, stored in solv.sys.b
     disc.evalResidual(solv.sys.b, solv.sys.u, backend);
 
