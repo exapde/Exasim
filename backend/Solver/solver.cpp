@@ -1,0 +1,41 @@
+#ifndef __SOLVER
+#define __SOLVER
+
+#include "solver.h"
+#include "setsysstruct.cpp"
+#include "getpoly.cpp"
+#include "gmres.cpp"
+#include "ptcsolver.cpp"
+
+// constructor
+CSolver::CSolver(CDiscretization& disc, Int backend)
+{
+    setsysstruct(sys, disc.common, backend);    
+}
+
+// destructor
+CSolver::~CSolver()
+{    
+    sys.freememory(sys.cpuMemory);    
+}
+
+void CSolver::PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int backend)       
+{
+    // solve the system using PTC to obtain the solution sys.u
+    disc.common.nonlinearSolverIter = PTCsolver(sys, disc, prec, out, backend); 
+    
+    // update UDG
+    disc.updateUDG(sys.u, backend);           
+}
+
+void CSolver::NewtonSolver(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int N, Int spatialScheme, Int backend)       
+{
+    // solve the system using PTC to obtain the solution sys.u
+    disc.common.nonlinearSolverIter = NonlinearSolver(sys, disc, prec, out, N, spatialScheme, backend); 
+    
+    // update UDG
+    if (spatialScheme==0) disc.updateUDG(sys.u, backend);           
+}
+
+#endif        
+

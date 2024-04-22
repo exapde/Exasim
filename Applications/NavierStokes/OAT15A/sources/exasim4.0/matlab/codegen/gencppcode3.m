@@ -1,6 +1,0 @@
-function gencppcode3(appname,xdg,odg,udg,udg0,udg1,udg2,udg3,uhg,uhg0,uhg1,uhg2,uhg3,nlg,tau,...
-    uinf,param,time,dt,tdepbc,nstage,uboutdep)
-
-gencppuboutdep(uboutdep,xdg,odg,udg,udg0,udg1,udg2,uhg,uhg0,uhg1,uhg2,nlg,...
-            tau,uinf,param,time,dt,tdepbc,nstage,appname);
-
