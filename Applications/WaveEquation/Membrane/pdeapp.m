@@ -33,10 +33,10 @@ mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 [sol,pde,mesh] = exasim(pde,mesh);
 
 % visualize the numerical solution of the PDE model using Paraview
-pde.visscalars = {"velocity", 1, "displacement", 4};  % list of scalar fields for visualization
-pde.visvectors = {"displacement gradient", [2 3]}; % list of vector fields for visualization
-xdg = vis(sol,pde,mesh); % visualize the numerical solution
-disp("Done!");
+% pde.visscalars = {"velocity", 1, "displacement", 4};  % list of scalar fields for visualization
+% pde.visvectors = {"displacement gradient", [2 3]}; % list of vector fields for visualization
+% xdg = vis(sol,pde,mesh); % visualize the numerical solution
+% disp("Done!");
 
 
 
