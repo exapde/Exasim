@@ -23,8 +23,8 @@ As Exasim generates and compiles stand-alone C++ code on the fly, Exasim does no
 
 # Applications
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in Exasim/Applications to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. See https://github.com/exapde/Exasim/blob/master/Applications/ShallowWater/BickleyJet/BickleyJet.pdf for simulation results of the Bickley Jet problem.
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in Exasim/Applications to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, elasticity, Euler equations, Navier-Stokes equations, and MHD equations. See https://github.com/exapde/Exasim/blob/master/examples/ShallowWater/BickleyJet/BickleyJet.pdf for simulation results of the Bickley Jet problem.
 
 
 # Publications
-[1] Under-Resolved Direct Numerical Simulation of Transonic Buffet Using an Implicit Discontinuous Galerkin Method. https://github.com/exapde/Exasim/blob/master/Documentation/AIAA2021paper.pdf. The numerical results and the source codes are located at https://github.com/exapde/Exasim/blob/master/Applications/NavierStokes/OAT15A.
+[1] Under-Resolved Direct Numerical Simulation of Transonic Buffet Using an Implicit Discontinuous Galerkin Method. 
