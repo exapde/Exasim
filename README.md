@@ -7,13 +7,13 @@ Exasim is an open-source software for generating discontinuous Galerkin codes to
 
 What make Exasim unique are the following distinctive features:
 
-   - simplifies numerical modeling and simulation with simple scripts
-   - produces implicit high-order discontinuous Galerkin solutions of a wide variety of PDEs   
-   - generates stand-alone C++ production code tailored to specific applications on different platforms 
-   - leverage automatic differentiation of Enzym to compute Jacobian vector products
-   - leverage Muttation++ to incorposrate thermodynamic, transport, chemistry, and energy transfer properties
-   - provides full GPU functionality, meaning that all code components from discretization schemes to iterative solvers run on GPUs   
-   - can be called from Julia, Python, and Matlab. 
+   - Solve a wide variety of PDEs in fluid and solid mechanics, and electromagnetism
+   - Generate stand-alone C++ production code via the mathematical expressions of the PDEs
+   - Implement high-order DG methods including local DG and hybridized DG methods
+   - Implement diagonally implicit Runge-Kutta methods 
+   - Implement parallel Newton-GMRES solvers and scalable preconditioners  
+   - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
+   - Provide interfaces to Julia, Python, and Matlab. 
    
 After downloading the Exasim source code, you can run numorous examples provided in Exasim/Applications by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. If Exasim needs external packages, it will install them on the fly. See the documentation https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf for more details. 
 
