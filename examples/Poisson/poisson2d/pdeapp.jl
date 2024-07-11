@@ -3,7 +3,7 @@ using Revise, DelimitedFiles, SymPy
 
 # Add Exasim to Julia search path
 cdir = pwd(); ii = findlast("Exasim", cdir);
-include(cdir[1:ii[end]] * "/Installation/setpath.jl");
+include(cdir[1:ii[end]] * "/install/setpath.jl");
 
 # Exasim packages
 using Preprocessing, Mesh, Gencode, Postprocessing
@@ -19,10 +19,14 @@ include("pdemodel.jl");          # include the PDE model file
 pde.porder = 3;                  # polynomial degree
 pde.physicsparam = [1.0 0.0];    # thermal conductivity and boundary value
 pde.tau = [1.0];                 # DG stabilization parameter
+pde.linearsolvertol = 1e-8;      # GMRES tolerance
+pde.ppdegree = 1;                # degree of polynomial preconditioner
+pde.RBdim = 0;
 
 # Choose computing platform and set number of processors
 #pde.platform = "gpu";           # choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;                # number of MPI processors
+pde.hybrid = 1;                  # 0 -> LDG, 1 -> HDG
 
 # create a linear mesh for a square domain
 mesh.p, mesh.t = Mesh.SquareMesh(8,8,1); # a mesh of 8 by 8 quadrilaterals
@@ -38,3 +42,4 @@ pde.visscalars = ["temperature", 1];  # list of scalar fields for visualization
 pde.visvectors = ["temperature gradient", [2, 3]]; # list of vector fields for visualization
 Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
 print("Done!");
+

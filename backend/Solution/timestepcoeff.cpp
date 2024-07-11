@@ -67,9 +67,8 @@ void DIRKcoeff(dstype * c, dstype * d, dstype * t, Int nstage, Int torder)
         t[1] = 0.500000000000000;
         t[2] = -0.068579021301629;
     }
-    else {
-        printf("DIRK ( %d , %d ) not implemented yet.", nstage, torder);
-        error("\n");
+    else {        
+        error("DIRK is not implemented yet \n");
     }                
 }
 

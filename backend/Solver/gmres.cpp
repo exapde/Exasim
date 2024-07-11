@@ -80,7 +80,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     cs = &sys.tempmem[2*n1];
     sn = &sys.tempmem[3*n1];
     H = &sys.tempmem[4*n1];
-    
+        
     // calculate Ritz values of polynomial preconditioner
     if  (disc.common.ppdegree > 1) {
         getPoly(disc, prec, sys, sys.lam, sys.randvect, sys.ipiv, N, disc.common.ppdegree, backend);        
@@ -155,12 +155,12 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
         
         for (i = 0; i < nrest && j < maxit; i++, j++) {
             Int m = i + 1;
-            
+                        
             // compute v[m] = A*v[i]
             START_TIMING;                        
             disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, backend);            
             END_TIMING_DISC(0);    
-                                    
+                                                            
             START_TIMING;                                    
             // compute v[m] = P*v[m]
             if (disc.common.ppdegree>1) {
@@ -172,19 +172,21 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
                 prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, backend);   
                 //ApplyComponentNorm(disc, sys.normcu, &sys.v[m*N], disc.res.Ru, ncu, ncu, npe, ne, backend);
             }
-            END_TIMING_DISC(2);    
-                        
+            END_TIMING_DISC(1);    
+                                    
             // orthogonalize Krylov vectors
+            
             START_TIMING;    
             if (orthogMethod == 0)
                 MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, backend);
             else
                 CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
-            END_TIMING_DISC(1);    
-            
+            END_TIMING_DISC(2);    
+                        
+            START_TIMING;    
             // Apply Givens rotation to compute s
-            cpuApplyGivensRotation(&H[n1*i], s, cs, sn, i);
-            
+            cpuApplyGivensRotation(&H[n1*i], s, cs, sn, i);           
+                        
             // compute relative error
             disc.common.linearSolverRelError = fabs(s[i+1])/nrmb;
             
@@ -192,7 +194,8 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
             if (disc.common.linearSolverRelError < tol) {                
                 UpdateSolution(disc.common.cublasHandle, sys.x, y, H, s, sys.v, i, N, n1, backend);
                 return j;
-            }            
+            }                        
+            END_TIMING_DISC(3);    
         }        
         
         // update solution: x = x + v*s
@@ -231,6 +234,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
             printf("Warning: The current relative error is %g \n",disc.common.linearSolverRelError);
         }
     }
+        
     return j;
 }
 
@@ -280,7 +284,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     INIT_TIMING;    
     
     Int maxit, nrest, orthogMethod, n1, i, k, j = 0;
-    dstype nrmb, nrmr, nrm, tol, scalar;
+    dstype nrmb, nrmr, tol, scalar;
     maxit = disc.common.linearSolverMaxIter;
     nrest = disc.common.gmresRestart;
     orthogMethod = disc.common.gmresOrthogMethod;
@@ -292,6 +296,11 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     cs = &sys.tempmem[2*n1];
     sn = &sys.tempmem[3*n1];
     H = &sys.tempmem[4*n1];
+    
+    auto begin = chrono::high_resolution_clock::now(); 
+    auto end = chrono::high_resolution_clock::now();
+    double tm[10];
+    for (int i=0; i<10; i++) tm[i]=0.0;
     
     // calculate Ritz values of polynomial preconditioner
     if  (disc.common.ppdegree > 1) {
@@ -310,7 +319,13 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         }        
     }    
     
-    nrmb = PNORM(disc.common.cublasHandle, N, sys.b, backend);            
+    nrmb = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
+    if (nrmb < disc.common.nonlinearSolverTol) {
+        ArraySetValue(sys.x, zero, N);
+        return 0;
+    }
+    //cout<<"||b|| = "<<nrmb<<endl;
+
     scalar = PNORM(disc.common.cublasHandle, N, sys.x, backend);      
     // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
     //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.b, backend);
@@ -318,6 +333,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.x, backend);
     //   scalar = sqrt(scalar*scalar - 0.5*nrm*nrm);
     // }                
+    //cout<<"||x|| = "<<scalar<<endl;
 
     dstype alpha = spatialScheme == 0 ? minusone : one;
 
@@ -363,7 +379,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     // }                
     nrmr = nrmb;
 
-    // cout<<"||P*r|| = "<<nrmb<<endl; 
+    //cout<<"||P*r|| = "<<nrmb<<endl; 
     // error("here");
             
     j = 0;
@@ -376,7 +392,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.v, backend);          
         //   nrmv = sqrt(nrmv*nrmv - 0.5*nrm*nrm);
         // }                
-        //scout<<"||v|| = "<<nrmv<<endl; 
+        //cout<<"||v|| = "<<nrmv<<endl; 
 
         // initialize s
         s[0] = nrmr;
@@ -386,10 +402,15 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         for (i = 0; i < nrest && j < maxit; i++, j++) {
             Int m = i + 1;
             
-            // compute v[m] = A*v[i]
-            disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, spatialScheme, backend);            
+            begin = chrono::high_resolution_clock::now();   
 
+            // compute v[m] = A*v[i]
+            disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, spatialScheme, backend);                        
             nrmv = PNORM(disc.common.cublasHandle, N, &sys.v[m*N], backend);
+            
+            end = chrono::high_resolution_clock::now();   
+            tm[0] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+            
             // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
             //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, &sys.v[m*N], backend);
             //   nrmv = sqrt(nrmv*nrmv - 0.5*nrm*nrm);
@@ -397,6 +418,8 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             //cout<<"||v|| = "<<nrmv<<endl;                         
             //error("here");
 
+            begin = chrono::high_resolution_clock::now();   
+            
             // compute v[m] = P*v[m]
             if (disc.common.ppdegree>1) {
                 prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, spatialScheme, backend);   
@@ -405,17 +428,26 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             else if (disc.common.RBcurrentdim>=0) {
                 prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, spatialScheme, backend);   
             }
+            
+            end = chrono::high_resolution_clock::now();   
+            tm[1] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
 
             // nrmv = PNORM(disc.common.cublasHandle, N, &sys.v[m*N], backend);
             // cout<<"||v|| = "<<nrmv<<endl;         
             // error("here");                                                    
                         
             // orthogonalize Krylov vectors
+            begin = chrono::high_resolution_clock::now();   
+            //CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             if (orthogMethod == 0)
                 MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, backend);
             else
                 CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             
+            end = chrono::high_resolution_clock::now();   
+            tm[2] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+            
+            begin = chrono::high_resolution_clock::now();   
             // Apply Givens rotation to compute s
             cpuApplyGivensRotation(&H[n1*i], s, cs, sn, i);
             
@@ -423,12 +455,20 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             disc.common.linearSolverRelError = fabs(s[i+1])/nrmb;           
 
             //cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<endl;                         
-
-            // check convergence and update solution: x = x + v*s
+            end = chrono::high_resolution_clock::now();   
+            tm[3] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;                                
+                        
+            // check convergence and update solution: x = x + v*y
             if (disc.common.linearSolverRelError < tol) {                
-                UpdateSolution(disc.common.cublasHandle, sys.x, y, H, s, sys.v, i, N, n1, backend);
-                return j;
-            }            
+              UpdateSolution(disc.common.cublasHandle, sys.x, y, H, s, sys.v, i, N, n1, backend);                
+              if (disc.common.mpiRank==0) {
+                printf("Matrix-vector product time: %g miliseconds\n", tm[0]);
+                printf("Applying preconditioner time: %g miliseconds\n", tm[1]);
+                printf("Orthgonalization time: %g miliseconds\n", tm[2]);    
+                printf("Solution update time: %g miliseconds\n", tm[3]);      
+              }
+              return j;
+            }                        
         }        
                 
         // update solution: x = x + v*s
@@ -455,6 +495,12 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         
         // check convergence
         if (disc.common.linearSolverRelError < tol) {
+          if (disc.common.mpiRank==0) {
+            printf("Matrix-vector product time: %g miliseconds\n", tm[0]);
+            printf("Applying preconditioner time: %g miliseconds\n", tm[1]);
+            printf("Orthgonalization time: %g miliseconds\n", tm[2]);    
+            printf("Solution update time: %g miliseconds\n", tm[3]);          
+          }
             return j;
         }
     }       
@@ -465,6 +511,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             printf("Warning: The current relative error is %g \n",disc.common.linearSolverRelError);
         }
     }
+        
     return j;
 }
 

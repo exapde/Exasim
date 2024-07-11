@@ -1,35 +1,36 @@
-function runstr = runcode(app, numpde)
+function runstr = runcode(pde, numpde)
 
-if nargin<2
-    numpde=1;
-end
+disp("Run C++ Exasim code ...")
+cdir = pwd();
+cd(char(pde.buildpath));
 
-disp("run code...");
-if numpde==1
-    mystr = app.appname + " 1 datain/ dataout/out";
-else
-    mystr = app.appname + " " + num2str(numpde);
-    for i = 1:numpde
-        mystr = mystr + " datain" + num2str(i) + "/ " + "dataout" + num2str(i) + "/out";
-    end    
-end
+pdenum = " " + num2str(numpde) + " ";
+DataPath = pde.buildpath;
 
-mpirun = app.mpirun;
-if app.platform == "cpu"    
-    if app.mpiprocs==1
-        runstr = "!./app/serial" + mystr;        
-    else
-        runstr = "!" + mpirun + " -np " + string(app.mpiprocs) + " ./app/mpi" + mystr;        
+mpirun = pde.mpirun;
+if pde.platform == "cpu"        
+    if pde.mpiprocs==1        
+        exec = "./cpuEXASIM ";        
+        runstr = "!" + exec + pdenum + DataPath + "/datain/ " + DataPath + "/dataout/out";        
+    else        
+        exec = " ./cpumpiEXASIM ";
+        runstr = "!" + mpirun + " -np " + string(pde.mpiprocs) + exec + pdenum + DataPath + "/datain/ " + DataPath + "/dataout/out";       
+    end        
+elseif pde.platform == "gpu"
+    if pde.mpiprocs==1        
+        exec = "./gpuEXASIM ";     
+        runstr = "!" + exec + pdenum + DataPath + "/datain/ " + DataPath + "/dataout/out";        
+    else        
+        exec = " ./gpumpiEXASIM ";
+        runstr = "!" + mpirun + " -np " + string(pde.mpiprocs) + exec + pdenum + DataPath + "/datain/ " + DataPath + "/dataout/out";       
     end
-    eval(char(runstr));
-elseif app.platform == "gpu"
-    if app.mpiprocs==1
-        runstr = "!./app/gpu" + mystr;   
-    else
-        runstr = "!" + mpirun + " -np " + string(app.mpiprocs) + " ./app/gpumpi" + mystr;        
-    end
-    eval(char(runstr));
 end
+
+tic
+eval(char(runstr));
+toc
+
+cd(char(cdir));
 
 end
 

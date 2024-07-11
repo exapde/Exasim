@@ -8,6 +8,7 @@ for i = 1:nproc
       ind = dmd{i}.bf==j;
       dmd{i}.bf(ind) = bcm(j);
     end
+    
     fi = f(:,dmd{i}.elempart);
     f2t = mkf2e(t(:,dmd{i}.elempart),elemtype,dim);
 

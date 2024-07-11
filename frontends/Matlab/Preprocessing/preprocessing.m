@@ -38,7 +38,12 @@ end
 if (app.nd==3) && (app.nve==8)
     app.elemtype=1;    
 end
-app.pgauss = 2*app.porder;
+
+if isfield(app, 'pgauss')==0
+  app.pgauss = 2*app.porder;
+elseif app.pgauss < 2*app.porder
+  app.pgauss = 2*app.porder;
+end
 
 % master struct
 master = Master(app);
@@ -176,7 +181,7 @@ for i = 1:mpiprocs
         fwrite(fileID1,mesh.wdg(:,:,dmd{i}.elempart),'double',endian);                
     end
     fclose(fileID1);         
-
+    
     % divide elements and faces into blocks
     if mpiprocs==1
         ne = length(dmd{i}.elempart);
@@ -286,7 +291,7 @@ for i = 1:mpiprocs
       fwrite(fileID2,master.perm(:)-1,'double',endian);        
       fwrite(fileID2,dmd{i}.bf(:),'double',endian);      
     end
-    fclose(fileID2);         
+    fclose(fileID2);             
 end
 
 app = writeapp(app,fileapp,endian);                

@@ -9,7 +9,7 @@ void PreviousSolutions(solstruct &sol, sysstruct &sys, commonstruct &common, Int
     Int npe = common.npe; // number of nodes on master element    
     //Int ne = common.ne1; // number of elements in this subdomain         
     Int ne2 = common.ne2; // number of elements in this subdomain       
-    Int N = common.ndof1;
+    //Int N = common.ndof1;
     Int N2 = npe*common.ncw*ne2;  
     
     if (common.temporalScheme==0) {//DIRK     

@@ -1,6 +1,9 @@
 mutable struct PDEStruct
     codename::String; # Exasim
     version::String;  # Set version
+    exasimpath::String; 
+    buildpath::String; 
+    backendpath::String; 
     appname::String;  # application name
     platform::String; # CPU or GPU
     cpucompiler::String; # Path to CPU compiler
@@ -146,6 +149,11 @@ function initializepde(version)
     pde.enzyme = "";
 
     pde.codename = "Exasim";
+    cdir = pwd(); ii = findlast("Exasim", cdir);
+    ExasimPath = cdir[1:ii[end]];
+    pde.exasimpath = ExasimPath;
+    pde.buildpath = pde.exasimpath * "/build";
+    pde.backendpath = pde.exasimpath * "/backend";        
     pde.version = version;
     pde.appname = "app";
     pde.platform = "cpu";
@@ -245,7 +253,7 @@ function initializepde(version)
     pde.externalparam = [0.0 0.0]; #
     pde.uinf = [0.0 0.0]; #
 
-    pde.visfilename = "dataout/output";
+    pde.visfilename = pde.buildpath * "/dataout/output";
     pde.visscalars = [];
     pde.visvectors = [];
     pde.viselem = [];

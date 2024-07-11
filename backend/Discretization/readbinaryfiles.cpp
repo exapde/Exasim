@@ -347,73 +347,73 @@ void readsolstruct(string filename, solstruct &sol)
     in.close();            
 }
 
-void readsolstructManaged(string filename, solstruct &sol)
-{
-    // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
+// void readsolstructManaged(string filename, solstruct &sol)
+// {
+//     // Open file to read
+//     ifstream in(filename.c_str(), ios::in | ios::binary);
+// 
+//     if (!in) 
+//         error("Unable to open file " + filename);
+//     
+//     printf("Read sol struct from files...\n");  
+// 
+// #ifndef HAVE_CUDA    
+//     sol.lsize = readiarrayfromdouble(in, 1);
+//     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
+//     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);    
+//     readarray(in, &sol.xdg, sol.nsize[1]);
+//     readarray(in, &sol.udg, sol.nsize[2]);    
+//     readarray(in, &sol.odg, sol.nsize[3]);    
+//     readarray(in, &sol.wdg, sol.nsize[4]);    
+// #endif
+//     
+// #ifdef HAVE_CUDA
+//     sol.lsize = readiarrayfromdoubleManaged(in, 1);
+//     sol.nsize = readiarrayfromdoubleManaged(in, sol.lsize[0]);
+//     sol.ndims = readiarrayfromdoubleManaged(in, sol.nsize[0]);    
+//     readarrayManaged(in, &sol.xdg, sol.nsize[1]);
+//     readarrayManaged(in, &sol.udg, sol.nsize[2]);    
+//     readarrayManaged(in, &sol.odg, sol.nsize[3]);    
+//     readarrayManaged(in, &sol.wdg, sol.nsize[4]);    
+// #endif    
+//         
+//     // Close file:
+//     in.close();            
+// }
 
-    if (!in) 
-        error("Unable to open file " + filename);
-    
-    printf("Read sol struct from files...\n");  
-
-#ifndef HAVE_CUDA    
-    sol.lsize = readiarrayfromdouble(in, 1);
-    sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
-    sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);    
-    readarray(in, &sol.xdg, sol.nsize[1]);
-    readarray(in, &sol.udg, sol.nsize[2]);    
-    readarray(in, &sol.odg, sol.nsize[3]);    
-    readarray(in, &sol.wdg, sol.nsize[4]);    
-#endif
-    
-#ifdef HAVE_CUDA
-    sol.lsize = readiarrayfromdoubleManaged(in, 1);
-    sol.nsize = readiarrayfromdoubleManaged(in, sol.lsize[0]);
-    sol.ndims = readiarrayfromdoubleManaged(in, sol.nsize[0]);    
-    readarrayManaged(in, &sol.xdg, sol.nsize[1]);
-    readarrayManaged(in, &sol.udg, sol.nsize[2]);    
-    readarrayManaged(in, &sol.odg, sol.nsize[3]);    
-    readarrayManaged(in, &sol.wdg, sol.nsize[4]);    
-#endif    
-        
-    // Close file:
-    in.close();            
-}
-
-void readsolstructZeroCopy(string filename, solstruct &sol)
-{
-    // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
-
-    if (!in) 
-        error("Unable to open file " + filename);
-    
-    printf("Read sol struct from files...\n");  
-
-#ifndef HAVE_CUDA    
-    sol.lsize = readiarrayfromdouble(in, 1);
-    sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
-    sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);    
-    readarray(in, &sol.xdg, sol.nsize[1]);
-    readarray(in, &sol.udg, sol.nsize[2]);    
-    readarray(in, &sol.odg, sol.nsize[3]);    
-    readarray(in, &sol.wdg, sol.nsize[4]);    
-#endif
-    
-#ifdef HAVE_CUDA
-    sol.lsize = readiarrayfromdoubleZeroCopy(in, 1);
-    sol.nsize = readiarrayfromdoubleZeroCopy(in, sol.lsize[0]);
-    sol.ndims = readiarrayfromdoubleZeroCopy(in, sol.nsize[0]);    
-    readarrayZeroCopy(in, &sol.xdg, sol.nsize[1]);
-    readarrayZeroCopy(in, &sol.udg, sol.nsize[2]);    
-    readarrayZeroCopy(in, &sol.odg, sol.nsize[3]);   
-    readarrayZeroCopy(in, &sol.wdg, sol.nsize[4]);   
-#endif    
-        
-    // Close file:
-    in.close();            
-}
+// void readsolstructZeroCopy(string filename, solstruct &sol)
+// {
+//     // Open file to read
+//     ifstream in(filename.c_str(), ios::in | ios::binary);
+// 
+//     if (!in) 
+//         error("Unable to open file " + filename);
+//     
+//     printf("Read sol struct from files...\n");  
+// 
+// #ifndef HAVE_CUDA    
+//     sol.lsize = readiarrayfromdouble(in, 1);
+//     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
+//     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);    
+//     readarray(in, &sol.xdg, sol.nsize[1]);
+//     readarray(in, &sol.udg, sol.nsize[2]);    
+//     readarray(in, &sol.odg, sol.nsize[3]);    
+//     readarray(in, &sol.wdg, sol.nsize[4]);    
+// #endif
+//     
+// #ifdef HAVE_CUDA
+//     sol.lsize = readiarrayfromdoubleZeroCopy(in, 1);
+//     sol.nsize = readiarrayfromdoubleZeroCopy(in, sol.lsize[0]);
+//     sol.ndims = readiarrayfromdoubleZeroCopy(in, sol.nsize[0]);    
+//     readarrayZeroCopy(in, &sol.xdg, sol.nsize[1]);
+//     readarrayZeroCopy(in, &sol.udg, sol.nsize[2]);    
+//     readarrayZeroCopy(in, &sol.odg, sol.nsize[3]);   
+//     readarrayZeroCopy(in, &sol.wdg, sol.nsize[4]);   
+// #endif    
+//         
+//     // Close file:
+//     in.close();            
+// }
 
 void writesolstruct(string filename, solstruct &sol)
 {    
@@ -438,7 +438,7 @@ void writesolstruct(string filename, solstruct &sol)
     out.close();    
 }
 
-void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh)
+void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, Int mpirank)
 {
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
@@ -461,15 +461,21 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);  
         
-    if (sol.nsize[1] == npe*ncx*ne)
+    //printf("%d %d %d %d %d %d %d %d %d\n", mpirank, sol.nsize[0], sol.nsize[1], sol.nsize[2], npe, ncx, nc, ncu, ne);
+    
+    if (sol.nsize[1] == npe*ncx*ne) {      
+        if (mpirank==0) printf("Reading xdg from binary files \n");  
         readarray(in, &sol.xdg, sol.nsize[1]);
+    }
     else
         error("Input files are incorrect");
         
     if (sol.nsize[2] == npe*nc*ne) {
+        if (mpirank==0) printf("Reading (u,q) from binary files \n");  
         readarray(in, &sol.udg, sol.nsize[2]);    
     }
     else if (sol.nsize[2] == npe*ncu*ne) {
+        if (mpirank==0) printf("Reading u from binary files \n");  
         dstype *tmp;
         readarray(in, &tmp,     sol.nsize[2]);    
         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
@@ -480,6 +486,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         CPUFREE(tmp);
     }
     else if (sol.nsize[2] == 0) {
+        if (mpirank==0) printf("compute the initial solution \n");  
         sol.udg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);    
         cpuArraySetValue(sol.udg, zero, npe*nc*ne);
         
@@ -491,7 +498,8 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.nsize[2] = npe*nc*ne;        
     }
     else
-        error("Input files are incorrect");
+        error("Input files are incorrect");        
+    
     #ifdef HAVE_ENZYME
         sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
         cpuArraySetValue(sol.dudg, zero, npe*nc*ne);
@@ -526,9 +534,11 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
 void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, 
         Int mpiprocs, Int mpirank, Int ompthreads, Int omprank) 
 {   
+    if (mpirank==0) printf("Reading app from binary files \n");  
     string fileapp = filein + "app.bin";        
     readappstruct(fileapp,app);        
         
+    if (mpirank==0) printf("Reading master from binary files \n");    
     string filemaster = filein + "master.bin";           
     readmasterstruct(filemaster, master);
     
@@ -544,20 +554,24 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
     if (mpiprocs>1) {     
         Int filenumber = mpirank+1; //file number     
         
+        if (mpirank==0) printf("Reading mesh from binary files \n");            
         string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
         readmeshstruct(filemesh, mesh);              
                 
+        if (mpirank==0) printf("Reading initial solution from binary files \n");         
         string filesol = filein + "sol" + NumberToString(filenumber) + ".bin";                    
         //readsolstruct(filesol, sol);    
-        readsolstruct(filesol, sol, app, master, mesh);    
+        readsolstruct(filesol, sol, app, master, mesh, mpirank);    
     }
     else {
+        if (mpirank==0) printf("Reading mesh from binary files \n");         
         string filemesh = filein + "mesh.bin";                    
         readmeshstruct(filemesh, mesh);              
         
+        if (mpirank==0) printf("Reading initial solution from binary files \n");         
         string filesol = filein + "sol.bin";                    
         //readsolstruct(filesol, sol);              
-        readsolstruct(filesol, sol, app, master, mesh);    
+        readsolstruct(filesol, sol, app, master, mesh, mpirank);    
     }    
 }
 

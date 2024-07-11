@@ -2,7 +2,7 @@ function kkgencode(app)
 
 kkdir = app.buildpath + "/model";
 
-text = fileread(app.backendpath + "/Model/KokkosDrivers.cpp");
+text = fileread(app.backendpath + "/Discretization/KokkosDrivers.cpp");
 fid = fopen(kkdir + "/" + "KokkosDrivers.cpp", 'w');
 fprintf(fid, text);
 fclose(fid);
@@ -43,7 +43,7 @@ if isfield(pde, 'source')
     f = pde.source(u, q, wdg, odg, xdg, time, param, uinf);
     kkgencodeelem("Source" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);    
 else    
-    kknocodeelem("Source" + strn, kkdir);    
+    error("pde.source is not defined");
 end
 if isfield(pde, 'eos')
     f = pde.eos(u, q, wdg, odg, xdg, time, param, uinf);

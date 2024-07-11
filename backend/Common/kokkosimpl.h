@@ -1066,7 +1066,7 @@ void schurMatrixD(dstype* D, const dstype* Dtmp,  const int npe, const int ncu, 
 }
 
 // [npe*npe*ne*ncu*ncu] x [npe*npe*ne] -> npe*ncu*npe*ncu*ne
-void schurMatrixBMinvC(dstype* D, const dstype *B, const dstype *MinvC,  const int npe, const int ncu, const int ne)
+void schurMatrixBMinvC(dstype* D, const dstype *B, const dstype *MinvC, dstype scalar, const int npe, const int ncu, const int ne)
 {        
     int M = npe*npe;    
     int L = npe*npe*ne;
@@ -1083,7 +1083,7 @@ void schurMatrixBMinvC(dstype* D, const dstype *B, const dstype *MinvC,  const i
         int e = s/ncu;   // [0, ne]
         dstype sum = 0;
         for (int k=0; k<npe; k++)
-            sum += B[i + npe*k + M*e + L*m + K*n]*MinvC[k + npe*j + M*e];
+            sum += scalar*B[i + npe*k + M*e + L*m + K*n]*MinvC[k + npe*j + M*e];
         D[idx] += sum;
     });                        
 }
@@ -1108,7 +1108,7 @@ void schurMatrixF(dstype* F, const dstype* Ftmp,  const int npe, const int ncu, 
 }
 
 // [npe*npe*ne*(ncu*ncu)] x [npe*(npf*nfe)*ne] -> npe*(ncu*ncu)*(npf*nfe)*ne
-void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ncu2 = ncu*ncu;
     int ndf = npf*nfe;
@@ -1124,7 +1124,7 @@ void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, const in
         int e = p/ndf;   // [0, ne]                        
         dstype sum = 0;
         for (int k=0; k<npe; k++)
-            sum += B[i + npe*k + npe*npe*e + L*m]*MinvE[k + npe*j + M*e];
+            sum += scalar*B[i + npe*k + npe*npe*e + L*m]*MinvE[k + npe*j + M*e];
         F[idx] -= sum;
     });                        
 }
@@ -1151,7 +1151,7 @@ void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const int ncu, 
 }
 
 // [(npf*nfe)*npe*ne*ncu*ncu] x [npe*npe*ne] -> ncu*(npf*nfe)*npe*ncu*ne
-void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC,  const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int Q = npe*npe;
@@ -1170,7 +1170,7 @@ void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC,  const i
         int e = s/ncu;   // [0, ne]
         dstype sum = 0;
         for (int k=0; k<npe; k++)
-            sum += G[i + ndf*k + M*e + L*m + P*n]*MinvC[k + npe*j + Q*e];
+            sum += scalar*G[i + ndf*k + M*e + L*m + P*n]*MinvC[k + npe*j + Q*e];
         K[idx] += sum;
     });                        
 }
@@ -1197,7 +1197,7 @@ void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu, const int npf, 
 }
 
 // [(npf*nfe)*npe*ne*ncu*ncu] x [npe*(npf*nfe)*ne] -> ncu*(npf*nfe)*ncu*(npf*nfe)*ne
-void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE,  const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = ndf*npe;    
@@ -1215,7 +1215,7 @@ void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE,  const i
         int e = s/ndf;   // [0, ne]
         dstype sum = 0;
         for (int k=0; k<npe; k++)
-            sum += G[i + ndf*k + M*e + L*m + P*n]*MinvE[k + npe*j + M*e];
+            sum += scalar*G[i + ndf*k + M*e + L*m + P*n]*MinvE[k + npe*j + M*e];
         H[idx] -= sum;        
     });                        
 }
@@ -1494,6 +1494,16 @@ void ApplyJacFhat(dstype* sg, const dstype* fhg, const dstype* jac, const int ng
         int g = i%ngf;       // [1, ngf]
         int e = i/ngf;   // [1, nf]                
         sg[g+ngf*m+M*e] = fhg[idx]*jac[i];
+    });
+}
+
+void ApplyDtcoef(dstype* sg_u, dstype* fg, dstype dtcoeff, const int nga, const int ncu)
+{    
+    int N = nga*ncu;
+    Kokkos::parallel_for("ApplyJac", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%nga; // [1, nga]  
+        int m = idx/nga; // [1, ncu]        
+        sg_u[i + nga*m + nga*ncu*m] += dtcoeff*fg[i + nga*m];
     });
 }
 

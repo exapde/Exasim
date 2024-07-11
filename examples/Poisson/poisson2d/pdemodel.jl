@@ -18,6 +18,10 @@ function fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fb = f[1]*n[1] + f[2]*n[2] + tau[1]*(u[1]-0.0);
     return fb;
 end
+function fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)    
+    fb = tau[1]*(0.0 - uhat[1]);
+    return fb;
+end
 function initu(x, mu, eta)
     u0 = 0.0;
     return u0;

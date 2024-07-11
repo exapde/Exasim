@@ -1,6 +1,6 @@
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
-run(cdir(1:(ii+5)) + "/Installation/setpath.m");
+run(cdir(1:(ii+5)) + "/Install/setpath.m");
 
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();
@@ -12,6 +12,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 4;              % number of MPI processors
+pde.hybrid = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;          % polynomial degree
@@ -37,10 +38,15 @@ mesh.curvedboundaryexpr = {@(p) 0, @(p) 0, @(p) 0, @(p) 0, @(p) sqrt(p(1,:).*p(1
 % call exasim to generate and run C++ code to solve the PDE model
 [sol,pde,mesh] = exasim(pde,mesh);
 
-% visualize the numerical solution of the PDE model using Paraview
-pde.visscalars = {"velocity", 1, "displacement", 4};  % list of scalar fields for visualization
-pde.visvectors = {"displacement gradient", [2 3]}; % list of vector fields for visualization
-xdg = vis(sol,pde,mesh); % visualize the numerical solution
-disp("Done!");
+% % visualize the numerical solution of the PDE model using Paraview
+% pde.visscalars = {"velocity", 1, "displacement", 4};  % list of scalar fields for visualization
+% pde.visvectors = {"displacement gradient", [2 3]}; % list of vector fields for visualization
+% xdg = vis(sol,pde,mesh); % visualize the numerical solution
+% disp("Done!");
 
+mesh.porder = pde.porder;
+mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
+for i = 1:size(sol,4)
+  figure(1); clf; scaplot(mesh,sol(:,1,:,i),[-1 1],2,1); axis on; axis equal; axis tight;
+end
 

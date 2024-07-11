@@ -40,6 +40,13 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         gpuInit(sol, res, app, master, mesh, tmp, common, 
             hsol, hres, happ, hmaster, hmesh, htmp, hcommon);                
                 
+        if (common.spatialScheme > 0)  { // HDG        
+          TemplateMalloc(&mesh.bf, hcommon.nfe*hcommon.ne, 0);
+          for (int i=0; i<hcommon.nfe*hcommon.ne; i++) mesh.bf[i] = hmesh.bf[i];   
+        }
+        
+        if (common.mpiRank==0) printf("free CPU memory \n");
+          
         // release CPU memory
         happ.freememory(hcommon.cpuMemory);        
         hmaster.freememory(hcommon.cpuMemory);        
@@ -81,6 +88,9 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       Int ncq = common.ncq; // number of compoments of (q)      
       Int nbe = common.nbe; // number of blocks for elements
 
+      if (common.mpiRank==0) 
+        printf("Init HDG Discretization ... \n");        
+
       int nboufaces = 0; // number of boundary faces
       int maxbc = 0; // maximum number of boundary conditions
       for (int i=0; i<nfe*ne; i++) {
@@ -88,6 +98,9 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         maxbc = max(maxbc, mesh.bf[i]);
       }
       common.maxnbc = maxbc;      
+
+      if (common.mpiRank==0) 
+        printf("Maximum number of boundary conditions = %d \n", maxbc);        
 
       // print2iarray(mesh.bf, nfe, ne);
       // print2iarray(common.eblks, 3, nbe);
@@ -97,8 +110,11 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateMalloc(&boufaces, nboufaces, 0);
       getboundaryfaces(common.nboufaces, boufaces, mesh.bf, common.eblks, nbe, nfe, maxbc, nboufaces);
       TemplateMalloc(&mesh.boufaces, nboufaces, common.backend);
-      TemplateCopytoDevice(mesh.boufaces, boufaces, nboufaces, common.backend);                   
-    
+      TemplateCopytoDevice(mesh.boufaces, boufaces, nboufaces, common.backend);                       
+
+      if (common.mpiRank==0) 
+        printf("Number of boundary faces = %d \n", nboufaces);        
+
       // print1iarray(common.nboufaces, 1 + maxbc*nbe);
       // print1iarray(mesh.boufaces, nboufaces);      
       CPUFREE(boufaces);
@@ -109,6 +125,9 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateMalloc(&res.K, max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf), backend);
       TemplateMalloc(&res.H, npf*nfe*ncu*npf*nfe*ncu*common.ne, backend);
       TemplateMalloc(&res.ipiv, npe * ncu * neb * sizeof(Int), backend);      
+
+      if (common.mpiRank==0) 
+        printf("Memory allocation ...\n");        
 
 // #ifdef HAVE_CUDA
 //       int n = npe*ncu;
@@ -137,6 +156,9 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       // compute uhat by getting u on faces
       GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
 
+      if (common.mpiRank==0) 
+        printf("Finish GetFaceNodes ... \n");        
+
       // print3darray(sol.udg, common.npe, common.nc, common.ne);
       // print2darray(sol.uh, common.ncu*common.npf, common.nf);
       // GetFaceNodes(tmp.tempg, sol.xdg, mesh.f2e, mesh.perm, common.npf, common.nd, common.npe, common.nd, common.nf);
@@ -150,10 +172,16 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         // compute M^{-1} * E and store it in res.E
         qEquation(sol, res, app, master, mesh, tmp, common, backend);      
 
+        if (common.mpiRank==0) 
+          printf("Finish qEquation ... \n");        
+
         // compute the flux q = -nabla u and store it in sol.udg
-        if (common.wave == 0) hdgGetQ(sol.udg, sol.uh, res, mesh, tmp, common, backend);
-        // print2darray(&sol.udg[npe*nc*64], npe, nc);
-        // error("stop");
+        if (common.wave == 0) hdgGetQ(sol.udg, sol.uh, sol, res, mesh, tmp, common, backend);
+        //print3darray(sol.udg, npe, nc, common.ne);        
+        //error("stop");
+
+        if (common.mpiRank==0) 
+          printf("Finish hdgGetQ ... \n");        
       }
 
       // uEquationHDG( sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
@@ -168,6 +196,8 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 // destructor 
 CDiscretization::~CDiscretization()
 {    
+    if (common.mpiRank==0) printf("CDiscretization destructor is being called \n");
+    
     app.freememory(common.cpuMemory);
     master.freememory(common.cpuMemory);
     mesh.freememory(common.cpuMemory);
@@ -175,7 +205,7 @@ CDiscretization::~CDiscretization()
     tmp.freememory(common.cpuMemory);
     res.freememory(common.cpuMemory);
     common.freememory();
-           
+    
     // free ncarray and udgarray
     
 #ifdef HAVE_CUDA    
@@ -240,6 +270,7 @@ void CDiscretization::hdgAssembleResidual(dstype *b, Int backend)
 #else    
     // b, K, H, F, Ru    
     ResidualHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    //uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
     hdgAssembleRHS(b, res.Rh, mesh, common);      
 #endif
 }

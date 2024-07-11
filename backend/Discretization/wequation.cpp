@@ -2,7 +2,7 @@
 #define __WEQUATION
 
 void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
-      appstruct &app, commonstruct &common, tempstruct &tmp, Int ng, Int backend)
+      dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
     Int ncu = common.ncu; // number of compoments of (u)
     Int nd = common.nd; // spatial dimension
@@ -10,7 +10,7 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
     Int ncw = common.ncw;// number of compoments of (w)
     Int nco = common.nco;// number of compoments of (o)
     Int ncx = common.ncx;// number of compoments of (xdg)        
-    Int npe = common.npe; // number of nodes on master element    
+    //Int npe = common.npe; // number of nodes on master element    
     Int modelnumber = common.modelnumber;
     dstype time = common.time;                
     dstype *uinf = app.uinf;
@@ -22,8 +22,9 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
         ArrayAXPBY(wdg, udg, wsrc, scalar, scalar, ng*ncw);
     }        
     else {         
-        dstype *s = tmp.tempg; // temporary array    
-        dstype *s_wdg = &tmp.tempg[ng*ncw]; // temporary array    
+        // fix bug here
+        dstype *s = tempg; // temporary array    
+        dstype *s_wdg = &tempg[ng*ncw]; // temporary array 
         // use Newton to solve the nonlinear system  alpha * dw/dt + beta w = S(w, u, q) to obtain w for given (u, q)             
         for (int iter=0; iter<10; iter++) {
           // alpha * dw/dt + beta w = sourcew(u,q,w) -> alpha (dtfactor * w - wsrc) + beta w = sourcew(u,q,w) 
@@ -72,7 +73,7 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
 }
 
 void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
-      appstruct &app, commonstruct &common, tempstruct &tmp, Int ng, Int backend)
+       dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
     Int ncu = common.ncu; // number of compoments of (u)
     Int nd = common.nd; // spatial dimension
@@ -80,7 +81,7 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
     Int ncw = common.ncw;// number of compoments of (w)
     Int nco = common.nco;// number of compoments of (o)
     Int ncx = common.ncx;// number of compoments of (xdg)        
-    Int npe = common.npe; // number of nodes on master element    
+    //Int npe = common.npe; // number of nodes on master element    
     Int modelnumber = common.modelnumber;
     dstype time = common.time;                
     dstype *uinf = app.uinf;
@@ -93,8 +94,9 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
         ArraySetValue(wdg_udg, scalar, ng*ncw*nc);
     }        
     else {   
-        dstype *s = tmp.tempg; // temporary array    
-        dstype *s_wdg = &tmp.tempg[ng*ncw]; // temporary array              
+         // fix bug here
+        dstype *s = tempg; // temporary array    
+        dstype *s_wdg = &tempg[ng*ncw]; // temporary array              
         // use Newton to solve the nonlinear system  alpha * dw/dt + beta w = S(w, u, q) to obtain w for given (u, q)                
         for (int iter=0; iter<10; iter++) {
           // alpha * dw/dt + beta w = sourcew(u,q,w) -> alpha (dtfactor * w - wsrc) + beta w = sourcew(u,q,w) 
@@ -140,7 +142,8 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
           if (nrm < 1e-6) {
             // wdg_udg is actually s_udg 
             HdgSourcew(s, wdg_udg, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
-            // w_udg = inverse(s_wdg) * s_udg
+            ArrayMultiplyScalar(s_wdg, minusone, ng*nc); // fix bug here
+            // w_udg = -inverse(s_wdg) * s_udg
             if (ncw==1) {                
               SmallMatrixSolve11(wdg_udg, s_wdg, ng, nc);
             }

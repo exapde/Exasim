@@ -248,7 +248,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
             cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
                         
         // update the reduced basis
-        if (status==0)
+        if ((status==0) && (disc.common.RBdim > 0)) // fix bug here 
             UpdateRB(sys, disc, prec, backend);      
         
         // check convergence
@@ -257,13 +257,13 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         }
     }
     
-    if (disc.common.tdep == 1) {
-        disc.common.tdep = 0;
-        disc.evalResidual(sys.r, sys.u, backend);
-        nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
-        cout<<"PTC Iteration: "<<it<<",  Steady-State Residual Norm: "<<nrmr<<endl;   
-        disc.common.tdep = 1;
-    }
+//     if (disc.common.tdep == 1) {
+//         disc.common.tdep = 0;
+//         disc.evalResidual(sys.r, sys.u, backend);
+//         nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
+//         cout<<"PTC Iteration: "<<it<<",  Steady-State Residual Norm: "<<nrmr<<endl;   
+//         disc.common.tdep = 1;
+//     }
     
     return it;
 }
@@ -294,8 +294,15 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
       disc.evalResidual(sys.b, sys.u, backend);
     }
     else if (spatialScheme==1) {            
+      auto begin = chrono::high_resolution_clock::now();   
+      
       disc.hdgAssembleLinearSystem(sys.b, backend);
+            
+      auto end = chrono::high_resolution_clock::now();
+      double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;      
 
+      if (disc.common.mpiRank==0) printf("hdgAssembleLinearSystem time: %g miliseconds\n", t1);
+      
       if (disc.common.debugMode==1) {
         int n = disc.common.npe*disc.common.ncu;
         int m = disc.common.npf*disc.common.nfe*disc.common.ncu;
@@ -306,8 +313,6 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
         writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_DUDG_DUH.bin", disc.res.F, n*m*ne, backend);
       }
     }
-
-    //dstype nrmb = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
     
     // construct the preconditioner
     if (disc.common.RBcurrentdim>0) {
@@ -316,13 +321,18 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
     else {
         ArraySetValue(sys.x, zero, N);     
     }
-    
+            
+    auto begin = chrono::high_resolution_clock::now();   
+        
     disc.common.linearSolverIter = GMRES(sys, disc, prec, N, spatialScheme, backend);  
 
+    auto end = chrono::high_resolution_clock::now();
+    double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+    
+    if (disc.common.mpiRank==0)  printf("GMRES time: %g miliseconds\n", t1);
+    
     if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
-        printf("GMRES converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                
-
-    //return nrmb;         
+        printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
 }
 
 Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
@@ -337,19 +347,29 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
       dstype nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.u, backend);
       nrmr = sqrt(nrmr*nrmr - 0.5*nrm*nrm);
     }                
-
+    
     if (disc.common.mpiRank==0)
-        cout<<"Newton Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                        
+      cout<<"Newton Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                        
 
     if (disc.common.debugMode==1) {
       writearray2file(disc.common.fileout + NumberToString(it) + "newton_uh.bin", disc.sol.uh, N, backend);
       writearray2file(disc.common.fileout + NumberToString(it) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
     }
 
+    if (spatialScheme == 1) { 
+      if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+
+      // compute the residual vector R = [Ru; Rh]
+      disc.hdgAssembleResidual(sys.b, backend);
+      nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
+      nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
+      if (disc.common.mpiRank==0)
+        cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;          
+    }        
+
     // use PTC to solve the system: R(u) = 0
-    for (it=0; it<maxit; it++) {                        
-        
-        // solve the linear system: (lambda*B + J(u))x = -R(u)        
+    for (it=0; it<maxit; it++) {              
+        // solve the linear system:  J(u) x = -R(u)        
         LinearSolver(sys, disc, prec, out, N, spatialScheme, it, backend);
 
         // update the reduced basis space
@@ -357,10 +377,10 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
 
         //print3darray(sys.x, disc.common.ncu, disc.common.npf, disc.common.nf);
         //print3darray(sys.u, disc.common.ncu, disc.common.npf, disc.common.nf);
-
+        
         // update the solution: u = u + x
         ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, one, N, backend); 
-
+        
         if (spatialScheme == 0) {          
           // compute both the residual vector and sol.udg  
           disc.evalResidual(sys.r, sys.u, backend);
@@ -377,10 +397,11 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_uh.bin", disc.sol.uh, N, backend);
             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
             error("stop for debugging...");
-          }
-
-          if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.res, disc.mesh, disc.tmp, disc.common, backend);
+          }          
           
+          if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+          
+          // compute the residual vector R = [Ru; Rh]
           disc.hdgAssembleResidual(sys.b, backend);
           nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
@@ -388,7 +409,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
 
         if (disc.common.mpiRank==0)
             cout<<"Newton Iteration: "<<it+1<<",  Residual Norm: "<<nrmr<<endl;                                              
-
+        
         // check convergence
         if (nrmr < tol) {            
             return (it+1);   

@@ -1,9 +1,8 @@
-import numpy
+import numpy, os
 
 def initializepde(version):
 
     pde = {'codename' : [], 'version' : []};
-
     pde['cpucompiler']  = "g++";
     pde['mpicompiler'] = "mpicxx";
     pde['gpucompiler'] = "nvcc";
@@ -12,6 +11,11 @@ def initializepde(version):
     pde['metis'] = "mpmetis";
     pde['paraview'] = "paraview";
     pde['enzyme'] = [];
+
+    cdir = os.getcwd(); ii = cdir.find("Exasim");
+    pde['exasimpath'] = cdir[0:(ii+6)];
+    pde['buildpath'] = pde['exasimpath'] + "/build";
+    pde['backendpath'] = pde['exasimpath'] + "/backend";
 
     pde['codename'] = "Exasim";
     pde['version'] = version;
@@ -117,7 +121,7 @@ def initializepde(version):
     pde['stgparam'] = numpy.array([0.0, 0.0]); # synthetic turbulence
 
     pde['viselem'] = [];
-    pde['visfilename'] = "dataout/output";  # filename for paraview output files
+    pde['visfilename'] = pde['buildpath'] + "/dataout/output";  # filename for paraview output files
 
     pde['dae_alpha'] = 1.0;
     pde['dae_beta'] = 0.0;

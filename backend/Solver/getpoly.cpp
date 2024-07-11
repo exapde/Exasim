@@ -20,6 +20,7 @@ void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
         H[i] = 0.0;
     
     dstype normr = PNORM(disc.common.cublasHandle, N, r, backend);    
+          
     ArrayAX(disc.common.cublasHandle, sys.v, r, 1.0/normr, N, backend);    
     for (int j=0; j<m; j++) {                    
         disc.evalMatVec(&sys.v[(j+1)*N], &sys.v[j*N], sys.u, sys.b, backend);      
@@ -152,7 +153,7 @@ void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     for(int i=0; i<m*m1; i++)
         H[i] = 0.0;
     
-    dstype normr = PNORM(disc.common.cublasHandle, N, r, backend);    
+    dstype normr = PNORM(disc.common.cublasHandle, N, r, backend);        
     ArrayAX(disc.common.cublasHandle, sys.v, r, 1.0/normr, N, backend);    
     for (int j=0; j<m; j++) {                    
         disc.evalMatVec(&sys.v[(j+1)*N], &sys.v[j*N], sys.u, sys.b, spatialScheme, backend);      
@@ -179,13 +180,13 @@ void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     
     for (int i=0; i < m; i++)
         em[i] = 0.0;
-    em[m-1] = 1.0;           
-    
+    em[m-1] = 1.0;                   
+        
     makeH(disc, prec, sys, Hm, r, N, m, spatialScheme, backend);
-    eigH(Ht, Hm, em, work, ipiv, m);        
-    DGEEV(&chv, &chv, &m, Ht, &m, wr, wi, work, &m, work, &m, work, &lwork, &info );               
-    LejaSort(lamr, lami, wr, wi, work, m);
+    eigH(Ht, Hm, em, work, ipiv, m);            
+    DGEEV(&chv, &chv, &m, Ht, &m, wr, wi, work, &m, work, &m, work, &lwork, &info );            
+    LejaSort(lamr, lami, wr, wi, work, m);    
 }
-
+    
 #endif
 

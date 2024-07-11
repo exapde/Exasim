@@ -14,7 +14,7 @@ CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 
 // destructor
 CPreconditioner::~CPreconditioner()
-{        
+{            
     precond.freememory(precond.cpuMemory);
 }
 
@@ -103,21 +103,22 @@ void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDisc
             H, RBdim, H_tmp, backend);    
     
     /* Solve the linear system */
-//     Inverse(disc.common.cublasHandle, H, H_tmp, precond.ipiv, RBdim, 1, backend);       
-//     PGEMNV(disc.common.cublasHandle, RBdim, RBdim, &one, H, RBdim, 
-//             RBcoef_tmp, inc1, &zero, RBcoef, inc1, backend);    
+    Inverse(disc.common.cublasHandle, H, H_tmp, precond.ipiv, RBdim, 1, backend);       
+    PGEMNV(disc.common.cublasHandle, RBdim, RBdim, &one, H, RBdim, 
+            RBcoef_tmp, inc1, &zero, RBcoef, inc1, backend);    
     
     // since the matrix is very small, it is faster to invert it in CPU 
-    ArrayCopy(disc.common.cublasHandle, sys.tempmem, H, RBdim*RBdim, backend);         
-    Kokkos::fence();
-    cpuComputeInverse(sys.tempmem, &sys.tempmem[RBdim*RBdim], sys.ipiv, RBdim);
+    // ArrayCopy(disc.common.cublasHandle, sys.tempmem, H, RBdim*RBdim, backend);         
+    // Kokkos::fence();
+    // cpuComputeInverse(sys.tempmem, &sys.tempmem[RBdim*RBdim], sys.ipiv, RBdim);
 
-    // RBcoef = inverse(H)*RBcoef_tmp
-    PGEMNV(disc.common.cublasHandle, RBdim, RBdim, &one, sys.tempmem, RBdim, 
-            RBcoef_tmp, inc1, &zero, RBcoef, inc1, backend);    
+    // // RBcoef = inverse(H)*RBcoef_tmp
+    // PGEMNV(disc.common.cublasHandle, RBdim, RBdim, &one, sys.tempmem, RBdim, 
+    //         RBcoef_tmp, inc1, &zero, RBcoef, inc1, backend);    
         
-    // compute x = -W*RBcoef
-    PGEMNV(disc.common.cublasHandle, N, RBdim, &minusone, precond.W, N, RBcoef, 
+    // compute x = alpha * W * RBcoef
+    dstype alpha = (spatialScheme == 0) ? minusone : one;
+    PGEMNV(disc.common.cublasHandle, N, RBdim, &alpha, precond.W, N, RBcoef, 
             inc1, &zero, sys.x, inc1, backend);                                                 
 }
 

@@ -57,7 +57,7 @@ for k=1:1:ne
         end
         MinvC(:,:,k,i) = -Mi*C(:,:,i);
     end                
-    
+        
     % face matrices
     E = zeros(npe,npf*nfe,nd);    
     for i=1:nd    

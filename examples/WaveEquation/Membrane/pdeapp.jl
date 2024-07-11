@@ -3,7 +3,7 @@ using Revise, DelimitedFiles, SymPy
 
 # Add Exasim to Julia search path
 cdir = pwd(); ii = findlast("Exasim", cdir);
-include(cdir[1:ii[end]] * "/Installation/setpath.jl");
+include(cdir[1:ii[end]] * "/install/setpath.jl");
 
 # Exasim packages
 using Preprocessing, Mesh, Gencode, Postprocessing

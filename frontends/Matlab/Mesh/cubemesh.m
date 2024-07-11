@@ -41,7 +41,7 @@ if elemtype==0
     t=kron(t,ones(n-1,1,'int32'))+kron(ones(size(t),'int32'),int32(0:n-2)'*m);
     t=kron(t,ones(o-1,1,'int32'))+kron(ones(size(t),'int32'),int32(0:o-2)'*m*n);
 
-    %[p,t]=fixmesh(p,t);
+    [p,t]=fixmesh(p,t);
 else
     t = [1 2 m+2 m+1 m*n+1 m*n+2 m*n+m+2 m*n+m+1];
     t=kron(t,ones(o-1,1))+kron(ones(size(t)),(0:o-2)'*(m*n));        

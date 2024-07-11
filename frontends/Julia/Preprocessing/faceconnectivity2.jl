@@ -1,5 +1,6 @@
 function faceconnectivity2(t,f2t,dim,elemtype,porder)
 
+ne = size(t,2);
 nf = size(f2t,2);
 
 #display([porder dim elemtype])
@@ -8,8 +9,13 @@ permind = permindex(plocfc,dim,elemtype);
 face = getelemface(dim,elemtype);
 
 npf = size(perm,1);
+nfe = size(perm,2);
 npe = size(philocvl,1);
 
+facenode1 = 1:npf;
+facenode2 = facenode1[permind];
+
+elemcon = zeros(Int,npf, nfe, ne);
 facecon = zeros(Int,npf,2,nf);
 if dim<=2
     for i = 1:nf
@@ -19,9 +25,10 @@ if dim<=2
         l2 = f2t[4,i];
 
         facecon[:,1,i] = (e1-1)*npe .+ perm[:,l1];
-
+        elemcon[:,l1,e1] = (i-1)*npf .+ facenode1;
         if e2>0 # face i is an interior face
             facecon[:,2,i] = (e2-1)*npe .+ perm[permind,l2];
+            elemcon[:,l2,e2] = (i-1)*npf .+ facenode2;
         else
             facecon[:,2,i] = facecon[:,1,i];
         end
@@ -34,6 +41,7 @@ else
         l2 = f2t[4,i];
 
         facecon[:,1,i] = (e1-1)*npe .+ perm[:,l1];
+        elemcon[:,l1,e1] = (i-1)*npf .+ facenode1;
         if e2>0 # face i is an interior face
             f1 = t[face[:,l1],e1];
             f2 = t[face[:,l2],e2];
@@ -61,12 +69,13 @@ else
                 end
             end
             facecon[:,2,i] = (e2-1)*npe .+ perm[permind[:,k],l2];
+            elemcon[:,l2,e2] = (i-1)*npf .+ facenode1[permind[:,k]]; 
         else
             facecon[:,2,i] = facecon[:,1,i];
         end
     end
 end
 
-return facecon
+return facecon, elemcon 
 
 end

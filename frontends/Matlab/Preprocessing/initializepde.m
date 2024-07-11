@@ -2,6 +2,7 @@ function pde = initializepde(version)
 
 pde.discretization = "ldg";
 pde.usecmake = 1;
+pde.gencode = 1;
 pde.buildexec = 0;
 pde.cpucompiler = "g++";
 pde.mpicompiler = "mpicxx";

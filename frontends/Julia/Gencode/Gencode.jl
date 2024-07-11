@@ -9,17 +9,31 @@ export syminit, gencode, gencodeall, compilecode, runcode, checkcompilers, setco
 
 include("syminit.jl");
 include("contains.jl");
+include("getccode.jl");
 include("varsassign.jl");
 include("sympyassign.jl");
+include("sympyassign2.jl");
 include("gencodebou.jl");
 include("gencodeelem.jl");
+include("hdggencodebou.jl");
+include("hdggencodebou2.jl");
+include("hdggencodeface.jl");
+include("hdggencodeface2.jl");
+include("hdggencodeelem.jl");
+include("hdggencodeelem2.jl");
 include("gencodeelem2.jl");
 include("gencodeelem3.jl");
+include("gencodeelem4.jl");
 include("gencodeface.jl");
 include("gencodeface2.jl");
 include("nocodeelem.jl");
+include("hdgnocodeelem.jl");
+include("hdgnocodeelem2.jl");
+include("hdgnocodeface.jl");
+include("hdgnocodeface2.jl");
 include("nocodeelem2.jl");
 include("nocodeelem3.jl");
+include("nocodeelem4.jl");
 include("nocodeface.jl");
 include("nocodeface2.jl");
 include("gencodeelemface.jl");
@@ -34,18 +48,15 @@ include("runcode.jl");
 function gencode(app)
 
 print("generate code...\n");
-if !isdir("app")
-    mkdir("app");
-else
-    if isfile("app/opuApp.a")
-        rm("app/opuApp.a")
-    end
-    if isfile("app/cpuApp.a")
-        rm("app/cpuApp.a")
-    end
-    if isfile("app/gpuApp.a")
-        rm("app/gpuApp.a")
-    end
+
+foldername = app.exasimpath * "/build/model";
+
+# Read the content of the file
+text = read(joinpath(app.backendpath * "/Discretization", "KokkosDrivers.cpp"), String)
+
+# Write the content to a new file
+open(joinpath(foldername, "KokkosDrivers.cpp"), "w") do fid
+    write(fid, text)
 end
 
 xdg, udg, udg1, udg2, wdg, wdg1, wdg2, odg, odg1, odg2, uhg, nlg, tau, uinf, param, time = syminit(app);
@@ -83,9 +94,14 @@ if isdefined(pdemodel, Symbol("flux"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem("Flux" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem("Flux" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    if app.hybrid==1      
+      hdggencodeelem("Flux" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);       
+    else
+      hdgnocodeelem("Flux" * strn, foldername);       
+    end
 else
-    error("app.Flux is empty");
+    error("pde.Flux is not defined");
 end
 if isdefined(pdemodel, Symbol("source"))
     #f = pdemodel.source(xdg, udg, odg, wdg, uinf, param, time);
@@ -94,9 +110,14 @@ if isdefined(pdemodel, Symbol("source"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem("Source" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem("Source" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    if app.hybrid==1
+      hdggencodeelem("Source" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else
+      hdgnocodeelem("Source" * strn, foldername);
+    end    
 else
-    nocodeelem("Source" * strn);
+    error("pde.Source is not defined");
 end
 if isdefined(pdemodel, Symbol("eos"))
     f = pdemodel.eos(u, q, wdg, odg, xdg, time, param, uinf);
@@ -104,7 +125,7 @@ if isdefined(pdemodel, Symbol("eos"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem2("Eos" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem2("Eos" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
 
     nf = length(f);
     nu = length(u);
@@ -116,19 +137,26 @@ if isdefined(pdemodel, Symbol("eos"))
         dfdu[m + nf*(n-1)] = diff(f[m],u[n]);      
       end
     end        
-    gencodeelem2("EoSdu" + strn, dfdu, xdg, udg, odg, wdg, uinf, param, time);    
+    gencodeelem2("EoSdu" + strn, dfdu, xdg, udg, odg, wdg, uinf, param, time, foldername);    
 
     dfdw = [SymPy.symbols("dfdw$i") for i=1:(nf*nw)];
     for n = 1:nw
       for m = 1:nf      
-        dfdw[m + nf*(n-1)] = diff(f[m],w[n]);      
+        dfdw[m + nf*(n-1)] = diff(f[m],wdg[n]);      
       end
     end        
-    gencodeelem2("EoSdw" + strn, dfdw, xdg, udg, odg, wdg, uinf, param, time);    
+    gencodeelem2("EoSdw" + strn, dfdw, xdg, udg, odg, wdg, uinf, param, time, foldername);    
+
+    if app.hybrid==1
+      hdggencodeelem("EoS" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else
+      hdgnocodeelem("EoS" * strn, foldername);
+    end    
 else
-    nocodeelem2("EoS" * strn);
-    nocodeelem2("EoSdu" * strn);
-    nocodeelem2("EoSdw" * strn);
+    nocodeelem2("EoS" * strn, foldername);
+    nocodeelem2("EoSdu" * strn, foldername);
+    nocodeelem2("EoSdw" * strn, foldername);
+    hdgnocodeelem("EoS" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("sourcew"))
     f = pdemodel.sourcew(u, q, wdg, odg, xdg, time, param, uinf);
@@ -136,9 +164,18 @@ if isdefined(pdemodel, Symbol("sourcew"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem2("Sourcew" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem2("Sourcew" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    if app.hybrid==1
+      hdggencodeelem("Sourcew" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+      hdggencodeelem2("Sourcew2" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else
+      hdgnocodeelem("Sourcew" * strn, foldername);
+      hdgnocodeelem2("Sourcew2" * strn, foldername);
+    end    
 else
-    nocodeelem2("Sourcew" * strn);
+    nocodeelem2("Sourcew" * strn, foldername);
+    hdgnocodeelem("Sourcew" * strn, foldername);
+    hdgnocodeelem2("Sourcew2" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("mass"))
     #f = pdemodel.mass(xdg, udg, odg, wdg, uinf, param, time);
@@ -147,12 +184,12 @@ if isdefined(pdemodel, Symbol("mass"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem("Tdfunc" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem("Tdfunc" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
 else
     if app.model=="ModelW" || app.model == "modelW" || app.tdep==1
         error("pde.mass is not defined");
     else
-        nocodeelem("Tdfunc" * strn);
+        nocodeelem("Tdfunc" * strn, foldername);
     end
 end
 if isdefined(pdemodel, Symbol("avfield"))
@@ -162,9 +199,9 @@ if isdefined(pdemodel, Symbol("avfield"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem2("Avfield" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem2("Avfield" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
 else
-    nocodeelem2("Avfield" * strn);
+    nocodeelem2("Avfield" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("output"))
     #f = pdemodel.output(xdg, udg, odg, wdg, uinf, param, time);
@@ -173,9 +210,25 @@ if isdefined(pdemodel, Symbol("output"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeelem2("Output" * strn, f, xdg, udg, odg, wdg, uinf, param, time);
+    gencodeelem2("Output" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
 else
-    nocodeelem2("Output" * strn);
+    nocodeelem2("Output" * strn, foldername);
+end
+if app.hybrid==1
+  if isdefined(pdemodel, Symbol("fbouhdg"))
+    f = pdemodel.fbouhdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);  
+    if length(f)==1
+        f = reshape([f],1,1);
+    end    
+    f = reshape(f[:],app.ncu,Int(length(f)/app.ncu));
+    hdggencodeface("Fbou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+    hdggencodeface2("Fbou2" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+  else
+    error("pde.Fbouhdg is not defined");
+  end
+else
+  hdgnocodeface("Fbou" * strn, foldername);
+  hdgnocodeface2("Fbou2" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("fbou"))
     #f = pdemodel.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
@@ -185,7 +238,7 @@ if isdefined(pdemodel, Symbol("fbou"))
     end
     f = f[:];
     f = reshape(f,app.ncu,Int(length(f)/app.ncu));
-    gencodeface("Fbou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+    gencodeface("Fbou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
 else
     error("app.Fbou is empty");
 end
@@ -197,9 +250,9 @@ if isdefined(pdemodel, Symbol("ubou"))
     end
     f = f[:];
     f = reshape(f,app.ncu,Int(length(f)/app.ncu));
-    gencodeface("Ubou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
+    gencodeface("Ubou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
 else
-    nocodeface("Ubou" * strn);
+  error("app.Ubou is empty");
 end
 if isdefined(pdemodel, Symbol("Fhat"))
     #f = pdemodel.fhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
@@ -208,9 +261,9 @@ if isdefined(pdemodel, Symbol("Fhat"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeface2("Fhat" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    gencodeface2("Fhat" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time, foldername);
 else
-    nocodeface2("Fhat" * strn);
+    nocodeface2("Fhat" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("uhat"))
     #f = pdemodel.uhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
@@ -219,9 +272,9 @@ if isdefined(pdemodel, Symbol("uhat"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeface2("Uhat" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    gencodeface2("Uhat" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time, foldername);
 else
-    nocodeface2("Uhat" * strn);
+    nocodeface2("Uhat" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("stab"))
     #f = pdemodel.stab(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
@@ -230,9 +283,9 @@ if isdefined(pdemodel, Symbol("stab"))
         f = reshape([f],1,1);
     end
     f = f[:];
-    gencodeface2("Stab" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
+    gencodeface3("Stab" * strn, f, xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time, foldername);
 else
-    nocodeface2("Stab" * strn);
+    nocodeface2("Stab" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("initu"))
     udg = pdemodel.initu(xdg, param, uinf);
@@ -240,7 +293,8 @@ if isdefined(pdemodel, Symbol("initu"))
         udg = reshape([udg],1,1);
     end
     udg = udg[:];
-    gencodeelem3("Initu" * strn, udg, xdg, uinf, param);
+    gencodeelem3("Initu" * strn, udg, xdg, uinf, param, foldername);
+    gencodeelem4("Initu" * strn, udg, xdg, uinf, param, foldername);
 else
     error("initu is not defined");
 end
@@ -250,9 +304,11 @@ if isdefined(pdemodel, Symbol("initw"))
         wdg = reshape([wdg],1,1);
     end
     wdg = wdg[:];
-    gencodeelem3("Initwdg" * strn, wdg, xdg, uinf, param);
+    gencodeelem3("Initwdg" * strn, wdg, xdg, uinf, param, foldername);
+    gencodeelem4("Initwdg" * strn, wdg, xdg, uinf, param, foldername);
 else
-    nocodeelem3("Initwdg" * strn);
+    nocodeelem3("Initwdg" * strn, foldername);
+    nocodeelem4("Initwdg" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("initv"))
     odg = pdemodel.initv(xdg, param, uinf);
@@ -260,9 +316,11 @@ if isdefined(pdemodel, Symbol("initv"))
         odg = reshape([odg],1,1);
     end
     odg = odg[:];
-    gencodeelem3("Initodg" * strn, odg, xdg, uinf, param);
+    gencodeelem3("Initodg" * strn, odg, xdg, uinf, param, foldername);
+    gencodeelem4("Initodg" * strn, odg, xdg, uinf, param, foldername);
 else
-    nocodeelem3("Initodg" * strn);
+    nocodeelem3("Initodg" * strn, foldername);
+    nocodeelem4("Initodg" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("initq"))
     qdg = pdemodel.initq(xdg, param, uinf);
@@ -270,7 +328,8 @@ if isdefined(pdemodel, Symbol("initq"))
         qdg = reshape([qdg],1,1);
     end
     qdg = qdg[:];
-    gencodeelem3("Initq" * strn, qdg, xdg, uinf, param);
+    gencodeelem3("Initq" * strn, qdg, xdg, uinf, param, foldername);
+    gencodeelem4("Initq" * strn, qdg, xdg, uinf, param, foldername);
 
     udg = pdemodel.initu(xdg, param, uinf);
     if length(udg)==1
@@ -279,13 +338,16 @@ if isdefined(pdemodel, Symbol("initq"))
     udg = udg[:];
 
     udg = [udg; qdg];
-    gencodeelem3("Initudg" * strn, udg, xdg, uinf, param);
+    gencodeelem3("Initudg" * strn, udg, xdg, uinf, param, foldername);
+    gencodeelem4("Initudg" * strn, udg, xdg, uinf, param, foldername);
 else
     if app.model == "ModelW" || app.model == "modelW"
         error("initq is not defined");
     else
-        nocodeelem3("Initq" * strn);
-        nocodeelem3("Initudg" * strn);
+        nocodeelem3("Initq" * strn, foldername);
+        nocodeelem3("Initudg" * strn, foldername);
+        nocodeelem4("Initq" * strn, foldername);
+        nocodeelem4("Initudg" * strn, foldername);
     end
 end
 

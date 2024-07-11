@@ -18,6 +18,7 @@ from mkfaceblocks import mkfaceblocks
 from mkdge2dgf import mkdge2dgf
 from createdgnodes import createdgnodes
 from facenumbering import facenumbering
+from meshpartitionhdg import meshpartitionhdg
 import os, sys, sympy
 from importlib import import_module
 import importlib.util
@@ -30,14 +31,18 @@ def preprocessing(app,mesh):
     else:
         strn = str(app['modelnumber']);    
      
-    if os.path.isdir("datain" + strn)==False:
-        os.mkdir("datain" + strn)
-    if os.path.isdir("dataout" + strn)==False:
-        os.mkdir("dataout" + strn)
+    model_path = os.path.join(app['buildpath'], "model")
+    datain_path = os.path.join(app['buildpath'], "datain", strn)
+    dataout_path = os.path.join(app['buildpath'], "dataout", strn)
 
-    filename = "datain" + strn + "/";
-    fileapp = filename + "app.bin";
-    filemaster = filename + "master.bin";
+    # Check if directories exist and create them if they don't
+    os.makedirs(model_path, exist_ok=True)
+    os.makedirs(datain_path, exist_ok=True)
+    os.makedirs(dataout_path, exist_ok=True)
+
+    filename = os.path.join(app['buildpath'], "datain", strn) + "/"
+    fileapp = os.path.join(filename, "app.bin")
+    filemaster = os.path.join(filename, "master.bin")
 
     if app['preprocessmode']==0:
         # update app structure
@@ -113,53 +118,43 @@ def preprocessing(app,mesh):
     mpiprocs = app['mpiprocs'];
     dmd = [dict() for x in range(mpiprocs)];
     #dmd = meshpartition(dmd,mesh['p'],mesh['t'],mesh['f'],mesh['tprd'],app['elemtype'],app['boundaryconditions'],mesh['boundaryexpr'],mesh['periodicexpr'],app['porder'],mpiprocs,app['metis']);
-    dmd = meshpartition2(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
+    #dmd = meshpartition2(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
+
+    if app['hybrid'] == 1:
+        dmd = meshpartitionhdg(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
+    else:
+        dmd = meshpartition2(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
 
     for i in range(0,mpiprocs):
         ii = i + 1;
-        xdg = createdgnodes(mesh['p'],mesh['t'][:,dmd[i]['elempart']],mesh['f'][:,dmd[i]['elempart']],mesh['curvedboundary'],mesh['curvedboundaryexpr'],app['porder']);
+
+        if isinstance(mesh['dgnodes'], list):
+            xdg = createdgnodes(mesh['p'],mesh['t'][:,dmd[i]['elempart'].flatten()],mesh['f'][:,dmd[i]['elempart'].flatten()],mesh['curvedboundary'],mesh['curvedboundaryexpr'],app['porder']);
+        else:
+            xdg = mesh['dgnodes'][:, :, dmd[i]['elempart']]          
+                    
+        if mpiprocs == 1:
+            mesh['dgnodes'] = xdg
 
         cgelcon,rowent2elem,colent2elem,cgent2dgent = mkcgent2dgent(xdg,1e-8)[0:4];
 
-        if (mpiprocs>1):
-            ifile = i+1
-            print("Writing solution into file " + str(ifile));
-            fileID1 = open(filename + "/sol" + str(ifile) + ".bin","wb");
+        if isinstance(mesh['udg'], list):
+            udg = []
         else:
-            print("Writing solution into file");
-            fileID1 = open(filename + "/sol" + ".bin","wb");
-
-        ndims = zeros((12,1));
-        ndims[1-1] = size(dmd[i]['elempart']);
-        ndims[2-1] = sum(dmd[i]['facepartpts']);
-        ndims[3-1] = master['perm'].shape[1];
-        ndims[4-1] = master['npe'];
-        ndims[5-1] = master['npf'];
-        ndims[6-1] = app['nc'];
-        ndims[7-1] = app['ncu'];
-        ndims[8-1] = app['ncq'];
-        ndims[9-1] = app['ncw'];
-        ndims[10-1] = app['nco'];
-        ndims[11-1] = app['nch'];
-        ndims[12-1] = app['ncx'];
-
-        nsize = zeros((20,1));
-        nsize[1-1] = size(ndims);
-        nsize[2-1] = size(xdg);
-        # nsize[3-1] = size(udg);
-        # nsize[4-1] = size(odg);
-        # nsize[5-1] = size(wdg);
-
-        array(size(nsize), dtype=float64).tofile(fileID1);
-        nsize.astype('float64').tofile(fileID1);
-        ndims.astype('float64').tofile(fileID1);
-        xdg = array(xdg).flatten(order = 'F');
-        xdg.astype('float64').tofile(fileID1);
-        fileID1.close();
-
-
+            udg = mesh['udg'][:, :, dmd[i]['elempart']]   
+            
+        if isinstance(mesh['odg'], list):
+            odg = []   
+        else:
+            odg = mesh['odg'][:, :, dmd[i]['elempart']]   
+            
+        if isinstance(mesh['wdg'], list):
+            wdg = []
+        else:
+            wdg = mesh['wdg'][:, :, dmd[i]['elempart']]   
+            
         if mpiprocs==1:
-            #writesol(filename + "/sol",0,xdg);
+            writesol(filename + "/sol",0,xdg, udg, odg, wdg);
             ne = size(dmd[i]['elempart']);
             eblks,nbe = mkelemblocks(ne,app['neb'])[0:2];
             eblks = concatenate([eblks, zeros((1, eblks.shape[1]))]);
@@ -168,7 +163,7 @@ def preprocessing(app,mesh):
             neb = max(eblks[1,:]-eblks[0,:])+1;
             nfb = max(fblks[1,:]-fblks[0,:])+1;
         else:
-            #writesol(filename + "/sol",i+1,xdg);
+            writesol(filename + "/sol",i+1,xdg, udg, odg, wdg);
             me = cumsum([0, dmd[i]['elempartpts'][0], dmd[i]['elempartpts'][1], dmd[i]['elempartpts'][2]]);
             eblks,nbe = mkfaceblocks(me,[0, 1, 2],app['neb'])[0:2];
             mf = cumsum(concatenate([[0], dmd[i]['facepartpts'].flatten('F')]));
@@ -177,7 +172,7 @@ def preprocessing(app,mesh):
             nfb = max(fblks[1,:]-fblks[0,:])+1;
 
         npe = master['npe'];
-        nfe = master['perm'].shape[1];
+        nfe = master['perm'].shape[1];        
         facecon1 = reshape(dmd[i]['facecon'][:,0,:], (dmd[i]['facecon'].shape[0], dmd[i]['facecon'].shape[2]), 'F');
         facecon2 = reshape(dmd[i]['facecon'][:,1,:], (dmd[i]['facecon'].shape[0], dmd[i]['facecon'].shape[2]), 'F');
         ind = [];
@@ -208,7 +203,7 @@ def preprocessing(app,mesh):
         ndims[8-1] = nbf;
         ndims[9-1] = nfb;
 
-        nsize = zeros((21,1));
+        nsize = zeros((25,1));
         nsize[1-1] = size(ndims);
         nsize[2-1] = size(dmd[i]['facecon']);
         nsize[3-1] = size(eblks);
@@ -230,6 +225,11 @@ def preprocessing(app,mesh):
         nsize[19-1] = size(rowe2f2);
         nsize[20-1] = size(cole2f2);
         nsize[21-1] = size(ent2ind2);
+        if app['hybrid'] > 0:
+            nsize[22-1] = len(dmd[i]['f2t'].flatten())
+            nsize[23-1] = len(dmd[i]['elemcon'].flatten())
+            nsize[24-1] = len(master['perm'].flatten())
+            nsize[25-1] = len(dmd[i]['bf'].flatten())
 
         if (mpiprocs>1):
             print("Writing mesh into file " + str(i+1));
@@ -268,6 +268,23 @@ def preprocessing(app,mesh):
         rowe2f2.flatten('F').astype(float64).tofile(fileID);
         cole2f2.flatten('F').astype(float64).tofile(fileID);
         ent2ind2.flatten('F').astype(float64).tofile(fileID);
+        if app['hybrid'] > 0:
+            dmd[i]['f2t'] = dmd[i]['f2t'] - 1
+            dmd[i]['elemcon'] = dmd[i]['elemcon'] - 1
+            perm = master['perm'] - 1
+
+            dmd[i]['f2t'].flatten('F').astype(float64).tofile(fileID);
+            dmd[i]['elemcon'].flatten('F').astype(float64).tofile(fileID);
+            perm.flatten('F').astype(float64).tofile(fileID);
+            dmd[i]['bf'].flatten('F').astype(float64).tofile(fileID);
+        
+        # savetxt(sys.stdout, dmd[i]['f2t'].transpose(), fmt='%d', delimiter=', ')
+        # savetxt(sys.stdout, perm, fmt='%d', delimiter=', ')      
+        # elcon = dmd[i]['elemcon'].reshape((16,64))
+        # savetxt(sys.stdout, elcon, fmt='%d', delimiter=', ')
+        # savetxt(sys.stdout, dmd[i]['bf'].transpose(), fmt='%d', delimiter=', ')
+        # error("here")
+
         fileID.close();
 
     app = writeapp(app,fileapp);

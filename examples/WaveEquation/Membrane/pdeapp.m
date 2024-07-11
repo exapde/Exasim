@@ -1,6 +1,6 @@
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
-run(cdir(1:(ii+5)) + "/install/setpath.m");
+run(cdir(1:(ii+5)) + "/Install/setpath.m");
 
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();
@@ -12,6 +12,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
+pde.hybrid = 1;                % 0 -> LDG, 1 -> HDG  
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 4;          % polynomial degree
@@ -22,6 +23,7 @@ pde.tau = 1.0;           % DG stabilization parameter
 pde.dt = 0.02*ones(1,100);   % time step sizes
 pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.02; % visualization timestep size
+pde.linearsolvertol = 1e-4;
 
 % create a grid of 8 by 8 on the unit square
 [mesh.p,mesh.t] = squaremesh(8,8,1,1);
@@ -37,6 +39,12 @@ mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 % pde.visvectors = {"displacement gradient", [2 3]}; % list of vector fields for visualization
 % xdg = vis(sol,pde,mesh); % visualize the numerical solution
 % disp("Done!");
+
+mesh.porder = pde.porder;
+mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
+for i = 1:size(sol,4)
+  figure(1); clf; scaplot(mesh,sol(:,1,:,i),[-1 1],2,1); axis on; axis equal; axis tight;
+end
 
 
 

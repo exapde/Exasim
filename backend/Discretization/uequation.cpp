@@ -18,7 +18,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     Int e1 = common.eblks[3*jth]-1;
     Int e2 = common.eblks[3*jth+1];            
     Int ne = e2-e1;
-    Int nn =  npe*ne; 
+    //Int nn =  npe*ne; 
     Int nga = nge*ne;   
     //Int n0 = 0;                      // xg
     Int n1 = nga*ncx;                  // Xx
@@ -69,42 +69,47 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
         Node2Gauss(handle, wsrc, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        
 
         // solve the w equation to get wg and wg_uq
-        wEquation(wg, wg_uq, xg, uqg, og, wsrc, app, common, tmp, nga, backend);
+        wEquation(wg, wg_uq, xg, uqg, og, wsrc, tmp.tempn, app, common, nga, backend);        
+//         print2darray(uqg, nga, nc);
+//         print2darray(wg, 1, nga);
+//         print2darray(wg_uq, nga, nc);        
+//         error("here");       
     }
     
+    // calculate the source term Source(xdg, udg, odg, wdg)
+    ArraySetValue(sg, 0.0, nga*ncu);
+    ArraySetValue(sg_uq, 0.0, nga*ncu*nc);
+    if ((ncw>0) & (common.wave==0)) ArraySetValue(sg_w, 0.0, nga*ncu*ncw);
+    SourceDriver(sg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
+    
     if (common.tdep) { // for time-dependent problem                
-        // calculate sdg = sdg-udg*dtfactor
-        ArrayAXPBY(sg, &sol.sdgg[nge*ncs*e1], uqg, one, -common.dtfactor, nga*ncu);            
-        
+        // calculate sdg - udg*dtfactor
+        ArrayAXPBY(fg, &sol.sdgg[nge*ncs*e1], uqg, one, -common.dtfactor, nga*ncu);                    
+      
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
-
-            // calculate (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
-            ArrayAXY(sg, sg, fg, one, nga*ncu);                
+            TdfuncDriver(fg_uq, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);            
         }
+        else
+            ArraySetValue(fg_uq, one, nga*ncu);;
+                      
+        // calculate (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
+        ArrayAXY(fg, fg, fg_uq, one, nga*ncu);                        
         
-        if (common.source==1) {            
-            // calculate the source term Source(xdg, udg, odg, wdg)
-            ArraySetValue(fg, 0.0, nga*ncu);
-            ArraySetValue(sg_uq, 0.0, nga*ncu*nc);
-            if ((ncw>0) & (common.wave==0)) ArraySetValue(sg_w, 0.0, nga*ncu*ncw);
-            SourceDriver(fg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
-
-            // calculate Source(xdg, udg, odg) + (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
-            ArrayAXPBY(sg, sg, fg, one, one, nga*ncu);            
-        }        
+        // calculate sg = source + (sdgg - udg*dtfactor)*Tdfunc(xdg, udg, odg) 
+        ArrayAXPBY(sg, sg, fg, one, one, nga*ncu);     
+        
+        // calculate sg_u = source_u  - dtfactor*Tdfunc(xdg, udg, odg) 
+        ApplyDtcoef(sg_uq, fg_uq, -common.dtfactor, nga, ncu);                
+        
+//         // calculate sg = source + (sdgg - udg*dtfactor)*Tdfunc(xdg, udg, odg) 
+//         ArrayAdd3Vectors(sg, sg, &sol.sdgg[nge*ncs*e1], uqg, one, one, -common.dtfactor, nga*ncu);        
+//         
+//         // calculate sg_u = source_u  - dtfactor*Tdfunc(xdg, udg, odg) 
+//         ApplyDtcoef(sg_uq, -common.dtfactor, nga, ncu);                
     }
-    else {  // steady state problem      
-        // calculate the source term Source(xdg, udg, odg, wdg)
-        ArraySetValue(sg, 0.0, nga*ncu);
-        ArraySetValue(sg_uq, 0.0, nga*ncu*nc);
-        if ((ncw>0) & (common.wave==0)) ArraySetValue(sg_w, 0.0, nga*ncu*ncw);
-        SourceDriver(sg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
-    }                
-        
+                
     // fg = nga*ncu*nd, sg = nga*ncu, fg_uq = nga*ncu*nd*nc, sg_uq = nga*ncu*nc
-
     ArraySetValue(fg, 0.0, nga*ncu*nd);
     ArraySetValue(fg_uq, 0.0, nga*ncu*nd*nc);
     if ((ncw>0) & (common.wave==0)) ArraySetValue(fg_w, 0.0, nga*ncu*nd*ncw); 
@@ -114,7 +119,13 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
         // sg_uq = sg_uq + sg_w * wg_uq -> ng * ncu * nc = ng * ncu * nc + (ng * ncu * ncw) * (ng * ncw * nc)
         ArrayGemmBatch2(sg_uq, sg_w, wg_uq, 1.0, ncu, nc, ncw, nga);
         // fg_uq = fg_uq + fg_w * wg_uq -> ng * ncu*nd * nc = ng * ncu*nd * nc + (ng * ncu*nd * ncw) * (ng * ncw * nc)
-        ArrayGemmBatch2(fg_uq, fg_w, wg_uq, 1.0, ncu*nd, nc, ncw, nga);        
+        ArrayGemmBatch2(fg_uq, fg_w, wg_uq, 1.0, ncu*nd, nc, ncw, nga);   
+        
+//         print2darray(sg_w, 1, nga);
+//         print2darray(fg_w, nga, nd);
+//         print2darray(sg_uq, nga, nc);        
+//         print2darray(fg_uq, nga, nd*nc);        
+//         error("here");               
     }        
     
     // Ru = npe * ne * ncu 
@@ -187,7 +198,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
     Int n0 = 0;                                 // xg
     Int n1 = nga*ncx;                           // nlg
     Int n2 = nga*(ncx+nd);                      // jac
-    Int n3 = nga*(0);                           // uhg    
+    //Int n3 = nga*(0);                           // uhg    
     Int n4 = nga*(ncu);                         // udg
     Int n5 = nga*(ncu+nc);                      // odg
     Int n6 = nga*(ncu+nc+nco);                  // wsrc
@@ -227,7 +238,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
 
     if ((ncw>0) & (common.wave==0)) {
         // solve the w equation to get wg and wg_uq
-        wEquation(wdg, wdg_uq, xg, udg, odg, wsrc, app, common, tmp, nga, backend);
+        wEquation(wdg, wdg_uq, xg, udg, odg, wsrc, tmp.tempn, app, common, nga, backend);
     }
 
     ArraySetValue(fh, 0.0, nga*ncu);
@@ -238,9 +249,9 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         mesh, master, app, sol, tmp, common, nga, backend);      
 
     if ((ncw>0) & (common.wave==0)) {
-      ArrayGemmBatch2(fh_uq, fh_w, wdg_uq, one, ncu*nd, nc, ncw, nga);        
+      ArrayGemmBatch2(fh_uq, fh_w, wdg_uq, one, ncu, nc, ncw, nga); // fix bug here       
     }
-
+    
     // if (common.debugMode==1) {    
     //   writearray2file(common.fileout + "uEquationElemFace_fh.bin", fh, ngf*nfe*ne*ncu, backend);
     // }
@@ -314,7 +325,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         GetBoundaryNodes(nlb, nlg, &mesh.boufaces[start], ngf, nfe, ne, nd, nfaces);
 
         if ((ncw>0) & (common.wave==0)) {
-          wEquation(wgb, wgb_uq, xgb, ugb, ogb, wsb, app, common, tmp, ngb, backend);
+          wEquation(wgb, wgb_uq, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
         // intialize fhb, fhb_uq, fhb_w, fhb_uh to zero 
@@ -332,7 +343,14 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         // print2darray(fhb_uq, ngb*ncu, nc);     
 
         if ((ncw>0) & (common.wave==0)) {
-          ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu*nd, nc, ncw, ngb);        
+          ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu, nc, ncw, ngb);  // fix bug here   
+//           print2darray(xgb, ngb, ncx);     
+//           print2darray(nlb, ngb, nd);     
+//           print2darray(ugb, ngb, nc);    
+//           print2darray(uhb, ngb, ncu);     
+//           print2darray(wgb_uq, ngb*ncu, nc);     
+//           print2darray(fhb_w, ngb*ncu, ncu);     
+//           print2darray(fhb_uq, ngb*ncu, nc);     
         }
 
         dstype *jacb = &tmp.tempg[n8];
@@ -455,22 +473,26 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 
     // cout<<"||Cx|| = "<<nrm[0]<<", ||Cy|| = "<<nrm[1]<<", ||Ex|| = "<<nrm[2]<<", ||Ey|| = "<<nrm[3]<<endl;     
 
+    dstype scalar = 1.0;
+    if (common.wave==1)
+        scalar = 1.0/common.dtfactor;    
+    
     if (common.ncq > 0) {      
       if (nd == 1) {
         // D = D + B * Minv * C
-        schurMatrixBMinvC(D, res.B, &res.C[npe*npe*e1], npe, ncu, ne);
+        schurMatrixBMinvC(D, res.B, &res.C[npe*npe*e1], scalar, npe, ncu, ne);
         // F = F - B * Minv * E
-        schurMatrixBMinvE(F, res.B, &res.E[npe*npf*nfe*e1], npe, ncu, npf, nfe, ne);
+        schurMatrixBMinvE(F, res.B, &res.E[npe*npf*nfe*e1], scalar, npe, ncu, npf, nfe, ne);
         // K = K + G * Minv * C
-        schurMatrixGMinvC(K, res.G, &res.C[npe*npe*e1], npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvC(K, res.G, &res.C[npe*npe*e1], scalar, npe, ncu, npf, nfe, ne);
         // H = H - G * Minv * E
-        schurMatrixGMinvE(H, res.G, &res.E[npe*npf*nfe*e1], npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvE(H, res.G, &res.E[npe*npf*nfe*e1], scalar, npe, ncu, npf, nfe, ne);
       } 
       else if (nd == 2) {
-        dstype *Cx = &res.C[npe*npe*e1]; // fixed bug here
-        dstype *Cy = &res.C[npe*npe*common.ne + npe*npe*e1]; // fixed bug here
-        dstype *Ex = &res.E[npe*npf*nfe*e1]; // fixed bug here
-        dstype *Ey = &res.E[npe*npf*nfe*common.ne + npe*npf*nfe*e1]; // fixed bug here
+        dstype *Cx = &res.C[npe*npe*e1]; // fix bug here
+        dstype *Cy = &res.C[npe*npe*common.ne + npe*npe*e1]; // fix bug here
+        dstype *Ex = &res.E[npe*npf*nfe*e1]; // fix bug here
+        dstype *Ey = &res.E[npe*npf*nfe*common.ne + npe*npf*nfe*e1]; // fix bug here
         dstype *Bx = res.B;
         dstype *By = &res.B[npe*npe*ncu*ncu*ne];
         dstype *Gx = res.G;
@@ -483,17 +505,17 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 
         // cout<<"||Cx|| = "<<nrm[0]<<", ||Cy|| = "<<nrm[1]<<", ||Ex|| = "<<nrm[2]<<", ||Ey|| = "<<nrm[3]<<endl;     
 
-        schurMatrixBMinvC(D, Bx, Cx, npe, ncu, ne);
-        schurMatrixBMinvC(D, By, Cy, npe, ncu, ne);
+        schurMatrixBMinvC(D, Bx, Cx, scalar, npe, ncu, ne);
+        schurMatrixBMinvC(D, By, Cy, scalar, npe, ncu, ne);
 
-        schurMatrixBMinvE(F, Bx, Ex, npe, ncu, npf, nfe, ne);
-        schurMatrixBMinvE(F, By, Ey, npe, ncu, npf, nfe, ne);
+        schurMatrixBMinvE(F, Bx, Ex, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixBMinvE(F, By, Ey, scalar, npe, ncu, npf, nfe, ne);
 
-        schurMatrixGMinvC(K, Gx, Cx, npe, ncu, npf, nfe, ne);
-        schurMatrixGMinvC(K, Gy, Cy, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvC(K, Gx, Cx, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvC(K, Gy, Cy, scalar, npe, ncu, npf, nfe, ne);
 
-        schurMatrixGMinvE(H, Gx, Ex, npe, ncu, npf, nfe, ne); 
-        schurMatrixGMinvE(H, Gy, Ey, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvE(H, Gx, Ex, scalar, npe, ncu, npf, nfe, ne); 
+        schurMatrixGMinvE(H, Gy, Ey, scalar, npe, ncu, npf, nfe, ne);
       }
       else if (nd == 3) {
         dstype *Cx = &res.C[npe*npe*e1]; // fixed bug here
@@ -509,21 +531,21 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         dstype *Gy = &res.G[npf*nfe*npe*ncu*ncu*ne];
         dstype *Gz = &res.G[npf*nfe*npe*ncu*ncu*ne*2];
 
-        schurMatrixBMinvC(D, Bx, Cx, npe, ncu, ne);
-        schurMatrixBMinvC(D, By, Cy, npe, ncu, ne);
-        schurMatrixBMinvC(D, Bz, Cz, npe, ncu, ne);
+        schurMatrixBMinvC(D, Bx, Cx, scalar, npe, ncu, ne);
+        schurMatrixBMinvC(D, By, Cy, scalar, npe, ncu, ne);
+        schurMatrixBMinvC(D, Bz, Cz, scalar, npe, ncu, ne);
 
-        schurMatrixBMinvE(F, Bx, Ex, npe, ncu, npf, nfe, ne);
-        schurMatrixBMinvE(F, By, Ey, npe, ncu, npf, nfe, ne);
-        schurMatrixBMinvE(F, Bz, Ez, npe, ncu, npf, nfe, ne);
+        schurMatrixBMinvE(F, Bx, Ex, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixBMinvE(F, By, Ey, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixBMinvE(F, Bz, Ez, scalar, npe, ncu, npf, nfe, ne);
 
-        schurMatrixGMinvC(K, Gx, Cx, npe, ncu, npf, nfe, ne);
-        schurMatrixGMinvC(K, Gy, Cy, npe, ncu, npf, nfe, ne);
-        schurMatrixGMinvC(K, Gz, Cz, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvC(K, Gx, Cx, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvC(K, Gy, Cy, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvC(K, Gz, Cz, scalar, npe, ncu, npf, nfe, ne);
 
-        schurMatrixGMinvE(H, Gx, Ex, npe, ncu, npf, nfe, ne);
-        schurMatrixGMinvE(H, Gy, Ey, npe, ncu, npf, nfe, ne);
-        schurMatrixGMinvE(H, Gz, Ez, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvE(H, Gx, Ex, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvE(H, Gy, Ey, scalar, npe, ncu, npf, nfe, ne);
+        schurMatrixGMinvE(H, Gz, Ez, scalar, npe, ncu, npf, nfe, ne);
       }
     }
 
@@ -600,7 +622,7 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 {        
     Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncu = common.ncu;// number of compoments of (u)
-    Int ncq = common.ncq;// number of compoments of (q)
+    //Int ncq = common.ncq;// number of compoments of (q)
     Int nco = common.nco;// number of compoments of (o)
     Int ncx = common.ncx;// number of compoments of (xdg) 
     Int ncs = common.ncs;// number of compoments of (sdg) 
@@ -628,7 +650,7 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     dstype *jac = &sol.elemg[nm+n2];
     dstype *og = &sol.odgg[nge*nco*e1];
 
-    dstype *wsrc = &tmp.tempg[n3];        
+    dstype *wsrcg = &tmp.tempg[n3];        
     dstype *fg = &tmp.tempg[n3];        
     dstype *sg = &tmp.tempg[n4];
     dstype *uqg = &tmp.tempg[n5];
@@ -636,15 +658,20 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 
     GetArrayAtIndex(tmp.tempn, sol.udg, &mesh.eindudg1[npe*nc*e1], nn*nc);
     Node2Gauss(handle, uqg, tmp.tempn, master.shapegt, nge, npe, ne*nc, backend);
+    
     if ((ncw>0) & (common.wave==0)) {
         GetElemNodes(tmp.tempn, sol.wdg, npe, ncw, 0, ncw, e1, e2);    
         Node2Gauss(handle, wg, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        
-
+        
         GetElemNodes(tmp.tempn, sol.wsrc, npe, ncw, 0, ncw, e1, e2);    
-        Node2Gauss(handle, wsrc, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        
+        Node2Gauss(handle, wsrcg, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        
 
         // solve the w equation to get wg 
-        wEquation(wg, xg, uqg, og, wsrc, app, common, tmp, nga, backend);
+        wEquation(wg, xg, uqg, og, wsrcg, tmp.tempn, app, common, nga, backend); // fix bug here        
+//         print2darray(wg, 1, 10);
+//         print2darray(uqg, 1, 10);        
+//         //exp(w) - sym(1.0) - u*u
+//         error("here");
     }
     
     if (common.tdep) { // for time-dependent problem                
@@ -706,7 +733,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
     Int n0 = 0;                                 // xg
     Int n1 = nga*ncx;                           // nlg
     Int n2 = nga*(ncx+nd);                      // jac
-    Int n3 = nga*(0);                           // uhg    
+    //Int n3 = nga*(0);                           // uhg    
     Int n4 = nga*(ncu);                         // udg
     Int n5 = nga*(ncu+nc);                      // odg
     Int n6 = nga*(ncu+nc+nco);                  // wsrc
@@ -720,9 +747,9 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
     dstype *uhg = &tmp.tempg[0];
     dstype *udg = &tmp.tempg[n4];
-    dstype *odg = &tmp.tempg[n5];
-    dstype *wsrc = &tmp.tempg[n6];
-    dstype *wdg = &tmp.tempg[n7];
+    dstype *odg = &tmp.tempg[n5];    
+    dstype *wdg = &tmp.tempg[n6];
+    dstype *wsrcg = &tmp.tempg[n7];
     dstype *fh     = &tmp.tempg[n8];
     
     // uhg = tmp.tempg[n3] at gauss points on face
@@ -733,15 +760,17 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
     if (nco>0) GetElementFaceNodes(&tmp.tempn[nn*(ncu+nc)], sol.odg, mesh.perm, npf*nfe, nco, npe, nco, e1, e2);      
 
+    // fix bug here
     if ((ncw>0) & (common.wave==0)) {
-      GetElementFaceNodes(&tmp.tempn[nn*(ncu+nc+nco)], sol.wsrc, mesh.perm, npf*nfe, ncw, npe, ncw, e1, e2); 
+      GetElementFaceNodes(&tmp.tempn[nn*(ncu+nc+nco)], sol.wdg, mesh.perm, npf*nfe, ncw, npe, ncw, e1, e2); 
+      GetElementFaceNodes(&tmp.tempn[nn*(ncu+nc+nco+ncw)], sol.wsrc, mesh.perm, npf*nfe, ncw, npe, ncw, e1, e2); 
     }
     
-    Node2Gauss(handle, tmp.tempg, tmp.tempn, master.shapfgt, ngf, npf, nfe*ne*(ncu+nc+nco+ncw), backend);
-
+    Node2Gauss(handle, tmp.tempg, tmp.tempn, master.shapfgt, ngf, npf, nfe*ne*(ncu+nc+nco+ncw+ncw), backend);
+    
     if ((ncw>0) & (common.wave==0)) {
         // solve the w equation to get wg 
-        wEquation(wdg, xg, udg, odg, wsrc, app, common, tmp, nga, backend);
+        wEquation(wdg, xg, udg, odg, wsrcg, tmp.tempn, app, common, nga, backend);                
     }
     
     FhatDriver(fh, tmp.tempn, xg, udg, odg, wdg, uhg, nlg, mesh, master, app, sol, tmp, common, nga, backend);      
@@ -772,12 +801,13 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
         GetBoundaryNodes(ogb, odg, &mesh.boufaces[start], ngf, nfe, ne, nco, nfaces);
-        GetBoundaryNodes(wsb, wsrc, &mesh.boufaces[start], ngf, nfe, ne, ncw, nfaces);
+        GetBoundaryNodes(wgb, wdg, &mesh.boufaces[start], ngf, nfe, ne, ncw, nfaces);
+        GetBoundaryNodes(wsb, wsrcg, &mesh.boufaces[start], ngf, nfe, ne, ncw, nfaces);
         GetBoundaryNodes(uhb, uhg, &mesh.boufaces[start], ngf, nfe, ne, ncu, nfaces);
         GetBoundaryNodes(nlb, nlg, &mesh.boufaces[start], ngf, nfe, ne, nd, nfaces);
 
         if ((ncw>0) & (common.wave==0)) {
-          wEquation(wgb, xgb, ugb, ogb, wsb, app, common, tmp, ngb, backend);
+          wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
         FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 

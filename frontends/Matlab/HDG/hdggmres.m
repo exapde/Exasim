@@ -19,7 +19,7 @@ fprintf("||b|| = %g\n", norm(b(:)));
 % block jacobi preconditioner
 b = applyblockjacobi(BE, full(b));
 
-% fprintf("||P*r|| = %g\n", norm(b(:)));
+fprintf("||P*r|| = %g\n", norm(b(:)));
 
 % initialization
 nrmb   = norm(b); 
@@ -36,14 +36,14 @@ rev = zeros(restart,1);
 while (1) 
     % perform matrix-vector multiplication      
     d = hdgmatvec(AE, x, f2e, elcon);
-    d = applyblockjacobi(BE, d); 
+    d = applyblockjacobi(BE, d);     
     
     % compute the residual vector      
     r = b(:) - d(:);        
     beta = norm(r);
     v(:,1) = r/beta;
 
-%     fprintf("||v|| = %g\n", norm(v(:,1)));
+    fprintf("||v|| = %g\n", norm(v(:,1)));
     
     res  = beta;
     iter = iter+1;

@@ -70,6 +70,10 @@ for i = 1:nproc
 %     writebin("elemrecv" + num2str(i) +  ".bin",dmd{i}.elemrecv);
 end
 
+% for i = 1:nproc  
+%   [length(dmd{i}.elemsend) length(dmd{i}.elemrecv)]
+%   [length(unique(dmd{i}.elemsend)) length(unique(dmd{i}.elemrecv))]
+% end
 
 function nbelem = neighboringelements(t2t, elem)
 

@@ -35,7 +35,7 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
         Int n2 = nga*(ncx+nd*nd);          // jac        
         Int nm = nge*e1*(ncx+nd*nd+1);
 
-        dstype *xg = &sol.elemg[nm];
+        //dstype *xg = &sol.elemg[nm];
         dstype *Xx = &sol.elemg[nm+n1];
         dstype *jac = &sol.elemg[nm+n2];
 
@@ -248,7 +248,15 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       ArraySetValue(work, zero, npe*npf*nfe*ns);
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
       PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ex[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here  
-
+      
+//       print2darray(jac, ngf, nfe);
+//       print2darray(nlg, ngf, nfe);
+//       print2darray(Etmp, npf, npf*nfe);      
+//       print2darray(Ex, npe, npf*nfe);
+//       print2iarray(mesh.perm, npf, nfe);
+//       print2darray(master.shapfgwdotshapfg, npf*npf, ngf);
+//       error("here");
+      
       ArrayAXY(tmp.tempg, &nlg[nga], jac, one, nga);
       Gauss2Node(handle, Etmp, tmp.tempg, master.shapfgwdotshapfg, ngf, npf*npf, nfe*ns, backend);
       ArraySetValue(work, zero, npe*npf*nfe*ns);
@@ -260,6 +268,12 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       ArraySetValue(work, zero, npe*npf*nfe*ns);
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
       PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ez[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here  
+      
+//       print2darray(&Ex[npe*npf*nfe*e1], npe, npf*nfe);
+//       print2darray(&Ey[npe*npf*nfe*e1], npe, npf*nfe);
+//       print2darray(&Ez[npe*npf*nfe*e1], npe, npf*nfe);
+//       cout<<e1<<endl;
+//       error("here");
     }        
 
     TemplateFree(work, backend);
@@ -307,19 +321,27 @@ void qEquation(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
     qEquationElemFace(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 }
 
-void hdgGetQ(dstype *udg, dstype *uhat, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, Int backend)
+void hdgGetQ(dstype *udg, dstype *uhat, solstruct &sol, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, Int backend)
 {
     Int nc = common.nc;// number of compoments of (udg)        
     Int ncu = common.ncu; // number of compoments of (u)
+    Int ncq = common.ncq; // number of compoments of (q)
     Int nd = common.nd;     // spatial dimension    
     Int npe = common.npe; // number of nodes on master element
     Int npf = common.npf; // number of nodes on master face           
-    Int ngf = common.ngf; // number of gauss poInts on master face
+    //Int ngf = common.ngf; // number of gauss poInts on master face
     Int nbe = common.nbe; // number of blocks for elements 
     Int nfe = common.nfe; // number of faces per element
     Int ne = common.ne; // number of elements in this subdomain
     Int ndf = npf*nfe; // number of dofs on a face
 
+    dstype scalar = 1.0;
+    if (common.wave==1)
+        scalar = 1.0/common.dtfactor;    
+    
+    // Solve: dtfactor * M * q = C * u - E * uhat + M * s
+    //        q = (1/dtfactor) * (Minv * C * u - Minv * E * uhat + s)
+    
     for (Int j=0; j<nbe; j++) // for each block of elements
     {
       Int e1 = common.eblks[3*j]-1;
@@ -327,19 +349,25 @@ void hdgGetQ(dstype *udg, dstype *uhat, resstruct &res, meshstruct &mesh, tempst
       Int ns = e2 - e1;
 
       dstype *u = tmp.tempg;
-      dstype *q = &tmp.tempg[npe*ncu*ns];         
+      dstype *q = &tmp.tempg[npe*ncu*ns];           
       dstype *uh = tmp.tempn;
       ArrayExtract(u, udg, npe, nc, ne, 0, npe, 0, ncu, e1, e2);        // npe x ncu x ns
       GetElementFaceNodes(uh, uhat, mesh.elemcon, npf*nfe, ncu, e1, e2, 1); // npf*nfe x ncu x ns
 
+      dstype *s = res.Rq;
+      ArraySetValue(s, zero, npe*ncq*ns);
+      
       // print3darray(uhat, common.ncu, common.npf, common.nf);
       //print3darray(uh, npf*nfe, common.ncu, ns);            
-
       dstype *Cx = res.C;        
       dstype *Ex = res.E;              
       if (nd==1) {        
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cx[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);
-        PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ex[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);
+        PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ex[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);        
+        if (common.wave==1) {// get the source term due to the time derivative 
+          ArrayExtract(s, sol.sdg, npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2);          
+          ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)                   
+        }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, ncu, 2*ncu, e1, e2);
       }
       else if (nd==2) {        
@@ -348,6 +376,10 @@ void hdgGetQ(dstype *udg, dstype *uhat, resstruct &res, meshstruct &mesh, tempst
         
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cx[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ex[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);
+        if (common.wave==1) {
+          ArrayExtract(s, sol.sdg, npe, nc, ne, 0, npe, ncu, 2*ncu, e1, e2);          
+          ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)
+        }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, ncu, 2*ncu, e1, e2);
 
         // print2darray(Cx, npe, npe);            
@@ -359,8 +391,11 @@ void hdgGetQ(dstype *udg, dstype *uhat, resstruct &res, meshstruct &mesh, tempst
 
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cy[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ey[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);
+        if (common.wave==1) {
+          ArrayExtract(s, sol.sdg, npe, nc, ne, 0, npe, 2*ncu, 3*ncu, e1, e2);          
+          ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)
+        }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, 2*ncu, 3*ncu, e1, e2);
-
         //print3darray(q, npe, common.ncu, ns);         
       }
       else if (nd==3) {
@@ -371,18 +406,30 @@ void hdgGetQ(dstype *udg, dstype *uhat, resstruct &res, meshstruct &mesh, tempst
 
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cx[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ex[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);
+        if (common.wave==1) {
+          ArrayExtract(s, sol.sdg, npe, nc, ne, 0, npe, ncu, 2*ncu, e1, e2);          
+          ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)
+        }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, ncu, 2*ncu, e1, e2);
 
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cy[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ey[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);
+        if (common.wave==1) {
+          ArrayExtract(s, sol.sdg, npe, nc, ne, 0, npe, 2*ncu, 3*ncu, e1, e2);          
+          ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)
+        }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, 2*ncu, 3*ncu, e1, e2);
 
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cz[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);                        
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ez[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);
+        if (common.wave==1) {
+          ArrayExtract(s, sol.sdg, npe, nc, ne, 0, npe, 3*ncu, 4*ncu, e1, e2);          
+          ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)
+        }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, 3*ncu, 4*ncu, e1, e2);
       }                
     }    
-
+    
     if (common.debugMode==1) {
       string filename;
       if (common.mpiProcs==1)

@@ -13,7 +13,7 @@ void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend
     //TemplateMalloc(&precond.H, M*M, backend);          
     //TemplateMalloc(&precond.y, N, backend);     
     //precond.y = &disc.res.Ru[0];   
-    // TemplateMalloc(&precond.ipiv, M+1, backend);                
+    TemplateMalloc(&precond.ipiv, M+1, backend);                
     
     // if (disc.common.preconditioner>0)
     //     TemplateMalloc(&precond.z, N, backend); 

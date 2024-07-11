@@ -6,14 +6,14 @@ for i = 1:nproc
     disp(['face partition ' num2str(i)]); 
         
     % on [intelem bndelem extelem]
-    dmd{i}.bf = f(:,dmd{i}.elempart);
+    fi = f(:,dmd{i}.elempart); % fix bug here
+    dmd{i}.bf = 0*f(:,dmd{i}.elempart);
     for j=1:length(bcm)
-      ind = dmd{i}.bf==j;
+      ind = fi==j;
       dmd{i}.bf(ind) = bcm(j);
-    end
-    fi = f(:,dmd{i}.elempart);
+    end      
     f2t = mkf2e(t(:,dmd{i}.elempart),elemtype,dim);
-
+        
     % only on [intelem bndelem]
     nelem = dmd{i}.elempartpts;
     if numel(nelem)>=2
@@ -27,22 +27,20 @@ for i = 1:nproc
     inb = find(f2t(3,:)==0); % boundary faces
     inc = sub2ind(size(fi), f2t(2,inb), f2t(1,inb));
     fb = fi(inc); % list of boundary indices
-        
+          
     if nproc>1
-    ne1 = sum(dmd{i}.elempartpts(1:2)); % number of elements in the subdomain
-    f2tin = f2t(:,ina);
-    in1 = find(f2tin(1,:)>ne1);
-    in2 = find(f2tin(3,:)>ne1);
-    in = unique([in1 in2]);      % interface faces    
-    ina = [in setdiff(ina, in)]; % [interface faces, interior faces]
-    dmd{i}.numinterfacefaces = length(in);
-    if nproc>1
+      ne1 = sum(dmd{i}.elempartpts(1:2)); % number of elements in the subdomain
+      f2tin = f2t(:,ina);
+      in1 = find(f2tin(1,:)>ne1);
+      in2 = find(f2tin(3,:)>ne1);
+      in = unique([in1 in2]);      % interface faces    
+      ina = [in setdiff(ina, in)]; % [interface faces, interior faces]
+      dmd{i}.numinterfacefaces = length(in);
       t1 = unique(f2tin(1,in2));
       t2 = unique(dmd{i}.elemsend);
       if max(abs(t1(:)-t2(:))) > 1e-8        
         error("domain decomposition is incorrect");
       end
-    end
     end
     
     fa = unique(fb); % boundary indices    
@@ -66,10 +64,19 @@ for i = 1:nproc
         dmd{i}.facepartpts = [dmd{i}.facepartpts n];
         dmd{i}.facepartbnd = [dmd{i}.facepartbnd bcn(j)];
     end
+    
+%     bcm
+%     bcn
+%      fb
+%      ind
+    
     % [interface faces, interior faces, boundary faces]
     f2t = f2t(:,[ina inb(ind)]);
     dmd{i}.f2t = f2t;    
 
+%     f2t
+%     pause
+    
     % fix f2t to ensure DOF consistency across interior faces
     % the global ID of the FIRST face must be smaller than that of the SECOND face        
     N = size(dmd{i}.f2t,2);
@@ -94,26 +101,26 @@ for i = 1:nproc
         end
       end
     end     
-    
-    dmd{i}.t2f = mke2f(dmd{i}.f2t);    
-    N = length(dmd{i}.elemsend);
-    for n = 1:N % loop over each interface element/face
-      esend = dmd{i}.elemsend(n);
-      erecv = dmd{i}.elemrecv(n);
-      for j = 1:nfe
-        fsend = dmd{i}.t2f(j,esend);   % face sent to neighbor
-        for k = 1:nfe
-          frecv = dmd{i}.t2f(k,erecv); % face received from neighbor
-          if (fsend == frecv)          % if esend and erecv share the same face
-            dmd{i}.facesend(n) = j;    % local ID of the face sent to neighbor
-            dmd{i}.facerecv(n) = k;    % local ID of the face received from neighbor                      
-          end
-        end
-      end                    
-    end         
+%     dmd{i}.t2f = mke2f(dmd{i}.f2t);    
+%     N = length(dmd{i}.elemsend);
+%     for n = 1:N % loop over each interface element/face
+%       esend = dmd{i}.elemsend(n);
+%       erecv = dmd{i}.elemrecv(n);
+%       for j = 1:nfe
+%         fsend = dmd{i}.t2f(j,esend);   % face sent to neighbor
+%         for k = 1:nfe
+%           frecv = dmd{i}.t2f(k,erecv); % face received from neighbor
+%           if (fsend == frecv)          % if esend and erecv share the same face
+%             dmd{i}.facesend(n) = j;    % local ID of the face sent to neighbor
+%             dmd{i}.facerecv(n) = k;    % local ID of the face received from neighbor                      
+%           end
+%         end
+%       end                    
+%     end         
     
     [dmd{i}.facecon,dmd{i}.elemcon] = faceconnectivity2(t(:,dmd{i}.elempart),dmd{i}.f2t,dim,elemtype,porder);      
 end
+
 
 % nfe = size(f,1);
 % 

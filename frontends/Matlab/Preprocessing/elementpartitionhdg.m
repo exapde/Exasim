@@ -38,7 +38,7 @@ for i = 1:nproc
     [~,ind] = sortrows(dmd{i}.elemrecv); 
     %[~,ind] = sort(dmd{i}.elemrecv(:,1)); 
     dmd{i}.elemrecv = dmd{i}.elemrecv(ind,:);
-    dmd{i}.nbsd = unique(dmd{i}.elemrecv(:,1)); % neighboring subdomains                  
+    dmd{i}.nbsd = unique(dmd{i}.elemrecv(:,1)); % neighboring subdomains        
 end
 
 % store elements sent to neighboring subdomains to assemble the linear system
@@ -46,13 +46,13 @@ for k = 1:nproc
     dmd{k}.elemsend = [];
 end
 for i = 1:nproc            
-    for j = 1:length(dmd{i}.nbsd)
+    for j = 1:length(dmd{i}.nbsd) % for each neighbor of cpu i
         % cpu k sends information to cpu i
-        k = dmd{i}.nbsd(j);
-        ii = dmd{i}.elemrecv(:,1)==k;
-        tm = dmd{i}.elemrecv(ii,:);
-        tm(:,1) = i;        
-        tm(:,2) = xiny(tm(:,3),dmd{k}.elempart(:));
+        k = dmd{i}.nbsd(j); % neighbor k of cpu i
+        ii = dmd{i}.elemrecv(:,1)==k; % indices 
+        tm = dmd{i}.elemrecv(ii,:);   % only get the elements received from cpu k
+        tm(:,1) = i;                  % change k to i, so that cpu k sennds elements to cpu i 
+        tm(:,2) = xiny(tm(:,3),dmd{k}.elempart(:)); % local indices of elements sent to cpu i 
         dmd{k}.elemsend = [dmd{k}.elemsend; tm];        
     end    
 end
@@ -67,6 +67,11 @@ for i = 1:nproc
     dmd{i}.elemsend = dmd{i}.elemsend(:,2);
     dmd{i}.elemrecv = dmd{i}.elemrecv(:,2);        
 end
+
+% for i = 1:nproc  
+%   [length(dmd{i}.elemsend) length(dmd{i}.elemrecv)]
+%   [length(unique(dmd{i}.elemsend)) length(unique(dmd{i}.elemrecv))]
+% end
 
 function nbelem = neighboringelements(t2t, elem)
 

@@ -70,4 +70,38 @@ void UpdateSolution(solstruct &sol, sysstruct &sys, commonstruct &common, Int ba
         UpdateSolutionBDF(sol, sys, common, backend);
 }
 
+
+void UpdateSolution(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+{                                   
+    Int N = common.ndof1;
+    Int N2 = common.npe*common.nc*common.ne2;                        
+    
+    // update the solution at each DIRK stage
+    if (common.wave==1) {
+        ArrayAXPBY(sys.utmp, sol.udg, sys.utmp, common.DIRKcoeff_c[common.currentstage], one, N2);                    
+    }
+    else {
+        ArrayExtract(res.Rq, sol.udg, common.npe, common.nc, common.ne1, 0, common.npe, 0, common.ncu, 0, common.ne1);                                                  
+        ArrayAXPBY(sys.utmp, res.Rq, sys.utmp, common.DIRKcoeff_c[common.currentstage], one, N);                    
+    }
+
+    // after the last DIRK stage
+    if (common.currentstage == common.tstages-1) {
+       // copy utmp to udg
+        if (common.wave==1)
+            ArrayCopy(sol.udg, sys.utmp, N2);
+        else
+            ArrayInsert(sol.udg, sys.utmp, common.npe, common.nc, common.ne1, 0, common.npe, 0, common.ncu, 0, common.ne1);                                                  
+    }   
+
+    // update the solution w at each DIRK stage
+    if (common.ncw>0) {
+        N2 = common.npe*common.ncw*common.ne2;            
+        ArrayAXPBY(sys.wtmp, sol.wdg, sys.wtmp, common.DIRKcoeff_c[common.currentstage], one, N2);                
+        // after the last DIRK stage
+        if (common.currentstage == common.tstages-1) 
+            ArrayCopy(sol.wdg, sys.wtmp, N2);                                 
+    }    
+}
+
 #endif

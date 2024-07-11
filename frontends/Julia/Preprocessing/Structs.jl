@@ -24,6 +24,9 @@ mutable struct DmdStruct
     facepartbnd::Array{IntP,2};
     t2f::Array{IntP,2};
     f::Array{IntP,2};
+    bf::Array{IntP,2};
+    f2t::Array{IntP,2};
+    elemcon::Array{IntP,3};
     #elem2cpu::Array{IntP,2};    # element partitions
     DmdStruct() = new();
 end

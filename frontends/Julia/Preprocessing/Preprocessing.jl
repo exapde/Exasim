@@ -28,6 +28,9 @@ include("elementpartition2.jl");
 include("faceconnectivity2.jl");
 include("facepartition2.jl");
 include("meshpartition2.jl");
+include("elementpartitionhdg.jl");
+include("facepartitionhdg.jl");
+include("meshpartitionhdg.jl");
 # include("elementpartition.jl");
 # include("faceconnectivity.jl");
 # include("facepartition.jl");
@@ -51,17 +54,27 @@ if app.modelnumber==0
 else
     strn = string(app.modelnumber);
 end
-    
-if !isdir("datain" * strn)
-    mkdir("datain" * strn);
-end
-if !isdir("dataout" * strn)
-    mkdir("dataout" * strn);
+
+model_path = joinpath(app.buildpath, "model")
+datain_path = joinpath(app.buildpath, "datain", strn)
+dataout_path = joinpath(app.buildpath, "dataout", strn)
+
+# Check if directories exist and create them if they don't
+if !isdir(model_path)
+    mkpath(model_path)
 end
 
-filename = "datain" * strn * "/";
-fileapp = filename * "app.bin";
-filemaster = filename * "master.bin";
+if !isdir(datain_path)
+    mkpath(datain_path)
+end
+
+if !isdir(dataout_path)
+    mkpath(dataout_path)
+end
+
+filename = joinpath(app.buildpath, "datain", strn) * "/"
+fileapp = filename * "app.bin"
+filemaster = filename * "master.bin"    
 
 if app.preprocessmode==0
     # update app structure
@@ -80,7 +93,10 @@ end
 if (app.nd==3) && (nve==8)
     app.elemtype=1;
 end
-app.pgauss = 2*app.porder;
+
+if app.pgauss < 2*app.porder
+  app.pgauss = 2*app.porder;
+end
 
 master = Master.mkmaster(app.nd,app.porder,app.pgauss,app.elemtype,app.nodetype);
 writemaster(master,filemaster);
@@ -151,16 +167,46 @@ end
 # app.nfb = 100000;
 
 #dmd = meshpartition(dmd,mesh.p,mesh.t,mesh.f,t2t,mesh.tprd,app.elemtype,app.boundaryconditions,mesh.boundaryexpr,mesh.periodicexpr,app.porder,mpiprocs,app.metis);
-dmd = meshpartition2(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+#dmd = meshpartition2(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+if (app.hybrid ==1)
+  dmd = meshpartitionhdg(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+else
+  dmd = meshpartition2(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+end
+
 for i = 1:mpiprocs
     #xdg = mesh.dgnodes[:,:,dmd[i].elempart[:]];
     # create DG nodes
-    xdg = createdgnodes(mesh.p,mesh.t[:,dmd[i].elempart[:]],mesh.f[:,dmd[i].elempart[:]],mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);
+    if (size(mesh.dgnodes,3) > 0)
+        xdg = mesh.dgnodes[:,:,dmd[i].elempart[:]];
+    else
+        xdg = createdgnodes(mesh.p,mesh.t[:,dmd[i].elempart[:]],mesh.f[:,dmd[i].elempart[:]],mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);
+    end
+
+    if mpiprocs==1
+      mesh.dgnodes = xdg;        
+    end
 
     cgelcon,rowent2elem,colent2elem,cgent2dgent,~ = mkcgent2dgent(xdg,1e-8);
 
+    if (size(mesh.udg,3) > 0)
+      udg = mesh.udg[:,:,dmd[i].elempart[:]];
+    else
+      udg = zeros(0,0,0);
+    end
+    if (size(mesh.odg,3) > 0)
+      odg = mesh.odg[:,:,dmd[i].elempart[:]];
+    else
+      odg = zeros(0,0,0);
+    end
+    if (size(mesh.wdg,3) > 0)
+      wdg = mesh.wdg[:,:,dmd[i].elempart[:]];
+    else
+      wdg = zeros(0,0,0);
+    end
+    
     if mpiprocs==1
-        writesol(filename  * "/sol",0,xdg);
+        writesol(filename  * "/sol",0,xdg, udg, odg, wdg);
         ne = length(dmd[i].elempart);
         eblks,nbe = mkelemblocks(ne,app.neb);
         eblks = vcat(eblks, zeros(Int, 1, size(eblks,2)));
@@ -169,7 +215,7 @@ for i = 1:mpiprocs
         neb = maximum(eblks[2,:]-eblks[1,:])+1;
         nfb = maximum(fblks[2,:]-fblks[1,:])+1;
     else
-        writesol(filename  * "/sol",i,xdg);
+        writesol(filename  * "/sol",i,xdg, udg, odg, wdg);
         me = cumsum([0; dmd[i].elempartpts[1]; dmd[i].elempartpts[2]; dmd[i].elempartpts[3]]);
         eblks,nbe = mkfaceblocks(me,[0 1 2],app.neb);
         mf = cumsum([0; dmd[i].facepartpts[:]]);
@@ -204,7 +250,7 @@ for i = 1:mpiprocs
     ndims[8] = nbf;
     ndims[9] = nfb;
 
-    nsize = zeros(Int,21,1);
+    nsize = zeros(Int,25,1);
     nsize[1] = length(ndims);
     nsize[2] = length(dmd[i].facecon);
     nsize[3] = length(eblks);
@@ -226,6 +272,12 @@ for i = 1:mpiprocs
     nsize[19] = length(rowe2f2);
     nsize[20] = length(cole2f2);
     nsize[21] = length(ent2ind2);
+    if app.hybrid > 0
+      nsize[22] = length(dmd[i].f2t[:])
+      nsize[23] = length(dmd[i].elemcon[:])
+      nsize[24] = length(master.perm[:])
+      nsize[25] = length(dmd[i].bf[:])
+    end
 
     if (mpiprocs>1)
         print("Writing mesh into file " * string(i) * "\n");
@@ -258,6 +310,12 @@ for i = 1:mpiprocs
     write(fileID,Float64.(rowe2f2[:]));
     write(fileID,Float64.(cole2f2[:].-1));
     write(fileID,Float64.(ent2ind2[:].-1));
+    if app.hybrid > 0
+      write(fileID,Float64.(dmd[i].f2t[:].-1))
+      write(fileID,Float64.(dmd[i].elemcon[:].-1))
+      write(fileID,Float64.(master.perm[:]).-1)
+      write(fileID,Float64.(dmd[i].bf[:]))
+    end
     close(fileID);
 end
 

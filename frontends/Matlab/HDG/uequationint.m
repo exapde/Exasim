@@ -1,7 +1,7 @@
 function [AE, FE, DUDG, DUDG_DUH] = uequationint(master,mesh,pde,UDG,UH,SH,MinvC,MinvE)
 
 ne  = size(mesh.dgnodes,3);
-ns  = 128;
+ns  = 1000;
 nb = ceil(ne/ns);          
 nk = 1:ns:ne;
 nm = [nk(1:end); [nk(2:end)-1,ne]];    
@@ -68,12 +68,12 @@ for j=1:nb
     end
     
     % compute <Fhat, w> and <Fbou, mu> 
-    [Ru, Rh, B, D, F, G, K, H] = uequationfaceint(master,pde,mesh.bf(:,id),dgnodes(:,id,:),UDG(:,id,:),UH(:,id,:),Ru,BD);
+    [Ru, Rh, B, D, F, G, K, H] = uequationfaceint(master,pde,-mesh.f(:,id),dgnodes(:,id,:),UDG(:,id,:),UH(:,id,:),Ru,BD);
     if pde.debugmode == 1
       save uequationfaceint.mat Ru Rh B D F G K H;
     end
-    [norm(Ru(:)) norm(B(:)) norm(D(:)) norm(Rh(:))] 
-    [norm(F(:)) norm(K(:)) norm(G(:)) norm(H(:))]
+%     [norm(Ru(:)) norm(B(:)) norm(D(:)) norm(Rh(:))] 
+%     [norm(F(:)) norm(K(:)) norm(G(:)) norm(H(:))]
     
     % solve the local problem 
     if ncq > 0
@@ -81,12 +81,12 @@ for j=1:nb
     else
       [AE(:,:,id), FE(:,id), DUDG(:,id), DUDG_DUH(:,:,id), D, F, K, H] = uequationschur(Ru, Rh, B, D, F, G, K, H);
     end
-    t1 = DUDG(:,id);
-    t2 = FE(:,id);
-    t3 = DUDG_DUH(:,:,id);
-    t4 = AE(:,:,id);
-    [norm(D(:)) norm(F(:)) norm(K(:)) norm(H(:))]
-    [norm(t1(:)) norm(t2(:)) norm(t3(:)) norm(t4(:))]
+%     t1 = DUDG(:,id);
+%     t2 = FE(:,id);
+%     t3 = DUDG_DUH(:,:,id);
+%     t4 = AE(:,:,id);
+%     [norm(D(:)) norm(F(:)) norm(K(:)) norm(H(:))]
+%     [norm(t1(:)) norm(t2(:)) norm(t3(:)) norm(t4(:))]
     
     if pde.debugmode == 1
       save uequationschur.mat AE FE DUDG DUDG_DUH D F K H;            

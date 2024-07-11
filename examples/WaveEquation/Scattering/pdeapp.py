@@ -3,7 +3,7 @@ import numpy, os
 
 # Add Exasim to Python search path
 cdir = os.getcwd(); ii = cdir.find("Exasim");
-exec(open(cdir[0:(ii+6)] + "/Installation/setpath.py").read());
+exec(open(cdir[0:(ii+6)] + "/install/setpath.py").read());
 
 # import internal modules
 import Preprocessing, Postprocessing, Gencode, Mesh

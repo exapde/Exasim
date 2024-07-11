@@ -1,4 +1,4 @@
-function [app,cpulib,gpulib] = setcompilers(app)
+function [app] = setcompilers(app)
 
 % app.gmsh = findexec(app.gmsh, app.version);
 % app.paraview = findexec(app.paraview, app.version);
@@ -105,47 +105,47 @@ if app.platform == "gpu"
     end    
 end
 
-mdir = pwd(); ii = strfind(mdir, "Exasim");
-coredir = mdir(1:(ii+5)) + "/lib";
-
-cpulib = 0;
-gpulib = 0;
-cpulibflags = app.cpulibflags;
-gpulibflags = app.gpulibflags;
-if ismac    
-    if (exist(coredir + "/Mac/commonCore.a", 'file') == 2) && (exist(coredir + "/Mac/opuCore.a", 'file') == 2)
-        cpulib = 1;
-    end
-    if (exist(coredir + "/Mac/gpuCore.a", 'file') == 2)
-        gpulib = 1;
-    end
-elseif isunix
-    if (exist(coredir + "/Linux/commonCore.a", 'file') == 2) && (exist(coredir + "/Linux/opuCore.a", 'file') == 2)
-        cpulib = 1;
-    end
-    if (exist(coredir + "/Linux/gpuCore.a", 'file') == 2)
-        gpulib = 1;
-    end
-elseif ispc
-    if (exist(coredir + "/Windows/commonCore.a", 'file') == 2) && (exist(coredir + "/Windows/opuCore.a", 'file') == 2)
-        cpulib = 1;
-    end
-    if (exist(coredir + "/Windows/gpuCore.a", 'file') == 2)
-        gpulib = 1;
-    end
-end
-
-if cpulib==0    
-    disp("Generating CPU core libraries.");
-    genlib(app.cpucompiler, [], coredir, cpulibflags);
-end
-
-if gpulib==0        
-    if (~isempty(app.gpucompiler)) && (app.platform == "gpu")
-        disp("Generating GPU core library.");
-        genlib([], app.gpucompiler, coredir, cpulibflags, gpulibflags);
-    end
-end
+% mdir = pwd(); ii = strfind(mdir, "Exasim");
+% coredir = mdir(1:(ii+5)) + "/lib";
+% 
+% cpulib = 0;
+% gpulib = 0;
+% cpulibflags = app.cpulibflags;
+% gpulibflags = app.gpulibflags;
+% if ismac    
+%     if (exist(coredir + "/Mac/commonCore.a", 'file') == 2) && (exist(coredir + "/Mac/opuCore.a", 'file') == 2)
+%         cpulib = 1;
+%     end
+%     if (exist(coredir + "/Mac/gpuCore.a", 'file') == 2)
+%         gpulib = 1;
+%     end
+% elseif isunix
+%     if (exist(coredir + "/Linux/commonCore.a", 'file') == 2) && (exist(coredir + "/Linux/opuCore.a", 'file') == 2)
+%         cpulib = 1;
+%     end
+%     if (exist(coredir + "/Linux/gpuCore.a", 'file') == 2)
+%         gpulib = 1;
+%     end
+% elseif ispc
+%     if (exist(coredir + "/Windows/commonCore.a", 'file') == 2) && (exist(coredir + "/Windows/opuCore.a", 'file') == 2)
+%         cpulib = 1;
+%     end
+%     if (exist(coredir + "/Windows/gpuCore.a", 'file') == 2)
+%         gpulib = 1;
+%     end
+% end
+% 
+% if cpulib==0    
+%     disp("Generating CPU core libraries.");
+%     genlib(app.cpucompiler, [], coredir, cpulibflags);
+% end
+% 
+% if gpulib==0        
+%     if (~isempty(app.gpucompiler)) && (app.platform == "gpu")
+%         disp("Generating GPU core library.");
+%         genlib([], app.gpucompiler, coredir, cpulibflags, gpulibflags);
+%     end
+% end
 
 end
 

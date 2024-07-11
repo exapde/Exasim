@@ -46,6 +46,6 @@ def facepartition2(dmd,t,f,bcm,dim,elemtype,porder,nproc):
         f2t = f2t[:,concatenate([ina, inb[ind]])];
         dmd[i]['facepartpts'] = array(dmd[i]['facepartpts']);
         dmd[i]['facepartbnd'] = array(dmd[i]['facepartbnd']);
-        dmd[i]['facecon'] = faceconnectivity2(t[:,dmd[i]['elempart'].flatten('F')],f2t,dim,elemtype,porder);
-
+        dmd[i]['facecon'] = faceconnectivity2(t[:,dmd[i]['elempart'].flatten('F')],f2t,dim,elemtype,porder)[0];
+        
     return dmd

@@ -11,32 +11,84 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
-pde.hybrid = 1;
+pde.mpiprocs = 1;             % number of MPI processors
+pde.hybrid = 1;               % 0 -> LDG, 1 -> HDG
 pde.debugmode = 0;
 pde.nd = 2;
 
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 2;             % polynomial degree
+pde.porder = 3;             % polynomial degree
 pde.pgauss = 2*pde.porder;
 pde.physicsparam = 1;       % unit thermal conductivity
 pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-8; % GMRES tolerance
 pde.ppdegree = 1;          % degree of polynomial preconditioner
+pde.RBdim = 0;
 
 % create a grid of 8 by 8 on the unit square
-[mesh.p,mesh.t] = squaremesh(4,4,1,1);
+[mesh.p,mesh.t] = squaremesh(8,8,1,1);
+% mesht = mkmesh_square(8,8,pde.porder,0,1,1,1,1);
+% mesh.dgnodes = mesht.dgnodes;
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(2,:)-1)<1e-8, @(p) abs(p(1,:))<1e-8};
 mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 
 % call exasim to generate and run C++ code to solve the PDE model
-[sol,pde,mesh] = exasim(pde,mesh);
+[sol,pde,mesh,master,dmd,comstr,runstr] = exasim(pde,mesh);
 
 % plot solution
-% mesh.porder = pde.porder;
-% figure(1); clf; scaplot(mesh,sol(:,1,:),[],2); axis on; axis equal; axis tight;
+mesh.porder = pde.porder;
+mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
+figure(1); clf; scaplot(mesh,sol(:,1,:),[],2); axis on; axis equal; axis tight;
 
+% [AE, FE, DUDG, DUDG_DUH, D, F, K, H] = uEquationSchurExasim(dataout, pde, npe, npf, nfe);
+% [AE0, FE0, DUDG0, DUDG_DUH0, D0, F0, K0, H0] = uEquationSchurExasim(dataout + "0", pde, npe, npf, nfe, 40);
+return;
+
+dataout = pde.buildpath + "/dataout/out";
+[AE, FE, DUDG, DUDG_DUH] = NewtonExasim(dataout, pde, npe, npf, nfe);
+[AE0, FE0, DUDG0, DUDG_DUH0] = NewtonExasim(dataout + "0", pde, npe, npf, nfe);
+[AE1, FE1, DUDG1, DUDG_DUH1] = NewtonExasim(dataout + "1", pde, npe, npf, nfe);
+
+i0 = [41:64 33:40 25:32];
+i1 = [1:40];
+a = squeeze(AE);
+a0 = squeeze(AE0);
+a1 = squeeze(AE1);
+e0=a(:,:,i0(1:32))-a0;
+e1=a(:,:,i1(1:32))-a1;
+[max(abs(e0(:))) max(abs(e1(:)))]
+
+i0 = [41:64 33:40 25:32];
+i1 = [1:40];
+a = squeeze(DUDG_DUH);
+a0 = squeeze(DUDG_DUH0);
+a1 = squeeze(DUDG_DUH1);
+e0=a(:,:,i0(1:32))-a0;
+e1=a(:,:,i1(1:32))-a1;
+[max(abs(e0(:))) max(abs(e1(:)))]
+
+a = squeeze(FE);
+a0 = squeeze(FE0);
+a1 = squeeze(FE1);
+e0=a(:,i0(1:32))-a0;
+e1=a(:,i1(1:32))-a1;
+[max(abs(e0(:))) max(abs(e1(:)))]
+
+a = squeeze(DUDG);
+a0 = squeeze(DUDG0);
+a1 = squeeze(DUDG1);
+e0=a(:,i0(1:32))-a0;
+e1=a(:,i1(1:32))-a1;
+[max(abs(e0(:))) max(abs(e1(:)))]
+
+R = assembleRhsExasim(dataout, pde, npf, 144);
+R0 = assembleRhsExasim(dataout + "0", pde, npf, 76);
+R1 = assembleRhsExasim(dataout + "1", pde, npf, 76);
+
+R = reshape(R, [npf 144]);
+R0 = reshape(R0, [npf 76]);
+R1 = reshape(R1, [npf 76]);
 
 % visualize the numerical solution of the PDE model using Paraview
 % pde.visscalars = {"temperature", 1};  % list of scalar fields for visualization
@@ -44,20 +96,20 @@ mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
 % xdg = vis(sol,pde,mesh); % visualize the numerical solution
 % disp("Done!");
 
-master1 = Master(pde);
-mesh1 = hdgmesh(mesh, pde.porder);
-x = mesh1.dgnodes(:,1,:);
-y = mesh1.dgnodes(:,2,:);
-u = x.*x + y.*y;
-UDG = u;
-UDG(:,2,:) = -2*x;
-UDG(:,3,:) = -2*y;
-UDG = 0*UDG;
-UH = inituhat(master1,mesh1.elcon,UDG,1);
-pde.bcm = [1; 1; 1; 1];
-pde.bcs = [1; 1; 1; 1]*0;
-pde.debugmode=1;
-[UDG,UH]= hdgsolve(master1,mesh1,pde,UDG,UH,[]);
+% master1 = Master(pde);
+% mesh1 = hdgmesh(mesh, pde.porder);
+% x = mesh1.dgnodes(:,1,:);
+% y = mesh1.dgnodes(:,2,:);
+% u = x.*x + y.*y;
+% UDG = u;
+% UDG(:,2,:) = -2*x;
+% UDG(:,3,:) = -2*y;
+% UDG = 0*UDG;
+% UH = inituhat(master1,mesh1.elcon,UDG,1);
+% pde.bcm = [1; 1; 1; 1];
+% pde.bcs = [1; 1; 1; 1]*0;
+% pde.debugmode=1;
+% [UDG,UH]= hdgsolve(master1,mesh1,pde,UDG,UH,[]);
 % compareexasim(master1, mesh1, pde);
 
 

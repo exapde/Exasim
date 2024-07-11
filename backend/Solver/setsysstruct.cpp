@@ -41,11 +41,19 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
     Int M = common.gmresRestart+1;    
     M = max(M, common.RBdim);    
     
-    TemplateMalloc(&sys.u, common.ndof, backend); 
-    TemplateMalloc(&sys.x, common.ndof, backend); 
-    TemplateMalloc(&sys.b, common.ndof, backend); 
-    TemplateMalloc(&sys.r, common.ndof, backend); 
-    TemplateMalloc(&sys.v, N*M, backend); 
+    // fix bug here
+    Int ndof = (common.spatialScheme==0) ? N : common.ndofuhat;              
+    TemplateMalloc(&sys.u, ndof, backend); 
+    TemplateMalloc(&sys.x, ndof, backend); 
+    TemplateMalloc(&sys.b, ndof, backend); 
+    TemplateMalloc(&sys.r, ndof, backend); 
+    TemplateMalloc(&sys.v, ndof*M, backend);         
+    
+    ArraySetValue(sys.u, 0.0, ndof);
+    ArraySetValue(sys.x, 0.0, ndof);
+    ArraySetValue(sys.b, 0.0, ndof);
+    ArraySetValue(sys.r, 0.0, ndof);
+    ArraySetValue(sys.v, 0.0, ndof*M);
         
     if (common.ncs>0) {        
         TemplateMalloc(&sys.utmp, npe*common.nc*common.ne2, backend); 
@@ -113,9 +121,9 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
     }
     sys.ipiv = (Int *) malloc(max(common.ppdegree, M*M)*sizeof(Int));             
     
-    sys.normcu = (dstype *) malloc(ncu*sizeof(dstype));    
-    
-    N = npe*ncu*ne;                 
+    // sys.normcu = (dstype *) malloc(ncu*sizeof(dstype));    
+        
+    N = ndof; // fix bug here                
     TemplateMalloc(&sys.randvect, N, backend);    
 #ifdef HAVE_CUDA                               
     dstype *rvec = (dstype *) malloc((N)*sizeof(dstype));
@@ -127,12 +135,16 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
     for (int i=0; i<N; i++) sys.randvect[i] = rand_normal(0.0, 1.0);        
 #endif                   
     dstype normr = PNORM(common.cublasHandle, N, sys.randvect, backend);    
+//    cout<<common.mpiRank<<" "<<normr<<" "<<N<<endl;
     ArrayMultiplyScalar(common.cublasHandle, sys.randvect, 1.0/normr, N, backend);                       
+//     normr = PNORM(common.cublasHandle, N, sys.randvect, backend);    
+//     cout<<common.mpiRank<<" "<<normr<<" "<<N<<endl;
+//     error("here");
     
     if (common.ppdegree > 1) {
         sys.lam = (dstype *) malloc((6*common.ppdegree + 2*common.ppdegree*common.ppdegree)*sizeof(dstype));        
-        TemplateMalloc(&sys.q, N, backend);     
-        TemplateMalloc(&sys.p, N, backend);                       
+        TemplateMalloc(&sys.q, ndof, backend);     
+        TemplateMalloc(&sys.p, ndof, backend);                       
     }
 }
 

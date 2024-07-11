@@ -1,5 +1,9 @@
 function  exasim(pde,mesh)
 
+cdir = pwd(); ii = findlast("Exasim", cdir);
+ExasimPath = cdir[1:ii[end]];
+buildpath = ExasimPath * "/build";
+
 if isa(pde, Array)
     nmodels = length(pde);      
 else
@@ -16,19 +20,12 @@ if nmodels==1
     # generate source codes and store them in app folder
     Gencode.gencode(pde);
 
-    if pde.usecmake==1    
-        runstr = Main.cmakecompile(pde, nmodels); # use cmake to compile source codes 
-        compilerstr = "";    
-    else
-        # compile source codes to build an executable file and store it in app folder
-        compilerstr = Gencode.compilecode(pde);
+    compilerstr = Main.cmakecompile(pde); # use cmake to compile source codes 
 
-        # run executable file to compute solution and store it in dataout folder
-        runstr = Gencode.runcode(pde, nmodels);
-    end
+    runstr = Gencode.runcode(pde, 1);
 
     # get solution from output files in dataout folder
-    sol = Postprocessing.fetchsolution(pde,master,dmd,"dataout");
+    sol = Postprocessing.fetchsolution(pde,master,dmd, buildpath * "/dataout");
     if pde.saveResNorm == 1
         fn = "dataout/out_residualnorms0.bin";
         res = reinterpret(Float64,read(fn));        

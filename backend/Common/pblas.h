@@ -13,29 +13,29 @@ static void cpuNode2Gauss(dstype *ug, dstype *un, dstype *shapt, Int ng, Int np,
 #endif    
 }
 
-static void cpuGauss2Node(dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn)
-{    
-    //dstype alpha = 1.0, beta = 0.0;
-    //char chn = 'N';
-    //DGEMM(&chn, &chn, &np, &nn, &ng, &alpha, shapg, &np, ug, &ng, &beta, un, &np);    
-#ifdef USE_FLOAT    
-    SGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &zero, un, &np);    
-#else    
-    DGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &zero, un, &np);    
-#endif    
-}
+// static void cpuGauss2Node(dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn)
+// {    
+//     //dstype alpha = 1.0, beta = 0.0;
+//     //char chn = 'N';
+//     //DGEMM(&chn, &chn, &np, &nn, &ng, &alpha, shapg, &np, ug, &ng, &beta, un, &np);    
+// #ifdef USE_FLOAT    
+//     SGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &zero, un, &np);    
+// #else    
+//     DGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &zero, un, &np);    
+// #endif    
+// }
 
-static void cpuGauss2Node1(dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn)
-{    
-    //dstype alpha = 1.0, beta = 0.0;
-    //char chn = 'N';
-    //DGEMM(&chn, &chn, &np, &nn, &ng, &alpha, shapg, &np, ug, &ng, &beta, un, &np);    
-#ifdef USE_FLOAT        
-    SGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &one, un, &np);    
-#else        
-    DGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &one, un, &np);    
-#endif    
-}
+// static void cpuGauss2Node1(dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn)
+// {    
+//     //dstype alpha = 1.0, beta = 0.0;
+//     //char chn = 'N';
+//     //DGEMM(&chn, &chn, &np, &nn, &ng, &alpha, shapg, &np, ug, &ng, &beta, un, &np);    
+// #ifdef USE_FLOAT        
+//     SGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &one, un, &np);    
+// #else        
+//     DGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &one, un, &np);    
+// #endif    
+// }
 
 
 static void Node2Gauss(cublasHandle_t handle, dstype *ug, dstype *un, dstype *shapt, Int ng, Int np, Int nn, Int backend)
@@ -176,46 +176,46 @@ static void Inverse(cublasHandle_t handle, dstype* A, dstype *C, Int *ipiv, Int 
 #endif              
 }
 
-static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, 
-        dstype *global_dot, dstype *local_dot, Int backend) 
-{           
-#ifdef USE_FLOAT    
-    if (backend <= 1) 
-        *local_dot = SDOT(&m, x, &incx, y, &incy);
-#else   
-    if (backend <= 1) 
-        *local_dot = DDOT(&m, x, &incx, y, &incy);
-#endif        
-    
-#ifdef HAVE_CUDA          
-#ifdef USE_FLOAT  
-    if (backend == 2)     
-        cublasSdot(handle, m, x, incx, y, incy, local_dot);    
-#else            
-    if (backend == 2)  
-        cublasDdot(handle, m, x, incx, y, incy, local_dot);    
-#endif        
-   // cudaDeviceSynchronize();
-#endif             
-    
-#ifdef HAVE_MPI        
-#ifdef USE_FLOAT        
-    MPI_Allreduce(local_dot, global_dot, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-#else        
-    MPI_Allreduce(local_dot, global_dot, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-#endif         
-#else    
-    //ArrayCopy(global_dot, local_dot, 1, backend);
-    *global_dot = *local_dot;
-#endif    
-}
-
-static dstype PNORM(cublasHandle_t handle, Int m, dstype* x, 
-        dstype* global_dot, dstype* local_dot, Int backend) 
-{              
-    PDOT(handle, m, x, inc1, x, inc1, global_dot, local_dot, backend); 
-    return sqrt(*global_dot);    
-}
+// static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, 
+//         dstype *global_dot, dstype *local_dot, Int backend) 
+// {           
+// #ifdef USE_FLOAT    
+//     if (backend <= 1) 
+//         *local_dot = SDOT(&m, x, &incx, y, &incy);
+// #else   
+//     if (backend <= 1) 
+//         *local_dot = DDOT(&m, x, &incx, y, &incy);
+// #endif        
+//     
+// #ifdef HAVE_CUDA          
+// #ifdef USE_FLOAT  
+//     if (backend == 2)     
+//         cublasSdot(handle, m, x, incx, y, incy, local_dot);    
+// #else            
+//     if (backend == 2)  
+//         cublasDdot(handle, m, x, incx, y, incy, local_dot);    
+// #endif        
+//    // cudaDeviceSynchronize();
+// #endif             
+//     
+// #ifdef HAVE_MPI        
+// #ifdef USE_FLOAT        
+//     MPI_Allreduce(local_dot, global_dot, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+// #else        
+//     MPI_Allreduce(local_dot, global_dot, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+// #endif         
+// #else    
+//     //ArrayCopy(global_dot, local_dot, 1, backend);
+//     *global_dot = *local_dot;
+// #endif    
+// }
+// 
+// static dstype PNORM(cublasHandle_t handle, Int m, dstype* x, 
+//         dstype* global_dot, dstype* local_dot, Int backend) 
+// {              
+//     PDOT(handle, m, x, inc1, x, inc1, global_dot, local_dot, backend); 
+//     return sqrt(*global_dot);    
+// }
 
 static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, 
         dstype *global_dot, Int backend) 
@@ -430,71 +430,71 @@ static void PGEMTV(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A
 #endif    
 }
 
-static void PGEMTV2(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A, Int lda, 
-        dstype* x, Int incx, dstype *beta, dstype* y, Int incy, dstype* ylocal, Int backend) 
-{
-    /* y = alpha*A^T * x + beta y */
-#ifdef USE_FLOAT     
-    if (backend <= 1)
-        SGEMM(&chn, &chn, &incx, &n, &m, alpha, x, &incx, A, &lda, beta, ylocal, &incy);    
-        //SGEMV(&cht, &m, &n, alpha, A, &lda, x, &incx, beta, ylocal, &incy);
-#else   
-    if (backend <= 1) 
-        DGEMM(&chn, &chn, &incx, &n, &m, alpha, x, &incx, A, &lda, beta, ylocal, &incy);  
-        //DGEMV(&cht, &m, &n, alpha, A, &lda, x, &incx, beta, ylocal, &incy);
-#endif
-    
-#ifdef HAVE_CUDA          
-#ifdef USE_FLOAT  
-    if (backend == 2)     
-        cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, incx, n, m, 
-            alpha, x, incx, A, lda, beta, ylocal, incy);                    
-        //CHECK_CUBLAS(cublasSgemv(handle, CUBLAS_OP_T, m, n, alpha, A, lda, x, incx,
-        //                     beta, ylocal, incy));        
-#else            
-    if (backend == 2)  
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, incx, n, m, 
-            alpha, x, incx, A, lda, beta, ylocal, incy);                    
-        //CHECK_CUBLAS(cublasDgemv(handle, CUBLAS_OP_T, m, n, alpha, A, lda, x, incx,
-        //                     beta, ylocal, incy));
-#endif        
-#endif             
-    
-#ifdef  HAVE_MPI          
-#ifdef USE_FLOAT         
-    MPI_Allreduce(ylocal, y, n, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-#else            
-    MPI_Allreduce(ylocal, y, n, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-#endif    
-#else
-    ArrayCopy(y, ylocal, n);
-#endif    
-}
+// static void PGEMTV2(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A, Int lda, 
+//         dstype* x, Int incx, dstype *beta, dstype* y, Int incy, dstype* ylocal, Int backend) 
+// {
+//     /* y = alpha*A^T * x + beta y */
+// #ifdef USE_FLOAT     
+//     if (backend <= 1)
+//         SGEMM(&chn, &chn, &incx, &n, &m, alpha, x, &incx, A, &lda, beta, ylocal, &incy);    
+//         //SGEMV(&cht, &m, &n, alpha, A, &lda, x, &incx, beta, ylocal, &incy);
+// #else   
+//     if (backend <= 1) 
+//         DGEMM(&chn, &chn, &incx, &n, &m, alpha, x, &incx, A, &lda, beta, ylocal, &incy);  
+//         //DGEMV(&cht, &m, &n, alpha, A, &lda, x, &incx, beta, ylocal, &incy);
+// #endif
+//     
+// #ifdef HAVE_CUDA          
+// #ifdef USE_FLOAT  
+//     if (backend == 2)     
+//         cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, incx, n, m, 
+//             alpha, x, incx, A, lda, beta, ylocal, incy);                    
+//         //CHECK_CUBLAS(cublasSgemv(handle, CUBLAS_OP_T, m, n, alpha, A, lda, x, incx,
+//         //                     beta, ylocal, incy));        
+// #else            
+//     if (backend == 2)  
+//         cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, incx, n, m, 
+//             alpha, x, incx, A, lda, beta, ylocal, incy);                    
+//         //CHECK_CUBLAS(cublasDgemv(handle, CUBLAS_OP_T, m, n, alpha, A, lda, x, incx,
+//         //                     beta, ylocal, incy));
+// #endif        
+// #endif             
+//     
+// #ifdef  HAVE_MPI          
+// #ifdef USE_FLOAT         
+//     MPI_Allreduce(ylocal, y, n, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
+// #else            
+//     MPI_Allreduce(ylocal, y, n, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+// #endif    
+// #else
+//     ArrayCopy(y, ylocal, n);
+// #endif    
+// }
 
-static void PGEMNM(cublasHandle_t handle, Int m, Int n, Int k, dstype *alpha, dstype* A, Int lda, 
-        dstype* B, Int ldb, dstype *beta, dstype* C, Int ldc, Int backend) 
-{
-    /* C = alpha*A * B + beta C */
-#ifdef USE_FLOAT     
-    if (backend <= 1) 
-        SGEMM(&chn, &chn, &m, &n, &k, alpha, A, &lda, B, &ldb, beta, C, &ldc);
-#else   
-    if (backend <= 1) 
-        DGEMM(&chn, &chn, &m, &n, &k, alpha, A, &lda, B, &ldb, beta, C, &ldc);
-#endif
-    
-#ifdef HAVE_CUDA          
-#ifdef USE_FLOAT  
-    if (backend == 2)     
-        cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, 
-            alpha, A, lda, B, ldb, beta, C, ldc);                    
-#else            
-    if (backend == 2)  
-        cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, 
-            alpha, A, lda, B, ldb, beta, C, ldc);
-#endif        
-#endif                     
-}
+// static void PGEMNM(cublasHandle_t handle, Int m, Int n, Int k, dstype *alpha, dstype* A, Int lda, 
+//         dstype* B, Int ldb, dstype *beta, dstype* C, Int ldc, Int backend) 
+// {
+//     /* C = alpha*A * B + beta C */
+// #ifdef USE_FLOAT     
+//     if (backend <= 1) 
+//         SGEMM(&chn, &chn, &m, &n, &k, alpha, A, &lda, B, &ldb, beta, C, &ldc);
+// #else   
+//     if (backend <= 1) 
+//         DGEMM(&chn, &chn, &m, &n, &k, alpha, A, &lda, B, &ldb, beta, C, &ldc);
+// #endif
+//     
+// #ifdef HAVE_CUDA          
+// #ifdef USE_FLOAT  
+//     if (backend == 2)     
+//         cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, 
+//             alpha, A, lda, B, ldb, beta, C, ldc);                    
+// #else            
+//     if (backend == 2)  
+//         cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, 
+//             alpha, A, lda, B, ldb, beta, C, ldc);
+// #endif        
+// #endif                     
+// }
 
 static void PGEMTM(cublasHandle_t handle, Int m, Int n, Int k, dstype *alpha, dstype* A, Int lda, 
         dstype* B, Int ldb, dstype *beta, dstype* C, Int ldc, dstype* Clocal, Int backend) 

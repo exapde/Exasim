@@ -296,7 +296,7 @@ template <typename T> static void TemplateMalloc(T **data, Int n, Int backend)
     if (backend == 2)  // CUDA C                
         // allocate the memory on the GPU            
         CHECK( cudaMalloc( (void**)data, n * sizeof(T) ) );
-#endif                  
+#endif                 
 }
 
 template <typename T> static void TemplateFree(T *data,  Int backend)
@@ -909,7 +909,7 @@ struct sysstruct {
     // unified memory for GMRES solver
     dstype *tempmem=nullptr;
     dstype *lam=nullptr;
-    dstype *normcu=nullptr;
+    //dstype *normcu=nullptr;
     Int *ipiv=nullptr;
     
     // store PTC matrix
@@ -933,7 +933,7 @@ struct sysstruct {
     void freememory(Int hostmemory)
     {
        CPUFREE(lam);  
-       CPUFREE(normcu);  
+       //CPUFREE(normcu);  
        CPUFREE(ipiv);  
        if (hostmemory==1) {
             CPUFREE(x); 
@@ -1004,7 +1004,7 @@ struct precondstruct {
     // dstype *Cmat;
     
     // dstype *RBcoef=nullptr;     
-    // Int *ipiv=nullptr;
+    Int *ipiv=nullptr;
     
     void freememory(Int hostmemory)
     {
@@ -1017,7 +1017,7 @@ struct precondstruct {
             //CPUFREE(H); 
             //CPUFREE(y); 
             //CPUFREE(z); 
-            // CPUFREE(ipiv); 
+            CPUFREE(ipiv); 
         }            
 #ifdef HAVE_CUDA      
        else {
@@ -1029,7 +1029,7 @@ struct precondstruct {
             //GPUFREE(H);
             //GPUFREE(y); 
             //GPUFREE(z); 
-            //GPUFREE(ipiv);
+            GPUFREE(ipiv);
        }
 #endif       
     }                     
@@ -1229,7 +1229,7 @@ struct commonstruct {
     {
         CPUFREE(eblks); 
         CPUFREE(fblks);
-        CPUFREE(ncarray);    
+        CPUFREE(nboufaces);
         CPUFREE(nbsd); 
         CPUFREE(elemsend); 
         CPUFREE(elemrecv); 

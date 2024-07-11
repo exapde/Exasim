@@ -1,4 +1,4 @@
-function [compilerstr,pde,mesh,master,dmd] = producecode(pde,mesh)
+function [pde,mesh,master,dmd] = producecode(pde,mesh)
 
 % search compilers and set options
 pde = setcompilers(pde);       
@@ -7,10 +7,7 @@ pde = setcompilers(pde);
 [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
 % generate source codes and store them in app folder
-gencode(pde);
+kkgencode(pde);
 
-% compile source codes to build an executable file and store it in app folder
-compilerstr = compilecode(pde);
-
-
-
+% % compile source codes to build an executable file and store it in app folder
+% compilerstr = compilecode(pde);

@@ -12,6 +12,6 @@ def producecode(pde,mesh):
     Gencode.gencode(pde);
 
     # compile source codes to build an executable file and store it in app folder
-    compilerstr = Gencode.compilecode(pde);
+    #compilerstr = Gencode.compilecode(pde);
 
-    return compilerstr,pde,mesh,master,dmd
+    return pde,mesh,master,dmd

@@ -100,48 +100,48 @@ if app.platform == "gpu"
     end
 end
 
-mdir = pwd();
-ii = findlast(app.codename, mdir);
-coredir = mdir[1:ii[end]] * "/lib";
+# mdir = pwd();
+# ii = findlast(app.codename, mdir);
+# coredir = mdir[1:ii[end]] * "/lib";
 
-cpulib = 0;
-gpulib = 0;
-cpulibflags = app.cpulibflags
-gpulibflags = app.gpulibflags
-if Sys.isapple()
-    if (isfile(coredir * "/Mac/commonCore.a")) && (isfile(coredir * "/Mac/opuCore.a"))
-        cpulib = 1;
-    end
-    if (isfile(coredir * "/Mac/gpuCore.a"))
-        gpulib = 1;
-    end
-elseif Sys.isunix()
-    if (isfile(coredir * "/Linux/commonCore.a")) && (isfile(coredir * "/Linux/opuCore.a"))
-        cpulib = 1;
-    end
-    if (isfile(coredir * "/Linux/gpuCore.a"))
-        gpulib = 1;
-    end
-elseif Sys.iswindows()
-    if (isfile(coredir * "/Windows/commonCore.a")) && (isfile(coredir * "/Windows/opuCore.a"))
-        cpulib = 1;
-    end
-    if (isfile(coredir * "/Windows/gpuCore.a"))
-        gpulib = 1;
-    end
-end
+# cpulib = 0;
+# gpulib = 0;
+# cpulibflags = app.cpulibflags
+# gpulibflags = app.gpulibflags
+# if Sys.isapple()
+#     if (isfile(coredir * "/Mac/commonCore.a")) && (isfile(coredir * "/Mac/opuCore.a"))
+#         cpulib = 1;
+#     end
+#     if (isfile(coredir * "/Mac/gpuCore.a"))
+#         gpulib = 1;
+#     end
+# elseif Sys.isunix()
+#     if (isfile(coredir * "/Linux/commonCore.a")) && (isfile(coredir * "/Linux/opuCore.a"))
+#         cpulib = 1;
+#     end
+#     if (isfile(coredir * "/Linux/gpuCore.a"))
+#         gpulib = 1;
+#     end
+# elseif Sys.iswindows()
+#     if (isfile(coredir * "/Windows/commonCore.a")) && (isfile(coredir * "/Windows/opuCore.a"))
+#         cpulib = 1;
+#     end
+#     if (isfile(coredir * "/Windows/gpuCore.a"))
+#         gpulib = 1;
+#     end
+# end
 
-if cpulib==0
-    print("Generating CPU core libraries.");
-    genlib(app.cpucompiler, "", coredir, cpulibflags);
-end
+# if cpulib==0
+#     print("Generating CPU core libraries.");
+#     genlib(app.cpucompiler, "", coredir, cpulibflags);
+# end
 
-if gpulib==0
-    if (length(app.gpucompiler)>0) && (app.platform == "gpu")
-        print("Generating GPU core library.");
-        genlib("", app.gpucompiler, coredir, cpulibflags, gpulibflags);
-    end
-end
+# if gpulib==0
+#     if (length(app.gpucompiler)>0) && (app.platform == "gpu")
+#         print("Generating GPU core library.");
+#         genlib("", app.gpucompiler, coredir, cpulibflags, gpulibflags);
+#     end
+# end
 
 return app
 

@@ -1,43 +1,28 @@
 function gencodebou(filename, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time)
 
-opufile = "opu" * filename;
-gpufile = "gpu" * filename;
+  cpufile = "Kokkos" * filename
+  tmp = "(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n"
+  str = "\tKokkos::parallel_for(" * "\"" * filename * "\"" * ", ng, KOKKOS_LAMBDA(const size_t i) {\n"
+  strkk = "void " * cpufile
+  strkk = strkk * tmp * "{\n"
+  strkk = strkk * str
 
-stropu = "template <typename T> void " * opufile;
-strgpu = "template <typename T>  __device__  void device" * gpufile;
+  fstr = string(f[:])
+  str = ""
+  str = varsassign(str, "param", length(param), 0, fstr)
+  str = varsassign(str, "uinf", length(uinf), 0, fstr)
+  str = varsassign(str, "tau", length(tau), 0, fstr)
+  str = varsassign(str, "xdg", length(xdg), 1, fstr)
+  str = varsassign(str, "udg", length(udg), 1, fstr)
+  str = varsassign(str, "uhg", length(uhg), 1, fstr)
+  str = varsassign(str, "odg", length(odg), 1, fstr)
+  str = varsassign(str, "wdg", length(wdg), 1, fstr)
+  str = varsassign(str, "nlg", length(nlg), 1, fstr)
+  str = sympyassign(str, f)
 
-tmp = "(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw)\n";
+  strkk = strkk * str * "\t});\n" * "}\n\n"
+  strkk = replace(strkk, "T " => "dstype ")
 
-stropu = stropu * tmp * "{\n";
-stropu = stropu *  "\tfor (int i = 0; i <ng; i++) {\n";
-
-strgpu = strgpu * tmp * "{\n";
-strgpu = strgpu * "\tint i = threadIdx.x + blockIdx.x * blockDim.x;\n";
-strgpu = strgpu * "\twhile (i<ng) {\n";
-
-fstr = string(f[:]);    
-str = "";
-str = varsassign(str, "param", length(param), 0, fstr);
-str = varsassign(str, "uinf", length(uinf), 0, fstr);
-str = varsassign(str, "tau", length(tau), 0, fstr);
-str = varsassign(str, "xdg", length(xdg), 1, fstr);
-str = varsassign(str, "udg", length(udg), 1, fstr);
-str = varsassign(str, "uhg", length(uhg), 1, fstr);
-str = varsassign(str, "odg", length(odg), 1, fstr);
-str = varsassign(str, "wdg", length(wdg), 1, fstr);
-str = varsassign(str, "nlg", length(nlg), 1, fstr);
-str = sympyassign(str, f);
-stropu = stropu *  str * "\t}\n" * "}\n\n";
-
-strgpu = strgpu * str * "\t\ti += blockDim.x * gridDim.x;\n";
-strgpu = strgpu * "\t}\n" * "}\n\n";
-
-strgpu = strgpu * "template <typename T>  __global__  void kernel" * gpufile;
-tmp = "(T *f, T *xdg, T *udg, T *odg, T *wdg, T *uhg, T *nlg, T *tau, T *uinf, T *param, T time, int modelnumber, int ng, int nc, int ncu, int nd, int ncx, int nco, int ncw)\n";
-tmp = tmp * "{\n";
-tmp = tmp * "\tdevice" * gpufile * "(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);\n";
-tmp = tmp * "}\n\n";
-strgpu = strgpu * tmp
-return stropu, strgpu
+  return strkk
 
 end

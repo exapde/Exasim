@@ -18,7 +18,7 @@ mesh.elemtype = elemtype;
 bcm = mesh.boundarycondition;
 mesh.bf = mesh.f;
 for j=1:length(bcm)
-  ind = mesh.bf==j;
+  ind = mesh.f==j;  % fix bug here
   mesh.bf(ind) = bcm(j);
 end
 f2t = mkf2e(mesh.t,elemtype,nd);

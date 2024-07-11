@@ -20,15 +20,14 @@ def exasim(pde,mesh):
         # generate source codes and store them in app folder
         Gencode.gencode(pde);
 
-        # compile source codes to build an executable file and store it in app folder
-        compilerstr = Gencode.compilecode(pde);
+        # compile source codes to build an executable file and store it in build folder
+        compilerstr = Gencode.cmakecompile(pde);
 
-        # run executable file to compute solution and store it in dataout folder
-        runstr = Gencode.runcode(pde, nmodels);
+        runstr = Gencode.runcode(pde, 1);
 
         # get solution from output files in dataout folder
         pde['vistime'] = [];
-        sol = fetchsolution(pde,master,dmd,"dataout");
+        sol = fetchsolution(pde,master,dmd, pde['buildpath'] + "/dataout");
         
         if pde['saveResNorm']:
             fn = "dataout/out_residualnorms0.bin";

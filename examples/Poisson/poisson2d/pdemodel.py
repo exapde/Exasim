@@ -17,6 +17,10 @@ def fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau):
     fb = array([f[0]*n[0] + f[1]*n[1] + tau[0]*(u[0]-0.0)]);
     return fb;
 
+def fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau):
+    fb = array([tau[0]*(0.0-uhat[0])]);
+    return fb;
+
 def ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau):
     ub = array([0.0]);
     return ub;

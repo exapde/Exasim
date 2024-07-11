@@ -13,23 +13,19 @@ res = [];
 if nmodels==1
     % search compilers and set options
     pde = setcompilers(pde);       
-
+    
     % generate input files and store them in datain folder
     [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
     % generate source codes and store them in app folder
-%     gencode(pde);
-%     kkgencode(pde);
-
-    if pde.usecmake==1    
-        cmakecompile(pde, 1); % use cmake to compile source codes 
-    else
-        % compile source codes to build an executable file and store it in app folder
-        compilerstr = compilecode(pde);
-
-        % run executable file to compute solution and store it in dataout folder
-        runstr = runcode(pde);
-    end        
+    if pde.gencode==1
+      %gencode(pde);
+      kkgencode(pde);
+    end
+    
+    compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
+    
+    runstr = runcode(pde, 1); % run C++ code
 
     % get solution from output files in dataout folder
     sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
@@ -45,12 +41,14 @@ else
     sol = cell(nmodels,1);
     res = cell(nmodels,1);
     
-    % preprocess and generate code for all PDE models
-    for m = 1:nmodels    
-        [pde{m},mesh{m},master{m},dmd{m}] = generatecode(pde{m},mesh{m});
-    end        
-    gencodeall(nmodels, app.backendpath + "/AppDriver/App");
-
+    if pde.gencode==1
+      % preprocess and generate code for all PDE models
+      for m = 1:nmodels    
+          [pde{m},mesh{m},master{m},dmd{m}] = generatecode(pde{m},mesh{m});
+      end        
+      gencodeall(nmodels, app.backendpath + "/AppDriver/App");
+    end
+    
     if pde{1}.usecmake==1    
         cmakecompile(pde{1}, nmodels);
     else

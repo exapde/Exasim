@@ -101,37 +101,37 @@ def setcompilers(app):
         else:
             exit("Exasim search in /usr/bin, /usr/local/bin, and /opt/local/bin and could not find NVCC compiler. Please see the documentation to install it. After installation, please set its path to app['gpucompiler']");
 
-    mdir = os.getcwd();
-    ii = mdir.find("Exasim");
-    coredir = mdir[0:(ii+6)] + "/lib";
+    # mdir = os.getcwd();
+    # ii = mdir.find("Exasim");
+    # coredir = mdir[0:(ii+6)] + "/lib";
 
-    cpulib = 0;
-    gpulib = 0;
-    cpulibflags = app['cpulibflags']
-    gpulibflags = app['gpulibflags']
-    if platform == "darwin":
-        if (os.path.isfile(coredir + "/Mac/commonCore.a")) and (os.path.isfile(coredir + "/Mac/opuCore.a")):
-            cpulib = 1;
-        if (os.path.isfile(coredir + "/Mac/gpuCore.a")):
-            gpulib = 1;
-    elif platform == "linux" or platform == "linux2":
-        if (os.path.isfile(coredir + "/Linux/commonCore.a")) and (os.path.isfile(coredir + "/Linux/opuCore.a")):
-            cpulib = 1;
-        if (os.path.isfile(coredir + "/Linux/gpuCore.a")):
-            gpulib = 1;
-    elif platform == "win32":
-        if (os.path.isfile(coredir + "/Windows/commonCore.a")) and (os.path.isfile(coredir + "/Windows/opuCore.a")):
-            cpulib = 1;
-        if (os.path.isfile(coredir + "/Windows/gpuCore.a")):
-            gpulib = 1;
+    # cpulib = 0;
+    # gpulib = 0;
+    # cpulibflags = app['cpulibflags']
+    # gpulibflags = app['gpulibflags']
+    # if platform == "darwin":
+    #     if (os.path.isfile(coredir + "/Mac/commonCore.a")) and (os.path.isfile(coredir + "/Mac/opuCore.a")):
+    #         cpulib = 1;
+    #     if (os.path.isfile(coredir + "/Mac/gpuCore.a")):
+    #         gpulib = 1;
+    # elif platform == "linux" or platform == "linux2":
+    #     if (os.path.isfile(coredir + "/Linux/commonCore.a")) and (os.path.isfile(coredir + "/Linux/opuCore.a")):
+    #         cpulib = 1;
+    #     if (os.path.isfile(coredir + "/Linux/gpuCore.a")):
+    #         gpulib = 1;
+    # elif platform == "win32":
+    #     if (os.path.isfile(coredir + "/Windows/commonCore.a")) and (os.path.isfile(coredir + "/Windows/opuCore.a")):
+    #         cpulib = 1;
+    #     if (os.path.isfile(coredir + "/Windows/gpuCore.a")):
+    #         gpulib = 1;
 
-    if cpulib==0:
-        print("Generating CPU core libraries.");
-        genlib(app['cpucompiler'], "", coredir, cpulibflags);
+    # if cpulib==0:
+    #     print("Generating CPU core libraries.");
+    #     genlib(app['cpucompiler'], "", coredir, cpulibflags);
 
-    if gpulib==0:
-        if (len(app['gpucompiler'])>0) and (app['platform'] == "gpu"):
-            print("Generating GPU core library.");
-            genlib("", app['gpucompiler'], coredir, cpulibflags, gpulibflags);
+    # if gpulib==0:
+    #     if (len(app['gpucompiler'])>0) and (app['platform'] == "gpu"):
+    #         print("Generating GPU core library.");
+    #         genlib("", app['gpucompiler'], coredir, cpulibflags, gpulibflags);
 
     return app

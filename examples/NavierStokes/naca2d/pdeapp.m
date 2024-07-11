@@ -24,7 +24,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 4;              % number of MPI processors
+pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 pde.debugmode = 0;
 pde.porder = porder;
@@ -47,8 +47,8 @@ mesh = mkmesh_naca0012(porder,1,1);
 
 % plot solution
 mesh.porder = porder;
+mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,porder);    
 figure(1); clf; scaplot(mesh,eulereval(sol(:,1:4,:),'M',gam),[],2); axis off; axis equal; axis tight;
-
 
 % pde.denseblock = 1;
 % pde.source = 'source';

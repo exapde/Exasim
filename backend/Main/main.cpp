@@ -74,17 +74,17 @@ int main(int argc, char** argv)
     if( argc >= 4 ) {
     }
     else {      
-      printf("Usage: ./cppfile nomodels InputFile OutputFile\n");
+      printf("Usage: ./cppfile nummodels InputFile OutputFile\n");
       return 1;
     }                
     
-    Int nomodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
+    Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
     string mystr = string(argv[1]);
-    nomodels = stoi(mystr);  // number of pde models
-    string filein[nomodels]; 
-    string fileout[nomodels];
+    nummodels = stoi(mystr);  // number of pde models
+    string filein[nummodels]; 
+    string fileout[nummodels];
     
-    for (int i=0; i<nomodels; i++) {
+    for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files
         fileout[i]  = string(argv[2*i+3]); // output files        
         cout<<filein[i]<<endl;
@@ -92,8 +92,8 @@ int main(int argc, char** argv)
     }
     
     restart = 0;
-    if (argc>=(2*nomodels+3)) {
-        mystr = string(argv[2*nomodels+2]);
+    if (argc>=(2*nummodels+3)) {
+        mystr = string(argv[2*nummodels+2]);
         restart = stoi(mystr);
     }             
     
@@ -167,17 +167,17 @@ int main(int argc, char** argv)
         ngpus = 1;
 
     // initialize PDE models
-    CSolution** pdemodel = new CSolution*[nomodels];     
+    CSolution** pdemodel = new CSolution*[nummodels];     
     // initialize file streams
-    ofstream* out = new ofstream[nomodels];    
+    ofstream* out = new ofstream[nummodels];    
             
-    for (int i=0; i<nomodels; i++) {                
+    for (int i=0; i<nummodels; i++) {                
         pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, ngpus, gpuid, backend);       
-        pdemodel[i]->disc.common.nomodels = nomodels;
+        pdemodel[i]->disc.common.nomodels = nummodels;
         
         // can move these to the constructor 
-        pdemodel[i]->disc.common.ncarray = new Int[nomodels]; 
-        pdemodel[i]->disc.sol.udgarray = new dstype*[nomodels]; // array of pointers pointing to udg
+        pdemodel[i]->disc.common.ncarray = new Int[nummodels]; 
+        pdemodel[i]->disc.sol.udgarray = new dstype*[nummodels]; // array of pointers pointing to udg
         
         if (pdemodel[i]->disc.common.timestepOffset>0)
             restart = pdemodel[i]->disc.common.timestepOffset;    
@@ -195,14 +195,14 @@ int main(int argc, char** argv)
     }            
         
     // set ncarray and udgarray for each PDE model
-    for (int i=0; i<nomodels; i++) 
-        for (int j=0; j<nomodels; j++) {
+    for (int i=0; i<nummodels; i++) 
+        for (int j=0; j<nummodels; j++) {
             pdemodel[i]->disc.common.ncarray[j] = pdemodel[j]->disc.common.nc;            
             pdemodel[i]->disc.sol.udgarray[j] = &pdemodel[j]->disc.sol.udg[0]; // model[i], model[j]
         }    
    
 //     if (pdemodel[0]->disc.common.subproblem==1) { // subproblem
-//         for (int i=0; i<nomodels; i++) {
+//         for (int i=0; i<nummodels; i++) {
 //             if (restart>0) {
 //                 pdemodel[i]->disc.common.currentstep = -1;
 //                 pdemodel[i]->ReadSolutions(backend);  
@@ -212,9 +212,9 @@ int main(int argc, char** argv)
 //     }
 //     else 
     if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
-                
+                        
         // initialize 
-        for (int i=0; i<nomodels; i++) {
+        for (int i=0; i<nummodels; i++) {
             if (restart>0) {
                 pdemodel[i]->disc.common.currentstep = -1;
                 pdemodel[i]->ReadSolutions(backend);  
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
         // time stepping with DIRK schemes
         for (Int istep=0; istep<pdemodel[0]->disc.common.tsteps; istep++)            
         {            
-            for (int i=0; i<nomodels; i++) {
+            for (int i=0; i<nummodels; i++) {
                 // current timestep        
                 pdemodel[i]->disc.common.currentstep = istep;
 
@@ -242,7 +242,7 @@ int main(int argc, char** argv)
                 if (pdemodel[0]->disc.common.mpiRank==0)
                     printf("\nTimestep :  %d,  Timestage :  %d,   Time : %g\n",istep+1,j+1,time + pdemodel[0]->disc.common.dt[istep]*pdemodel[0]->disc.common.DIRKcoeff_t[j]);                                
                 
-                for (int i=0; i<nomodels; i++) {
+                for (int i=0; i<nummodels; i++) {
                     // current timestage
                     pdemodel[i]->disc.common.currentstage = j;
 
@@ -256,11 +256,12 @@ int main(int argc, char** argv)
                     pdemodel[i]->SteadyProblem(out[i], backend);                             
 
                     // update solution 
-                    UpdateSolution(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.common, backend);                     
+                    UpdateSolution(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.app, pdemodel[i]->disc.res, pdemodel[i]->disc.common, backend);
+                    //UpdateSolution(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.common, backend);                     
                 }
             }
         
-            for (int i=0; i<nomodels; i++) {
+            for (int i=0; i<nummodels; i++) {
                 //compute time-average solution
                 if (pdemodel[i]->disc.common.compudgavg == 1) {
                     ArrayAXPBY(pdemodel[i]->disc.sol.udgavg, pdemodel[i]->disc.sol.udgavg, pdemodel[i]->disc.sol.udg, one, one, pdemodel[i]->disc.common.ndofudg1);            
@@ -279,7 +280,7 @@ int main(int argc, char** argv)
         }                   
     }
     else {        
-        for (int i=0; i<nomodels; i++) {                                
+        for (int i=0; i<nummodels; i++) {                                
             if (pdemodel[i]->disc.common.runmode==0) {
                 if (restart>0) {
                     pdemodel[i]->disc.common.currentstep = -1;
@@ -335,17 +336,27 @@ int main(int argc, char** argv)
         }
     }
     
-    for (int i=0; i<nomodels; i++) {                
+    for (int i=0; i<nummodels; i++) {                
         if (pdemodel[i]->disc.common.mpiRank==0 && pdemodel[i]->disc.common.saveResNorm==1)             
             out[i].close();                                
     }
     
+    // After using pdemodel, delete each CSolution object and then the array of pointers
+    for (int i = 0; i < nummodels; i++) {
+        delete[] pdemodel[i]->disc.common.ncarray; // Delete the ncarray
+        delete[] pdemodel[i]->disc.sol.udgarray; // Delete the udgarray
+        delete pdemodel[i]; // Delete each CSolution object
+    }
+
+    delete[] pdemodel; // Delete the array of pointers
+    delete[] out; // Delete the array of ofstream objects
+
 #ifdef HAVE_MPI
   MPI_Finalize();
 #endif         
     
   }
   Kokkos::finalize();  
-    return 0;             
+  return 0;             
      
 }

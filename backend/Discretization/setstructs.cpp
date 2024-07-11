@@ -64,8 +64,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.ndofucg = mesh.nsize[12]-1;
             
     common.ntau = app.nsize[8];
-    if (common.ntau>0)
-	common.tau0 = app.tau[0];
+    if (common.ntau>0) common.tau0 = app.tau[0];
 		
     common.curvedMesh = curvedMesh;        
 
@@ -152,17 +151,15 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.nvindx = app.nsize[12];
     common.vindx = copyarray(app.vindx,app.nsize[12]); 
     common.dae_dt = copyarray(app.dae_dt,app.nsize[13]); // dual timestep sizes   
-    
+        
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        if (ib==0) {
-            common.nf0 += f2 - f1; // number of interior faces
-        }
+        if (ib==0) common.nf0 += f2 - f1; // number of interior faces        
     }
-
+    
     Int tstages = common.tstages;  
     if (tstages>0) {
         common.DIRKcoeff_c = (dstype*) malloc(tstages*sizeof(dstype));
@@ -209,11 +206,12 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.elemrecv = copyarray(mesh.elemrecv,mesh.nsize[6]); 
         common.elemsendpts = copyarray(mesh.elemsendpts,mesh.nsize[7]); 
         common.elemrecvpts = copyarray(mesh.elemrecvpts,mesh.nsize[8]); 
-        
+            
 #ifdef  HAVE_MPI
         common.requests = (MPI_Request *) malloc( 2*common.nnbsd * sizeof(MPI_Request) );
         common.statuses = (MPI_Status *) malloc( 2*common.nnbsd * sizeof(MPI_Status) );     
-        common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
+        if (common.spatialScheme==1)
+          common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
 #endif        
     }
     else {
@@ -233,7 +231,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.ndofsdg1 = common.npe*common.ncs*common.ne; // number of degrees of freedom of sdg    
         common.ndofodg1 = common.npe*common.nco*common.ne; // number of degrees of freedom of odg                   
         common.ndofedg1 = common.npe*common.nce*common.ne; // number of degrees of freedom of edg                   
-    }
+    }            
 }
 
 void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
@@ -327,10 +325,20 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
       n0 = max(n0, k1);
       n0 = max(n0, k2);
 
+// Int n3 = 0;                        // fg    
+//     Int n4 = nga*ncu*nd;               // sg  
+//     Int n5 = n4 + nga*ncu;             // ug
+//     Int n6 = n5 + nga*nc;              // wg
+//     Int n7 = n6 + nga*ncw;             // fg_uq
+//     Int n8 = n7 + nga*ncu*nd*nc;       // fg_w
+//     Int n9 = n8 + nga*ncu*nd*ncw;      // sg_uq
+//     Int n10 = n9 + nga*ncu*nc;         // sg_w
+//     Int n11 = n10 + nga*ncu*ncw;        // wg_uq
+    
       int nga = nge*neb;
-      k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc;       
+      k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc; // fix bug here      
       nga = ngf*nfb; 
-      k2 = nga*(ncu + nc + nco + ncw + ncw + ncu*nd + ncu*nd*nc + ncu*ncu + ncu*nd*ncw + ncw*nc);
+      k2 = nga*(ncu + nc + nco + ncw + ncw + ncu*nd + ncu*nd*nc + ncu*nd*ncu + ncu*nd*ncw + ncw*nc); // fix bug here            
       n3 = max(n3, k1);
       n3 = max(n3, k2);
     }
@@ -340,8 +348,8 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
         n3 = 2*n3;
     #endif
 
-    TemplateMalloc(&tmp.tempn, n0, backend);
-    TemplateMalloc(&tmp.tempg, n3, backend);
+    TemplateMalloc(&tmp.tempn, 2*n0, backend); // fix bug here            
+    TemplateMalloc(&tmp.tempg, 2*n3, backend); // fix bug here            
 #ifdef HAVE_MPI     
     if (spatialScheme == 0) {
       TemplateMalloc(&tmp.buffsend, max(nc,nco)*npe*mesh.nsize[5], backend);
@@ -349,8 +357,9 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     }
     else if (spatialScheme == 1) {
       int m = ncu*npf*nfe; 
-      TemplateMalloc(&tmp.buffsend, max(m*m + m, nco)*mesh.nsize[5], backend);
-      TemplateMalloc(&tmp.buffrecv, max(m*m + m, nco)*mesh.nsize[6], backend);
+      int n = max(nc,nco)*npe; // fix bug here
+      TemplateMalloc(&tmp.buffsend, max(m*m + m, n)*mesh.nsize[5], backend);
+      TemplateMalloc(&tmp.buffrecv, max(m*m + m, n)*mesh.nsize[6], backend);
     }
 #endif
 
@@ -382,9 +391,14 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         printf("Reading data from binary files \n");
     readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, ompthreads, omprank);            
     
+    if (mpirank==0)
+        printf("Finish reading data from binary files \n");
+    
     if (mpiprocs != app.ndims[0]) {
-        if (mpirank==0) 
+        if (mpirank==0) {
+            printf("# processors = %d, # subdomains = %d\n", mpiprocs, app.ndims[0]);
             error("Number of MPI processes is incorrect\n");
+        }
     }
          
     // offset facecon
@@ -405,24 +419,28 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
             mesh.elemrecv[i] = mesh.elemrecv[i] - 1;
     }
             
+    if (mpirank==0) printf("Set res struct... \n");    
     setresstruct(res, app, master, mesh, 0);
+    
+    if (mpirank==0) printf("Set temp struct... \n");    
     settempstruct(tmp, app, master, mesh, 0);    
         
-    int curvedmesh = IsMeshCurved(sol, app, master, mesh, tmp);   
-        
-    if (mpirank==0) 
-        printf("Set common struct... \n");
+    if (mpirank==0) printf("Run IsMeshCurved... \n");    
+    int curvedmesh = IsMeshCurved(sol, app, master, mesh, tmp);       
+    if (mpirank==0) printf("IsMeshCurved = %d \n",curvedmesh);        
+    
+    if (mpirank==0) printf("Set common struct... \n");
     setcommonstruct(common, app, master, mesh, filein, fileout, curvedmesh);        
     common.cpuMemory = 1;
     common.cublasHandle = 0;
     common.eventHandle = 0; 
-            
-    if (common.spatialScheme > 0) {
-      master.shapegwdotshapeg = (dstype*) malloc (sizeof (dstype)*common.npe*common.npe*common.nge*(common.nd+1));
-      master.shapfgwdotshapfg = (dstype*) malloc (sizeof (dstype)*common.npe*common.npe*common.nge*(common.nd+1));
+    if (mpirank==0) printf("Finish setting common struct... \n");
+                        
+    if (common.spatialScheme > 0) {      
       int nd = common.nd;
       int npe = common.npe;
       int nge = common.nge;
+      master.shapegwdotshapeg = (dstype*) malloc (sizeof (dstype)*npe*npe*nge*(nd+1));      
       for (int d=0; d<nd+1; d++) {
         for (int g=0; g<nge; g++) {
           for (int i=0; i<npe; i++) {
@@ -431,19 +449,19 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
             }            
           }
         }
-      }
+      }      
       int npf = common.npf;
       int ngf = common.ngf;
+      master.shapfgwdotshapfg = (dstype*) malloc (sizeof (dstype)*npf*npf*ngf*nd);
       for (int d=0; d<nd; d++) {
         for (int g=0; g<ngf; g++) {
           for (int i=0; i<npf; i++) {
             for (int j=0; j<npf; j++) {            
-              master.shapfgwdotshapfg[j+i*npf+g*npf*npf+d*npf*npf*ngf] = master.shapfgw[j+g*npf+d*npf*ngf]*master.shapfgt[g+i*npf];              
+              master.shapfgwdotshapfg[j+i*npf+g*npf*npf+d*npf*npf*ngf] = master.shapfgw[j+g*npf+d*npf*ngf]*master.shapfgt[g+i*ngf]; // fix bug here             
             }            
           }
         }
-      }  
-      
+      }              
       // if (common.nelemsend>0) {
       //     mesh.interfacefaces = (Int*) malloc (sizeof (Int)*common.nelemsend);          
       //     int n = getinterfacefaces(mesh.interfacefaces, mesh.f2e, common.ne1, common.nf);
@@ -471,7 +489,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     
     if (common.compudgavg>0)
         sol.udgavg = (dstype*) malloc (sizeof (dstype)*(common.npe*common.nc*common.ne1+1));  
-    
+        
     // allocate memory for uh
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
     #ifdef HAVE_ENZYME
@@ -492,9 +510,8 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
             ArraySetValue(sol.dog2, zero, common.ngf*common.nco*common.nf, 0);
         #endif
     }
-    
-    if (mpirank==0) 
-        printf("Precompute index arrays... \n");    
+            
+    if (mpirank==0) printf("Precompute index arrays... \n");    
     mesh.index = (Int*) malloc (sizeof (Int)*(1024));            
     
     // allocate memory 
@@ -759,7 +776,7 @@ void devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
         TemplateMalloc(&dmesh.perm, mesh.nsize[23], common.backend);
         CHECK( cudaMemcpy( dmesh.f2e, mesh.f2e, mesh.nsize[21]*sizeof(Int), cudaMemcpyHostToDevice ) );
         CHECK( cudaMemcpy( dmesh.elemcon, mesh.elemcon, mesh.nsize[22]*sizeof(Int), cudaMemcpyHostToDevice ) );
-        CHECK( cudaMemcpy( dmesh.perm, mesh.perm, mesh.nsize[23]*sizeof(dstype), cudaMemcpyHostToDevice ) );         
+        CHECK( cudaMemcpy( dmesh.perm, mesh.perm, mesh.nsize[23]*sizeof(Int), cudaMemcpyHostToDevice ) );         
     }
 
     cudaTemplateMalloc(&dmesh.index, 1024);

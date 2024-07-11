@@ -3,7 +3,7 @@ import numpy, os
 
 # Add Exasim to Python search path
 cdir = os.getcwd(); ii = cdir.find("Exasim");
-exec(open(cdir[0:(ii+6)] + "/Installation/setpath.py").read());
+exec(open(cdir[0:(ii+6)] + "/install/setpath.py").read());
 
 # import internal modules
 import Preprocessing, Postprocessing, Gencode, Mesh
@@ -18,6 +18,7 @@ pde['modelfile'] = "pdemodel"; # name of a file defining the PDE model
 # Choose computing platform and set number of processors
 #pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
 pde['mpiprocs'] = 1;        # number of MPI processors
+pde['hybrid'] = 1;          # 0 -> LDG, 1 -> HDG
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['porder'] = 3;         # polynomial degree

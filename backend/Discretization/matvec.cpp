@@ -10,7 +10,7 @@ void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstr
     Int ncu = common.ncu;// number of compoments of (u)    
     Int npe = common.npe; // number of nodes on master element    
     Int ne = common.ne1; // number of elements in this subdomain 
-    Int nd = common.nd;
+    //Int nd = common.nd;
     Int N = npe*ncu*ne;
     
     Int order = common.matvecOrder;
@@ -226,9 +226,6 @@ void hdgAssembleSerial(dstype *b, solstruct &sol, resstruct &res, appstruct &app
     Int nfe = common.nfe; // number of faces in each element
     Int ncq = common.ncq; // number of compoments of (q)
     Int ncf = ncu*npf;
-    Int szR = ncu*npf*nfe;  
-    Int szH = szR*szR;
-    Int bsz = szH + szR; // send and receive H and Rh together   
 
     string filename;
     if (common.mpiProcs==1)
@@ -383,7 +380,7 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
       ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n + szH], szR);            
     }
 
-    ArraySetValue(b, 0.0, ncu*npf*nfe*common.nf);
+    ArraySetValue(b, 0.0, ncu*npf*common.nf); // fix bug here
 
     // assemble RHS vector b from res.Rh using the FIRST elements in mesh.f2e
     PutElementFaceNodes(b, res.Rh, mesh.f2e, npf, nfe, ncu, common.nf);

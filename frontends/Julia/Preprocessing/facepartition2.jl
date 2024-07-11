@@ -43,7 +43,7 @@ for i = 1:nproc
     # [interior faces, boundary faces]
     f2t = f2t[:,[ina; inb[ind[:]]]];
 
-    dmd[i].facecon = faceconnectivity2(t[:,dmd[i].elempart[:]],f2t,dim,elemtype,porder);
+    dmd[i].facecon,~ = faceconnectivity2(t[:,dmd[i].elempart[:]],f2t,dim,elemtype,porder);
 end
 
 return dmd

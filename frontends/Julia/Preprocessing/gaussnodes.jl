@@ -10,7 +10,7 @@ ii = findlast("Exasim", d0);
 # wgauss1 = vars["wgauss"][elemtype+1,pgauss,dim];
 
 #fn = string(d0[1:ii[end]],"Preprocessing/gaussnodes.bin");
-fn = string(d0[1:ii[end]],"/src/Julia/Preprocessing/gaussnodes.bin");
+fn = string(d0[1:ii[end]],"/frontends/Julia/Preprocessing/gaussnodes.bin");
 tmp = reinterpret(Float64,read(fn));
 
 ndims = Int(tmp[1]);

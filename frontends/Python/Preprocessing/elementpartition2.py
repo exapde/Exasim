@@ -9,8 +9,8 @@ def elementpartition2(dmd,t,t2t,nproc,metis):
 
     nve,ne = t.shape;
 
-    writebin('t.bin',t);
-    writebin('t2t.bin',t2t);
+    # writebin('t.bin',t);
+    # writebin('t2t.bin',t2t);
 
     if nproc==1:
         i = 0;

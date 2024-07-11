@@ -207,20 +207,20 @@ template <typename T> void readarrayManaged(ifstream &in, T **a, Int N)
     }    
 }
 
-Int * readiarrayfromdoubleManaged(ifstream &in, Int N)
-{
-    Int *a;
-    if (N>0) {                              
-        CHECK(cudaMallocManaged((void **)&a, sizeof (Int)*N));
-    
-        double read;
-        for (unsigned i = 0; i < N; i++) {
-            in.read( reinterpret_cast<char*>( &read ), sizeof read );
-            a[i] = (Int) round(read);
-        }        
-    }    
-    return a;
-}
+// Int * readiarrayfromdoubleManaged(ifstream &in, Int N)
+// {
+//     Int *a;
+//     if (N>0) {                              
+//         CHECK(cudaMallocManaged((void **)&a, sizeof (Int)*N));
+//     
+//         double read;
+//         for (unsigned i = 0; i < N; i++) {
+//             in.read( reinterpret_cast<char*>( &read ), sizeof read );
+//             a[i] = (Int) round(read);
+//         }        
+//     }    
+//     return a;
+// }
 
 template <typename T> void readarrayZeroCopy(ifstream &in, T **a, Int N)
 {
@@ -230,22 +230,22 @@ template <typename T> void readarrayZeroCopy(ifstream &in, T **a, Int N)
     }    
 }
 
-Int * readiarrayfromdoubleZeroCopy(ifstream &in, Int N)
-{
-    Int *a;
-    if (N>0) {                              
-        unsigned int flags = cudaHostAllocMapped;
-        
-        CHECK(cudaHostAlloc((void **)&a, sizeof (Int)*N, flags));
-    
-        double read;
-        for (unsigned i = 0; i < N; i++) {
-            in.read( reinterpret_cast<char*>( &read ), sizeof read );
-            a[i] = (Int) round(read);
-        }        
-    }    
-    return a;
-}
+// Int * readiarrayfromdoubleZeroCopy(ifstream &in, Int N)
+// {
+//     Int *a;
+//     if (N>0) {                              
+//         unsigned int flags = cudaHostAllocMapped;
+//         
+//         CHECK(cudaHostAlloc((void **)&a, sizeof (Int)*N, flags));
+//     
+//         double read;
+//         for (unsigned i = 0; i < N; i++) {
+//             in.read( reinterpret_cast<char*>( &read ), sizeof read );
+//             a[i] = (Int) round(read);
+//         }        
+//     }    
+//     return a;
+// }
 
 #endif
 

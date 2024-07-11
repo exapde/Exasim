@@ -3,6 +3,7 @@ pde.mass = @mass;
 pde.flux = @flux;
 pde.source = @source;
 pde.fbou = @fbou;
+pde.fbouhdg = @fbouhdg;
 pde.ubou = @ubou;
 pde.initu = @initu;
 pde.initq = @initq;
@@ -44,4 +45,12 @@ function w0 = initw(x, mu, eta)
 w0 = sym(0.0);
 end
 
+function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+%ui = sin(mu(2)*x(1)+mu(3)*x(2)-mu(4)*sqrt(mu(2)*mu(2)+mu(3)*mu(3))*t);
+uix = mu(2)*cos(mu(2)*x(1)+mu(3)*x(2)-mu(4)*sqrt(mu(2)*mu(2)+mu(3)*mu(3))*t);
+uiy = mu(3)*cos(mu(2)*x(1)+mu(3)*x(2)-mu(4)*sqrt(mu(2)*mu(2)+mu(3)*mu(3))*t);
+f = flux(u, q, w, v, x, t, mu, eta);
+fh = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat);
+fb = [fh-u fh-(uix*n(1)+uiy*n(2))]; % Neumann conditions
+end
 
