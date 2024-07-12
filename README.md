@@ -15,7 +15,7 @@ What make Exasim unique are the following distinctive features:
    - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
    - Provide interfaces to Julia, Python, and Matlab. 
    
-After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. See the documentation https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf for more details. 
+After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
 
 # Installation 
 
@@ -43,7 +43,7 @@ Once Kokkos libraries are successfully built, you can start using Exasim. To try
 
 # Examples
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. See https://github.com/exapde/Exasim/blob/master/examples/ShallowWater/BickleyJet/BickleyJet.pdf for simulation results of the Bickley Jet problem.
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. See [the Bickley Jet example](https://github.com/exapde/Exasim/blob/master/examples/ShallowWater/BickleyJet/BickleyJet.pdf) for simulation results.
 
 To run any example with Julia, type the following line and hit return
 
