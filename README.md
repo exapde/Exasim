@@ -21,20 +21,25 @@ After downloading the Exasim source code, you can try numorous examples provided
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. These external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab.
 
-Exasim uses Kokkos target various computing platforms. To build Kokkos serial library for CPU platform, please follow the below steps
-   cd Exasim/kokkos
-   mkdir buildserial
-   cd buildserial
-   cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
-   make install   
+As Exasim generates and compiles stand-alone C++ code on the fly, Exasim does not require installation. However, since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform, please follow the below steps
+
+```
+  $ cd Exasim/kokkos   
+  $ mkdir buildserial
+  $ cd buildserial
+  $ cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+  $ make install   
+```
 
 To build Kokkos CUDA library for Nvidia GPU platform, please follow the below steps
-   cd Exasim/kokkos
-   mkdir buildcuda
-   cd buildcuda
-   cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
-   make install   
-
+```
+  $ cd Exasim/kokkos
+  $ mkdir buildcuda
+  $ cd buildcuda
+  $ cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+  $ make install   
+```
+Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
 # Examples
 
@@ -42,4 +47,10 @@ Exasim produces C++ Code to solve a wide variety of parametrized partial differe
 
 
 # Publications
-[1] Under-Resolved Direct Numerical Simulation of Transonic Buffet Using an Implicit Discontinuous Galerkin Method. 
+[1] Vila-Pérez, J., Van Heyningen, R. L., Nguyen, N.-C., & Peraire, J. (2022). Exasim: Generating discontinuous Galerkin codes for numerical solutions of partial differential equations on graphics processors. SoftwareX, 20, 101212. https://doi.org/10.1016/j.softx.2022.101212
+
+[2] Hoskin, D. S., Van Heyningen, R. L., Nguyen, N. C., Vila-Pérez, J., Harris, W. L., & Peraire, J. (2024). Discontinuous Galerkin methods for hypersonic flows. Progress in Aerospace Sciences, 146, 100999. https://doi.org/10.1016/j.paerosci.2024.100999
+
+[3] Nguyen, N. C., Terrana, S., & Peraire, J. (2022). Large-Eddy Simulation of Transonic Buffet Using Matrix-Free Discontinuous Galerkin Method. AIAA Journal, 60(5), 3060–3077. https://doi.org/10.2514/1.j060459
+
+[4] Nguyen, N. C., & Peraire, J. (2012). Hybridizable discontinuous Galerkin methods for partial differential equations in continuum mechanics. Journal of Computational Physics, 231(18), 5955–5988. https://doi.org/10.1016/j.jcp.2012.02.033
