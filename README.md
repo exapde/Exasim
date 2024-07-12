@@ -51,7 +51,7 @@ To run any example with Julia, type the following line and hit return
 
 To run any example with Python,  type the following line and hit return
 
-   `> > >` exec(open("pdeapp.py").read())
+   `> > > exec(open("pdeapp.py").read())`
 
 To run any example with Matlab, type the following line and hit return
 
