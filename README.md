@@ -19,7 +19,22 @@ After downloading the Exasim source code, you can try numorous examples provided
 
 # Installation 
 
-As Exasim generates and compiles stand-alone C++ code on the fly, Exasim does not require installation. However, Exasim needs (required) C++ compiler, (required) Blas/Lapack libaries, (optional) MPI library, (optional) Gmesh for mesh generation, (optional) METIS for mesh partitioning, (optional) Paraview for visualization, and (optional) CUDA Toolkit for Nvidia GPUs. Although these external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab, it is highly recommended to use Exasim without installing external packages. Exasim will install a required package on the fly if it can not find the package on your system.
+Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. These external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab.
+
+Exasim uses Kokkos target various computing platforms. To build Kokkos serial library for CPU platform, please follow the below steps
+   cd Exasim/kokkos
+   mkdir buildserial
+   cd buildserial
+   cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+   make install   
+
+To build Kokkos CUDA library for Nvidia GPU platform, please follow the below steps
+   cd Exasim/kokkos
+   mkdir buildcuda
+   cd buildcuda
+   cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+   make install   
+
 
 # Examples
 
