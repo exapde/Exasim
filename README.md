@@ -15,7 +15,7 @@ What make Exasim unique are the following distinctive features:
    - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
    - Provide interfaces to Julia, Python, and Matlab. 
    
-After downloading the Exasim source code, you can try numorous examples provided in Exasim/examples by executing pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. See the documentation https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf for more details. 
+After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. See the documentation https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf for more details. 
 
 # Installation 
 
