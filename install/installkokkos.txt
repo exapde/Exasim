@@ -12,3 +12,6 @@ cd buildcuda
 cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
 make install   
 
+
+# Fix kokkos library by stripping the debug information from the archive.
+strip --strip-debug /Exasim/kokkos/buildserial/core/src/libkokkoscore.a
