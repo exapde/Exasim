@@ -65,28 +65,6 @@ class HIPSpace {
   ~HIPSpace()                              = default;
 
   /**\brief  Allocate untracked memory in the hip space */
-#ifdef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
-  template <typename ExecutionSpace>
-  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
-    return allocate(arg_alloc_size);
-  }
-  template <typename ExecutionSpace>
-  void* allocate(const ExecutionSpace&, const char* arg_label,
-                 const size_t arg_alloc_size,
-                 const size_t arg_logical_size = 0) const {
-    return allocate(arg_label, arg_alloc_size, arg_logical_size);
-  }
-#else
-  // FIXME_HIP Use execution space instance
-  void* allocate(const HIP&, const size_t arg_alloc_size) const {
-    return allocate(arg_alloc_size);
-  }
-  // FIXME_HIP Use execution space instance
-  void* allocate(const HIP&, const char* arg_label, const size_t arg_alloc_size,
-                 const size_t arg_logical_size = 0) const {
-    return allocate(arg_label, arg_alloc_size, arg_logical_size);
-  }
-#endif
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
@@ -98,6 +76,8 @@ class HIPSpace {
                   const size_t arg_logical_size = 0) const;
 
  private:
+  template <class, class, class, class>
+  friend class LogicalMemorySpace;
   void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
                       const size_t arg_logical_size = 0,
                       const Kokkos::Tools::SpaceHandle =
@@ -114,6 +94,8 @@ class HIPSpace {
 
  private:
   int m_device;  ///< Which HIP device
+
+  friend class Kokkos::Impl::SharedAllocationRecord<HIPSpace, void>;
 };
 
 template <>
@@ -147,16 +129,6 @@ class HIPHostPinnedSpace {
   ~HIPHostPinnedSpace()                                        = default;
 
   /**\brief  Allocate untracked memory in the space */
-  template <typename ExecutionSpace>
-  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
-    return allocate(arg_alloc_size);
-  }
-  template <typename ExecutionSpace>
-  void* allocate(const ExecutionSpace&, const char* arg_label,
-                 const size_t arg_alloc_size,
-                 const size_t arg_logical_size = 0) const {
-    return allocate(arg_label, arg_alloc_size, arg_logical_size);
-  }
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
@@ -168,6 +140,8 @@ class HIPHostPinnedSpace {
                   const size_t arg_logical_size = 0) const;
 
  private:
+  template <class, class, class, class>
+  friend class LogicalMemorySpace;
   void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
                       const size_t arg_logical_size = 0,
                       const Kokkos::Tools::SpaceHandle =
@@ -220,16 +194,6 @@ class HIPManagedSpace {
   ~HIPManagedSpace()                                     = default;
 
   /**\brief  Allocate untracked memory in the space */
-  template <typename ExecutionSpace>
-  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
-    return allocate(arg_alloc_size);
-  }
-  template <typename ExecutionSpace>
-  void* allocate(const ExecutionSpace&, const char* arg_label,
-                 const size_t arg_alloc_size,
-                 const size_t arg_logical_size = 0) const {
-    return allocate(arg_label, arg_alloc_size, arg_logical_size);
-  }
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
@@ -245,6 +209,8 @@ class HIPManagedSpace {
 
  private:
   int m_device;  ///< Which HIP device
+  template <class, class, class, class>
+  friend class LogicalMemorySpace;
   void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
                       const size_t arg_logical_size = 0,
                       const Kokkos::Tools::SpaceHandle =
@@ -273,18 +239,15 @@ struct Impl::is_hip_type_space<HIPManagedSpace> : public std::true_type {};
 namespace Kokkos {
 namespace Impl {
 
-static_assert(Kokkos::Impl::MemorySpaceAccess<HIPSpace, HIPSpace>::assignable);
+static_assert(Kokkos::Impl::MemorySpaceAccess<HIPSpace, HIPSpace>::assignable,
+              "");
 
 //----------------------------------------
 
 template <>
 struct MemorySpaceAccess<HostSpace, HIPSpace> {
   enum : bool { assignable = false };
-#if !defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
-  enum : bool{accessible = false};
-#else
-  enum : bool { accessible = true };
-#endif
+  enum : bool { accessible = false };
   enum : bool { deepcopy = true };
 };
 

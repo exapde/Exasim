@@ -34,7 +34,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::Experimental::OpenACCSpace,
     // value checking is added as a safeguard. (The current NVHPC (V22.5)
     // supports OpenACC V2.7.)
     if (n > 0) {
-      acc_memcpy_device_async(dst, const_cast<void*>(src), n, acc_async_noval);
+      acc_memcpy_device(dst, const_cast<void*>(src), n);
     }
   }
   DeepCopy(const Kokkos::Experimental::OpenACC& exec, void* dst,
@@ -52,7 +52,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::Experimental::OpenACCSpace,
                               ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
     if (n > 0) {
-      acc_memcpy_device_async(dst, const_cast<void*>(src), n, acc_async_noval);
+      acc_memcpy_device(dst, const_cast<void*>(src), n);
     }
   }
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
@@ -60,7 +60,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::Experimental::OpenACCSpace,
         "Kokkos::Impl::DeepCopy<OpenACCSpace, OpenACCSpace, "
         "ExecutionSpace>::DeepCopy: fence before copy");
     if (n > 0) {
-      acc_memcpy_device_async(dst, const_cast<void*>(src), n, acc_async_noval);
+      acc_memcpy_device(dst, const_cast<void*>(src), n);
     }
   }
 };
@@ -70,9 +70,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::Experimental::OpenACCSpace,
                               Kokkos::HostSpace,
                               Kokkos::Experimental::OpenACC> {
   DeepCopy(void* dst, const void* src, size_t n) {
-    if (n > 0)
-      acc_memcpy_to_device_async(dst, const_cast<void*>(src), n,
-                                 acc_async_noval);
+    if (n > 0) acc_memcpy_to_device(dst, const_cast<void*>(src), n);
   }
   DeepCopy(const Kokkos::Experimental::OpenACC& exec, void* dst,
            const void* src, size_t n) {
@@ -87,8 +85,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::Experimental::OpenACCSpace,
                               Kokkos::HostSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
     if (n > 0) {
-      acc_memcpy_to_device_async(dst, const_cast<void*>(src), n,
-                                 acc_async_noval);
+      acc_memcpy_to_device(dst, const_cast<void*>(src), n);
     }
   }
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
@@ -96,8 +93,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::Experimental::OpenACCSpace,
         "Kokkos::Impl::DeepCopy<OpenACCSpace, HostSpace, "
         "ExecutionSpace>::DeepCopy: fence before copy");
     if (n > 0) {
-      acc_memcpy_to_device_async(dst, const_cast<void*>(src), n,
-                                 acc_async_noval);
+      acc_memcpy_to_device(dst, const_cast<void*>(src), n);
     }
   }
 };
@@ -108,8 +104,7 @@ struct Kokkos::Impl::DeepCopy<Kokkos::HostSpace,
                               Kokkos::Experimental::OpenACC> {
   DeepCopy(void* dst, const void* src, size_t n) {
     if (n > 0) {
-      acc_memcpy_from_device_async(dst, const_cast<void*>(src), n,
-                                   acc_async_noval);
+      acc_memcpy_from_device(dst, const_cast<void*>(src), n);
     }
   }
   DeepCopy(const Kokkos::Experimental::OpenACC& exec, void* dst,
@@ -125,17 +120,14 @@ template <class ExecutionSpace>
 struct Kokkos::Impl::DeepCopy<
     Kokkos::HostSpace, Kokkos::Experimental::OpenACCSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
-    if (n > 0)
-      acc_memcpy_from_device_async(dst, const_cast<void*>(src), n,
-                                   acc_async_noval);
+    if (n > 0) acc_memcpy_from_device(dst, const_cast<void*>(src), n);
   }
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     exec.fence(
         "Kokkos::Impl::DeepCopy<HostSpace, OpenACCSpace, "
         "ExecutionSpace>::DeepCopy: fence before copy");
     if (n > 0) {
-      acc_memcpy_from_device_async(dst, const_cast<void*>(src), n,
-                                   acc_async_noval);
+      acc_memcpy_from_device(dst, const_cast<void*>(src), n);
     }
   }
 };

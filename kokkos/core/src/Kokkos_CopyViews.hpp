@@ -22,7 +22,6 @@ static_assert(false,
 #ifndef KOKKOS_COPYVIEWS_HPP_
 #define KOKKOS_COPYVIEWS_HPP_
 #include <string>
-#include <sstream>
 #include <Kokkos_Parallel.hpp>
 #include <KokkosExp_MDRangePolicy.hpp>
 #include <Kokkos_Layout.hpp>
@@ -613,17 +612,12 @@ void view_copy(const DstType& dst, const SrcType& src) {
   };
 
   if (!DstExecCanAccessSrc && !SrcExecCanAccessDst) {
-    std::ostringstream ss;
-    ss << "Error: Kokkos::deep_copy with no available copy mechanism: "
-       << "from source view (\"" << src.label() << "\") to destination view (\""
-       << dst.label() << "\").\n"
-       << "There is no common execution space that can access both source's "
-          "space\n"
-       << "(" << src_memory_space().name() << ") and destination's space ("
-       << dst_memory_space().name() << "), "
-       << "so source and destination\n"
-       << "must be contiguous and have the same layout.\n";
-    Kokkos::Impl::throw_runtime_exception(ss.str());
+    std::string message(
+        "Error: Kokkos::deep_copy with no available copy mechanism: ");
+    message += src.label();
+    message += " to ";
+    message += dst.label();
+    Kokkos::Impl::throw_runtime_exception(message);
   }
 
   // Figure out iteration order in case we need it
@@ -1336,12 +1330,13 @@ inline void contiguous_fill(
 // Default implementation for execution spaces that don't provide a definition
 template <typename ExecutionSpace, class ViewType>
 struct ZeroMemset {
-  ZeroMemset(const ExecutionSpace& exec_space, const ViewType& dst) {
-    using ValueType = typename ViewType::value_type;
-    alignas(alignof(ValueType)) unsigned char
-        zero_initialized_storage[sizeof(ValueType)] = {};
-    contiguous_fill(exec_space, dst,
-                    *reinterpret_cast<ValueType*>(zero_initialized_storage));
+  ZeroMemset(const ExecutionSpace& exec_space, const ViewType& dst,
+             typename ViewType::const_value_type& value) {
+    contiguous_fill(exec_space, dst, value);
+  }
+
+  ZeroMemset(const ViewType& dst, typename ViewType::const_value_type& value) {
+    contiguous_fill(ExecutionSpace(), dst, value);
   }
 };
 
@@ -1353,18 +1348,13 @@ inline std::enable_if_t<
 contiguous_fill_or_memset(
     const ExecutionSpace& exec_space, const View<DT, DP...>& dst,
     typename ViewTraits<DT, DP...>::const_value_type& value) {
-  // With OpenMP, using memset has significant performance issues.
-  if (Impl::is_zero_byte(value)
-#ifdef KOKKOS_ENABLE_OPENMP
-      && !std::is_same_v<ExecutionSpace, Kokkos::OpenMP>
-#endif
-  )
-    // FIXME intel/19 icpc fails to deduce template parameters here,
-    // resulting in compilation errors; explicitly passing the template
-    // parameters to ZeroMemset helps workaround the issue
-    // See https://github.com/kokkos/kokkos/issues/6775
-    ZeroMemset<ExecutionSpace, View<DT, DP...>>(exec_space, dst);
+// On A64FX memset seems to do the wrong thing with regards to first touch
+// leading to the significant performance issues
+#ifndef KOKKOS_ARCH_A64FX
+  if (Impl::is_zero_byte(value))
+    ZeroMemset<ExecutionSpace, View<DT, DP...>>(exec_space, dst, value);
   else
+#endif
     contiguous_fill(exec_space, dst, value);
 }
 
@@ -1389,20 +1379,15 @@ contiguous_fill_or_memset(
     typename ViewTraits<DT, DP...>::const_value_type& value) {
   using ViewType        = View<DT, DP...>;
   using exec_space_type = typename ViewType::execution_space;
-  exec_space_type exec;
 
 // On A64FX memset seems to do the wrong thing with regards to first touch
 // leading to the significant performance issues
 #ifndef KOKKOS_ARCH_A64FX
   if (Impl::is_zero_byte(value))
-    // FIXME intel/19 icpc fails to deduce template parameters here,
-    // resulting in compilation errors; explicitly passing the template
-    // parameters to ZeroMemset helps workaround the issue
-    // See https://github.com/kokkos/kokkos/issues/6775
-    ZeroMemset<exec_space_type, ViewType>(exec, dst);
+    ZeroMemset<exec_space_type, View<DT, DP...>>(dst, value);
   else
 #endif
-    contiguous_fill(exec, dst, value);
+    contiguous_fill(exec_space_type(), dst, value);
 }
 
 template <class DT, class... DP>

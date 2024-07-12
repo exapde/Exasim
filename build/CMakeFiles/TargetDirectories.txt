@@ -1,3 +1,0 @@
-/Users/ngoccuongnguyen/Exasim/build/CMakeFiles/cpuEXASIM.dir
-/Users/ngoccuongnguyen/Exasim/build/CMakeFiles/edit_cache.dir
-/Users/ngoccuongnguyen/Exasim/build/CMakeFiles/rebuild_cache.dir

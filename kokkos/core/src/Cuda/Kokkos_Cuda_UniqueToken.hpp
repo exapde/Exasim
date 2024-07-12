@@ -22,6 +22,7 @@
 
 #include <Cuda/Kokkos_CudaSpace.hpp>
 #include <Kokkos_UniqueToken.hpp>
+#include <impl/Kokkos_SharedAlloc.hpp>
 
 namespace Kokkos {
 

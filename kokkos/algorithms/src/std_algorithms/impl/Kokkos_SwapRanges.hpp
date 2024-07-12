@@ -21,6 +21,7 @@
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include <std_algorithms/Kokkos_Distance.hpp>
+#include <std_algorithms/Kokkos_Swap.hpp>
 #include <string>
 
 namespace Kokkos {
@@ -35,7 +36,7 @@ struct StdSwapRangesFunctor {
 
   KOKKOS_FUNCTION
   void operator()(index_type i) const {
-    ::Kokkos::kokkos_swap(m_first1[i], m_first2[i]);
+    ::Kokkos::Experimental::swap(m_first1[i], m_first2[i]);
   }
 
   KOKKOS_FUNCTION

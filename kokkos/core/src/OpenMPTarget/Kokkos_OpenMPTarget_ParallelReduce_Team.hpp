@@ -470,10 +470,6 @@ class ParallelReduce<CombinedFunctorReducerType,
   const pointer_type m_result_ptr;
   const size_t m_shmem_size;
 
-  // Only let one ParallelReduce instance at a time use the scratch memory.
-  // The constructor acquires the mutex which is released in the destructor.
-  std::scoped_lock<std::mutex> m_scratch_memory_lock;
-
  public:
   void execute() const {
     const FunctorType& functor = m_functor_reducer.get_functor();
@@ -521,8 +517,7 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_shmem_size(
             arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
             FunctorTeamShmemSize<FunctorType>::value(
-                arg_functor_reducer.get_functor(), arg_policy.team_size())),
-        m_scratch_memory_lock(OpenMPTargetExec::m_mutex_scratch_ptr) {}
+                arg_functor_reducer.get_functor(), arg_policy.team_size())) {}
 };
 
 }  // namespace Impl

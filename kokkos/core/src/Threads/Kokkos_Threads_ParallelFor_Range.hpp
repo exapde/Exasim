@@ -59,37 +59,37 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
     }
   }
 
-  static void exec(ThreadsInternal &instance, const void *arg) {
-    exec_schedule<typename Policy::schedule_type::type>(instance, arg);
+  static void exec(ThreadsExec &exec, const void *arg) {
+    exec_schedule<typename Policy::schedule_type::type>(exec, arg);
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
-  exec_schedule(ThreadsInternal &instance, const void *arg) {
+  exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
-    WorkRange range(self.m_policy, instance.pool_rank(), instance.pool_size());
+    WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
 
     ParallelFor::template exec_range<WorkTag>(self.m_functor, range.begin(),
                                               range.end());
 
-    instance.fan_in();
+    exec.fan_in();
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
-  exec_schedule(ThreadsInternal &instance, const void *arg) {
+  exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
-    WorkRange range(self.m_policy, instance.pool_rank(), instance.pool_size());
+    WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
 
-    instance.set_work_range(range.begin() - self.m_policy.begin(),
-                            range.end() - self.m_policy.begin(),
-                            self.m_policy.chunk_size());
-    instance.reset_steal_target();
-    instance.barrier();
+    exec.set_work_range(range.begin() - self.m_policy.begin(),
+                        range.end() - self.m_policy.begin(),
+                        self.m_policy.chunk_size());
+    exec.reset_steal_target();
+    exec.barrier();
 
-    long work_index = instance.get_work_index();
+    long work_index = exec.get_work_index();
 
     while (work_index != -1) {
       const Member begin =
@@ -100,16 +100,16 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
               ? begin + self.m_policy.chunk_size()
               : self.m_policy.end();
       ParallelFor::template exec_range<WorkTag>(self.m_functor, begin, end);
-      work_index = instance.get_work_index();
+      work_index = exec.get_work_index();
     }
 
-    instance.fan_in();
+    exec.fan_in();
   }
 
  public:
   inline void execute() const {
-    ThreadsInternal::start(&ParallelFor::exec, this);
-    ThreadsInternal::fence();
+    ThreadsExec::start(&ParallelFor::exec, this);
+    ThreadsExec::fence();
   }
 
   ParallelFor(const FunctorType &arg_functor, const Policy &arg_policy)

@@ -58,7 +58,7 @@ template <typename ExecutionSpace, typename DataType1, typename... Properties1,
           std::enable_if_t<is_execution_space_v<ExecutionSpace>, int> = 0>
 auto transform(const ExecutionSpace& ex,
                const ::Kokkos::View<DataType1, Properties1...>& source,
-               const ::Kokkos::View<DataType2, Properties2...>& dest,
+               ::Kokkos::View<DataType2, Properties2...>& dest,
                UnaryOperation unary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
@@ -73,7 +73,7 @@ template <typename ExecutionSpace, typename DataType1, typename... Properties1,
           std::enable_if_t<is_execution_space_v<ExecutionSpace>, int> = 0>
 auto transform(const std::string& label, const ExecutionSpace& ex,
                const ::Kokkos::View<DataType1, Properties1...>& source,
-               const ::Kokkos::View<DataType2, Properties2...>& dest,
+               ::Kokkos::View<DataType2, Properties2...>& dest,
                UnaryOperation unary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
@@ -119,7 +119,7 @@ template <typename ExecutionSpace, typename DataType1, typename... Properties1,
 auto transform(const ExecutionSpace& ex,
                const ::Kokkos::View<DataType1, Properties1...>& source1,
                const ::Kokkos::View<DataType2, Properties2...>& source2,
-               const ::Kokkos::View<DataType3, Properties3...>& dest,
+               ::Kokkos::View<DataType3, Properties3...>& dest,
                BinaryOperation binary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source2);
@@ -137,7 +137,7 @@ template <typename ExecutionSpace, typename DataType1, typename... Properties1,
 auto transform(const std::string& label, const ExecutionSpace& ex,
                const ::Kokkos::View<DataType1, Properties1...>& source1,
                const ::Kokkos::View<DataType2, Properties2...>& source2,
-               const ::Kokkos::View<DataType3, Properties3...>& dest,
+               ::Kokkos::View<DataType3, Properties3...>& dest,
                BinaryOperation binary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source2);
@@ -174,8 +174,7 @@ template <typename TeamHandleType, typename DataType1, typename... Properties1,
 KOKKOS_FUNCTION auto transform(
     const TeamHandleType& teamHandle,
     const ::Kokkos::View<DataType1, Properties1...>& source,
-    const ::Kokkos::View<DataType2, Properties2...>& dest,
-    UnaryOperation unary_op) {
+    ::Kokkos::View<DataType2, Properties2...>& dest, UnaryOperation unary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
 
@@ -208,7 +207,7 @@ KOKKOS_FUNCTION auto transform(
     const TeamHandleType& teamHandle,
     const ::Kokkos::View<DataType1, Properties1...>& source1,
     const ::Kokkos::View<DataType2, Properties2...>& source2,
-    const ::Kokkos::View<DataType3, Properties3...>& dest,
+    ::Kokkos::View<DataType3, Properties3...>& dest,
     BinaryOperation binary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source2);

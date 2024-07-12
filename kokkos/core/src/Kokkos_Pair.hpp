@@ -28,7 +28,6 @@
 #endif
 
 #include <Kokkos_Macros.hpp>
-#include <Kokkos_Swap.hpp>
 #include <utility>
 
 namespace Kokkos {
@@ -485,6 +484,7 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr bool operator>=(
 }
 
 namespace Impl {
+
 template <class T>
 struct is_pair_like : std::false_type {};
 template <class T, class U>

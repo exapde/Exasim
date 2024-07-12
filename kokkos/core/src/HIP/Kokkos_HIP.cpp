@@ -18,7 +18,6 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
-#include <Kokkos_Core.hpp>
 #include <HIP/Kokkos_HIP.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 
@@ -42,9 +41,7 @@ int HIP::impl_is_initialized() {
 }
 
 void HIP::impl_initialize(InitializationSettings const& settings) {
-  const std::vector<int>& visible_devices = Impl::get_visible_devices();
-  const int hip_device_id =
-      Impl::get_gpu(settings).value_or(visible_devices[0]);
+  const int hip_device_id = Impl::get_gpu(settings);
 
   Impl::HIPInternal::m_hipDev = hip_device_id;
   KOKKOS_IMPL_HIP_SAFE_CALL(
@@ -92,23 +89,10 @@ void HIP::impl_initialize(InitializationSettings const& settings) {
 
   hipStream_t singleton_stream;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&singleton_stream));
-  Impl::HIPInternal::singleton().initialize(singleton_stream);
+  Impl::HIPInternal::singleton().initialize(singleton_stream, /*manage*/ true);
 }
 
-void HIP::impl_finalize() {
-  (void)Impl::hip_global_unique_token_locks(true);
-
-  desul::Impl::finalize_lock_arrays();  // FIXME
-
-  KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipEventDestroy(Impl::HIPInternal::constantMemReusable));
-  KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipHostFree(Impl::HIPInternal::constantMemHostStaging));
-
-  Impl::HIPInternal::singleton().finalize();
-  KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipStreamDestroy(Impl::HIPInternal::singleton().m_stream));
-}
+void HIP::impl_finalize() { Impl::HIPInternal::singleton().finalize(); }
 
 HIP::HIP()
     : m_space_instance(&Impl::HIPInternal::singleton(),
@@ -118,17 +102,13 @@ HIP::HIP()
 }
 
 HIP::HIP(hipStream_t const stream, Impl::ManageStream manage_stream)
-    : m_space_instance(
-          new Impl::HIPInternal, [manage_stream](Impl::HIPInternal* ptr) {
-            ptr->finalize();
-            if (static_cast<bool>(manage_stream)) {
-              KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(ptr->m_stream));
-            }
-            delete ptr;
-          }) {
+    : m_space_instance(new Impl::HIPInternal, [](Impl::HIPInternal* ptr) {
+        ptr->finalize();
+        delete ptr;
+      }) {
   Impl::HIPInternal::singleton().verify_is_initialized(
       "HIP instance constructor");
-  m_space_instance->initialize(stream);
+  m_space_instance->initialize(stream, static_cast<bool>(manage_stream));
 }
 
 KOKKOS_DEPRECATED HIP::HIP(hipStream_t const stream, bool manage_stream)
@@ -145,10 +125,6 @@ void HIP::print_configuration(std::ostream& os, bool /*verbose*/) const {
   os << "yes\n";
 #else
   os << "no\n";
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
-  os << "  KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY: ";
-  os << "yes\n";
 #endif
 
   os << "\nRuntime Configuration:\n";

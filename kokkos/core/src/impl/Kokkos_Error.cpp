@@ -21,11 +21,10 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
-#include <Kokkos_Core.hpp>  // show_warnings
 #include <impl/Kokkos_Error.hpp>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 
@@ -37,12 +36,6 @@ namespace Impl {
 
 void throw_runtime_exception(const std::string &msg) {
   throw std::runtime_error(msg);
-}
-
-void log_warning(const std::string &msg) {
-  if (show_warnings()) {
-    std::cerr << msg << std::flush;
-  }
 }
 
 std::string human_memory_size(size_t arg_bytes) {
@@ -71,8 +64,7 @@ std::string human_memory_size(size_t arg_bytes) {
 
 void Experimental::RawMemoryAllocationFailure::print_error_message(
     std::ostream &o) const {
-  o << "Allocation of size "
-    << ::Kokkos::Impl::human_memory_size(m_attempted_size);
+  o << "Allocation of size " << Impl::human_memory_size(m_attempted_size);
   o << " failed";
   switch (m_failure_mode) {
     case FailureMode::OutOfMemoryError:

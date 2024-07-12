@@ -39,6 +39,15 @@ static_assert(false,
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+namespace Impl {
+class ThreadsExec;
+enum class fence_is_static { yes, no };
+}  // namespace Impl
+}  // namespace Kokkos
+
+/*--------------------------------------------------------------------------*/
+
+namespace Kokkos {
 
 /** \brief  Execution space for a pool of C++11 threads on a CPU. */
 class Threads {
@@ -64,9 +73,7 @@ class Threads {
 
   /// \brief True if and only if this method is being called in a
   ///   thread-parallel function.
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED static int in_parallel();
-#endif
+  static int in_parallel();
 
   /// \brief Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;

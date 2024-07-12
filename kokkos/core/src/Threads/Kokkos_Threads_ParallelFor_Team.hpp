@@ -73,14 +73,14 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     }
   }
 
-  static void exec(ThreadsInternal &instance, const void *arg) {
+  static void exec(ThreadsExec &exec, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
     ParallelFor::exec_team<WorkTag, typename Policy::schedule_type::type>(
-        self.m_functor, Member(&instance, self.m_policy, self.m_shared));
+        self.m_functor, Member(&exec, self.m_policy, self.m_shared));
 
-    instance.barrier();
-    instance.fan_in();
+    exec.barrier();
+    exec.fan_in();
   }
   template <typename Policy>
   Policy fix_policy(Policy policy) {
@@ -96,12 +96,12 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
  public:
   inline void execute() const {
-    ThreadsInternal::resize_scratch(
+    ThreadsExec::resize_scratch(
         0, Policy::member_type::team_reduce_size() + m_shared);
 
-    ThreadsInternal::start(&ParallelFor::exec, this);
+    ThreadsExec::start(&ParallelFor::exec, this);
 
-    ThreadsInternal::fence();
+    ThreadsExec::fence();
   }
 
   ParallelFor(const FunctorType &arg_functor, const Policy &arg_policy)

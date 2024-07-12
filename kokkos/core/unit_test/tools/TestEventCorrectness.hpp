@@ -409,19 +409,14 @@ TEST(kokkosp, parallel_scan_no_fence) {
         << "skipping since the OpenMPTarget backend has unexpected fences";
 #endif
 
-  // Execute the parallel_scan first without looking for fence events.
-  // Depending on the backend implementation and the order of tests,
-  // it might be that the first call to parallel_scan is reallocating scratch
-  // memory which implies a fence when deallocating. We are not interested in
-  // detecting this event.
-  TestScanFunctor tf;
-  Kokkos::parallel_scan("dogs", Kokkos::RangePolicy<>(0, 1), tf);
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());
   auto success = validate_absence(
-      [=]() { Kokkos::parallel_scan("dogs", Kokkos::RangePolicy<>(0, 1), tf); },
+      [=]() {
+        TestScanFunctor tf;
+        Kokkos::parallel_scan("dogs", Kokkos::RangePolicy<>(0, 1), tf);
+      },
       [=](BeginFenceEvent begin_event) {
         if (begin_event.name.find("Debug Only Check for Execution Error") !=
                 std::string::npos ||
@@ -455,20 +450,13 @@ TEST(kokkosp, parallel_scan_no_fence_view) {
         << "skipping since the OpenMPTarget backend has unexpected fences";
 #endif
 
-  // Execute the parallel_scan first without looking for fence events.
-  // Depending on the backend implementation and the order of tests,
-  // it might be that the first call to parallel_scan is reallocating scratch
-  // memory which implies a fence when deallocating. We are not interested in
-  // detecting this event.
-  TestScanFunctor tf;
-  Kokkos::View<typename TestScanFunctor::value_type> v("scan_result");
-  Kokkos::parallel_scan("dogs", Kokkos::RangePolicy<>(0, 1), tf, v);
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());
+  Kokkos::View<typename TestScanFunctor::value_type> v("scan_result");
   auto success = validate_absence(
       [=]() {
+        TestScanFunctor tf;
         Kokkos::parallel_scan("dogs", Kokkos::RangePolicy<>(0, 1), tf, v);
       },
       [=](BeginFenceEvent begin_event) {

@@ -18,6 +18,7 @@
 #define KOKKOS_OPENMPTARGETREDUCER_HPP
 
 #include <impl/Kokkos_Traits.hpp>
+#include <impl/Kokkos_Spinwait.hpp>
 
 #include <Kokkos_Atomic.hpp>
 #include "Kokkos_OpenMPTarget_Abort.hpp"

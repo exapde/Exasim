@@ -26,7 +26,7 @@ struct Run<Scalar, UNROLL, STRIDE> {
     Kokkos::deep_copy(C, Scalar(3.5));
 
     Kokkos::Timer timer;
-    for (int iter = 0; iter < I; ++iter) {
+    for (int i = 0; i < I; ++i) {
       Kokkos::parallel_for(
           "BenchmarkKernel",
           Kokkos::TeamPolicy<>(N, T).set_scratch_size(0, Kokkos::PerTeam(S)),

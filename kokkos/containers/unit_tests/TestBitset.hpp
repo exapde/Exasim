@@ -23,8 +23,6 @@
 #include <Kokkos_Bitset.hpp>
 #include <array>
 
-#include <../../core/unit_test/tools/include/ToolTestingUtilities.hpp>
-
 namespace Test {
 
 namespace Impl {
@@ -157,7 +155,7 @@ void test_bitset() {
 
   {
     unsigned ts = 100u;
-    bitset_type b1(Kokkos::view_alloc("MyBitset"), 0);
+    bitset_type b1;
     ASSERT_TRUE(b1.is_allocated());
 
     b1 = bitset_type(ts);
@@ -167,9 +165,6 @@ void test_bitset() {
     ASSERT_TRUE(b1.is_allocated());
     ASSERT_TRUE(b2.is_allocated());
     ASSERT_TRUE(b3.is_allocated());
-
-    bitset_type b4;
-    ASSERT_FALSE(b4.is_allocated());
   }
 
   std::array<unsigned, 7> test_sizes = {
@@ -242,24 +237,6 @@ void test_bitset() {
 }
 
 TEST(TEST_CATEGORY, bitset) { test_bitset<TEST_EXECSPACE>(); }
-
-TEST(TEST_CATEGORY, bitset_default_constructor_no_alloc) {
-  using namespace Kokkos::Test::Tools;
-  listen_tool_events(Config::DisableAll(), Config::EnableAllocs());
-
-  auto success = validate_absence(
-      [&]() {
-        Kokkos::Bitset bs;
-        EXPECT_FALSE(bs.is_allocated());
-      },
-      [&](AllocateDataEvent) {
-        return MatchDiagnostic{true, {"Found alloc event"}};
-      });
-  ASSERT_TRUE(success);
-
-  listen_tool_events(Config::DisableAll());
-}
-
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_BITSET_HPP

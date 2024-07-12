@@ -1,23 +1,14 @@
+# Build Kokkos Serial Library
+cd Exasim/kokkos
 mkdir buildserial
 cd buildserial
-
 cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
 make install   
 
+# Build Kokkos CUDA Library
+cd Exasim/kokkos
 mkdir buildcuda
 cd buildcuda
-
 cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
 make install   
-
-valgrind --leak-check=full \
-         --show-leak-kinds=all \
-         --track-origins=yes \
-         --verbose \
-         --log-file=valgrind-out.txt \
-         ./cpuEXASIM  1 /Users/ngoccuongnguyen/Exasim/build/datain/ /Users/ngoccuongnguyen/Exasim/build/dataout/out
-
-
-gdb ./cpuEXASIM  1 /Users/ngoccuongnguyen/Exasim/build/datain/ /Users/ngoccuongnguyen/Exasim/build/dataout/out
-
 

@@ -20,6 +20,7 @@
 #include <type_traits>
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
+namespace MDSPAN_IMPL_PROPOSED_NAMESPACE {
 
 namespace {
   template<class T>
@@ -28,7 +29,6 @@ namespace {
   template<class T, T val>
   struct __mdspan_is_integral_constant<std::integral_constant<T,val>>: std::true_type {};
 }
-
 // Slice Specifier allowing for strides and compile time extent
 template <class OffsetType, class ExtentType, class StrideType>
 struct strided_slice {
@@ -36,13 +36,14 @@ struct strided_slice {
   using extent_type = ExtentType;
   using stride_type = StrideType;
 
-  _MDSPAN_NO_UNIQUE_ADDRESS OffsetType offset{};
-  _MDSPAN_NO_UNIQUE_ADDRESS ExtentType extent{};
-  _MDSPAN_NO_UNIQUE_ADDRESS StrideType stride{};
+  OffsetType offset;
+  ExtentType extent;
+  StrideType stride;
 
   static_assert(std::is_integral_v<OffsetType> || __mdspan_is_integral_constant<OffsetType>::value);
   static_assert(std::is_integral_v<ExtentType> || __mdspan_is_integral_constant<ExtentType>::value);
   static_assert(std::is_integral_v<StrideType> || __mdspan_is_integral_constant<StrideType>::value);
 };
 
+} // MDSPAN_IMPL_PROPOSED_NAMESPACE
 } // MDSPAN_IMPL_STANDARD_NAMESPACE

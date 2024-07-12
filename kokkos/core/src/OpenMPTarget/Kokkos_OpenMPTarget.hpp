@@ -65,11 +65,7 @@ class OpenMPTarget {
 
   using scratch_memory_space = ScratchMemorySpace<OpenMPTarget>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED inline static bool in_parallel() {
-    return omp_in_parallel();
-  }
-#endif
+  inline static bool in_parallel() { return omp_in_parallel(); }
 
   static void fence(const std::string& name =
                         "Kokkos::OpenMPTarget::fence: Unnamed Instance Fence");

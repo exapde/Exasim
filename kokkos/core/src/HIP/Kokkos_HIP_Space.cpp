@@ -24,8 +24,10 @@
 #include <HIP/Kokkos_HIP_Space.hpp>
 
 #include <HIP/Kokkos_HIP_DeepCopy.hpp>
+#include <HIP/Kokkos_HIP_SharedAllocationRecord.hpp>
 
 #include <impl/Kokkos_Error.hpp>
+#include <impl/Kokkos_MemorySpace.hpp>
 #include <impl/Kokkos_DeviceManagement.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
 
@@ -285,3 +287,22 @@ void HIPManagedSpace::impl_deallocate(
 }
 
 }  // namespace Kokkos
+
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+#include <impl/Kokkos_SharedAlloc_timpl.hpp>
+
+namespace Kokkos {
+namespace Impl {
+
+// To avoid additional compilation cost for something that's (mostly?) not
+// performance sensitive, we explicity instantiate these CRTP base classes here,
+// where we have access to the associated *_timpl.hpp header files.
+template class HostInaccessibleSharedAllocationRecordCommon<HIPSpace>;
+template class SharedAllocationRecordCommon<HIPSpace>;
+template class SharedAllocationRecordCommon<HIPHostPinnedSpace>;
+template class SharedAllocationRecordCommon<HIPManagedSpace>;
+
+}  // end namespace Impl
+}  // end namespace Kokkos

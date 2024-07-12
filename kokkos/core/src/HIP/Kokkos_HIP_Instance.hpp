@@ -98,6 +98,7 @@ class HIPInternal {
   uint32_t m_instance_id =
       Kokkos::Tools::Experimental::Impl::idForInstance<HIP>(
           reinterpret_cast<uintptr_t>(this));
+  bool m_manage_stream = false;
 
   // Team Scratch Level 1 Space
   int m_n_team_scratch                            = 10;
@@ -123,7 +124,7 @@ class HIPInternal {
     return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
   }
 
-  void initialize(hipStream_t stream);
+  void initialize(hipStream_t stream, bool manage_stream);
   void finalize();
 
   void print_configuration(std::ostream &) const;

@@ -20,6 +20,7 @@
 
 #include "strided_slice.hpp"
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
+namespace MDSPAN_IMPL_PROPOSED_NAMESPACE {
 namespace detail {
 
 // Mapping from submapping ranks to srcmapping ranks
@@ -318,4 +319,5 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...> &src_exts,
   return detail::extents_constructor<ext_t::rank(), ext_t>::next_extent(
       src_exts, slices...);
 }
+} // namespace MDSPAN_IMPL_PROPOSED_NAMESPACE
 } // namespace MDSPAN_IMPL_STANDARD_NAMESPACE

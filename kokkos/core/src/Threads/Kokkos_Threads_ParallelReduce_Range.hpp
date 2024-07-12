@@ -68,44 +68,42 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
     }
   }
 
-  static void exec(ThreadsInternal &instance, const void *arg) {
-    exec_schedule<typename Policy::schedule_type::type>(instance, arg);
+  static void exec(ThreadsExec &exec, const void *arg) {
+    exec_schedule<typename Policy::schedule_type::type>(exec, arg);
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
-  exec_schedule(ThreadsInternal &instance, const void *arg) {
+  exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
-    const WorkRange range(self.m_policy, instance.pool_rank(),
-                          instance.pool_size());
+    const WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
 
     const ReducerType &reducer = self.m_functor_reducer.get_reducer();
 
     ParallelReduce::template exec_range<WorkTag>(
         self.m_functor_reducer.get_functor(), range.begin(), range.end(),
-        reducer.init(static_cast<pointer_type>(instance.reduce_memory())));
+        reducer.init(static_cast<pointer_type>(exec.reduce_memory())));
 
-    instance.fan_in_reduce(reducer);
+    exec.fan_in_reduce(reducer);
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
-  exec_schedule(ThreadsInternal &instance, const void *arg) {
+  exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
-    const WorkRange range(self.m_policy, instance.pool_rank(),
-                          instance.pool_size());
+    const WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
 
-    instance.set_work_range(range.begin() - self.m_policy.begin(),
-                            range.end() - self.m_policy.begin(),
-                            self.m_policy.chunk_size());
-    instance.reset_steal_target();
-    instance.barrier();
+    exec.set_work_range(range.begin() - self.m_policy.begin(),
+                        range.end() - self.m_policy.begin(),
+                        self.m_policy.chunk_size());
+    exec.reset_steal_target();
+    exec.barrier();
 
-    long work_index            = instance.get_work_index();
+    long work_index            = exec.get_work_index();
     const ReducerType &reducer = self.m_functor_reducer.get_reducer();
 
     reference_type update =
-        reducer.init(static_cast<pointer_type>(instance.reduce_memory()));
+        reducer.init(static_cast<pointer_type>(exec.reduce_memory()));
     while (work_index != -1) {
       const Member begin =
           static_cast<Member>(work_index) * self.m_policy.chunk_size() +
@@ -116,10 +114,10 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
               : self.m_policy.end();
       ParallelReduce::template exec_range<WorkTag>(
           self.m_functor_reducer.get_functor(), begin, end, update);
-      work_index = instance.get_work_index();
+      work_index = exec.get_work_index();
     }
 
-    instance.fan_in_reduce(reducer);
+    exec.fan_in_reduce(reducer);
   }
 
  public:
@@ -132,15 +130,15 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
         reducer.final(m_result_ptr);
       }
     } else {
-      ThreadsInternal::resize_scratch(reducer.value_size(), 0);
+      ThreadsExec::resize_scratch(reducer.value_size(), 0);
 
-      ThreadsInternal::start(&ParallelReduce::exec, this);
+      ThreadsExec::start(&ParallelReduce::exec, this);
 
-      ThreadsInternal::fence();
+      ThreadsExec::fence();
 
       if (m_result_ptr) {
         const pointer_type data =
-            (pointer_type)ThreadsInternal::root_reduce_scratch();
+            (pointer_type)ThreadsExec::root_reduce_scratch();
 
         const unsigned n = reducer.value_count();
         for (unsigned i = 0; i < n; ++i) {

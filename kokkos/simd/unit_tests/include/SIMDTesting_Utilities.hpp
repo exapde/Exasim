@@ -93,7 +93,7 @@ class load_element_aligned {
   bool host_load(T const* mem, std::size_t n,
                  Kokkos::Experimental::simd<T, Abi>& result) const {
     if (n < result.size()) return false;
-    result.copy_from(mem, Kokkos::Experimental::simd_flag_default);
+    result.copy_from(mem, Kokkos::Experimental::element_aligned_tag());
     return true;
   }
   template <class T, class Abi>
@@ -101,26 +101,7 @@ class load_element_aligned {
       T const* mem, std::size_t n,
       Kokkos::Experimental::simd<T, Abi>& result) const {
     if (n < result.size()) return false;
-    result.copy_from(mem, Kokkos::Experimental::simd_flag_default);
-    return true;
-  }
-};
-
-class load_vector_aligned {
- public:
-  template <class T, class Abi>
-  bool host_load(T const* mem, std::size_t n,
-                 Kokkos::Experimental::simd<T, Abi>& result) const {
-    if (n < result.size()) return false;
-    result.copy_from(mem, Kokkos::Experimental::simd_flag_aligned);
-    return true;
-  }
-  template <class T, class Abi>
-  KOKKOS_INLINE_FUNCTION bool device_load(
-      T const* mem, std::size_t n,
-      Kokkos::Experimental::simd<T, Abi>& result) const {
-    if (n < result.size()) return false;
-    result.copy_from(mem, Kokkos::Experimental::simd_flag_aligned);
+    result.copy_from(mem, Kokkos::Experimental::element_aligned_tag());
     return true;
   }
 };
@@ -135,7 +116,8 @@ class load_masked {
     for (std::size_t i = 0; i < n; ++i) {
       mask[i] = true;
     }
-    where(mask, result).copy_from(mem, Kokkos::Experimental::simd_flag_default);
+    where(mask, result)
+        .copy_from(mem, Kokkos::Experimental::element_aligned_tag());
     where(!mask, result) = 0;
     return true;
   }
@@ -148,7 +130,8 @@ class load_masked {
     for (std::size_t i = 0; i < n; ++i) {
       mask[i] = true;
     }
-    where(mask, result).copy_from(mem, Kokkos::Experimental::simd_flag_default);
+    where(mask, result)
+        .copy_from(mem, Kokkos::Experimental::element_aligned_tag());
     where(!mask, result) = T(0);
     return true;
   }

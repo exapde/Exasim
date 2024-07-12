@@ -19,7 +19,6 @@
 
 #include <omp.h>
 #include <sstream>
-#include <OpenMPTarget/Kokkos_OpenMPTarget_Macros.hpp>
 #include <Kokkos_Parallel.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
 
@@ -141,10 +140,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 // guarantees that the number of teams specified in the `num_teams` clause is
 // always less than or equal to the maximum concurrently running teams.
 #if !defined(KOKKOS_IMPL_OPENMPTARGET_HIERARCHICAL_INTEL_GPU)
-    KOKKOS_IMPL_OMPTARGET_PRAGMA(
-        teams thread_limit(team_size) firstprivate(a_functor)
-            num_teams(max_active_teams) is_device_ptr(scratch_ptr)
-                KOKKOS_IMPL_OMPX_DYN_CGROUP_MEM(shmem_size_L0))
+#pragma omp target teams thread_limit(team_size) firstprivate(a_functor) \
+    num_teams(max_active_teams) is_device_ptr(scratch_ptr)
 #pragma omp parallel
     {
       if (omp_get_num_teams() > max_active_teams)

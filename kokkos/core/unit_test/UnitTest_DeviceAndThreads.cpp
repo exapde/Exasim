@@ -19,23 +19,22 @@
 #include <string>
 #include <thread>
 
-int get_num_devices() {
-  int num_devices;
+int get_device_count() {
 #if defined(KOKKOS_ENABLE_CUDA)
-  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&num_devices));
+  int count;
+  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&count));
+  return count;
 #elif defined(KOKKOS_ENABLE_HIP)
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&num_devices));
+  int count;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDevice(&count));
+  return count;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  num_devices = omp_get_num_devices();
+  return omp_get_num_devices();
 #elif defined(KOKKOS_ENABLE_OPENACC)
-  num_devices = acc_get_num_devices(acc_get_device_type());
-#elif defined(KOKKOS_ENABLE_SYCL)
-  num_devices = sycl::device::get_devices(sycl::info::device_type::gpu).size();
+  return acc_get_num_devices(acc_get_device_type());
 #else
-  num_devices = -1;
+  return 0;
 #endif
-  assert(num_devices == Kokkos::num_devices());
-  return num_devices;
 }
 
 int get_device_id() {
@@ -45,17 +44,15 @@ int get_device_id() {
 #elif defined(KOKKOS_ENABLE_HIP)
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDevice(&device_id));
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  device_id   = omp_get_default_device();
+  device_id = omp_get_device_num();
 #elif defined(KOKKOS_ENABLE_OPENACC)
-  device_id   = acc_get_device_num(acc_get_device_type());
+  device_id = acc_get_device_num(acc_get_device_type());
 #elif defined(KOKKOS_ENABLE_SYCL)
-  // Not able to query the underlying runtime because there is no such thing as
-  // device currently being used with SYCL.  We go through the Kokkos runtime
-  // which makes the assert below pointless but it still let us check that
-  // Kokkos selected the device we asked for from the Python tests.
-  device_id = Kokkos::device_id();
+  // FIXME_SYCL ?
+  assert(false);
+  return -2;
 #else
-  device_id   = -1;
+  device_id = -1;
 #endif
   assert(device_id == Kokkos::device_id());
   return device_id;
@@ -68,14 +65,6 @@ int get_max_threads() {
   return std::thread::hardware_concurrency();
 #else
   return 1;
-#endif
-}
-
-int get_hwloc_enabled() {
-#ifdef KOKKOS_ENABLE_HWLOC
-  return 1;
-#else
-  return 0;
 #endif
 }
 
@@ -101,10 +90,9 @@ int print_flag(std::string const& flag) {
   KOKKOS_TEST_PRINT_FLAG(num_threads);
   KOKKOS_TEST_PRINT_FLAG(max_threads);
   KOKKOS_TEST_PRINT_FLAG(device_id);
-  KOKKOS_TEST_PRINT_FLAG(num_devices);
+  KOKKOS_TEST_PRINT_FLAG(device_count);
   KOKKOS_TEST_PRINT_FLAG(disable_warnings);
   KOKKOS_TEST_PRINT_FLAG(tune_internals);
-  KOKKOS_TEST_PRINT_FLAG(hwloc_enabled);
 
 #undef KOKKOS_TEST_PRINT_FLAG
 

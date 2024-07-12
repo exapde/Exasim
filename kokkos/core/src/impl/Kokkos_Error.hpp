@@ -28,8 +28,6 @@ namespace Impl {
 
 [[noreturn]] void throw_runtime_exception(const std::string &msg);
 
-void log_warning(const std::string &msg);
-
 std::string human_memory_size(size_t arg_bytes);
 
 }  // namespace Impl
@@ -60,8 +58,7 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
     HIPMallocManaged,
     SYCLMallocDevice,
     SYCLMallocShared,
-    SYCLMallocHost,
-    OpenACCMalloc,
+    SYCLMallocHost
   };
 
  private:

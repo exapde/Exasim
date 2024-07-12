@@ -27,7 +27,14 @@ static_assert(false,
 
 #include <Kokkos_Core_fwd.hpp>
 
+#include <cstddef>
+#include <iosfwd>
 #include <Kokkos_HostSpace.hpp>
+
+#ifdef KOKKOS_ENABLE_HBWSPACE
+#include <Kokkos_HBWSpace.hpp>
+#endif
+
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_TaskScheduler.hpp>
@@ -38,8 +45,6 @@ static_assert(false,
 
 #include <omp.h>
 
-#include <cstddef>
-#include <iosfwd>
 #include <vector>
 
 /*--------------------------------------------------------------------------*/
@@ -48,6 +53,11 @@ namespace Kokkos {
 
 namespace Impl {
 class OpenMPInternal;
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+// FIXME_OPENMP we can remove this after we remove partition_master
+inline thread_local OpenMPInternal* t_openmp_instance = nullptr;
+#endif
 }  // namespace Impl
 
 /// \class OpenMP
@@ -57,7 +67,12 @@ class OpenMP {
   //! Tag this class as a kokkos execution space
   using execution_space = OpenMP;
 
-  using memory_space = HostSpace;
+  using memory_space =
+#ifdef KOKKOS_ENABLE_HBWSPACE
+      Experimental::HBWSpace;
+#else
+      HostSpace;
+#endif
 
   //! This execution space preferred device_type
   using device_type          = Kokkos::Device<execution_space, memory_space>;
@@ -72,10 +87,8 @@ class OpenMP {
   /// \brief Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /// \brief is the instance running a parallel algorithm
-  KOKKOS_DEPRECATED static bool in_parallel(OpenMP const& = OpenMP()) noexcept;
-#endif
+  static bool in_parallel(OpenMP const& = OpenMP()) noexcept;
 
   /// \brief Wait until all dispatched functors complete on the given instance
   ///
@@ -90,6 +103,18 @@ class OpenMP {
   ///
   /// This always returns false on OpenMP
   inline static bool is_asynchronous(OpenMP const& = OpenMP()) noexcept;
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  /// \brief Partition the default instance and call 'f' on each new 'master'
+  /// thread
+  ///
+  /// Func is a functor with the following signiture
+  ///   void( int partition_id, int num_partitions )
+  template <typename F>
+  KOKKOS_DEPRECATED static void partition_master(
+      F const& f, int requested_num_partitions = 0,
+      int requested_partition_size = 0);
+#endif
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   static int concurrency(OpenMP const& = OpenMP());
@@ -141,7 +166,14 @@ class OpenMP {
 };
 
 inline int OpenMP::impl_thread_pool_rank() noexcept {
+  // FIXME_OPENMP Can we remove this when removing partition_master? It's only
+  // used in one partition_master test
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  KOKKOS_IF_ON_HOST(
+      (return Impl::t_openmp_instance ? 0 : omp_get_thread_num();))
+#else
   KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
+#endif
 
   KOKKOS_IF_ON_DEVICE((return -1;))
 }

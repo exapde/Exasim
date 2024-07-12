@@ -126,11 +126,10 @@ KOKKOS_FUNCTION IteratorType shift_left_team_impl(
   // execution space impl because for this team impl we are
   // within a parallel region, so for now we solve serially
 
-  using difference_type = typename IteratorType::difference_type;
-  const difference_type numElementsToMove =
+  const std::size_t numElementsToMove =
       ::Kokkos::Experimental::distance(first + n, last);
   Kokkos::single(Kokkos::PerTeam(teamHandle), [=]() {
-    for (difference_type i = 0; i < numElementsToMove; ++i) {
+    for (std::size_t i = 0; i < numElementsToMove; ++i) {
       first[i] = std::move(first[i + n]);
     }
   });

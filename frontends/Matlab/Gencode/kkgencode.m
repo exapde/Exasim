@@ -2,7 +2,7 @@ function kkgencode(app)
 
 kkdir = app.buildpath + "/model";
 
-text = fileread(app.backendpath + "/Discretization/KokkosDrivers.cpp");
+text = fileread(char(app.backendpath + "/Discretization/KokkosDrivers.cpp"));
 fid = fopen(kkdir + "/" + "KokkosDrivers.cpp", 'w');
 fprintf(fid, text);
 fclose(fid);

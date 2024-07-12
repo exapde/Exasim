@@ -58,16 +58,16 @@ class ParallelReduce<CombinedFunctorReducerType,
     }
   }
 
-  static void exec(ThreadsInternal &instance, const void *arg) {
+  static void exec(ThreadsExec &exec, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
 
     ParallelReduce::template exec_team<WorkTag>(
         self.m_functor_reducer.get_functor(),
-        Member(&instance, self.m_policy, self.m_shared),
+        Member(&exec, self.m_policy, self.m_shared),
         self.m_functor_reducer.get_reducer().init(
-            static_cast<pointer_type>(instance.reduce_memory())));
+            static_cast<pointer_type>(exec.reduce_memory())));
 
-    instance.fan_in_reduce(self.m_functor_reducer.get_reducer());
+    exec.fan_in_reduce(self.m_functor_reducer.get_reducer());
   }
 
  public:
@@ -80,17 +80,17 @@ class ParallelReduce<CombinedFunctorReducerType,
         reducer.final(m_result_ptr);
       }
     } else {
-      ThreadsInternal::resize_scratch(
+      ThreadsExec::resize_scratch(
           reducer.value_size(),
           Policy::member_type::team_reduce_size() + m_shared);
 
-      ThreadsInternal::start(&ParallelReduce::exec, this);
+      ThreadsExec::start(&ParallelReduce::exec, this);
 
-      ThreadsInternal::fence();
+      ThreadsExec::fence();
 
       if (m_result_ptr) {
         const pointer_type data =
-            (pointer_type)ThreadsInternal::root_reduce_scratch();
+            (pointer_type)ThreadsExec::root_reduce_scratch();
 
         const unsigned n = reducer.value_count();
         for (unsigned i = 0; i < n; ++i) {

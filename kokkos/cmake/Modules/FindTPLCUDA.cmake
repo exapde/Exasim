@@ -7,8 +7,7 @@ IF (NOT CUDAToolkit_ROOT)
   ENDIF()
 ENDIF()
 
-# FIXME CMake 3.28.4 creates more targets than we export
-IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.17.0" AND CMAKE_VERSION VERSION_LESS "3.28.4")
+IF(CMAKE_VERSION VERSION_GREATER_EQUAL "3.17.0")
   find_package(CUDAToolkit)
 ELSE()
   include(${CMAKE_CURRENT_LIST_DIR}/CudaToolkit.cmake)

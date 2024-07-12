@@ -31,7 +31,7 @@ template <class Functor, class Reducer, class Policy,
 struct OpenACCParallelReduceMDRangeHelper {
   OpenACCParallelReduceMDRangeHelper(Functor const&, Reducer const&,
                                      Policy const&) {
-    static_assert(Kokkos::Impl::always_false<Functor>::value,
+    static_assert(!Kokkos::Impl::always_true<Functor>::value,
                   "not implemented");
   }
 };
@@ -136,7 +136,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         functor(i0, i1, val);                                                 \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -160,7 +159,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         functor(i0, i1, val);                                                 \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -190,7 +188,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -220,7 +217,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -252,7 +248,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -284,7 +279,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -320,7 +314,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -356,7 +349,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -396,7 +388,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
                                                                               \
@@ -436,7 +427,6 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         }                                                                     \
       }                                                                       \
     }                                                                         \
-    acc_wait(async_arg);                                                      \
     aval = val;                                                               \
   }                                                                           \
   }  // namespace Kokkos::Experimental::Impl

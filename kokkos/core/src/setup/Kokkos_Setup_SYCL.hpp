@@ -38,11 +38,12 @@
 #include <CL/sycl.hpp>
 #endif
 
-#if defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER >= 20230200
-#define KOKKOS_IMPL_SYCL_GET_MULTI_PTR(accessor) \
-  accessor.get_multi_ptr<sycl::access::decorated::yes>()
-#else
-#define KOKKOS_IMPL_SYCL_GET_MULTI_PTR(accessor) accessor.get_pointer()
+#ifdef __SYCL_DEVICE_ONLY__
+#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(format, ...)                \
+  do {                                                            \
+    const __attribute__((opencl_constant)) char fmt[] = (format); \
+    sycl::ext::oneapi::experimental::printf(fmt, ##__VA_ARGS__);  \
+  } while (0)
 #endif
 
 #endif

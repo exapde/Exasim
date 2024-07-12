@@ -1,2 +1,0 @@
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libcpuApp.a CMakeFiles/cpuApp.dir/Users/ngoccuongnguyen/Exasim/backend/AppDriver/App/opuApp.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libcpuApp.a
