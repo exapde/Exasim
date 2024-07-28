@@ -23,7 +23,7 @@ while ischar(tline)
     i1 = strfind(str,'[');        
     i2 = strfind(str,']');        
     if isempty(i1)==0    
-        a2 = str2num(str((i1+1):(i2-1)));                        
+        a2 = str2num(str((i1(1)+1):(i2(1)-1)));                        
         for j = a1:(a2-1)                
             strj = ['f[' num2str(j) '*ng+i] = 0.0;'];
             mystr = mystr + "\t\t" + string(strj) + "\n";

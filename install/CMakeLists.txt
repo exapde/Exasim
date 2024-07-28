@@ -30,19 +30,15 @@ else()
    message("Lapack and Blas libraries are not found")
 endif()
 
-find_package(MPI)
-if (MPI_FOUND)
-  message("An MPI library is found")
-else()
-  message("MPI library is not found")
-endif()
-
 if(EXASIM_CUDA)
     set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildcuda)
     find_package(Kokkos REQUIRED)
 
     enable_language(CUDA)
     find_package(CUDA REQUIRED)
+
+    # Specify the include directories
+    include_directories(${CUDA_INCLUDE_DIRS})
 
     if(EXASIM_NOMPI)
       add_executable(gpuEXASIM ${MAIN_SOURCES})
@@ -52,6 +48,13 @@ if(EXASIM_CUDA)
     endif()
 
     if(EXASIM_MPI)  
+      find_package(MPI)
+      if (MPI_FOUND)
+        message("An MPI library is found")
+      else()
+        message("MPI library is not found")
+      endif()
+
       if(MPI_FOUND)
         include_directories(SYSTEM ${MPI_INCLUDE_PATH})
         add_executable(gpumpiEXASIM ${MAIN_SOURCES})
@@ -71,6 +74,14 @@ else()
     endif()
 
     if(EXASIM_MPI)  
+
+      find_package(MPI)
+      if (MPI_FOUND)
+        message("An MPI library is found")
+      else()
+        message("MPI library is not found")
+      endif()
+
       if(MPI_FOUND)
         include_directories(${MPI_INCLUDE_PATH})
         add_executable(cpumpiEXASIM ${MAIN_SOURCES})
