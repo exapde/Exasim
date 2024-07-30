@@ -9,6 +9,7 @@
 // constructor
 CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 {
+    mpiRank = disc.common.mpiRank;
     setprecondstruct(precond, disc, backend);    
 }
 
@@ -16,6 +17,7 @@ CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 CPreconditioner::~CPreconditioner()
 {            
     precond.freememory(precond.cpuMemory);
+    if (mpiRank==0) printf("CPreconditioner destructor: precond memory is freed successfully.\n");
 }
 
 void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)

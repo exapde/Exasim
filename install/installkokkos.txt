@@ -9,7 +9,7 @@ make install
 cd Exasim/kokkos
 mkdir buildcuda
 cd buildcuda
-cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=g++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
 make install   
 
 

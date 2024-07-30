@@ -63,19 +63,16 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     }
 
     // compute the geometry quantities
+    if (common.mpiRank==0) printf("start compGeometry... \n");
     compGeometry(backend);        
-    if (common.mpiRank==0) 
-        printf("finish compGeometry... \n");        
+    if (common.mpiRank==0) printf("finish compGeometry... \n");        
 
     // compute the inverse of the mass matrix
-    compMassInverse(backend);    
+    if (common.spatialScheme == 0) compMassInverse(backend);    
     
     // moved from InitSolution to here
     if ((common.ncq>0) & (common.wave==0) & (common.spatialScheme == 0) ) evalQSer(backend); 
     
-    if (common.mpiRank==0) 
-        printf("finish compMassInverse... \n");        
-
     if (common.spatialScheme > 0)  { // HDG
       Int neb = common.neb; // maximum number of elements per block
       Int npe = common.npe; // number of nodes on master element
@@ -195,19 +192,22 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 
 // destructor 
 CDiscretization::~CDiscretization()
-{    
-    if (common.mpiRank==0) printf("CDiscretization destructor is being called \n");
-    
+{        
     app.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: app memory is freed successfully.\n");
     master.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: master memory is freed successfully.\n");
     mesh.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: mesh memory is freeed successfully.\n");
     sol.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: sol memory is freed successfully.\n");
     tmp.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: tmp memory is freed successfully.\n");
     res.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: res memory is freed successfully.\n");
     common.freememory();
-    
-    // free ncarray and udgarray
-    
+    if (common.mpiRank==0) printf("CDiscretization destructor: common memory is freed successfully.\n");
+
 #ifdef HAVE_CUDA    
     if (common.cpuMemory==0) {
         CHECK(cudaEventDestroy(common.eventHandle));
@@ -218,7 +218,9 @@ CDiscretization::~CDiscretization()
 
 // Compute and store the geometry
 void CDiscretization::compGeometry(Int backend) {
+    if (common.mpiRank==0) printf("start ElemGeom... \n");
     ElemGeom(sol, master, mesh, tmp, common, common.cublasHandle, backend);   
+    if (common.mpiRank==0) printf("Finish ElemGeom... \n");
     FaceGeom(sol, master, mesh, tmp, common, common.cublasHandle, backend);   
 
     if (common.spatialScheme>0)
@@ -532,3 +534,4 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
 }
 
 #endif        
+

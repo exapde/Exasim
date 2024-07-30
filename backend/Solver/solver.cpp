@@ -10,13 +10,15 @@
 // constructor
 CSolver::CSolver(CDiscretization& disc, Int backend)
 {
+    mpiRank = disc.common.mpiRank;
     setsysstruct(sys, disc.common, backend);    
 }
 
 // destructor
 CSolver::~CSolver()
-{    
+{        
     sys.freememory(sys.cpuMemory);    
+    if (mpiRank==0) printf("CSolver destructor: sys memory is freed successfully.\n");
 }
 
 void CSolver::PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int backend)       

@@ -6,6 +6,8 @@ private:
 public:
     sysstruct sys; // system struct
     
+    int mpiRank;
+    
     // constructor 
     CSolver(CDiscretization& disc, Int backend); 
     
