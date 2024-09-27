@@ -498,8 +498,14 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.nsize[2] = npe*nc*ne;        
     }
     else
-        error("Input files are incorrect");        
-    
+        error("Input files are incorrect");      
+
+    // For line search  
+    // sol.dudgt = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
+    sol.udg0 = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
+
+    // cpuArraySetValue(sol.dudgt, zero, npe*nc*ne);
+
     #ifdef HAVE_ENZYME
         sol.dudg = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);
         cpuArraySetValue(sol.dudg, zero, npe*nc*ne);
