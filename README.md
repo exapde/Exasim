@@ -16,7 +16,7 @@ What make Exasim unique are the following distinctive features:
    - Leverage [Enzyme](https://github.com/EnzymeAD/Enzyme) for automatic differentiation and [Mutation++](https://github.com/mutationpp/Mutationpp) for thermodynamic, transport, chemistry, and energy transfer properties. 
    - Provide interfaces to Julia, Python, and Matlab. 
    
-After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
+After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. Please make sure that the directory containing the folder Exasim does not have any white space, because Kokkos libraries can not be compiled properly in such case. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
 
 # Installation 
 
