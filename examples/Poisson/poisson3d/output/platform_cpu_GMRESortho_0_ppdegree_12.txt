@@ -1,0 +1,88 @@
+Using g++ compiler for CPU source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+run facepartition...
+face partition 1
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing app into file...
+Compile C++ Exasim code using cmake...
+-- Enabled Kokkos devices: SERIAL
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/austinsp/Exasim/build
+[35m[1mConsolidate compiler generated dependencies of target cpuEXASIM[0m
+[ 50%] [32mBuilding CXX object CMakeFiles/cpuEXASIM.dir/home/austinsp/Exasim/backend/Main/main.cpp.o[0m
+In file included from /home/austinsp/Exasim/backend/Main/../Discretization/discretization.cpp:10,
+                 from /home/austinsp/Exasim/backend/Main/main.cpp:65:
+/home/austinsp/Exasim/backend/Main/../Discretization/ioutilities.cpp: In function ‘Int* readiarrayfromdouble(std::ifstream&, Int)’:
+/home/austinsp/Exasim/backend/Main/../Discretization/ioutilities.cpp:176:32: warning: comparison of integer expressions of different signedness: ‘unsigned int’ and ‘Int’ {aka ‘int’} [-Wsign-compare]
+  176 |         for (unsigned i = 0; i < N; i++) {
+      |                              ~~^~~
+/home/austinsp/Exasim/backend/Main/../Discretization/ioutilities.cpp: In function ‘void writeiarraytodouble(std::ofstream&, Int*, Int)’:
+/home/austinsp/Exasim/backend/Main/../Discretization/ioutilities.cpp:262:32: warning: comparison of integer expressions of different signedness: ‘unsigned int’ and ‘Int’ {aka ‘int’} [-Wsign-compare]
+  262 |         for (unsigned i = 0; i < N; i++) {
+      |                              ~~^~~
+In file included from /home/austinsp/Exasim/backend/Main/../Solver/solver.cpp:7,
+                 from /home/austinsp/Exasim/backend/Main/main.cpp:67:
+/home/austinsp/Exasim/backend/Main/../Solver/gmres.cpp: In function ‘Int GMRES(sysstruct&, CDiscretization&, CPreconditioner&, Int, Int, Int)’:
+/home/austinsp/Exasim/backend/Main/../Solver/gmres.cpp:390:16: warning: variable ‘nrmv’ set but not used [-Wunused-but-set-variable]
+  390 |         dstype nrmv = PNORM(disc.common.cublasHandle, N, sys.v, backend);
+      |                ^~~~
+/home/austinsp/Exasim/backend/Main/main.cpp: In function ‘int main(int, char**)’:
+/home/austinsp/Exasim/backend/Main/main.cpp:81:48: warning: variable ‘shmrank’ set but not used [-Wunused-but-set-variable]
+   81 |     Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;
+      |                                                ^~~~~~~
+/home/austinsp/Exasim/backend/Main/main.cpp:81:57: warning: variable ‘ncores’ set but not used [-Wunused-but-set-variable]
+   81 |     Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;
+      |                                                         ^~~~~~
+/home/austinsp/Exasim/backend/Main/main.cpp:81:65: warning: variable ‘nthreads’ set but not used [-Wunused-but-set-variable]
+   81 |     Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;
+      |                                                                 ^~~~~~~~
+[100%] [32m[1mLinking CXX executable cpuEXASIM[0m
+[100%] Built target cpuEXASIM
+Run C++ Exasim code ...
+/home/austinsp/Exasim/build/datain/
+/home/austinsp/Exasim/build/dataout/out
+Using 1 processors to solve the problem on CPU platform...
+Reading data from binary files 
+Reading app from binary files 
+Reading master from binary files 
+Reading mesh from binary files 
+Reading initial solution from binary files 
+Reading xdg from binary files 
+compute the initial solution 
+Finish reading data from binary files 
+Set res struct... 
+Set temp struct... 
+Run IsMeshCurved... 
+IsMeshCurved = 0 
+Set common struct... 
+Finish setting common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+finish compGeometry... 
+finish compMassInverse... 
+Init HDG Discretization ... 
+Maximum number of boundary conditions = 1 
+Number of boundary faces = 384 
+Memory allocation ...
+Finish GetFaceNodes ... 
+Finish qEquation ... 
+Finish hdgGetQ ... 
+finish CDiscretization constructor... 
+Newton Iteration: 0,  Solution Norm: 0
+Newton Iteration: 0,  Residual Norm: 0.0930155
+hdgAssembleLinearSystem time: 11528.1 miliseconds
+Old RHS Norm: 0.111556,  New RHS Norm: 0.111556
+Matrix-vector product time: 24.6631 miliseconds
+Applying preconditioner time: 295.857 miliseconds
+Orthgonalization time: 0.732528 miliseconds
+Solution update time: 0.001513 miliseconds
+GMRES time: 483.949 miliseconds
+GMRES(202) converges to the tolerance 1e-06 within  3 iterations and 0 RB dimensions
+Newton Iteration: 1,  Residual Norm: 4.26053e-09
+CDiscretization destructor is being called 
+Elapsed time is 14.664892 seconds.
+output/platform_cpu_GMRESortho_0_ppdegree_13.txt

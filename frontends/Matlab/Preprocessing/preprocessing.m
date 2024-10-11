@@ -64,7 +64,8 @@ if isfield(pde, 'initu')
     udgsym = pde.initu(xdgsym, paramsym, uinfsym);         
     app.ncu = length(udgsym(:));
 else
-    error("pde.initu is not defined");
+    % error("pde.initu is not defined");
+    disp("pde.initu is not defined");
 end
 if isfield(pde, 'initv')
     odgsym = pde.initv(xdgsym, paramsym, uinfsym);         
@@ -154,13 +155,13 @@ for i = 1:mpiprocs
     %nsize(3) = length(udg(:)); 
 %     nsize(4) = length(odg(:));    
 %     nsize(5) = length(wdg(:));    
-    if isfield(mesh, 'udg')        
+    if isfield(mesh, 'udg')      % For initial condition
         nsize(3) = numel(mesh.udg(:,:,dmd{i}.elempart));
     end
-    if isfield(mesh, 'vdg')        
+    if isfield(mesh, 'vdg')      % Background E field, other field that can be treated as a parameter
         nsize(4) = numel(mesh.vdg(:,:,dmd{i}.elempart));
     end
-    if isfield(mesh, 'wdg')        
+    if isfield(mesh, 'wdg')      % For ODE  
         nsize(5) = numel(mesh.wdg(:,:,dmd{i}.elempart));
     end
 

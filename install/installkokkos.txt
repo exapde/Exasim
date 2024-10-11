@@ -15,3 +15,8 @@ make install
 
 # Fix kokkos library by stripping the debug information from the archive.
 strip --strip-debug /Exasim/kokkos/buildserial/core/src/libkokkoscore.a
+
+d
+rm -rf buildcuda
+mkdir buildcuda
+cd buildcuda

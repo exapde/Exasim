@@ -238,6 +238,12 @@ int main(int argc, char** argv)
                                 
             // compute the solution at the next step
             for (Int j=0; j<pdemodel[0]->disc.common.tstages; j++) {     
+                #ifdef HAVE_CUDA  
+                    size_t available, total;
+                    cudaMemGetInfo(&available, &total);
+                    cout<<"Available GPU Memory: "<<available<<" Total GPU Memory: "<<total<<endl;
+                #endif        
+
                 
                 if (pdemodel[0]->disc.common.mpiRank==0)
                     printf("\nTimestep :  %d,  Timestage :  %d,   Time : %g\n",istep+1,j+1,time + pdemodel[0]->disc.common.dt[istep]*pdemodel[0]->disc.common.DIRKcoeff_t[j]);                                

@@ -1,0 +1,3 @@
+/home/austinsp/Exasim/build/CMakeFiles/rebuild_cache.dir
+/home/austinsp/Exasim/build/CMakeFiles/edit_cache.dir
+/home/austinsp/Exasim/build/CMakeFiles/gpuEXASIM.dir

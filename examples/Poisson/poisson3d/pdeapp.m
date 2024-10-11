@@ -10,7 +10,6 @@ pde.model = "ModelD";       % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel"; % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-pde.platform = "cpu";       % choose this option if you want to run the C++ code on Nvidia GPUs
 pde.mpiprocs = 1;           % number of MPI processors
 pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
@@ -21,7 +20,6 @@ pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.physicsparam = [1 0.0]; % unit thermal conductivity and zero boundary data
 pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-6; % GMRES tolerance
-pde.ppdegree = 1;           % degree of polynomial preconditioner
 pde.RBdim = 0;              % reduced basis dimension for preconditioner
 pde.GMRESrestart = 202;
 
@@ -34,20 +32,53 @@ mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(
 mesh.boundarycondition = [1;1;1;1;1;1]; % Set boundary condition for each boundary
 
 % call exasim to generate and run C++ code to solve the PDE model
-[sol,pde,mesh,master,dmd] = exasim(pde,mesh);
+% [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
-% visualize the numerical solution of the PDE model using Paraview
-% pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
-% pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
-% dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
-dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
-x = dgnodes(:,1,:); y = dgnodes(:,2,:); z = dgnodes(:,3,:);
-uexact = sin(pi*x).*sin(pi*y).*sin(pi*z);           % exact solution
-uh = sol(:,1,:);                                    % numerical solution
-fprintf('Maximum absolute error: %g\n',max(abs(uh(:)-uexact(:))));
-disp("Done!");
+% pde.platform = "cpu";
+% pde.GMRESortho = 0;
+% pde.ppdegree = 0;
+% [sol,pde,mesh] = exasim(pde,mesh);
+% return;
 
-return;
+platforms  = ["cpu", "gpu"];
+GMRESortho = [0,1];
+ppdegree = 0:20;
+
+for i = 1:2
+   for j = 1:2
+       for k = 1:21
+           pde.platform = platforms(i);         % choose this option if NVIDIA GPUs are available
+           pde.GMRESortho = GMRESortho(j);
+           pde.ppdegree = ppdegree(k);
+
+           % Create a file name using sprintf
+           filename = sprintf('output/platform_%s_GMRESortho_%d_ppdegree_%d.txt', pde.platform, pde.GMRESortho, pde.ppdegree);
+           disp(filename)
+
+           diary(filename)
+           diary on
+
+           % call exasim to generate and run C++ code to solve the PDE model
+           [sol,pde,mesh] = exasim(pde,mesh);
+
+
+       end
+   end
+end
+
+
+% % visualize the numerical solution of the PDE model using Paraview
+% % pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
+% % pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
+% % dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
+% dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
+% x = dgnodes(:,1,:); y = dgnodes(:,2,:); z = dgnodes(:,3,:);
+% uexact = sin(pi*x).*sin(pi*y).*sin(pi*z);           % exact solution
+% uh = sol(:,1,:);                                    % numerical solution
+% fprintf('Maximum absolute error: %g\n',max(abs(uh(:)-uexact(:))));
+% disp("Done!");
+
+% return;
 
 % pde.elemtype = 0;
 % master1 = Master(pde);

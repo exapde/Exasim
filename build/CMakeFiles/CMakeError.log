@@ -1,0 +1,38 @@
+Determining if the function sgemm_ exists failed with the following output:
+Change Dir: /home/austinsp/Exasim/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_6938e/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_6938e.dir/build.make CMakeFiles/cmTC_6938e.dir/build
+gmake[1]: Entering directory '/home/austinsp/Exasim/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_6938e.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=sgemm_ -o CMakeFiles/cmTC_6938e.dir/CheckFunctionExists.cxx.o -c /home/austinsp/Exasim/build/CMakeFiles/CheckFunctionExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_6938e
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6938e.dir/link.txt --verbose=1
+/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=sgemm_ CMakeFiles/cmTC_6938e.dir/CheckFunctionExists.cxx.o -o cmTC_6938e 
+/usr/bin/ld: CMakeFiles/cmTC_6938e.dir/CheckFunctionExists.cxx.o: in function `main':
+CheckFunctionExists.cxx:(.text+0x14): undefined reference to `sgemm_'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_6938e.dir/build.make:99: cmTC_6938e] Error 1
+gmake[1]: Leaving directory '/home/austinsp/Exasim/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_6938e/fast] Error 2
+
+
+
+Determining if the function cheev_ exists failed with the following output:
+Change Dir: /home/austinsp/Exasim/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_b4655/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_b4655.dir/build.make CMakeFiles/cmTC_b4655.dir/build
+gmake[1]: Entering directory '/home/austinsp/Exasim/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b4655.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=cheev_ -o CMakeFiles/cmTC_b4655.dir/CheckFunctionExists.cxx.o -c /home/austinsp/Exasim/build/CMakeFiles/CheckFunctionExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_b4655
+/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b4655.dir/link.txt --verbose=1
+/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=cheev_ CMakeFiles/cmTC_b4655.dir/CheckFunctionExists.cxx.o -o cmTC_b4655  /usr/lib/x86_64-linux-gnu/libblas.so -lm -ldl 
+/usr/bin/ld: CMakeFiles/cmTC_b4655.dir/CheckFunctionExists.cxx.o: in function `main':
+CheckFunctionExists.cxx:(.text+0x14): undefined reference to `cheev_'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_b4655.dir/build.make:100: cmTC_b4655] Error 1
+gmake[1]: Leaving directory '/home/austinsp/Exasim/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_b4655/fast] Error 2
+
+
+

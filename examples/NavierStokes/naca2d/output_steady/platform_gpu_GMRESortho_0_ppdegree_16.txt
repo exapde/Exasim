@@ -1,0 +1,99 @@
+Using g++ compiler for CPU source code
+Using nvcc compiler for GPU source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+run facepartition...
+face partition 1
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing app into file...
+Compile C++ Exasim code using cmake...
+-- Enabled Kokkos devices: SERIAL;CUDA
+-- kokkos_launch_compiler is enabled globally. C++ compiler commands with -DKOKKOS_DEPENDENCE will be redirected to the appropriate compiler for Kokkos
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/austinsp/Exasim/build
+[35m[1mConsolidate compiler generated dependencies of target gpuEXASIM[0m
+[ 50%] [32mBuilding CXX object CMakeFiles/gpuEXASIM.dir/home/austinsp/Exasim/backend/Main/main.cpp.o[0m
+nvcc_wrapper - *warning* you have set multiple standard flags (-std=c++1* or --std=c++1*), only the last is used because nvcc can only accept a single std setting
+/home/austinsp/Exasim/backend/Main/main.cpp(81): warning #550-D: variable "ncores" was set but never used
+
+/home/austinsp/Exasim/backend/Main/main.cpp(81): warning #550-D: variable "nthreads" was set but never used
+
+[100%] [32m[1mLinking CXX executable gpuEXASIM[0m
+[100%] Built target gpuEXASIM
+Run C++ Exasim code ...
+/home/austinsp/Exasim/build/datain/
+/home/austinsp/Exasim/build/dataout/out
+Using 1 processors to solve the problem on GPU platform...
+Available GPU Memory: 12277841920 Total GPU Memory: 12641632256
+Reading data from binary files 
+Reading app from binary files 
+Reading master from binary files 
+Reading mesh from binary files 
+Reading initial solution from binary files 
+Reading xdg from binary files 
+compute the initial solution 
+Finish reading data from binary files 
+Set res struct... 
+Set temp struct... 
+Run IsMeshCurved... 
+IsMeshCurved = 1 
+Set common struct... 
+Finish setting common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+finish gpuInit... 
+free CPU memory 
+finish compGeometry... 
+finish compMassInverse... 
+Init HDG Discretization ... 
+Maximum number of boundary conditions = 2 
+Number of boundary faces = 64 
+Memory allocation ...
+Finish GetFaceNodes ... 
+Finish qEquation ... 
+Finish hdgGetQ ... 
+finish CDiscretization constructor... 
+Newton Iteration: 0,  Solution Norm: 2355.52
+Newton Iteration: 0,  Residual Norm: 2.07198
+hdgAssembleLinearSystem time: 8.7289 miliseconds
+Old RHS Norm: 2.07198,  New RHS Norm: 2.07198
+Matrix-vector product time: 1.57962 miliseconds
+Applying preconditioner time: 11.2854 miliseconds
+Orthgonalization time: 19.699 miliseconds
+Solution update time: 0.004204 miliseconds
+GMRES time: 37.9846 miliseconds
+GMRES(400) converges to the tolerance 1e-07 within  23 iterations and 0 RB dimensions
+Newton Iteration: 1,  Residual Norm: 0.103902
+hdgAssembleLinearSystem time: 7.68534 miliseconds
+Old RHS Norm: 0.395835,  New RHS Norm: 0.395835
+Matrix-vector product time: 2.00179 miliseconds
+Applying preconditioner time: 15.1147 miliseconds
+Orthgonalization time: 26.9545 miliseconds
+Solution update time: 0.006031 miliseconds
+GMRES time: 48.9708 miliseconds
+GMRES(400) converges to the tolerance 1e-07 within  30 iterations and 0 RB dimensions
+Newton Iteration: 2,  Residual Norm: 0.00544615
+hdgAssembleLinearSystem time: 7.68605 miliseconds
+Old RHS Norm: 0.0317978,  New RHS Norm: 0.0317978
+Matrix-vector product time: 2.02504 miliseconds
+Applying preconditioner time: 15.3877 miliseconds
+Orthgonalization time: 25.9996 miliseconds
+Solution update time: 0.005936 miliseconds
+GMRES time: 48.3558 miliseconds
+GMRES(400) converges to the tolerance 1e-07 within  31 iterations and 0 RB dimensions
+Newton Iteration: 3,  Residual Norm: 2.95806e-05
+hdgAssembleLinearSystem time: 7.3368 miliseconds
+Old RHS Norm: 0.000227139,  New RHS Norm: 0.000227139
+Matrix-vector product time: 2.11552 miliseconds
+Applying preconditioner time: 16.1288 miliseconds
+Orthgonalization time: 28.273 miliseconds
+Solution update time: 0.006262 miliseconds
+GMRES time: 51.4725 miliseconds
+GMRES(400) converges to the tolerance 1e-07 within  33 iterations and 0 RB dimensions
+Newton Iteration: 4,  Residual Norm: 1.7705e-09
+CDiscretization destructor is being called 
+Elapsed time is 1.161417 seconds.
+output_steady/platform_gpu_GMRESortho_0_ppdegree_17.txt

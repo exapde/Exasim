@@ -5,7 +5,6 @@ pde.fbou = @fbou;
 pde.fbouhdg = @fbouhdg;
 pde.ubou = @ubou;
 pde.initu = @initu;
-end
 
 function f = flux(u, q, w, v, x, t, mu, eta)
 z = x(1);
@@ -46,4 +45,4 @@ fb2 = tau*(uexact - uhat);
 fb = [fb1 fb2 fb2 fb2];
 end
 
-
+end

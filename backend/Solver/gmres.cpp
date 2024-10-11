@@ -454,7 +454,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             // compute relative error
             disc.common.linearSolverRelError = fabs(s[i+1])/nrmb;           
 
-            //cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<endl;                         
+            cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<endl;                         
             end = chrono::high_resolution_clock::now();   
             tm[3] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;                                
                         

@@ -1,6 +1,6 @@
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
-run(cdir(1:(ii+5)) + "/Install/setpath.m");
+run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();
@@ -10,9 +10,8 @@ pde.model = "ModelC";          % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-%pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
-pde.hybrid = 0;
+pde.hybrid = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 4;          % polynomial degree
@@ -36,8 +35,41 @@ mesh.boundarycondition = [1;1;1;1];
 % Set periodic boundary conditions
 mesh.periodicexpr = {2, @(p) p(2,:), 4, @(p) p(2,:); 1, @(p) p(1,:), 3, @(p) p(1,:)};
 
-% call exasim to generate and run C++ code to solve the PDE model
-[sol,pde,mesh] = exasim(pde,mesh);
+% % call exasim to generate and run C++ code to solve the PDE model
+% [sol,pde,mesh] = exasim(pde,mesh);
+
+% pde.platform = "cpu";
+% pde.GMRESortho = 0;
+% pde.ppdegree = 0;
+% [sol,pde,mesh] = exasim(pde,mesh);
+% return;
+
+platforms  = ["cpu", "gpu"];
+GMRESortho = [0,1];
+ppdegree = 0:20;
+
+for i = 1:2
+   for j = 1:2
+       for k = 1:21
+           pde.platform = platforms(i);         % choose this option if NVIDIA GPUs are available
+           pde.GMRESortho = GMRESortho(j);
+           pde.ppdegree = ppdegree(k);
+
+           % Create a file name using sprintf
+           filename = sprintf('output/platform_%s_GMRESortho_%d_ppdegree_%d.txt', pde.platform, pde.GMRESortho, pde.ppdegree);
+           disp(filename)
+
+           diary(filename)
+           diary on
+
+           % call exasim to generate and run C++ code to solve the PDE model
+           [sol,pde,mesh] = exasim(pde,mesh);
+
+
+       end
+   end
+end
+
 
 % visualize the numerical solution of the PDE model using Paraview
 % pde.visscalars = {"density", 1, "energy", 4};  % list of scalar fields for visualization
@@ -46,9 +78,9 @@ mesh.periodicexpr = {2, @(p) p(2,:), 4, @(p) p(2,:); 1, @(p) p(1,:), 3, @(p) p(1
 % disp("Done!");
 % 
 
-mesh.porder = pde.porder;
-mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
-for i = 1:size(sol,4)
-  figure(1); clf; scaplot(mesh,sol(:,1,:,i),[-1 1],2,1); axis on; axis equal; axis tight;
-end
+% mesh.porder = pde.porder;
+% mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
+% for i = 1:size(sol,4)
+%   figure(1); clf; scaplot(mesh,sol(:,1,:,i),[-1 1],2,1); axis on; axis equal; axis tight;
+% end
 

@@ -106,14 +106,14 @@ if isfield(pde, 'fbou')
     f = reshape(f,ncu,[]);
     kkgencodeface("Fbou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
 else
-    error("pde.fbou is not defined");
+    % error("pde.fbou is not defined");
 end
 if isfield(pde, 'ubou')
     f = pde.ubou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
     f = reshape(f,ncu,[]);
     kkgencodeface("Ubou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
 else
-    error("pde.ubou is not defined");
+    % error("pde.ubou is not defined");
 end
 if isfield(pde, 'fhat')    
     f = pde.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);
@@ -138,7 +138,7 @@ if isfield(pde, 'initu')
     kkgencodeelem3("Initu" + strn, udg, xdg, uinf, param, kkdir);
     kkgencodeelem4("Initu" + strn, udg, xdg, uinf, param, kkdir);
 else
-    error("pde.initu is not defined");
+    % error("pde.initu is not defined");
 end 
 if isfield(pde, 'initw')
     wdg = pde.initw(xdg, param, uinf);

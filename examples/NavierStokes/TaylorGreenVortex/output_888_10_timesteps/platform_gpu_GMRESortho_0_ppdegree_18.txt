@@ -1,0 +1,723 @@
+Using g++ compiler for CPU source code
+Using nvcc compiler for GPU source code
+Writing master into file...
+run facenumbering...
+run elementpartition...
+run facepartition...
+face partition 1
+Writing initial solution into file 1...
+Writing mesh into file 1...
+Writing app into file...
+Compile C++ Exasim code using cmake...
+-- Enabled Kokkos devices: SERIAL;CUDA
+-- kokkos_launch_compiler is enabled globally. C++ compiler commands with -DKOKKOS_DEPENDENCE will be redirected to the appropriate compiler for Kokkos
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/austinsp/Exasim/build
+[35m[1mConsolidate compiler generated dependencies of target gpuEXASIM[0m
+[ 50%] [32mBuilding CXX object CMakeFiles/gpuEXASIM.dir/home/austinsp/Exasim/backend/Main/main.cpp.o[0m
+nvcc_wrapper - *warning* you have set multiple standard flags (-std=c++1* or --std=c++1*), only the last is used because nvcc can only accept a single std setting
+/home/austinsp/Exasim/backend/Main/main.cpp(81): warning #550-D: variable "ncores" was set but never used
+
+/home/austinsp/Exasim/backend/Main/main.cpp(81): warning #550-D: variable "nthreads" was set but never used
+
+[100%] [32m[1mLinking CXX executable gpuEXASIM[0m
+[100%] Built target gpuEXASIM
+Run C++ Exasim code ...
+/home/austinsp/Exasim/build/datain/
+/home/austinsp/Exasim/build/dataout/out
+Using 1 processors to solve the problem on GPU platform...
+Available GPU Memory: 12277841920 Total GPU Memory: 12641632256
+Reading data from binary files 
+Reading app from binary files 
+Reading master from binary files 
+Reading mesh from binary files 
+Reading initial solution from binary files 
+Reading xdg from binary files 
+compute the initial solution 
+Finish reading data from binary files 
+Set res struct... 
+Set temp struct... 
+Run IsMeshCurved... 
+IsMeshCurved = 0 
+Set common struct... 
+Finish setting common struct... 
+Precompute index arrays... 
+finish cpuInit... 
+finish gpuInit... 
+free CPU memory 
+finish compGeometry... 
+finish compMassInverse... 
+Init HDG Discretization ... 
+Maximum number of boundary conditions = 0 
+Number of boundary faces = 0 
+Memory allocation ...
+Finish GetFaceNodes ... 
+Finish qEquation ... 
+Finish hdgGetQ ... 
+finish CDiscretization constructor... 
+Compute solution average = 1
+File exist = 1
+
+Timestep :  1,  Timestage :  1,   Time : 0.0217933
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.492625
+hdgAssembleLinearSystem time: 591.339 miliseconds
+Old RHS Norm: 0.22141,  New RHS Norm: 0.22141
+Matrix-vector product time: 1.53885 miliseconds
+Applying preconditioner time: 0.582304 miliseconds
+Orthgonalization time: 28.2362 miliseconds
+Solution update time: 0.000221 miliseconds
+GMRES time: 94.1543 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 0 RB dimensions
+Newton Iteration: 1,  Residual Norm: 6.13028e-05
+hdgAssembleLinearSystem time: 575.677 miliseconds
+Old RHS Norm: 4.95563e-05,  New RHS Norm: 4.95524e-05
+Matrix-vector product time: 1.53453 miliseconds
+Applying preconditioner time: 0.59099 miliseconds
+Orthgonalization time: 28.2189 miliseconds
+Solution update time: 0.000221 miliseconds
+GMRES time: 95.6033 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 1 RB dimensions
+Newton Iteration: 2,  Residual Norm: 6.90194e-11
+
+Timestep :  1,  Timestage :  2,   Time : 0.0358967
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.294485
+hdgAssembleLinearSystem time: 575.777 miliseconds
+Old RHS Norm: 0.137633,  New RHS Norm: 0.0158508
+Matrix-vector product time: 1.5326 miliseconds
+Applying preconditioner time: 0.584741 miliseconds
+Orthgonalization time: 28.2041 miliseconds
+Solution update time: 0.000227 miliseconds
+GMRES time: 95.5473 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 2 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.47582e-05
+hdgAssembleLinearSystem time: 575.907 miliseconds
+Old RHS Norm: 1.99731e-05,  New RHS Norm: 2.51627e-06
+Matrix-vector product time: 1.56112 miliseconds
+Applying preconditioner time: 0.606383 miliseconds
+Orthgonalization time: 28.3259 miliseconds
+Solution update time: 0.000344 miliseconds
+GMRES time: 95.6975 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 3 RB dimensions
+Newton Iteration: 2,  Residual Norm: 5.22528e-12
+
+Timestep :  1,  Timestage :  3,   Time : 0.05
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.359256
+hdgAssembleLinearSystem time: 575.556 miliseconds
+Old RHS Norm: 0.149279,  New RHS Norm: 0.00784442
+Matrix-vector product time: 1.53487 miliseconds
+Applying preconditioner time: 0.559513 miliseconds
+Orthgonalization time: 28.214 miliseconds
+Solution update time: 0.000237 miliseconds
+GMRES time: 95.4446 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 4 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.65498e-05
+hdgAssembleLinearSystem time: 575.734 miliseconds
+Old RHS Norm: 2.04524e-05,  New RHS Norm: 6.03474e-07
+Matrix-vector product time: 1.53423 miliseconds
+Applying preconditioner time: 0.599613 miliseconds
+Orthgonalization time: 28.1791 miliseconds
+Solution update time: 0.000228 miliseconds
+GMRES time: 95.5988 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.12726e-12
+
+Timestep :  2,  Timestage :  1,   Time : 0.0717933
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.39425
+hdgAssembleLinearSystem time: 575.452 miliseconds
+Old RHS Norm: 0.204549,  New RHS Norm: 0.00489607
+Matrix-vector product time: 1.5363 miliseconds
+Applying preconditioner time: 0.593635 miliseconds
+Orthgonalization time: 28.2101 miliseconds
+Solution update time: 0.000298 miliseconds
+GMRES time: 95.5747 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 5.66043e-05
+hdgAssembleLinearSystem time: 575.594 miliseconds
+Old RHS Norm: 4.68419e-05,  New RHS Norm: 1.16094e-06
+Matrix-vector product time: 1.53559 miliseconds
+Applying preconditioner time: 0.590475 miliseconds
+Orthgonalization time: 28.1876 miliseconds
+Solution update time: 0.000278 miliseconds
+GMRES time: 95.6152 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.80444e-12
+
+Timestep :  2,  Timestage :  2,   Time : 0.0858967
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.210493
+hdgAssembleLinearSystem time: 576.063 miliseconds
+Old RHS Norm: 0.130617,  New RHS Norm: 0.00702404
+Matrix-vector product time: 1.54142 miliseconds
+Applying preconditioner time: 0.567154 miliseconds
+Orthgonalization time: 28.2092 miliseconds
+Solution update time: 0.000224 miliseconds
+GMRES time: 95.5197 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.21403e-05
+hdgAssembleLinearSystem time: 575.725 miliseconds
+Old RHS Norm: 1.96552e-05,  New RHS Norm: 9.0289e-07
+Matrix-vector product time: 1.54208 miliseconds
+Applying preconditioner time: 0.541155 miliseconds
+Orthgonalization time: 28.2735 miliseconds
+Solution update time: 0.000221 miliseconds
+GMRES time: 95.577 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.22453e-12
+
+Timestep :  2,  Timestage :  3,   Time : 0.1
+Newton Iteration: 0,  Solution Norm: 7020.55
+Newton Iteration: 0,  Residual Norm: 0.283328
+hdgAssembleLinearSystem time: 575.58 miliseconds
+Old RHS Norm: 0.134134,  New RHS Norm: 0.00460194
+Matrix-vector product time: 1.53439 miliseconds
+Applying preconditioner time: 0.540161 miliseconds
+Orthgonalization time: 28.2448 miliseconds
+Solution update time: 0.000375 miliseconds
+GMRES time: 95.6251 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.47126e-05
+hdgAssembleLinearSystem time: 575.552 miliseconds
+Old RHS Norm: 1.96837e-05,  New RHS Norm: 5.17249e-07
+Matrix-vector product time: 1.53317 miliseconds
+Applying preconditioner time: 0.537171 miliseconds
+Orthgonalization time: 28.2649 miliseconds
+Solution update time: 0.000241 miliseconds
+GMRES time: 95.5278 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.39029e-12
+
+Timestep :  3,  Timestage :  1,   Time : 0.121793
+Newton Iteration: 0,  Solution Norm: 7020.55
+Newton Iteration: 0,  Residual Norm: 0.295457
+hdgAssembleLinearSystem time: 575.808 miliseconds
+Old RHS Norm: 0.208337,  New RHS Norm: 0.0041403
+Matrix-vector product time: 1.53962 miliseconds
+Applying preconditioner time: 0.583987 miliseconds
+Orthgonalization time: 28.2234 miliseconds
+Solution update time: 0.000234 miliseconds
+GMRES time: 95.4083 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 4.83946e-05
+hdgAssembleLinearSystem time: 575.754 miliseconds
+Old RHS Norm: 4.72636e-05,  New RHS Norm: 9.69326e-07
+Matrix-vector product time: 1.53132 miliseconds
+Applying preconditioner time: 0.599628 miliseconds
+Orthgonalization time: 28.1873 miliseconds
+Solution update time: 0.000238 miliseconds
+GMRES time: 95.6169 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 4.26476e-12
+
+Timestep :  3,  Timestage :  2,   Time : 0.135897
+Newton Iteration: 0,  Solution Norm: 7020.56
+Newton Iteration: 0,  Residual Norm: 0.208202
+hdgAssembleLinearSystem time: 575.754 miliseconds
+Old RHS Norm: 0.139374,  New RHS Norm: 0.00536062
+Matrix-vector product time: 1.53295 miliseconds
+Applying preconditioner time: 0.5564 miliseconds
+Orthgonalization time: 28.2353 miliseconds
+Solution update time: 0.000239 miliseconds
+GMRES time: 95.5908 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 1.94321e-05
+hdgAssembleLinearSystem time: 575.621 miliseconds
+Old RHS Norm: 1.9759e-05,  New RHS Norm: 6.46008e-07
+Matrix-vector product time: 1.54439 miliseconds
+Applying preconditioner time: 0.586529 miliseconds
+Orthgonalization time: 28.2111 miliseconds
+Solution update time: 0.000298 miliseconds
+GMRES time: 95.6468 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.79887e-12
+
+Timestep :  3,  Timestage :  3,   Time : 0.15
+Newton Iteration: 0,  Solution Norm: 7020.56
+Newton Iteration: 0,  Residual Norm: 0.195631
+hdgAssembleLinearSystem time: 575.399 miliseconds
+Old RHS Norm: 0.136373,  New RHS Norm: 0.00548809
+Matrix-vector product time: 1.52986 miliseconds
+Applying preconditioner time: 0.57416 miliseconds
+Orthgonalization time: 28.2011 miliseconds
+Solution update time: 0.000232 miliseconds
+GMRES time: 95.4835 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.03356e-05
+hdgAssembleLinearSystem time: 575.858 miliseconds
+Old RHS Norm: 1.98527e-05,  New RHS Norm: 4.6172e-07
+Matrix-vector product time: 1.53978 miliseconds
+Applying preconditioner time: 0.589231 miliseconds
+Orthgonalization time: 28.2213 miliseconds
+Solution update time: 0.000254 miliseconds
+GMRES time: 95.5529 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 1.85597e-12
+
+Timestep :  4,  Timestage :  1,   Time : 0.171793
+Newton Iteration: 0,  Solution Norm: 7020.56
+Newton Iteration: 0,  Residual Norm: 0.399977
+hdgAssembleLinearSystem time: 575.527 miliseconds
+Old RHS Norm: 0.226881,  New RHS Norm: 0.00664524
+Matrix-vector product time: 1.53348 miliseconds
+Applying preconditioner time: 0.592718 miliseconds
+Orthgonalization time: 28.243 miliseconds
+Solution update time: 0.000226 miliseconds
+GMRES time: 95.5666 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 4.535e-05
+hdgAssembleLinearSystem time: 575.679 miliseconds
+Old RHS Norm: 4.70874e-05,  New RHS Norm: 6.0245e-07
+Matrix-vector product time: 1.53277 miliseconds
+Applying preconditioner time: 0.570848 miliseconds
+Orthgonalization time: 28.23 miliseconds
+Solution update time: 0.000247 miliseconds
+GMRES time: 95.5744 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.50717e-12
+
+Timestep :  4,  Timestage :  2,   Time : 0.185897
+Newton Iteration: 0,  Solution Norm: 7020.55
+Newton Iteration: 0,  Residual Norm: 0.271906
+hdgAssembleLinearSystem time: 575.733 miliseconds
+Old RHS Norm: 0.146038,  New RHS Norm: 0.00763767
+Matrix-vector product time: 1.53394 miliseconds
+Applying preconditioner time: 0.560605 miliseconds
+Orthgonalization time: 28.279 miliseconds
+Solution update time: 0.000242 miliseconds
+GMRES time: 95.614 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 1.96056e-05
+hdgAssembleLinearSystem time: 575.539 miliseconds
+Old RHS Norm: 1.97811e-05,  New RHS Norm: 4.49173e-07
+Matrix-vector product time: 1.53625 miliseconds
+Applying preconditioner time: 0.571605 miliseconds
+Orthgonalization time: 28.2495 miliseconds
+Solution update time: 0.00023 miliseconds
+GMRES time: 95.4677 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.67211e-12
+
+Timestep :  4,  Timestage :  3,   Time : 0.2
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.28257
+hdgAssembleLinearSystem time: 575.547 miliseconds
+Old RHS Norm: 0.152534,  New RHS Norm: 0.00972374
+Matrix-vector product time: 1.53293 miliseconds
+Applying preconditioner time: 0.576465 miliseconds
+Orthgonalization time: 28.2307 miliseconds
+Solution update time: 0.00023 miliseconds
+GMRES time: 95.4641 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 1.85613e-05
+hdgAssembleLinearSystem time: 575.681 miliseconds
+Old RHS Norm: 1.96973e-05,  New RHS Norm: 4.11473e-07
+Matrix-vector product time: 1.537 miliseconds
+Applying preconditioner time: 0.584707 miliseconds
+Orthgonalization time: 28.2133 miliseconds
+Solution update time: 0.000217 miliseconds
+GMRES time: 95.6025 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 1.92104e-12
+
+Timestep :  5,  Timestage :  1,   Time : 0.221793
+Newton Iteration: 0,  Solution Norm: 7020.53
+Newton Iteration: 0,  Residual Norm: 0.43623
+hdgAssembleLinearSystem time: 575.648 miliseconds
+Old RHS Norm: 0.222327,  New RHS Norm: 0.0067426
+Matrix-vector product time: 1.53797 miliseconds
+Applying preconditioner time: 0.620035 miliseconds
+Orthgonalization time: 28.1869 miliseconds
+Solution update time: 0.000303 miliseconds
+GMRES time: 95.6267 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 5.02116e-05
+hdgAssembleLinearSystem time: 575.6 miliseconds
+Old RHS Norm: 4.7749e-05,  New RHS Norm: 8.22521e-07
+Matrix-vector product time: 1.53361 miliseconds
+Applying preconditioner time: 0.568187 miliseconds
+Orthgonalization time: 28.2333 miliseconds
+Solution update time: 0.000231 miliseconds
+GMRES time: 95.6491 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.60969e-12
+
+Timestep :  5,  Timestage :  2,   Time : 0.235897
+Newton Iteration: 0,  Solution Norm: 7020.53
+Newton Iteration: 0,  Residual Norm: 0.253704
+hdgAssembleLinearSystem time: 575.444 miliseconds
+Old RHS Norm: 0.137983,  New RHS Norm: 0.00937575
+Matrix-vector product time: 1.53382 miliseconds
+Applying preconditioner time: 0.576153 miliseconds
+Orthgonalization time: 28.2211 miliseconds
+Solution update time: 0.000241 miliseconds
+GMRES time: 95.6413 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.25705e-05
+hdgAssembleLinearSystem time: 575.72 miliseconds
+Old RHS Norm: 2.0119e-05,  New RHS Norm: 4.56109e-07
+Matrix-vector product time: 1.53036 miliseconds
+Applying preconditioner time: 0.589056 miliseconds
+Orthgonalization time: 28.1921 miliseconds
+Solution update time: 0.000247 miliseconds
+GMRES time: 95.5758 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.10638e-12
+
+Timestep :  5,  Timestage :  3,   Time : 0.25
+Newton Iteration: 0,  Solution Norm: 7020.53
+Newton Iteration: 0,  Residual Norm: 0.316067
+hdgAssembleLinearSystem time: 575.878 miliseconds
+Old RHS Norm: 0.149304,  New RHS Norm: 0.00531662
+Matrix-vector product time: 1.53735 miliseconds
+Applying preconditioner time: 0.583785 miliseconds
+Orthgonalization time: 28.2506 miliseconds
+Solution update time: 0.000258 miliseconds
+GMRES time: 95.5753 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.06682e-05
+hdgAssembleLinearSystem time: 575.79 miliseconds
+Old RHS Norm: 2.01155e-05,  New RHS Norm: 3.41093e-07
+Matrix-vector product time: 1.53585 miliseconds
+Applying preconditioner time: 0.529546 miliseconds
+Orthgonalization time: 28.2605 miliseconds
+Solution update time: 0.000357 miliseconds
+GMRES time: 95.4976 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 1.97752e-12
+
+Timestep :  6,  Timestage :  1,   Time : 0.271793
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.33915
+hdgAssembleLinearSystem time: 575.548 miliseconds
+Old RHS Norm: 0.205762,  New RHS Norm: 0.0043277
+Matrix-vector product time: 1.53427 miliseconds
+Applying preconditioner time: 0.595832 miliseconds
+Orthgonalization time: 28.2263 miliseconds
+Solution update time: 0.000226 miliseconds
+GMRES time: 95.6434 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 5.95535e-05
+hdgAssembleLinearSystem time: 575.759 miliseconds
+Old RHS Norm: 4.8418e-05,  New RHS Norm: 6.88531e-07
+Matrix-vector product time: 1.53145 miliseconds
+Applying preconditioner time: 0.582778 miliseconds
+Orthgonalization time: 28.2318 miliseconds
+Solution update time: 0.000235 miliseconds
+GMRES time: 95.5495 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 4.65168e-12
+
+Timestep :  6,  Timestage :  2,   Time : 0.285897
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.197665
+hdgAssembleLinearSystem time: 575.901 miliseconds
+Old RHS Norm: 0.131865,  New RHS Norm: 0.00560684
+Matrix-vector product time: 1.53325 miliseconds
+Applying preconditioner time: 0.570434 miliseconds
+Orthgonalization time: 28.211 miliseconds
+Solution update time: 0.000224 miliseconds
+GMRES time: 95.4772 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.60072e-05
+hdgAssembleLinearSystem time: 575.884 miliseconds
+Old RHS Norm: 2.01597e-05,  New RHS Norm: 4.8149e-07
+Matrix-vector product time: 1.53737 miliseconds
+Applying preconditioner time: 0.561202 miliseconds
+Orthgonalization time: 28.2335 miliseconds
+Solution update time: 0.000316 miliseconds
+GMRES time: 95.5942 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.85533e-12
+
+Timestep :  6,  Timestage :  3,   Time : 0.3
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.237544
+hdgAssembleLinearSystem time: 575.748 miliseconds
+Old RHS Norm: 0.134653,  New RHS Norm: 0.00444089
+Matrix-vector product time: 1.53566 miliseconds
+Applying preconditioner time: 0.577013 miliseconds
+Orthgonalization time: 28.2316 miliseconds
+Solution update time: 0.000239 miliseconds
+GMRES time: 95.4815 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.54233e-05
+hdgAssembleLinearSystem time: 575.67 miliseconds
+Old RHS Norm: 2.04539e-05,  New RHS Norm: 4.98212e-07
+Matrix-vector product time: 1.53319 miliseconds
+Applying preconditioner time: 0.574922 miliseconds
+Orthgonalization time: 28.236 miliseconds
+Solution update time: 0.000229 miliseconds
+GMRES time: 95.6186 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 1.00015e-11
+
+Timestep :  7,  Timestage :  1,   Time : 0.321793
+Newton Iteration: 0,  Solution Norm: 7020.55
+Newton Iteration: 0,  Residual Norm: 0.324896
+hdgAssembleLinearSystem time: 575.829 miliseconds
+Old RHS Norm: 0.208714,  New RHS Norm: 0.00422521
+Matrix-vector product time: 1.53722 miliseconds
+Applying preconditioner time: 0.554291 miliseconds
+Orthgonalization time: 28.2437 miliseconds
+Solution update time: 0.000232 miliseconds
+GMRES time: 95.4325 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 6.48235e-05
+hdgAssembleLinearSystem time: 575.544 miliseconds
+Old RHS Norm: 4.77206e-05,  New RHS Norm: 6.33012e-07
+Matrix-vector product time: 1.53571 miliseconds
+Applying preconditioner time: 0.629045 miliseconds
+Orthgonalization time: 28.1704 miliseconds
+Solution update time: 0.000239 miliseconds
+GMRES time: 95.4471 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.27396e-11
+
+Timestep :  7,  Timestage :  2,   Time : 0.335897
+Newton Iteration: 0,  Solution Norm: 7020.55
+Newton Iteration: 0,  Residual Norm: 0.233565
+hdgAssembleLinearSystem time: 575.696 miliseconds
+Old RHS Norm: 0.13721,  New RHS Norm: 0.00556284
+Matrix-vector product time: 1.53984 miliseconds
+Applying preconditioner time: 0.584859 miliseconds
+Orthgonalization time: 28.2152 miliseconds
+Solution update time: 0.000232 miliseconds
+GMRES time: 95.5078 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.6744e-05
+hdgAssembleLinearSystem time: 575.937 miliseconds
+Old RHS Norm: 1.97768e-05,  New RHS Norm: 5.47828e-07
+Matrix-vector product time: 1.54471 miliseconds
+Applying preconditioner time: 0.587488 miliseconds
+Orthgonalization time: 28.1897 miliseconds
+Solution update time: 0.000301 miliseconds
+GMRES time: 95.605 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.67612e-11
+
+Timestep :  7,  Timestage :  3,   Time : 0.35
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.217708
+hdgAssembleLinearSystem time: 575.765 miliseconds
+Old RHS Norm: 0.137205,  New RHS Norm: 0.00593281
+Matrix-vector product time: 1.54837 miliseconds
+Applying preconditioner time: 0.585398 miliseconds
+Orthgonalization time: 28.1953 miliseconds
+Solution update time: 0.00023 miliseconds
+GMRES time: 95.5996 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.81482e-05
+hdgAssembleLinearSystem time: 575.745 miliseconds
+Old RHS Norm: 2.01308e-05,  New RHS Norm: 3.99216e-07
+Matrix-vector product time: 1.53585 miliseconds
+Applying preconditioner time: 0.574902 miliseconds
+Orthgonalization time: 28.2121 miliseconds
+Solution update time: 0.000243 miliseconds
+GMRES time: 95.5175 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 7.50752e-11
+
+Timestep :  8,  Timestage :  1,   Time : 0.371793
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.429108
+hdgAssembleLinearSystem time: 575.71 miliseconds
+Old RHS Norm: 0.217389,  New RHS Norm: 0.00796128
+Matrix-vector product time: 1.54661 miliseconds
+Applying preconditioner time: 0.585789 miliseconds
+Orthgonalization time: 28.2251 miliseconds
+Solution update time: 0.000298 miliseconds
+GMRES time: 95.6313 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 6.24965e-05
+hdgAssembleLinearSystem time: 575.548 miliseconds
+Old RHS Norm: 4.67135e-05,  New RHS Norm: 5.69941e-07
+Matrix-vector product time: 1.54039 miliseconds
+Applying preconditioner time: 0.597706 miliseconds
+Orthgonalization time: 28.203 miliseconds
+Solution update time: 0.000284 miliseconds
+GMRES time: 95.3967 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.9318e-10
+
+Timestep :  8,  Timestage :  2,   Time : 0.385897
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.28338
+hdgAssembleLinearSystem time: 575.948 miliseconds
+Old RHS Norm: 0.138651,  New RHS Norm: 0.00924143
+Matrix-vector product time: 1.52944 miliseconds
+Applying preconditioner time: 0.605675 miliseconds
+Orthgonalization time: 28.2415 miliseconds
+Solution update time: 0.000578 miliseconds
+GMRES time: 95.5806 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.70072e-05
+hdgAssembleLinearSystem time: 575.597 miliseconds
+Old RHS Norm: 1.9522e-05,  New RHS Norm: 3.94088e-07
+Matrix-vector product time: 1.54407 miliseconds
+Applying preconditioner time: 0.575331 miliseconds
+Orthgonalization time: 28.2393 miliseconds
+Solution update time: 0.00022 miliseconds
+GMRES time: 95.6702 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.11187e-10
+
+Timestep :  8,  Timestage :  3,   Time : 0.4
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.302443
+hdgAssembleLinearSystem time: 575.693 miliseconds
+Old RHS Norm: 0.145401,  New RHS Norm: 0.00427308
+Matrix-vector product time: 1.5488 miliseconds
+Applying preconditioner time: 0.589739 miliseconds
+Orthgonalization time: 28.267 miliseconds
+Solution update time: 0.000225 miliseconds
+GMRES time: 95.7547 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 3.00632e-05
+hdgAssembleLinearSystem time: 575.869 miliseconds
+Old RHS Norm: 1.98527e-05,  New RHS Norm: 2.54342e-06
+Matrix-vector product time: 1.52974 miliseconds
+Applying preconditioner time: 0.557775 miliseconds
+Orthgonalization time: 28.2648 miliseconds
+Solution update time: 0.000219 miliseconds
+GMRES time: 95.452 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 1.01413e-09
+
+Timestep :  9,  Timestage :  1,   Time : 0.421793
+Newton Iteration: 0,  Solution Norm: 7020.53
+Newton Iteration: 0,  Residual Norm: 0.442838
+hdgAssembleLinearSystem time: 576.322 miliseconds
+Old RHS Norm: 0.210227,  New RHS Norm: 0.00558981
+Matrix-vector product time: 1.54023 miliseconds
+Applying preconditioner time: 0.637299 miliseconds
+Orthgonalization time: 28.1687 miliseconds
+Solution update time: 0.000241 miliseconds
+GMRES time: 95.4794 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 5.83294e-05
+hdgAssembleLinearSystem time: 575.774 miliseconds
+Old RHS Norm: 4.62526e-05,  New RHS Norm: 2.99853e-06
+Matrix-vector product time: 1.54037 miliseconds
+Applying preconditioner time: 0.614473 miliseconds
+Orthgonalization time: 28.1921 miliseconds
+Solution update time: 0.000241 miliseconds
+GMRES time: 95.6408 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 2.06073e-09
+
+Timestep :  9,  Timestage :  2,   Time : 0.435897
+Newton Iteration: 0,  Solution Norm: 7020.53
+Newton Iteration: 0,  Residual Norm: 0.258807
+hdgAssembleLinearSystem time: 575.801 miliseconds
+Old RHS Norm: 0.132489,  New RHS Norm: 0.00703204
+Matrix-vector product time: 1.5403 miliseconds
+Applying preconditioner time: 0.582216 miliseconds
+Orthgonalization time: 28.2267 miliseconds
+Solution update time: 0.00023 miliseconds
+GMRES time: 95.5553 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.65416e-05
+hdgAssembleLinearSystem time: 575.839 miliseconds
+Old RHS Norm: 1.96321e-05,  New RHS Norm: 1.69055e-06
+Matrix-vector product time: 1.54345 miliseconds
+Applying preconditioner time: 0.607131 miliseconds
+Orthgonalization time: 28.229 miliseconds
+Solution update time: 0.000235 miliseconds
+GMRES time: 95.6098 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 9.8725e-10
+
+Timestep :  9,  Timestage :  3,   Time : 0.45
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.317597
+hdgAssembleLinearSystem time: 575.839 miliseconds
+Old RHS Norm: 0.139529,  New RHS Norm: 0.00316797
+Matrix-vector product time: 1.53368 miliseconds
+Applying preconditioner time: 0.634215 miliseconds
+Orthgonalization time: 28.1562 miliseconds
+Solution update time: 0.000298 miliseconds
+GMRES time: 95.5462 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.63102e-05
+hdgAssembleLinearSystem time: 576.366 miliseconds
+Old RHS Norm: 1.93624e-05,  New RHS Norm: 1.00752e-06
+Matrix-vector product time: 1.53494 miliseconds
+Applying preconditioner time: 0.596565 miliseconds
+Orthgonalization time: 28.2207 miliseconds
+Solution update time: 0.000259 miliseconds
+GMRES time: 95.6158 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 6.9785e-10
+
+Timestep :  10,  Timestage :  1,   Time : 0.471793
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.352406
+hdgAssembleLinearSystem time: 575.902 miliseconds
+Old RHS Norm: 0.202838,  New RHS Norm: 0.00229098
+Matrix-vector product time: 1.53801 miliseconds
+Applying preconditioner time: 0.569658 miliseconds
+Orthgonalization time: 28.2477 miliseconds
+Solution update time: 0.000242 miliseconds
+GMRES time: 95.4695 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 5.73265e-05
+hdgAssembleLinearSystem time: 576.09 miliseconds
+Old RHS Norm: 4.63368e-05,  New RHS Norm: 2.97396e-06
+Matrix-vector product time: 1.53041 miliseconds
+Applying preconditioner time: 0.572202 miliseconds
+Orthgonalization time: 28.2729 miliseconds
+Solution update time: 0.000341 miliseconds
+GMRES time: 95.8251 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 1.55243e-09
+
+Timestep :  10,  Timestage :  2,   Time : 0.485897
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.208496
+hdgAssembleLinearSystem time: 575.546 miliseconds
+Old RHS Norm: 0.132269,  New RHS Norm: 0.00281469
+Matrix-vector product time: 1.53791 miliseconds
+Applying preconditioner time: 0.561622 miliseconds
+Orthgonalization time: 28.2732 miliseconds
+Solution update time: 0.00043 miliseconds
+GMRES time: 95.6186 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.53305e-05
+hdgAssembleLinearSystem time: 575.681 miliseconds
+Old RHS Norm: 1.98015e-05,  New RHS Norm: 2.38377e-06
+Matrix-vector product time: 1.5359 miliseconds
+Applying preconditioner time: 0.573352 miliseconds
+Orthgonalization time: 28.2391 miliseconds
+Solution update time: 0.000536 miliseconds
+GMRES time: 95.6135 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.91338e-10
+
+Timestep :  10,  Timestage :  3,   Time : 0.5
+Newton Iteration: 0,  Solution Norm: 7020.54
+Newton Iteration: 0,  Residual Norm: 0.24378
+hdgAssembleLinearSystem time: 575.921 miliseconds
+Old RHS Norm: 0.132411,  New RHS Norm: 0.00407514
+Matrix-vector product time: 1.53847 miliseconds
+Applying preconditioner time: 0.563179 miliseconds
+Orthgonalization time: 28.2225 miliseconds
+Solution update time: 0.000239 miliseconds
+GMRES time: 95.5119 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 1,  Residual Norm: 2.40301e-05
+hdgAssembleLinearSystem time: 575.55 miliseconds
+Old RHS Norm: 1.95274e-05,  New RHS Norm: 4.96308e-07
+Matrix-vector product time: 1.54878 miliseconds
+Applying preconditioner time: 0.590057 miliseconds
+Orthgonalization time: 28.2322 miliseconds
+Solution update time: 0.000282 miliseconds
+GMRES time: 95.5761 miliseconds
+GMRES(50) converges to the tolerance 0.0001 within  0 iterations and 5 RB dimensions
+Newton Iteration: 2,  Residual Norm: 3.60024e-10
+CDiscretization destructor is being called 
+Elapsed time is 41.957311 seconds.
+output_888_10_timesteps/platform_gpu_GMRESortho_0_ppdegree_19.txt

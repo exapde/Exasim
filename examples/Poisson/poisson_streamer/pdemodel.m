@@ -1,10 +1,10 @@
 function pde = pdemodel
 pde.flux = @flux;
 pde.source = @source;
-pde.fbou = @fbou;
+% pde.fbou = @fbou;
 pde.fbouhdg = @fbouhdg;
-pde.ubou = @ubou;
-pde.initu = @initu;
+% pde.ubou = @ubou;
+% pde.initu = @initu;
 pde.physparam = @param;
 end
 
@@ -33,29 +33,29 @@ function s = source(u, q, w, v, x, t, mu, eta)
     
 end
 
-function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-f = flux(u, q, w, v, x, t, mu, eta);
-tm = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
-fb = [tm sym(0) tm sym(0)]; % bottom, right, top, left
-end
+% function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+% f = flux(u, q, w, v, x, t, mu, eta);
+% tm = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
+% fb = [tm sym(0) tm sym(0)]; % bottom, right, top, left
+% end
 
-function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+% function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
-l_ref = mu(2);
-E_ref = mu(4);
-e_eps0 = mu(5);
-phi0 = mu(6);
-N0 = mu(7);
-z0 = mu(8);
-sigma0 = mu(9);
-phi0_tilde = phi0/(E_ref*l_ref);
+% l_ref = mu(2);
+% E_ref = mu(4);
+% e_eps0 = mu(5);
+% phi0 = mu(6);
+% N0 = mu(7);
+% z0 = mu(8);
+% sigma0 = mu(9);
+% phi0_tilde = phi0/(E_ref*l_ref);
 
-ub = [sym(0) u phi0_tilde u]; % bottom, right, top, left
-end
+% ub = [sym(0) u phi0_tilde u]; % bottom, right, top, left
+% end
 
-function u0 = initu(x, mu, eta)
-u0 = sym(0.0);
-end
+% function u0 = initu(x, mu, eta)
+% u0 = sym(0.0);
+% end
 
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 %fb = tau*(0.0 - uhat);
