@@ -15,25 +15,26 @@ void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     Int nbe = common.nbe; // number of blocks for elements   
     Int neb = common.neb; // maximum number of elements per block
             
-    if (common.curvedMesh==0) { //straight mesh                
-        if ((common.PTCparam>0) && (common.ptcMatrixType>0))
-            TemplateMalloc(&res.Mass, npe*npe+ne, backend);        
+    if (common.curvedMesh==0) { //straight mesh                        
+        TemplateMalloc(&res.Mass, npe*npe+ne, backend);        
         TemplateMalloc(&res.Minv, npe*npe+ne, backend);
         TemplateMalloc(&work, npe*npe, backend);        
-        TemplateMalloc(&ipiv, npe+1, backend);           
+        TemplateMalloc(&ipiv, npe+1, backend);         
+        res.szMass = npe*npe+ne;
+        res.szMinv = npe*npe+ne;
         
         // mass inverse for the master element
-        Gauss2Node(handle, &res.Minv[0], master.shapegt, master.shapegw, nge, npe, npe, backend);
-        if ((common.PTCparam>0) && (common.ptcMatrixType>0))
-            ArrayCopy(res.Mass, res.Minv, npe*npe);
+        Gauss2Node(handle, &res.Minv[0], master.shapegt, master.shapegw, nge, npe, npe, backend);        
+        ArrayCopy(res.Mass, res.Minv, npe*npe);
         Inverse(handle, &res.Minv[0], work, ipiv, npe, 1, backend);        
     }
-    else { // curved mesh
-        if ((common.PTCparam>0) && (common.ptcMatrixType>0))
-            TemplateMalloc(&res.Mass, npe*npe*ne, backend);
+    else { // curved mesh        
+        TemplateMalloc(&res.Mass, npe*npe*ne, backend);
         TemplateMalloc(&res.Minv, npe*npe*ne, backend);
         TemplateMalloc(&work, max(nge*npe*neb,npe*npe*neb), backend);      
-        TemplateMalloc(&ipiv, npe+1, backend);           
+        TemplateMalloc(&ipiv, npe+1, backend);      
+        res.szMass = npe*npe*ne;
+        res.szMinv = npe*npe*ne;
     }         
         
     Int mm = 0;
@@ -77,14 +78,13 @@ void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
         if (common.curvedMesh==0) {
             ArrayExtract(&res.Minv[npe*npe+mm], &tmp.tempg[n2], 
                             nge, ns, 1, 0, 1, 0, ns, 0, 1);
-            if ((common.PTCparam>0) && (common.ptcMatrixType>0))
-                ArrayCopy(&res.Mass[npe*npe+mm], &res.Minv[npe*npe+mm], ns);
+            
+            ArrayCopy(&res.Mass[npe*npe+mm], &res.Minv[npe*npe+mm], ns);
         }
         else {       
             ShapJac(work, master.shapegt, &tmp.tempg[n2], nge, npe, ne); // fixed bug here                           
-            Gauss2Node(handle, &res.Minv[npe*npe*mm], work, master.shapegw, nge, npe, npe*ns, backend);
-            if ((common.PTCparam>0) && (common.ptcMatrixType>0))
-                ArrayCopy(&res.Mass[npe*npe*mm], &res.Minv[npe*npe*mm], npe*npe*ns);
+            Gauss2Node(handle, &res.Minv[npe*npe*mm], work, master.shapegw, nge, npe, npe*ns, backend);           
+            ArrayCopy(&res.Mass[npe*npe*mm], &res.Minv[npe*npe*mm], npe*npe*ns);
             Inverse(handle, &res.Minv[npe*npe*mm], work, ipiv, npe, ns, backend);
         }
         mm = mm+ns;
