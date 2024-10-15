@@ -335,131 +335,7 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
         printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
 }
 
-// Int NonlinearSolverNew(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
-// {
-//     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
-//     dstype nrmr, tol, nrmr0, alpha;
-//     tol = disc.common.nonlinearSolverTol; // tolerance for the residual
-        
-//     //cout<<disc.common.mpiRank<<"  "<<N<<endl;   
-//     // nrmr = PNORM(disc.common.cublasHandle, N, sys.u, backend);
-//     // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
-//     //   dstype nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.u, backend);
-//     //   nrmr = sqrt(nrmr*nrmr - 0.5*nrm*nrm);
-//     // }                
-    
-//     if (disc.common.mpiRank==0)
-//       cout<<"Newton Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                        
-
-//     if (disc.common.debugMode==1) {
-//       writearray2file(disc.common.fileout + NumberToString(it) + "newton_uh.bin", disc.sol.uh, N, backend);
-//       writearray2file(disc.common.fileout + NumberToString(it) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
-//     }
-
-//     if (spatialScheme == 1) { 
-//       if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
-
-//       // compute the residual vector R = [Ru; Rh]
-//       disc.hdgAssembleResidual(sys.b, backend);
-//       nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
-//     //   nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
-//       if (disc.common.mpiRank==0)
-//         cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;          
-//     }        
-
-//     // nrmr0 = nrmr;
-//     nrmr0 = nrmr;
-//     alpha = 1.0;
-//     // use PTC to solve the system: R(u) = 0
-//     for (it=0; it<maxit; it++) {            
-//         // solve the linear system:  J(u) x = -R(u)        
-
-//         LinearSolver(sys, disc, prec, out, N, spatialScheme, it, backend);
-        
-//         // update the reduced basis space
-//         if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);   
-
-//         //print3darray(sys.x, disc.common.ncu, disc.common.npf, disc.common.nf);
-//         //print3darray(sys.u, disc.common.ncu, disc.common.npf, disc.common.nf);
-        
-//         // update the solution: u = u + x
-//         ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, one, N, backend); 
-        
-//         if (spatialScheme == 0) {          
-//           // compute both the residual vector and sol.udg  
-//           disc.evalResidual(sys.r, sys.u, backend);
-//           nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);          
-//         } 
-//         else if (spatialScheme == 1) {      
-//           ArrayCopy(disc.sol.uh, sys.u, N);
-//           hdgGetDUDG(disc.res.Ru, disc.res.F, sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
-//           ArrayCopy(disc.res.dudgt, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
-//           UpdateUDG(disc.sol.udg, disc.res.dudgt, one, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
-
-//           if (disc.common.debugMode==1) {
-//             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_x.bin", sys.x, N, backend);
-//             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_u.bin", sys.u, N, backend);
-//             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_uh.bin", disc.sol.uh, N, backend);
-//             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
-//             error("stop for debugging...");
-//           }          
-          
-//           if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
-          
-//           // compute the residual vector R = [Ru; Rh]
-//           disc.hdgAssembleResidual(sys.b, backend);
-//           nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
-//         //   nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
-//         }
-
-//         if (disc.common.mpiRank==0)
-//             cout<<"Newton Iteration: "<<it+1<<",  Residual Norm: "<<nrmr<<endl;                                              
-        
-//         // check convergence
-//         if (nrmr < tol) {            
-//             return (it+1);   
-//         }
-//         if (nrmr > nrmr0)
-//         {
-//             // If residual increased, undo newton iteration
-//             cout<<"LINE SEARCH: "<<it+1<<",  Residual Norm: "<<nrmr<<endl;                                              
-
-//             // Undo Newton step for UH
-//             ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, -alpha, N, backend); 
-//             ArrayCopy(disc.sol.uh, sys.u, N);
-
-//             // Undo Newton step for UDG
-//             UpdateUDG(disc.sol.udg, disc.res.dudgt, -alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
-//             alpha = alpha / 2;
-
-//             // Use alpha step
-//             ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, alpha, N, backend); 
-            
-//             // Repeat operations to update U and evaluate residual
-//             if (spatialScheme == 0) {          
-//                 // compute both the residual vector and sol.udg  
-//                 disc.evalResidual(sys.r, sys.u, backend);
-//                 nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);          
-//             } 
-//             else if (spatialScheme == 1) {      
-//                 ArrayCopy(disc.sol.uh, sys.u, N);
-//                 hdgGetDUDG(disc.res.Ru, disc.res.F, sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
-//                 ArrayCopy(disc.res.dudgt, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
-//                 UpdateUDG(disc.sol.udg, disc.res.dudgt, alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
-                
-//                 if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
-                
-//                 // compute the residual vector R = [Ru; Rh]
-//                 disc.hdgAssembleResidual(sys.b, backend);
-//                 nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
-//             }
-//         }
-//     }
-
-//     return it;
-// }
-
-Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
+Int NonlinearSolverDamped(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
 {
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
     dstype nrmr, tol, nrmr0, alpha;
@@ -480,16 +356,14 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
       writearray2file(disc.common.fileout + NumberToString(it) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
     }
 
-    if (spatialScheme == 1) { 
-      if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+    if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
 
-      // compute the residual vector R = [Ru; Rh]
-      disc.hdgAssembleResidual(sys.b, backend);
-      nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
-      nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
-      if (disc.common.mpiRank==0)
-        cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;          
-    }        
+    // compute the residual vector R = [Ru; Rh]
+    disc.hdgAssembleResidual(sys.b, backend);
+    nrmr0 = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
+    nrmr0 += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
+    if (disc.common.mpiRank==0)
+    cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr0<<endl;          
 
     // nrmr0 = nrmr;
     nrmr = 1e6;
@@ -498,9 +372,6 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         // solve the linear system:  J(u) x = -R(u)        
         LinearSolver(sys, disc, prec, out, N, spatialScheme, it, backend);
         
-        // update the reduced basis space
-        if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);   
-
         ArrayCopy(disc.sol.uh, sys.u, N);
 
         // Store UH and UDG into UH0 and UDG0
@@ -513,15 +384,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         // Store DUDG so it doesn't get overwritten by subsequent residual evaluations
         ArrayCopy(disc.res.dudgt, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
 
-        // Evaluate residual
-        disc.hdgAssembleResidual(sys.b, backend);
-
-        nrmr0 = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
-        nrmr0 += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
         alpha = 1.0;
-
-        // update the solution: u = u + x'
-        cout<<"Newton Iteration: 1,  Residual Norm: "<<nrmr0<<endl;                                              
 
         while(1)
         {
@@ -529,22 +392,18 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             // ArrayAXPY(disc.common.cublasHandle, disc.sol.uh, sys.x, alpha, N, backend); 
             ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, alpha, N, backend); 
 
-            if (spatialScheme == 1) { 
-                // Put updated uh into disc
-                ArrayCopy(disc.sol.uh, sys.u, N);
+            // Put updated uh into disc
+            ArrayCopy(disc.sol.uh, sys.u, N);
 
-                // Update UDG with alpha step
-                UpdateUDG(disc.sol.udg, disc.res.dudgt, alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+            // Update UDG with alpha step
+            UpdateUDG(disc.sol.udg, disc.res.dudgt, alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
 
-                if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+            if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
 
-                // compute the residual vector R = [Ru; Rh]
-                disc.hdgAssembleResidual(sys.b, backend);
-                nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
-                nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
-            }        
-
-            // nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
+            // compute the residual vector R = [Ru; Rh]
+            disc.hdgAssembleResidual(sys.b, backend);
+            nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
+            nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
             
             if (disc.common.mpiRank==0)
                 cout<<"Newton Iteration: "<<it+1<<",  Residual Norm: "<<nrmr<<endl;                                              
@@ -556,36 +415,42 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             if (nrmr > nrmr0)
             {
                 // If residual increases reset uh, udg to uh0, udg0
-                ArrayCopy(disc.sol.uh, disc.sol.uh0, N);
+                ArrayCopy(sys.u, disc.sol.uh0, N);
                 ArrayCopy(disc.sol.udg, disc.sol.udg0, disc.common.npe*disc.common.nc*disc.common.ne1);
 
                 alpha = alpha / 2;
-                cout<< "alpha = " << alpha << endl;
+                if (disc.common.mpiRank==0)
+                    cout<< "alpha = " << alpha << endl;
+
                 if (alpha < 1e-2)
                 {
-                    return (it+1);
+                    // return (it+1);
+                    if (disc.common.mpiRank==0)
+                        cout<<"Warning: line-search failed in Newton iteration"<<endl; 
+                    break;
                 }
             }
             else
             {
                 break;
             }
-
         }
-        // // Update UDG
-        
-    // // update the reduced basis space
-    // if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);   
+        // scale x before inserting into reduced basis space
+        ArrayMultiplyScalar(disc.common.cublasHandle, sys.x, alpha, N, backend); 
+        // update the reduced basis space  
+        if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);   
+
+        nrmr0 = nrmr;
     }
 
     return it;
 }
 
 
-Int NonlinearSolverOld(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
+Int NonlinearSolverFullStep(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
 {
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
-    dstype nrmr, tol, nrmr0, alpha;
+    dstype nrmr, tol;
     tol = disc.common.nonlinearSolverTol; // tolerance for the residual
         
     //cout<<disc.common.mpiRank<<"  "<<N<<endl;   
@@ -635,16 +500,18 @@ Int NonlinearSolverOld(sysstruct &sys,  CDiscretization& disc, CPreconditioner& 
         } 
         else if (spatialScheme == 1) {      
           ArrayCopy(disc.sol.uh, sys.u, N);
-          hdgGetDUDG(disc.res.Ru, disc.res.F, sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
-          ArrayCopy(disc.res.dudgt, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
-          UpdateUDG(disc.sol.udg, disc.res.dudgt, one, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+          hdgGetDUDG(disc.res.Ru, disc.res.F, sys.x, disc.res.Rq, disc.mesh, disc.common, backend);
+          if (disc.common.debugMode==1) {
+            writearray2file(disc.common.fileout+NumberToString(it)+"dudg.bin", disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1, backend);          
+          }
+          UpdateUDG(disc.sol.udg, disc.res.Ru, one, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
 
           if (disc.common.debugMode==1) {
-            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_x.bin", sys.x, N, backend);
-            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_u.bin", sys.u, N, backend);
-            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_uh.bin", disc.sol.uh, N, backend);
-            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
-            error("stop for debugging...");
+            writearray2file(disc.common.fileout + "newton_x.bin", sys.x, N, backend);
+            writearray2file(disc.common.fileout + "newton_u.bin", sys.u, N, backend);
+            writearray2file(disc.common.fileout + "newton_uh.bin", disc.sol.uh, N, backend);
+            writearray2file(disc.common.fileout + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
+            // error("stop for debugging...");
           }          
           
           if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
@@ -652,6 +519,11 @@ Int NonlinearSolverOld(sysstruct &sys,  CDiscretization& disc, CPreconditioner& 
           // compute the residual vector R = [Ru; Rh]
           disc.hdgAssembleResidual(sys.b, backend);
           nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
+          if (disc.common.debugMode==1) {
+            writearray2file(disc.common.fileout+NumberToString(it+1)+"sys_b.bin", sys.b, N, backend);
+            writearray2file(disc.common.fileout+NumberToString(it+1)+"Ru.bin", disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1, backend);
+            writearray2file(disc.common.fileout+NumberToString(it+1)+"Rh.bin", disc.res.Rh, disc.common.npf*disc.common.nfe*disc.common.ne*disc.common.ncu, backend); 
+          }
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
         }
 
@@ -665,6 +537,18 @@ Int NonlinearSolverOld(sysstruct &sys,  CDiscretization& disc, CPreconditioner& 
     }
     
     return it;
+}
+
+Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
+{
+    if (spatialScheme == 0)
+    {   // Damped Newton not tested for DG
+        return NonlinearSolverFullStep(sys, disc, prec, out, N, spatialScheme, backend); 
+    }
+    else
+    {
+        return NonlinearSolverDamped(sys, disc, prec, out, N, spatialScheme, backend); 
+    }
 }
 
 // // #endif
