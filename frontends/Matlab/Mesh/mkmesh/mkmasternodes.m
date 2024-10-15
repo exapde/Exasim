@@ -281,7 +281,7 @@ else
     plocal = [x(:) y(:)];
     
     plocfc = eta;
-    tlocfc = [(1:porder)' (2:porder+1)'];  
+    tlocfc = [(1:porder(1))' (2:porder(1)+1)'];  
     
     m = porder(1)+1;
     n = porder(2)+1;

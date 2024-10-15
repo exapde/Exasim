@@ -142,7 +142,11 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
           if (nrm < 1e-6) {
             // wdg_udg is actually s_udg 
             HdgSourcew(s, wdg_udg, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
-            ArrayMultiplyScalar(s_wdg, minusone, ng*nc); // fix bug here
+            
+            // fix bug here
+            // compute jacobian matrix = (alpha * dtfactor + beta) - s_wdg
+            ArrayAXPB(s_wdg, s_wdg, minusone, scalar, ng*ncw*ncw);                
+            
             // w_udg = -inverse(s_wdg) * s_udg
             if (ncw==1) {                
               SmallMatrixSolve11(wdg_udg, s_wdg, ng, nc);

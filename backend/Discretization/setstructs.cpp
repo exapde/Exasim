@@ -249,6 +249,10 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.Ru, npe*ncu*ne, backend);
     TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
+    res.szRq = 2*npe*ncu*nd*ne;
+    res.szRu = npe*ncu*ne;
+    res.szRh = max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne);
+    
 #ifdef HAVE_ENZYME
     TemplateMalloc(&res.dRq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.dRu, npe*ncu*ne, backend);
@@ -309,21 +313,24 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     Int neb = mesh.ndims[6]; // maximum number of elements per block
     Int nfb = mesh.ndims[8]; // maximum number of faces per block   
     Int ne = mesh.ndims[1]; // number of elements in this subdomain 
+    Int nf = mesh.ndims[2]; // number of faces in this subdomain 
     Int ndofucg = mesh.nsize[12]-1;; //total DOFs for CG field
     Int spatialScheme = app.problem[0];   /* 0: LDG; 1: HDG */
 
     Int n0 = max(npe*max(nc+ncw,ncx)*neb, npf*(ncu+2*nc+2*ncw)*nfb);                        
-    n0 = max(n0, nco*ne*npe);
+    n0 = 2*max(n0, nco*ne*npe);
     Int n1 = max(ncx+2*nd*nd+1, ncu*nd+ncu+ncw+max(nc,ncu*(nd+1)));
     Int n2 = max(ncx+nd+1+nd*(nd-1), ncu+2*ncu*nd+2*nc+2*ncw);    
     Int n3 = max(nge*n1*neb, ngf*n2*nfb);
-    n3 = max(n3, ndofucg);
+    n3 = 2*max(n3, ndofucg);
     
     if (spatialScheme > 0) {
       Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
       Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + 2*npf*npf*nfe*neb*ncu*ncu;
+      Int k3 = npf*ncu*npf*ncu*nf; // fix bug here 
       n0 = max(n0, k1);
-      n0 = max(n0, k2);
+      n0 = max(n0, k2);      
+      n0 = max(n0, k3);  // fix bug here
 
 // Int n3 = 0;                        // fg    
 //     Int n4 = nga*ncu*nd;               // sg  
@@ -343,23 +350,24 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
       n3 = max(n3, k2);
     }
     
-    #ifdef HAVE_ENZYME
-        n0 = 2*n0;
-        n3 = 2*n3;
-    #endif
-
-    TemplateMalloc(&tmp.tempn, 2*n0, backend); // fix bug here            
-    TemplateMalloc(&tmp.tempg, 2*n3, backend); // fix bug here            
+    TemplateMalloc(&tmp.tempn, n0, backend); // fix bug here            
+    TemplateMalloc(&tmp.tempg, n3, backend); // fix bug here     
+    tmp.sztempn = n0;
+    tmp.sztempg = n3;       
 #ifdef HAVE_MPI     
     if (spatialScheme == 0) {
       TemplateMalloc(&tmp.buffsend, max(nc,nco)*npe*mesh.nsize[5], backend);
       TemplateMalloc(&tmp.buffrecv, max(nc,nco)*npe*mesh.nsize[6], backend);
+      tmp.szbuffsend = max(nc,nco)*npe*mesh.nsize[5];
+      tmp.szbuffrecv = max(nc,nco)*npe*mesh.nsize[6];
     }
     else if (spatialScheme == 1) {
       int m = ncu*npf*nfe; 
       int n = max(nc,nco)*npe; // fix bug here
       TemplateMalloc(&tmp.buffsend, max(m*m + m, n)*mesh.nsize[5], backend);
       TemplateMalloc(&tmp.buffrecv, max(m*m + m, n)*mesh.nsize[6], backend);
+      tmp.szbuffsend = max(m*m + m, n)*mesh.nsize[5];
+      tmp.szbuffrecv = max(m*m + m, n)*mesh.nsize[6];
     }
 #endif
 
@@ -441,6 +449,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       int npe = common.npe;
       int nge = common.nge;
       master.shapegwdotshapeg = (dstype*) malloc (sizeof (dstype)*npe*npe*nge*(nd+1));      
+      master.szshapegwdotshapeg = npe*npe*nge*(nd+1);
       for (int d=0; d<nd+1; d++) {
         for (int g=0; g<nge; g++) {
           for (int i=0; i<npe; i++) {
@@ -453,6 +462,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       int npf = common.npf;
       int ngf = common.ngf;
       master.shapfgwdotshapfg = (dstype*) malloc (sizeof (dstype)*npf*npf*ngf*nd);
+      master.szshapfgwdotshapfg = npf*npf*ngf*nd;
       for (int d=0; d<nd; d++) {
         for (int g=0; g<ngf; g++) {
           for (int i=0; i<npf; i++) {
@@ -472,26 +482,35 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     if (common.ncs>0) {
         // initialize source term
         Int N = common.npe*common.ncs*common.ne;
-        sol.sdg = (dstype*) malloc (sizeof (dstype)*N);
+        sol.sdg = (dstype*) malloc (sizeof (dstype)*N);        
         for (Int i=0; i<N; i++)
             sol.sdg[i] = 0.0;               
         sol.sdgg = (dstype*) malloc (sizeof (dstype)*common.nge*common.ncs*common.ne);     
+        sol.szsdg = N;
+        sol.szsdgg = common.nge*common.ncs*common.ne;
     }            
     
     if (common.ncw>0) {        
         Int N = common.npe*common.ncw*common.ne;
         sol.wsrc = (dstype*) malloc (sizeof (dstype)*N);
+        sol.szwsrc = N;
         for (Int i=0; i<N; i++)
             sol.wsrc[i] = 0.0;               
-        if (common.dae_steps>0)
+        if (common.dae_steps>0) {
             sol.wdual = (dstype*) malloc (sizeof (dstype)*N);
+            sol.szwdual = N;
+        }
     }
     
-    if (common.compudgavg>0)
+    if (common.compudgavg>0) {
         sol.udgavg = (dstype*) malloc (sizeof (dstype)*(common.npe*common.nc*common.ne1+1));  
-        
+        sol.szudgavg = common.npe*common.nc*common.ne1+1;
+    }
+    
     // allocate memory for uh
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
+    sol.szuh = common.npf*common.ncu*common.nf;
+    
     #ifdef HAVE_ENZYME
         sol.duh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
     #endif
@@ -501,6 +520,10 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         sol.odgg = (dstype*) malloc (sizeof (dstype)*common.nge*common.nco*common.ne);
         sol.og1 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
         sol.og2 = (dstype*) malloc (sizeof (dstype)*common.ngf*common.nco*common.nf);
+        sol.szodgg = common.nge*common.nco*common.ne;
+        sol.szog1 = common.ngf*common.nco*common.nf;
+        sol.szog2 = common.ngf*common.nco*common.nf;
+        
         #ifdef HAVE_ENZYME
             sol.dodgg = (dstype*) malloc (sizeof (dstype)*common.nge*common.nco*common.ne);
             ArraySetValue(sol.dodgg, zero, common.nge*common.nco*common.ne, 0);
@@ -512,7 +535,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
             
     if (mpirank==0) printf("Precompute index arrays... \n");    
-    mesh.index = (Int*) malloc (sizeof (Int)*(1024));            
+    //mesh.index = (Int*) malloc (sizeof (Int)*(1024));            
     
     // allocate memory 
     mesh.findxdg1 = (Int*) malloc (sizeof (Int)*common.npf*common.ncx*common.nf);
@@ -523,6 +546,14 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     mesh.eindudg1 = (Int*) malloc (sizeof (Int)*common.npe*common.nc*common.ne);
     mesh.eindudgp = (Int*) malloc (sizeof (Int)*(common.nbe+1));
     
+    mesh.szfindxdg1 = common.npf*common.ncx*common.nf;
+    mesh.szfindxdgp = (common.nbf+1);
+    mesh.szfindudg1 = common.npf * common.nc * common.nf;
+    mesh.szfindudg2 = common.npf * common.nc * common.nf;
+    mesh.szfindudgp = common.nbf + 1;
+    mesh.szeindudg1 = common.npe * common.nc * common.ne;
+    mesh.szeindudgp = common.nbe + 1;
+            
     faceperm1(mesh.findxdg1, mesh.findxdgp, mesh.facecon, mesh.fblks,
              common.npf, common.ncx, common.npe, common.ncx, common.nbf);
     faceperm(mesh.findudg1, mesh.findudg2, mesh.findudgp, mesh.facecon, mesh.fblks,
@@ -534,6 +565,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         Int bsz = common.npe*common.ncu;
         Int nudg = common.npe*common.nc;
         mesh.elemsendind = (Int*) malloc (sizeof (Int)*bsz*common.nelemsend);                        
+        mesh.szelemsendind = bsz*common.nelemsend;
         for (Int i=0; i<common.nelemsend; i++)
             for (Int j=0; j<bsz; j++) 
                 mesh.elemsendind[bsz*i+j] = nudg*common.elemsend[i] + j;            
@@ -541,6 +573,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         bsz = common.npe*common.ncAV;
         nudg = common.npe*common.nco;
         mesh.elemsendodg = (Int*) malloc (sizeof (Int)*bsz*common.nelemsend);
+        mesh.szelemsendodg = bsz*common.nelemsend;
         for (Int i=0; i<common.nelemsend; i++)
             for (Int j=0; j<bsz; j++)
                 mesh.elemsendodg[bsz*i+j] = nudg*common.elemsend[i] + j;
@@ -548,6 +581,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         bsz = common.npe*common.nc;
         nudg = common.npe*common.nc;
         mesh.elemsendudg = (Int*) malloc (sizeof (Int)*bsz*common.nelemsend);
+        mesh.szelemsendudg = bsz*common.nelemsend;
         for (Int i=0; i<common.nelemsend; i++)
             for (Int j=0; j<bsz; j++)
                 mesh.elemsendudg[bsz*i+j] = nudg*common.elemsend[i] + j;
@@ -558,6 +592,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         Int bsz = common.npe*common.ncu;
         Int nudg = common.npe*common.nc;
         mesh.elemrecvind = (Int*) malloc (sizeof (Int)*bsz*common.nelemrecv);                        
+        mesh.szelemrecvind = bsz*common.nelemrecv;
         for (Int i=0; i<common.nelemrecv; i++)
             for (Int j=0; j<bsz; j++) 
                 mesh.elemrecvind[bsz*i+j] = nudg*common.elemrecv[i] + j;            
@@ -565,6 +600,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         bsz = common.npe*common.ncAV;
         nudg = common.npe*common.nco;
         mesh.elemrecvodg = (Int*) malloc (sizeof (Int)*bsz*common.nelemrecv);
+        mesh.szelemrecvodg = bsz*common.nelemrecv;
         for (Int i=0; i<common.nelemrecv; i++)
             for (Int j=0; j<bsz; j++)
                 mesh.elemrecvodg[bsz*i+j] = nudg*common.elemrecv[i] + j;  
@@ -572,6 +608,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         bsz = common.npe*common.nc;
         nudg = common.npe*common.nc;
         mesh.elemrecvudg = (Int*) malloc (sizeof (Int)*bsz*common.nelemrecv);
+        mesh.szelemrecvudg = bsz*common.nelemrecv;
         for (Int i=0; i<common.nelemrecv; i++)
             for (Int j=0; j<bsz; j++)
                 mesh.elemrecvudg[bsz*i+j] = nudg*common.elemrecv[i] + j;
@@ -613,10 +650,10 @@ void devappstruct(appstruct &dapp, appstruct &app)
     CHECK( cudaMemcpy( dapp.stgdata, app.stgdata, app.nsize[9]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
     CHECK( cudaMemcpy( dapp.stgparam, app.stgparam, app.nsize[10]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
     
-    Int ncu, ncq, ncp;
+    Int ncu, ncq, ncw;
     ncu = app.ndims[6];// number of compoments of (u)
     ncq = app.ndims[7];// number of compoments of (q)
-    ncp = app.ndims[8];// number of compoments of (p)    
+    ncw = app.ndims[13];// number of compoments of (w)    
     if (ncu>0) {
         cudaTemplateMalloc(&dapp.fc_u, ncu); 
         CHECK( cudaMemcpy( dapp.fc_u, app.fc_u, ncu*sizeof(dstype), cudaMemcpyHostToDevice ) );  
@@ -629,14 +666,13 @@ void devappstruct(appstruct &dapp, appstruct &app)
         cudaTemplateMalloc(&dapp.dtcoef_q, ncq); 
         CHECK( cudaMemcpy( dapp.dtcoef_q, app.dtcoef_q, ncq*sizeof(dstype), cudaMemcpyHostToDevice ) );  
     }        
-    if (ncp>0) {
-        cudaTemplateMalloc(&dapp.fc_p, ncp); 
-        CHECK( cudaMemcpy( dapp.fc_p, app.fc_p, ncp*sizeof(dstype), cudaMemcpyHostToDevice ) );              
-        cudaTemplateMalloc(&dapp.dtcoef_p, ncp); 
-        CHECK( cudaMemcpy( dapp.dtcoef_p, app.dtcoef_p, ncp*sizeof(dstype), cudaMemcpyHostToDevice ) );              
+    if (ncw>0) {
+        cudaTemplateMalloc(&dapp.fc_w, ncw); 
+        CHECK( cudaMemcpy( dapp.fc_w, app.fc_w, ncw*sizeof(dstype), cudaMemcpyHostToDevice ) );              
+        cudaTemplateMalloc(&dapp.dtcoef_w, ncw); 
+        CHECK( cudaMemcpy( dapp.dtcoef_w, app.dtcoef_w, ncw*sizeof(dstype), cudaMemcpyHostToDevice ) );              
     }                    
 }
-
 
 void devsolstruct(solstruct &dsol, solstruct &sol)
 {    
@@ -779,7 +815,7 @@ void devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
         CHECK( cudaMemcpy( dmesh.perm, mesh.perm, mesh.nsize[23]*sizeof(Int), cudaMemcpyHostToDevice ) );         
     }
 
-    cudaTemplateMalloc(&dmesh.index, 1024);
+    //cudaTemplateMalloc(&dmesh.index, 1024);
     
     Int nbe = mesh.ndims[5];
     Int nbf = mesh.ndims[7];
@@ -845,10 +881,10 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     common.cpuMemory = 0;            
     
     if (common.spatialScheme > 0) {
-      if (common.nelemsend > 0) {
-        TemplateMalloc(&mesh.interfacefaces, common.nelemsend, common.backend);       
-        TemplateCopytoDevice(mesh.interfacefaces, hmesh.interfacefaces, common.nelemsend, common.backend);          
-      }
+//       if (common.nelemsend > 0) {
+//         TemplateMalloc(&mesh.interfacefaces, common.nelemsend, common.backend);       
+//         TemplateCopytoDevice(mesh.interfacefaces, hmesh.interfacefaces, common.nelemsend, common.backend);          
+//       }
 
       int M = common.npe*common.npe*common.nge*(common.nd+1);
       cudaTemplateMalloc(&master.shapegwdotshapeg, M);       

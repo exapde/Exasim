@@ -39,7 +39,22 @@ void readappstruct(string filename, appstruct &app)
     readarray(in, &app.stgparam, app.nsize[10]);   
     app.stgib = readiarrayfromdouble(in, app.nsize[11]);
     app.vindx = readiarrayfromdouble(in, app.nsize[12]);
-    readarray(in, &app.dae_dt, app.nsize[13]);              
+    readarray(in, &app.dae_dt, app.nsize[13]);   
+
+    app.szflag = app.nsize[1];
+    app.szproblem = app.nsize[2];
+    app.szuinf = app.nsize[3];
+    app.szdt = app.nsize[4];
+    app.szfactor = app.nsize[5];
+    app.szphysicsparam = app.nsize[6];
+    app.szsolversparam = app.nsize[7];
+    app.sztau = app.nsize[8];
+    app.szstgdata = app.nsize[9];
+    app.szstgparam = app.nsize[10];
+    app.szstgib = app.nsize[11];
+    app.szvindx = app.nsize[12];
+    app.szdae_dt = app.nsize[13];
+
     #ifdef HAVE_MPP
         char a[50];
         in.getline(a, 50, 'X');
@@ -63,10 +78,10 @@ void readappstruct(string filename, appstruct &app)
         printf("Mutation mixture initialized\n");
     #endif 
 
-    Int i, ncu, ncq, ncp;
+    Int i, ncu, ncq, ncw;
     ncu = app.ndims[6];// number of compoments of (u)
     ncq = app.ndims[7];// number of compoments of (q)
-    ncp = app.ndims[8];// number of compoments of (p)
+    ncw = app.ndims[13];// number of compoments of (w)
     
     if (ncu>0) {
         app.fc_u = (dstype*) malloc(sizeof(dstype)*ncu);
@@ -75,6 +90,8 @@ void readappstruct(string filename, appstruct &app)
             app.fc_u[i] = 1.0;     //app.factor[i];
             app.dtcoef_u[i] = 1.0; //app.factor[i];
         }
+        app.szfc_u = ncu;
+        app.szdtcoef_u = ncu;
     }        
     if (ncq>0) {
         app.fc_q = (dstype*) malloc(sizeof(dstype)*ncq);
@@ -83,14 +100,18 @@ void readappstruct(string filename, appstruct &app)
             app.fc_q[i] = 1.0;     //app.factor[ncu+i];
             app.dtcoef_q[i] = 1.0; //app.factor[ncu+i];
         }
+        app.szfc_q = ncu;
+        app.szdtcoef_q = ncu;
     }        
-    if (ncp>0) {
-        app.fc_p = (dstype*) malloc(sizeof(dstype)*ncp);
-        app.fc_p = (dstype*) malloc(sizeof(dstype)*ncp);
-        for (i=0; i<ncp; i++) {
-            app.fc_p[i] = 1.0;    // app.factor[ncu+ncq+i];
-            app.dtcoef_p[i] =1.0; // app.factor[ncu+ncq+i];
+    if (ncw>0) {
+        app.fc_w = (dstype*) malloc(sizeof(dstype)*ncw);
+        app.dtcoef_w = (dstype*) malloc(sizeof(dstype)*ncw);
+        for (i=0; i<ncw; i++) {
+            app.fc_w[i] = 1.0;    // app.factor[ncu+ncq+i];
+            app.dtcoef_w[i] =1.0; // app.factor[ncu+ncq+i];
         }
+        app.szfc_w = ncw;
+        app.szdtcoef_w = ncw;
     }                
     //app.time = app.factor[ncu+ncq+ncp];
 
@@ -166,6 +187,29 @@ void readmasterstruct(string filename, masterstruct &master)
     readarray(in, &master.xp1d, master.nsize[19]);
     readarray(in, &master.gp1d, master.nsize[20]);
     readarray(in, &master.gw1d, master.nsize[21]);
+
+    master.szshapegt = master.nsize[1];
+    master.szshapegw = master.nsize[2];
+    master.szshapfgt = master.nsize[3];
+    master.szshapfgw = master.nsize[4];
+    master.szshapent = master.nsize[5];
+    master.szshapen = master.nsize[6];
+    master.szshapfnt = master.nsize[7];
+    master.szshapfn = master.nsize[8];
+    master.szxpe = master.nsize[9];
+    master.szgpe = master.nsize[10];
+    master.szgwe = master.nsize[11];
+    master.szxpf = master.nsize[12];
+    master.szgpf = master.nsize[13];
+    master.szgwf = master.nsize[14];
+    master.szshap1dgt = master.nsize[15];
+    master.szshap1dgw = master.nsize[16];
+    master.szshap1dnt = master.nsize[17];
+    master.szshap1dnl = master.nsize[18];
+    master.szxp1d = master.nsize[19];
+    master.szgp1d = master.nsize[20];
+    master.szgw1d = master.nsize[21];
+
 //     master.nd = master.ndims[0]; 
 //     master.porder = master.ndims[3]; 
 //     master.pgauss = master.ndims[4]; 
@@ -257,6 +301,31 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.elemcon = readiarrayfromdouble(in, mesh.nsize[22]);
     mesh.perm = readiarrayfromdouble(in, mesh.nsize[23]);
     mesh.bf = readiarrayfromdouble(in, mesh.nsize[24]);
+    
+    mesh.szfacecon = mesh.nsize[1];
+    mesh.szeblks = mesh.nsize[2];
+    mesh.szfblks = mesh.nsize[3];
+    mesh.sznbsd = mesh.nsize[4];
+    mesh.szelemsend = mesh.nsize[5];
+    mesh.szelemrecv = mesh.nsize[6];
+    mesh.szelemsendpts = mesh.nsize[7];
+    mesh.szelemrecvpts = mesh.nsize[8];
+    mesh.szelempart = mesh.nsize[9];
+    mesh.szelempartpts = mesh.nsize[10];
+    mesh.szcgelcon = mesh.nsize[11];
+    mesh.szrowent2elem = mesh.nsize[12];
+    mesh.szcgent2dgent = mesh.nsize[13];
+    mesh.szcolent2elem = mesh.nsize[14];
+    mesh.szrowe2f1 = mesh.nsize[15];
+    mesh.szcole2f1 = mesh.nsize[16];
+    mesh.szent2ind1 = mesh.nsize[17];
+    mesh.szrowe2f2 = mesh.nsize[18];
+    mesh.szcole2f2 = mesh.nsize[19];
+    mesh.szent2ind2 = mesh.nsize[20];
+    mesh.szf2e = mesh.nsize[21];
+    mesh.szelemcon = mesh.nsize[22];
+    mesh.szperm = mesh.nsize[23];
+    mesh.szbf = mesh.nsize[24];
     
 //     mesh.nd = mesh.ndims[0]; // spatial dimension    
 //     mesh.ne = mesh.ndims[1]; // number of elements in this subdomain 
@@ -466,6 +535,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     if (sol.nsize[1] == npe*ncx*ne) {      
         if (mpirank==0) printf("Reading xdg from binary files \n");  
         readarray(in, &sol.xdg, sol.nsize[1]);
+        sol.szxdg = sol.nsize[1];
     }
     else
         error("Input files are incorrect");
@@ -473,6 +543,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     if (sol.nsize[2] == npe*nc*ne) {
         if (mpirank==0) printf("Reading (u,q) from binary files \n");  
         readarray(in, &sol.udg, sol.nsize[2]);    
+        sol.szudg = sol.nsize[2];
     }
     else if (sol.nsize[2] == npe*ncu*ne) {
         if (mpirank==0) printf("Reading u from binary files \n");  
@@ -483,6 +554,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
 
         cpuArrayInsert(sol.udg, tmp, npe, nc, ne, 0, npe, 0, ncu, 0, ne); 
         sol.nsize[2] = npe*nc*ne;     
+        sol.szudg = sol.nsize[2];
         CPUFREE(tmp);
     }
     else if (sol.nsize[2] == 0) {
@@ -495,7 +567,8 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         }
         else // wave problem
             cpuInitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);                    
-        sol.nsize[2] = npe*nc*ne;        
+        sol.nsize[2] = npe*nc*ne;       
+        sol.szudg = sol.nsize[2];
     }
     else
         error("Input files are incorrect");        
@@ -507,11 +580,13 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
 
     if ((sol.nsize[3] >0) && (sol.nsize[3] == npe*nco*ne)) {
         readarray(in, &sol.odg, sol.nsize[3]);    
+        sol.szodg = sol.nsize[3];
     }
     else if (nco>0) {
         sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);
         cpuInitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);       
         sol.nsize[3] = npe*nco*ne;
+        sol.szodg = sol.nsize[3];
     } 
     #ifdef HAVE_ENZYME
         sol.dodg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);
@@ -520,11 +595,13 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
 
     if ((sol.nsize[4] >0) && (sol.nsize[4] == npe*ncw*ne)) {
         readarray(in, &sol.wdg, sol.nsize[4]);    
+        sol.szwdg = sol.nsize[4];
     }
     else if (ncw>0) {
         sol.wdg = (dstype*) malloc (sizeof (dstype)*npe*ncw*ne);    
         cpuInitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
         sol.nsize[4] = npe*ncw*ne;
+        sol.szwdg = sol.nsize[4];
     }
         
     // Close file:
@@ -544,11 +621,13 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
     
     Int nd = master.ndims[0];    
     app.porder = (Int*) malloc(nd*sizeof(Int));
+    app.szporder = nd;
     for (Int i=0; i<nd; i++)
         app.porder[i] = master.ndims[3];
     app.comm = (Int*) malloc(2*sizeof(Int));
     app.comm[0] = mpirank;
     app.comm[1] = mpiprocs;
+    app.szcomm = 2;
                     
     // read meshsol structure
     if (mpiprocs>1) {     

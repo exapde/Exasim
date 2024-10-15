@@ -14,7 +14,11 @@ pde.mpiprocs = 1;           % number of MPI processors=
 pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
 
+<<<<<<< HEAD
 pde.platform = "gpu";
+=======
+pde.platform = "cpu";
+>>>>>>> origin/master
 pde.GMRESortho = 0;
 pde.ppdegree = 20;
 
@@ -47,7 +51,11 @@ pde.physicsparam = [kappa, l_ref, mu_ref, E_ref, e_eps0, phi0, N0, z0, sigma0];
 % mesh = mkmesh_streamer_gmsh(porder, "streamer_380k.msh");
 % mesh0 = mkmesh_streamer_gmsh(pde.porder, "streamer_16k_fixed.msh");
 
+<<<<<<< HEAD
 [p,t] = gmshcall("streamer_61k.msh", 2, 0);
+=======
+[p,t] = gmshcall("streamer_16k_fixed.msh", 2, 0);
+>>>>>>> origin/master
 
 % Normalization
 xmax = max(p(1,:));
@@ -70,15 +78,22 @@ mesh.boundarycondition = [1;2;3;4]; % Set boundary condition for each boundary
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 mesh.porder = pde.porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
+<<<<<<< HEAD
 % figure(1); clf; scaplot(mesh,sol(:,1,:),[],2); axis on; axis equal; axis tight;
+=======
+figure(1); clf; scaplot(mesh,sol(:,1,:),[],2); axis on; axis equal; axis tight;
+>>>>>>> origin/master
 
 % pde.platform = "cpu";
 % pde.GMRESortho = 0;
 % pde.ppdegree = 0;
 % [sol,pde,mesh] = exasim(pde,mesh);
 % return;
+<<<<<<< HEAD
 
 save 'poissonIC61k.mat' sol
 
 normE = sqrt(sol(:,2,:).^2 + sol(:,3,:).^2);
 figure(); scaplot(mesh,normE,[],0,0); axis equal; axis tight; colormap jet;
+=======
+>>>>>>> origin/master

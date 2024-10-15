@@ -56,6 +56,10 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     dstype *sg_w = &tmp.tempg[n10];    
     dstype *wg_uq = &tmp.tempg[n11];    
 
+//     cout<<"n = "<<n11 + nga*nc*ncw<<", sz = "<<tmp.sztempg<<endl;    
+//     if (n11 + nga*nc*ncw > tmp.sztempg)
+//       error("tempg is out of bound");
+
     // udg = tmp.tempg[n3] at gauss points on element
     GetElemNodes(tmp.tempn, sol.udg, npe, nc, 0, nc, e1, e2);
     //GetArrayAtIndex(tmp.tempn, sol.udg, &mesh.eindudg1[npe*nc*e1], nn*nc); // npe x ne x nc
@@ -222,6 +226,11 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
     dstype *fh_w   = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu];
     dstype *wdg_uq = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu + nga*ncu*nd*ncw];
     
+//     int nn1 = n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu + nga*ncu*nd*ncw + nga*nc*ncw;
+//     cout<<"n = "<<nn1<<", sz = "<<tmp.sztempg<<endl;    
+//     if (nn1 > tmp.sztempg)
+//       error("tempg is out of bound");
+      
     // npf * nfe * ne * ncu
     GetElementFaceNodes(tmp.tempn, sol.uh, mesh.elemcon, npf*nfe, ncu, e1, e2, 0); // fixed bug here
 
@@ -316,6 +325,11 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         dstype *fhb_uh = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw];
         dstype *wgb_uq = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu];
         dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
+        
+//         int nn1 = n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu + ngb*ncw*nc;
+//         cout<<"n = "<<nn1<<", sz = "<<tmp.sztempg<<endl;
+//         if (n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu + ngb*ncw*nc > tmp.sztempg)
+//           error("tempg is out of bound");
 
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);

@@ -49,6 +49,12 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
     TemplateMalloc(&sys.r, ndof, backend); 
     TemplateMalloc(&sys.v, ndof*M, backend);         
     
+    sys.szu = ndof;
+    sys.szx = ndof;
+    sys.szb = ndof;
+    sys.szr = ndof;
+    sys.szv = ndof * M;
+
     ArraySetValue(sys.u, 0.0, ndof);
     ArraySetValue(sys.x, 0.0, ndof);
     ArraySetValue(sys.b, 0.0, ndof);
@@ -57,11 +63,13 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
         
     if (common.ncs>0) {        
         TemplateMalloc(&sys.utmp, npe*common.nc*common.ne2, backend); 
+        sys.szutmp = npe*common.nc*common.ne2;
         
         if (common.ncw>0) {
             //TemplateMalloc(&sys.w, N, backend); 
             TemplateMalloc(&sys.wtmp, npe*common.ncw*ne, backend); 
-            //TemplateMalloc(&sys.wsrc, N, backend);                         
+            //TemplateMalloc(&sys.wsrc, N, backend);               
+            sys.szwtmp = npe*common.ncw*ne; 
         }                
         
         // allocate memory for the previous solutions
@@ -69,49 +77,68 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
         {
             N = common.npe*common.ncs*common.ne2;
             if (common.torder==1) {
-                TemplateMalloc(&sys.udgprev1, N, backend);                    
+                TemplateMalloc(&sys.udgprev1, N, backend);        
+                sys.szudgprev1 = N;
             }
             else if (common.torder==2) {
                 TemplateMalloc(&sys.udgprev, N, backend);      
                 TemplateMalloc(&sys.udgprev1, N, backend);      
-                TemplateMalloc(&sys.udgprev2, N, backend);                      
+                TemplateMalloc(&sys.udgprev2, N, backend);     
+                sys.szudgprev = N;
+                sys.szudgprev1 = N;
+                sys.szudgprev2 = N;                 
             }
             else if (common.torder==3) {
                 TemplateMalloc(&sys.udgprev, N, backend);      
                 TemplateMalloc(&sys.udgprev1, N, backend);      
                 TemplateMalloc(&sys.udgprev2, N, backend);    
-                TemplateMalloc(&sys.udgprev3, N, backend);    
+                TemplateMalloc(&sys.udgprev3, N, backend);   
+                sys.szudgprev = N;
+                sys.szudgprev1 = N;
+                sys.szudgprev2 = N;                 
+                sys.szudgprev3 = N;                  
             }      
             if (common.wave==1) {
                 N = common.npe*common.ncu*common.ne1;
                 if (common.torder==1) {
                     TemplateMalloc(&sys.wprev1, N, backend);   
+                    sys.szwprev1 = N;
                 }
                 else if (common.torder==2) {
                     TemplateMalloc(&sys.wprev, N, backend);      
                     TemplateMalloc(&sys.wprev1, N, backend);      
-                    TemplateMalloc(&sys.wprev2, N, backend);                      
+                    TemplateMalloc(&sys.wprev2, N, backend);      
+                    sys.szwprev = N;
+                    sys.szwprev1 = N;
+                    sys.szwprev2 = N;                
                 }
                 else if (common.torder==3) {
                     TemplateMalloc(&sys.wprev, N, backend);      
                     TemplateMalloc(&sys.wprev1, N, backend);      
                     TemplateMalloc(&sys.wprev2, N, backend);    
                     TemplateMalloc(&sys.wprev3, N, backend);    
+                    sys.szwprev = N;
+                    sys.szwprev1 = N;
+                    sys.szwprev2 = N;                
+                    sys.szwprev3 = N;                
                 }                  
             }
         }    
         else // DIRK schemes
         {
             TemplateMalloc(&sys.udgprev, npe*common.ncs*common.ne2, backend);      
-            if (common.ncw>0) 
+            sys.szudgprev = npe*common.ncs*common.ne2;
+            if (common.ncw>0) {
                 TemplateMalloc(&sys.wprev, npe*common.ncw*ne, backend);                
+                sys.szwprev = npe*common.ncw*ne;
+            }
         }        
     }    
     
     if (backend==2) { // GPU
 #ifdef HAVE_CUDA        
         cudaTemplateHostAlloc(&sys.tempmem, (5*M + M*M), cudaHostAllocMapped); // zero copy
-        //TemplateMalloc(&sys.tempmem, (5*M + M*M), backend);    
+        //TemplateMalloc(&sys.tempmem, (5*M + M*M), backend);            
 #endif        
         sys.cpuMemory = 0;    
     }
@@ -121,6 +148,9 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
     }
     sys.ipiv = (Int *) malloc(max(common.ppdegree, M*M)*sizeof(Int));             
     
+    sys.szipiv = max(common.ppdegree, M*M);
+    sys.sztempmem = (5*M + M*M);
+
     // sys.normcu = (dstype *) malloc(ncu*sizeof(dstype));    
         
     N = ndof; // fix bug here                
@@ -141,10 +171,15 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
 //     cout<<common.mpiRank<<" "<<normr<<" "<<N<<endl;
 //     error("here");
     
+    sys.szrandvect = N;
+
     if (common.ppdegree > 1) {
         sys.lam = (dstype *) malloc((6*common.ppdegree + 2*common.ppdegree*common.ppdegree)*sizeof(dstype));        
         TemplateMalloc(&sys.q, ndof, backend);     
         TemplateMalloc(&sys.p, ndof, backend);                       
+        sys.szq = ndof;
+        sys.szp = ndof;
+        sys.szlam = (6*common.ppdegree + 2*common.ppdegree*common.ppdegree);
     }
 }
 

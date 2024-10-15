@@ -63,19 +63,16 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     }
 
     // compute the geometry quantities
+    if (common.mpiRank==0) printf("start compGeometry... \n");
     compGeometry(backend);        
-    if (common.mpiRank==0) 
-        printf("finish compGeometry... \n");        
+    if (common.mpiRank==0) printf("finish compGeometry... \n");        
 
     // compute the inverse of the mass matrix
-    compMassInverse(backend);    
+    if (common.spatialScheme == 0) compMassInverse(backend);    
     
     // moved from InitSolution to here
     if ((common.ncq>0) & (common.wave==0) & (common.spatialScheme == 0) ) evalQSer(backend); 
     
-    if (common.mpiRank==0) 
-        printf("finish compMassInverse... \n");        
-
     if (common.spatialScheme > 0)  { // HDG
       Int neb = common.neb; // maximum number of elements per block
       Int npe = common.npe; // number of nodes on master element
@@ -111,6 +108,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       getboundaryfaces(common.nboufaces, boufaces, mesh.bf, common.eblks, nbe, nfe, maxbc, nboufaces);
       TemplateMalloc(&mesh.boufaces, nboufaces, common.backend);
       TemplateCopytoDevice(mesh.boufaces, boufaces, nboufaces, common.backend);                       
+      mesh.szboufaces = nboufaces;
 
       if (common.mpiRank==0) 
         printf("Number of boundary faces = %d \n", nboufaces);        
@@ -125,6 +123,12 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateMalloc(&res.K, max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf), backend);
       TemplateMalloc(&res.H, npf*nfe*ncu*npf*nfe*ncu*common.ne, backend);
       TemplateMalloc(&res.ipiv, npe * ncu * neb * sizeof(Int), backend);      
+
+      res.szD = npe*ncu*npe*ncu*neb;
+      res.szF = npe*ncu*npf*nfe*ncu*common.ne;
+      res.szK = max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf);
+      res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne;
+      res.szipiv = npe * ncu * neb;
 
       if (common.mpiRank==0) 
         printf("Memory allocation ...\n");        
@@ -167,6 +171,8 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       if (common.ncq > 0) {        
         TemplateMalloc(&res.B, npe*ncu*npe*ncq*neb, backend);
         TemplateMalloc(&res.G, npf*nfe*ncu*npe*ncq*neb, backend);
+        res.szB = npe*ncu*npe*ncq*neb;
+        res.szG = npf*nfe*ncu*npe*ncq*neb;
 
         // compute M^{-1} * C and store it in res.C
         // compute M^{-1} * E and store it in res.E
@@ -183,31 +189,40 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         if (common.mpiRank==0) 
           printf("Finish hdgGetQ ... \n");        
       }
-
-      // uEquationHDG( sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
-      // hdgAssembleRHS(res.Rq, res.Rh, mesh, common);
-      // hdgMatVec(res.Rq, res.H, res.Rq, tmp.tempn, tmp.tempg, mesh, common, common.cublasHandle, backend);
-      // hdgBlockJacobi(res.K, res.H, tmp.tempg, res.ipiv, mesh, common, common.cublasHandle, backend);
     }
-    if (common.mpiRank==0) 
-        printf("finish CDiscretization constructor... \n");        
+    if (common.mpiRank==0) {
+      if (common.debugMode==1) {
+        common.printinfo();
+        app.printinfo();
+        res.printinfo();
+        tmp.printinfo();
+        sol.printinfo();
+        mesh.printinfo();
+        master.printinfo();
+      }
+      
+      printf("finish CDiscretization constructor... \n");        
+    }
 }
 
 // destructor 
 CDiscretization::~CDiscretization()
-{    
-    if (common.mpiRank==0) printf("CDiscretization destructor is being called \n");
-    
+{        
     app.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: app memory is freed successfully.\n");
     master.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: master memory is freed successfully.\n");
     mesh.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: mesh memory is freeed successfully.\n");
     sol.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: sol memory is freed successfully.\n");
     tmp.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: tmp memory is freed successfully.\n");
     res.freememory(common.cpuMemory);
+    if (common.mpiRank==0) printf("CDiscretization destructor: res memory is freed successfully.\n");
     common.freememory();
-    
-    // free ncarray and udgarray
-    
+    if (common.mpiRank==0) printf("CDiscretization destructor: common memory is freed successfully.\n");
+
 #ifdef HAVE_CUDA    
     if (common.cpuMemory==0) {
         CHECK(cudaEventDestroy(common.eventHandle));
@@ -218,7 +233,9 @@ CDiscretization::~CDiscretization()
 
 // Compute and store the geometry
 void CDiscretization::compGeometry(Int backend) {
+    if (common.mpiRank==0) printf("start ElemGeom... \n");
     ElemGeom(sol, master, mesh, tmp, common, common.cublasHandle, backend);   
+    if (common.mpiRank==0) printf("Finish ElemGeom... \n");
     FaceGeom(sol, master, mesh, tmp, common, common.cublasHandle, backend);   
 
     if (common.spatialScheme>0)
@@ -246,7 +263,8 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
 #else    
     uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
     hdgAssembleRHS(b, res.Rh, mesh, common);
-    hdgBlockJacobi(res.K, res.H, tmp.tempg, res.ipiv, mesh, common, common.cublasHandle, backend);      
+    // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
+    hdgBlockJacobi(res.K, res.H, tmp.tempn, res.ipiv, mesh, common, common.cublasHandle, backend);      
 #endif
 
     // dstype nrmUDG = PNORM(common.cublasHandle, common.npe*common.nc*common.ne1, sol.udg, backend);  
@@ -532,3 +550,4 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
 }
 
 #endif        
+

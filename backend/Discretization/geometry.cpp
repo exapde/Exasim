@@ -54,6 +54,7 @@ void ElemGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct
     Int ne = common.ne; // number of elements in this subdomain 
     
     TemplateMalloc(&sol.elemg, nge*ne*(ncx+nd*nd+1), backend);  
+    sol.szelemg = nge*ne*(ncx+nd*nd+1);
     for (Int j=0; j<common.nbe; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];    
@@ -111,7 +112,8 @@ void FaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct
     Int nbf = common.nbf;
     Int nf = common.fblks[3*(nbf-1)+1];    
     
-    TemplateMalloc(&sol.faceg, ngf*nf*(ncx+nd+1), backend);             
+    TemplateMalloc(&sol.faceg, ngf*nf*(ncx+nd+1), backend);        
+    sol.szfaceg = ngf*nf*(ncx+nd+1);
     for (Int j=0; j<common.nbf; j++) {
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];       
@@ -170,6 +172,7 @@ void ElemFaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempst
     Int ne = common.ne; // number of elements in this subdomain 
     
     TemplateMalloc(&sol.elemfaceg, ngf*nfe*ne*(ncx+nd+1), backend);  // fixed bug here
+    sol.szelemfaceg = ngf*nfe*ne*(ncx+nd+1);
     for (Int j=0; j<common.nbe; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];    

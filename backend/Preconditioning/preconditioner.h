@@ -6,6 +6,8 @@ private:
 public:
     precondstruct precond; // store precondioner struct
         
+    int mpiRank;
+    
     // constructor 
     CPreconditioner(CDiscretization& disc, Int backend); 
     
