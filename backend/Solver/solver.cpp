@@ -11,7 +11,8 @@
 CSolver::CSolver(CDiscretization& disc, Int backend)
 {
     mpiRank = disc.common.mpiRank;
-    setsysstruct(sys, disc.common, backend);    
+    setsysstruct(sys, disc.common, backend);   
+    if ((disc.common.mpiRank==0) && (disc.common.debugMode==1)) sys.printinfo(); 
 }
 
 // destructor

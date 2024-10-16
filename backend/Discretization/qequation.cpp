@@ -15,6 +15,9 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     TemplateMalloc(&res.Mass2, npe*npe*ne, backend);
     TemplateMalloc(&res.Minv2, npe*npe*ne, backend);
     TemplateMalloc(&res.C, npe*npe*ne*nd, backend);
+    res.szC = npe*npe*ne*nd;
+    res.szMinv2 = npe*npe*ne; 
+    res.szMass2 = npe*npe*ne; 
 
     dstype *work=nullptr;  
     Int *ipiv=nullptr;
@@ -88,6 +91,7 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     }
 
     if (common.debugMode==1) {
+
       string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
@@ -97,6 +101,7 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
       writearray2file(filename + "qEquationElem_Mass.bin", res.Mass2, npe*npe*ne, backend);  
       writearray2file(filename + "qEquationElem_Minv.bin", res.Minv2, npe*npe*ne, backend);
       writearray2file(filename + "qEquationElem_C.bin", res.C, npe*npe*ne*nd, backend);
+
     }
 
     TemplateFree(work, backend);
@@ -171,6 +176,7 @@ void qEquationFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
 
     TemplateMalloc(&res.E, npe*npf*nfe*ne*nd, backend);         
     ArraySetValue(res.E, zero, npe*npf*nfe*ne*nd);
+    res.szE = npe*npf*nfe*ne*nd; 
     
     for (Int j=0; j<nbf; j++) {
         Int f1 = common.fblks[3*j]-1;
@@ -294,6 +300,7 @@ void qEquationElemFace(solstruct &sol, resstruct &res, appstruct &app, masterstr
 
     TemplateMalloc(&res.E, npe*npf*nfe*ne*nd, backend);         
     ArraySetValue(res.E, zero, npe*npf*nfe*ne*nd);
+    res.szE = npe*npf*nfe*ne*nd; 
     
     for (Int j=0; j<nbe; j++) // for each block of elements
     {

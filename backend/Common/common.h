@@ -358,12 +358,56 @@ struct appstruct {
     //dstype time=nullptr;     /* current time */
     dstype *fc_u=nullptr;    /* factor when discretizing the time derivative of the U equation. Allow scalar field for local time stepping in steady problems? */
     dstype *fc_q=nullptr;    /* factor when discretizing the time derivative of the Q equation. Allow scalar field for local time stepping in steady problems? */
-    dstype *fc_p=nullptr;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
+    dstype *fc_w=nullptr;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
     
     dstype *dtcoef_u=nullptr;    /* factor when discretizing the time derivative of the U equation. Allow scalar field for local time stepping in steady problems? */
     dstype *dtcoef_q=nullptr;    /* factor when discretizing the time derivative of the Q equation. Allow scalar field for local time stepping in steady problems? */
-    dstype *dtcoef_p=nullptr;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
+    dstype *dtcoef_w=nullptr;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
     
+    Int szflag=0, szproblem=0, szcomm=0, szporder=0, szstgib=0, szvindx=0;
+    Int szuinf=0, szdt=0, szdae_dt=0, szfactor=0, szphysicsparam=0, szsolversparam=0;
+    Int sztau=0, szstgdata=0, szstgparam=0, szfc_u=0, szfc_q=0, szfc_w=0;
+    Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0;
+
+    int sizeofint() {
+      int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx;
+      return sz;
+    }
+    int sizeoffloat() {
+      int sz = szuinf+szdt+szdae_dt+szfactor+szphysicsparam+szsolversparam+
+               sztau+szstgdata+szstgparam+szfc_u+szfc_q+szfc_w+szdtcoef_u+
+               szdtcoef_q+szdtcoef_w;
+      return sz;        
+    }
+
+    void printinfo()
+    {    
+      printf("--------------- App Struct Information ----------------\n");
+      printf("size of flag: %d\n", szflag);
+      printf("size of problem: %d\n", szproblem);
+      printf("size of comm: %d\n", szcomm);
+      printf("size of porder: %d\n", szporder);
+      printf("size of stgib: %d\n", szstgib);
+      printf("size of vindx: %d\n", szvindx);
+      printf("size of uinf: %d\n", szuinf);
+      printf("size of dt: %d\n", szdt);
+      printf("size of dae_dt: %d\n", szdae_dt);
+      printf("size of factor: %d\n", szfactor);
+      printf("size of physicsparam: %d\n", szphysicsparam);
+      printf("size of solversparam: %d\n", szsolversparam);
+      printf("size of tau: %d\n", sztau);
+      printf("size of stgdata: %d\n", szstgdata);
+      printf("size of stgparam: %d\n", szstgparam);
+      printf("size of fc_u: %d\n", szfc_u);
+      printf("size of fc_q: %d\n", szfc_q);
+      printf("size of fc_w: %d\n", szfc_w);
+      printf("size of dtcoef_u: %d\n", szdtcoef_u);
+      printf("size of dtcoef_q: %d\n", szdtcoef_q);
+      printf("size of dtcoef_w: %d\n", szdtcoef_w);
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     #ifdef HAVE_MPP
     Mutation::Mixture *mix=nullptr;
     #endif
@@ -391,10 +435,10 @@ struct appstruct {
             CPUFREE(stgparam);
             CPUFREE(fc_u);
             CPUFREE(fc_q);
-            CPUFREE(fc_p);
+            CPUFREE(fc_w);
             CPUFREE(dtcoef_u);
             CPUFREE(dtcoef_q);
-            CPUFREE(dtcoef_p);
+            CPUFREE(dtcoef_w);
         }            
 #ifdef HAVE_CUDA      
        else {
@@ -418,15 +462,14 @@ struct appstruct {
             GPUFREE(stgparam);
             GPUFREE(fc_u);
             GPUFREE(fc_q);
-            GPUFREE(fc_p);
+            GPUFREE(fc_w);
             GPUFREE(dtcoef_u);
             GPUFREE(dtcoef_q);
-            GPUFREE(dtcoef_p);
+            GPUFREE(dtcoef_w);
        }
 #endif       
     }
 };
-
 
 struct masterstruct {       
     
@@ -459,6 +502,53 @@ struct masterstruct {
     dstype *gp1d=nullptr; // gauss points on 1D element
     dstype *gw1d=nullptr; // gauss weights on 1D element    
     
+    Int szshapegwdotshapeg=0, szshapfgwdotshapfg=0, szshapegt=0, szshapegw=0;
+    Int szshapfgt=0, szshapfgw=0, szshapent=0, szshapen=0, szshapfnt=0;
+    Int szshapfn=0, szxpe=0, szgpe=0, szgwe=0, szxpf=0, szgpf=0, szgwf=0;
+    Int szshap1dgt=0, szshap1dgw=0, szshap1dnt=0, szshap1dnl=0, szxp1d=0;
+    Int szgp1d=0, szgw1d=0;
+
+    int sizeofint() { return 0;} 
+
+    int sizeoffloat()
+    {
+      int sz = szshapegwdotshapeg+szshapfgt + szshapfgw + szshapent + szshapen +
+               szshapfnt + szshapfn + szxpe + szgpe + szgwe + szxpf + szgpf + 
+               szgwf + szshap1dgt + szshap1dgw + szshap1dnt + szshap1dnl + 
+               szxp1d + szgp1d + szgw1d;
+      return sz;         
+    }
+
+    void printinfo()
+    {
+      printf("--------------- Master Struct Information ----------------\n");
+      printf("size of shapegwdotshapeg: %d\n", szshapegwdotshapeg);
+      printf("size of shapfgwdotshapfg: %d\n", szshapfgwdotshapfg);
+      printf("size of shapegt: %d\n", szshapegt);
+      printf("size of shapegw: %d\n", szshapegw);
+      printf("size of shapfgt: %d\n", szshapfgt);
+      printf("size of shapfgw: %d\n", szshapfgw);
+      printf("size of shapent: %d\n", szshapent);
+      printf("size of shapen: %d\n", szshapen);
+      printf("size of shapfnt: %d\n", szshapfnt);
+      printf("size of shapfn: %d\n", szshapfn);
+      printf("size of xpe: %d\n", szxpe);
+      printf("size of gpe: %d\n", szgpe);
+      printf("size of gwe: %d\n", szgwe);
+      printf("size of xpf: %d\n", szxpf);
+      printf("size of gpf: %d\n", szgpf);
+      printf("size of gwf: %d\n", szgwf);
+      printf("size of shap1dgt: %d\n", szshap1dgt);
+      printf("size of shap1dgw: %d\n", szshap1dgw);
+      printf("size of shap1dnt: %d\n", szshap1dnt);
+      printf("size of shap1dnl: %d\n", szshap1dnl);
+      printf("size of xp1d: %d\n", szxp1d);
+      printf("size of gp1d: %d\n", szgp1d);
+      printf("size of gw1d: %d\n", szgw1d);
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     void freememory(Int hostmemory)
     {
        if (hostmemory==1) {
@@ -533,7 +623,7 @@ struct meshstruct {
     Int *perm=nullptr;       // indices of element nodes on faces
     Int *bf=nullptr;         // boundary faces  
     Int *boufaces=nullptr;   // boundary faces
-    Int *interfacefaces=nullptr;   // interface faces between two subdomains
+    //Int *interfacefaces=nullptr;   // interface faces between two subdomains
     Int *eblks=nullptr;    // element blocks
     Int *fblks=nullptr;    // face blocks    
     Int *nbsd=nullptr;
@@ -555,7 +645,7 @@ struct meshstruct {
     Int *ent2ind2=nullptr;
     
     Int *findxdg1=nullptr; 
-    Int *findxdg2=nullptr; 
+    //Int *findxdg2=nullptr; 
     Int *findxdgp=nullptr; 
     Int *findudg1=nullptr; 
     Int *findudg2=nullptr; 
@@ -568,8 +658,77 @@ struct meshstruct {
     Int *elemrecvodg=nullptr;
     Int *elemsendudg=nullptr;
     Int *elemrecvudg=nullptr;
-    Int *index=nullptr; 
+    //Int *index=nullptr; 
     
+    Int szfacecon=0, szf2e=0, szelemcon=0, szperm=0, szbf=0, szboufaces=0; 
+    Int szeblks=0, szfblks=0, sznbsd=0, szelemsend=0;
+    Int szelemrecv=0, szelemsendpts=0, szelemrecvpts=0, szelempart=0;
+    Int szelempartpts=0, szcgelcon=0, szrowent2elem=0, szcgent2dgent=0;
+    Int szcolent2elem=0, szrowe2f1=0, szcole2f1=0, szent2ind1=0, szrowe2f2=0;
+    Int szcole2f2=0, szent2ind2=0, szfindxdg1=0, szfindxdg2=0, szfindxdgp=0; 
+    Int szfindudg1=0, szfindudg2=0, szfindudgp=0, szeindudg1=0, szeindudgp=0;
+    Int szelemsendind=0, szelemrecvind=0, szelemsendodg=0, szelemrecvodg=0;
+    Int szelemsendudg=0, szelemrecvudg=0, szindex=0;
+
+    int sizeoffloat() {return 0;}
+    int sizeofint() {
+      int sz = szeblks+szfblks + sznbsd + szelemsend + szelemrecv + 
+               szelemsendpts + szelemrecvpts + szelempart + szelempartpts + 
+               szcgelcon + szrowent2elem + szcgent2dgent + szcolent2elem + 
+               szrowe2f1 + szcole2f1 + szent2ind1 + szrowe2f2 + szcole2f2 + 
+               szent2ind2 + szfindxdg1 + szfindxdgp + szfindudg1 + szfindudg2 + 
+               szfindudgp + szeindudg1 + szeindudgp + szelemsendind + szelemrecvind + 
+               szelemsendodg + szelemrecvodg + szelemsendudg + szelemrecvudg;
+      return sz;        
+    }
+
+    void printinfo()
+    {
+      printf("--------------- Mesh Struct Information ----------------\n");
+      printf("size of facecon: %d\n", szfacecon);
+      printf("size of f2e: %d\n", szf2e);
+      printf("size of elemcon: %d\n", szelemcon);
+      printf("size of perm: %d\n", szperm);
+      printf("size of bf: %d\n", szbf);
+      printf("size of boufaces: %d\n", szboufaces);
+      //printf("size of interfacefaces: %d\n", szinterfacefaces);
+      printf("size of eblks: %d\n", szeblks);
+      printf("size of fblks: %d\n", szfblks);
+      printf("size of nbsd: %d\n", sznbsd);
+      printf("size of elemsend: %d\n", szelemsend);
+      printf("size of elemrecv: %d\n", szelemrecv);
+      printf("size of elemsendpts: %d\n", szelemsendpts);
+      printf("size of elemrecvpts: %d\n", szelemrecvpts);
+      printf("size of elempart: %d\n", szelempart);
+      printf("size of elempartpts: %d\n", szelempartpts);
+      printf("size of cgelcon: %d\n", szcgelcon);
+      printf("size of rowent2elem: %d\n", szrowent2elem);
+      printf("size of cgent2dgent: %d\n", szcgent2dgent);
+      printf("size of colent2elem: %d\n", szcolent2elem);
+      printf("size of rowe2f1: %d\n", szrowe2f1);
+      printf("size of cole2f1: %d\n", szcole2f1);
+      printf("size of ent2ind1: %d\n", szent2ind1);
+      printf("size of rowe2f2: %d\n", szrowe2f2);
+      printf("size of cole2f2: %d\n", szcole2f2);
+      printf("size of ent2ind2: %d\n", szent2ind2);
+      printf("size of findxdg1: %d\n", szfindxdg1);
+      //printf("size of findxdg2: %d\n", szfindxdg2);
+      printf("size of findxdgp: %d\n", szfindxdgp);
+      printf("size of findudg1: %d\n", szfindudg1);
+      printf("size of findudg2: %d\n", szfindudg2);
+      printf("size of findudgp: %d\n", szfindudgp);
+      printf("size of eindudg1: %d\n", szeindudg1);
+      printf("size of eindudgp: %d\n", szeindudgp);
+      printf("size of elemsendind: %d\n", szelemsendind);
+      printf("size of elemrecvind: %d\n", szelemrecvind);
+      printf("size of elemsendodg: %d\n", szelemsendodg);
+      printf("size of elemrecvodg: %d\n", szelemrecvodg);
+      printf("size of elemsendudg: %d\n", szelemsendudg);
+      printf("size of elemrecvudg: %d\n", szelemrecvudg);      
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     void freememory(Int hostmemory)
     {
        if (hostmemory==1) {
@@ -581,7 +740,7 @@ struct meshstruct {
             CPUFREE(elemcon);    // element-to-face connectivities
             CPUFREE(perm);       // indices of element nodes on faces
             CPUFREE(boufaces);   // boundary faces
-            CPUFREE(interfacefaces);   // interface faces
+            //CPUFREE(interfacefaces);   // interface faces
             CPUFREE(eblks);    // element blocks
             CPUFREE(fblks);    // face blocks    
             CPUFREE(nbsd);
@@ -603,7 +762,7 @@ struct meshstruct {
             CPUFREE(ent2ind2);
             
             CPUFREE(findxdg1);   
-            CPUFREE(findxdg2);   
+            //CPUFREE(findxdg2);   
             CPUFREE(findxdgp);   
             CPUFREE(findudg1);   
             CPUFREE(findudg2);   
@@ -616,7 +775,7 @@ struct meshstruct {
             CPUFREE(elemrecvodg);
             CPUFREE(elemsendudg);
             CPUFREE(elemrecvudg);
-            CPUFREE(index); 
+            //CPUFREE(index); 
         }            
 #ifdef HAVE_CUDA      
        else {
@@ -628,7 +787,7 @@ struct meshstruct {
             GPUFREE(elemcon);    // element-to-face connectivities
             GPUFREE(perm);       // indices of element nodes on faces
             GPUFREE(boufaces);   // boundary faces
-            GPUFREE(interfacefaces);   // interface faces
+            //GPUFREE(interfacefaces);   // interface faces
             GPUFREE(eblks);    // element blocks
             GPUFREE(fblks);    // face blocks    
             GPUFREE(nbsd);
@@ -650,7 +809,7 @@ struct meshstruct {
             GPUFREE(ent2ind2);
             
             GPUFREE(findxdg1);   
-            GPUFREE(findxdg2);   
+            //GPUFREE(findxdg2);   
             GPUFREE(findxdgp);   
             GPUFREE(findudg1);   
             GPUFREE(findudg2);   
@@ -663,7 +822,7 @@ struct meshstruct {
             GPUFREE(elemrecvodg); 
             GPUFREE(elemsendudg);
             GPUFREE(elemrecvudg);   
-            GPUFREE(index);   
+            //GPUFREE(index);   
        }
 #endif       
     }        
@@ -683,7 +842,8 @@ struct solstruct {
     // dstype *dudgt=nullptr; // for line search
     dstype *udg0=nullptr;
     dstype *uh0=nullptr;
-    // #ifdef HAVE_ENZYME
+
+    #ifdef HAVE_ENZYME
         dstype *dudg=nullptr; // solution (du, dq, dp) 
         dstype *dwdg=nullptr; // dw/dt = u (wave problem)
         dstype *duh=nullptr; // duhat
@@ -691,7 +851,7 @@ struct solstruct {
         dstype *dodgg=nullptr;
         dstype *dog1=nullptr;
         dstype *dog2=nullptr;
-    // #endif
+    #endif
     dstype *elemg=nullptr;
     dstype *faceg=nullptr;
     dstype *elemfaceg=nullptr;        
@@ -705,6 +865,41 @@ struct solstruct {
     dstype *wdual=nullptr;   // source term due to the dual time derivative for DAE equations  
     dstype** udgarray;
     
+    Int szxdg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
+    Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
+    Int szudgavg=0, szwsrc=0, szwdual=0;
+
+    int sizeofint() {return 0;}
+    int sizeoffloat() {
+      int sz = szxdg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
+               szelemfaceg + szsdgg + szodgg + szog1 + szog2 + szudgavg + 
+               szwsrc + szwdual;
+      return sz;
+    }
+
+    void printinfo()
+    {
+      printf("--------------- Solution Struct Information ----------------\n");
+      printf("size of xdg: %d\n", szxdg);
+      printf("size of udg: %d\n", szudg);
+      printf("size of sdg: %d\n", szsdg);
+      printf("size of odg: %d\n", szodg);
+      printf("size of wdg: %d\n", szwdg);
+      printf("size of uh: %d\n", szuh);
+      printf("size of elemg: %d\n", szelemg);
+      printf("size of faceg: %d\n", szfaceg);
+      printf("size of elemfaceg: %d\n", szelemfaceg);
+      printf("size of sdgg: %d\n", szsdgg);
+      printf("size of odgg: %d\n", szodgg);
+      printf("size of og1: %d\n", szog1);
+      printf("size of og2: %d\n", szog2);
+      printf("size of udgavg: %d\n", szudgavg);
+      printf("size of wsrc: %d\n", szwsrc);
+      printf("size of wdual: %d\n", szwdual);     
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());   
+    } 
+
     void freememory(Int hostmemory)
     {
        if (hostmemory==1) {
@@ -782,13 +977,12 @@ struct resstruct {
     dstype *Rqf=nullptr;  // face residual vector for q   
     dstype *Rue=nullptr;  // element residual vector for u
     dstype *Ruf=nullptr;  // face residual vector for u
-    dstype *Rpe=nullptr;  // element residual vector for p
-    dstype *Rpf=nullptr;  // face residual vector for p
     dstype *Rq=nullptr;   // residual vector for q     
     dstype *Ru=nullptr;   // residual vector for u    
     dstype *Rp=nullptr;   // residual vector for p    
     dstype *Rh=nullptr;   // residual vector for uhat
     dstype *dudgt=nullptr;   // residual vector for uhat
+    dstype *Rh=nullptr;   // residual vector for uhat    
 
     dstype *dRq=nullptr;   // residual vector for q     
     dstype *dRu=nullptr;   // residual vector for u        
@@ -796,8 +990,8 @@ struct resstruct {
     dstype *dRqe=nullptr;  // element residual vector for q
     dstype *dRqf=nullptr;  // face residual vector for q   
     dstype *dRue=nullptr;  // element residual vector for u
-    dstype *dRuf=nullptr;  // face residual vector for u
-    
+    dstype *dRuf=nullptr;  // face residual vector for u    
+
     dstype *Mass=nullptr; // store the mass matrix
     dstype *Minv=nullptr; // store the inverse of the mass matrix
     dstype *Mass2=nullptr; // store the mass matrix
@@ -813,6 +1007,43 @@ struct resstruct {
 
     Int *ipiv=nullptr;    
         
+    Int szipiv=0, szH=0, szK=0, szG=0, szF=0, szB=0, szD=0, szE=0, szC=0, szMass=0, szMinv=0, szMass2=0, szMinv2=0;
+    Int szRq=0, szRu=0, szRh=0, szRuf=0, szRue=0, szRqf=0, szRqe=0;  
+
+    int sizeofint() {return szipiv;}
+    int sizeoffloat() {
+      int sz = szH + szK + szG + szF + szB + szD + szE + szC + szMass + szMinv +
+               szMass2 + szMinv2 + szRq + szRu + szRh + szRuf + szRue + szRqf + 
+               szRqe;        
+      return sz;
+    }
+
+    void printinfo()
+    {
+      printf("--------------- Residual Struct Information ----------------\n");
+      printf("size of ipiv: %d\n", szipiv);
+      printf("size of Rq: %d\n", szRq);
+      printf("size of Ru: %d\n", szRu);
+      printf("size of Rh: %d\n", szRh);
+      // printf("size of dRq: %d\n", szdRq);
+      // printf("size of dRu: %d\n", szdRu);
+      // printf("size of dRh: %d\n", szdRh);
+      printf("size of Mass: %d\n", szMass);
+      printf("size of Minv: %d\n", szMinv);
+      printf("size of Mass2: %d\n", szMass2);
+      printf("size of Minv2: %d\n", szMinv2);
+      printf("size of C: %d\n", szC);
+      printf("size of E: %d\n", szE);
+      printf("size of D: %d\n", szD);
+      printf("size of B: %d\n", szB);
+      printf("size of F: %d\n", szF);
+      printf("size of G: %d\n", szG);
+      printf("size of K: %d\n", szK);
+      printf("size of H: %d\n", szH);
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     void freememory(Int hostmemory)
     {
        if (hostmemory==1) {            
@@ -881,6 +1112,26 @@ struct tempstruct {
     dstype *buffrecv=nullptr;
     dstype *buffsend=nullptr;
     
+    int sztempn=0, sztempg = 0, szbuffrecv=0, szbuffsend=0;
+
+    int sizeofint() {return 0;}
+    int sizeoffloat() 
+    {
+      int sz = sztempn + sztempg + szbuffrecv + szbuffsend;
+      return sz;
+    }
+
+    void printinfo()
+    {
+      printf("--------------- Temp Struct Information ----------------\n");
+      printf("size of tempn: %d\n", sztempn);
+      printf("size of tempg: %d\n", sztempg);
+      printf("size of buffrecv: %d\n", szbuffrecv);
+      printf("size of buffsend: %d\n", szbuffsend);
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     void freememory(Int hostmemory)
     {
        if (hostmemory==1) {
@@ -902,7 +1153,8 @@ struct tempstruct {
 
 struct sysstruct {    
     Int cpuMemory;
-    
+    Int *ipiv=nullptr;
+
     dstype *x=nullptr; 
     dstype *u=nullptr;
     dstype *r=nullptr;
@@ -915,12 +1167,10 @@ struct sysstruct {
     // unified memory for GMRES solver
     dstype *tempmem=nullptr;
     dstype *lam=nullptr;
-    //dstype *normcu=nullptr;
-    Int *ipiv=nullptr;
+    //dstype *normcu=nullptr;    
     
     // store PTC matrix
-    dstype *PTCmatrix=nullptr;
-    dstype *PTCmat;
+    dstype *PTCmatrix=nullptr;    
 
     // for DIRK schemes
     dstype *utmp=nullptr;
@@ -936,6 +1186,50 @@ struct sysstruct {
     dstype *wprev2=nullptr; // 
     dstype *wprev3=nullptr; // 
         
+    Int szipiv = 0;    
+    Int szx=0, szu=0, szr=0, szb=0, szv=0, szq=0, szp=0;
+    Int szrandvect=0, sztempmem=0, szlam=0, szPTCmatrix=0, szutmp=0, szwtmp=0;    
+    Int szudgprev = 0, szudgprev1 = 0, szudgprev2 = 0, szudgprev3 = 0;
+    Int szwprev = 0, szwprev1 = 0, szwprev2 = 0, szwprev3 = 0;
+    
+    int sizeofint() { return szipiv; }
+    int sizeoffloat() {
+      int sz = szx + szu + szr + szb + szv + szq + szp +
+              szrandvect + sztempmem + szPTCmatrix + szutmp + szwtmp + 
+              szudgprev + szudgprev1 + szudgprev2 + szudgprev3 + szwprev + 
+              szwprev1 + szwprev2 + szwprev3;
+      return sz;
+    }
+
+    void printinfo()
+    {
+      printf("--------------- Sys Struct Information ----------------\n");
+      printf("size of ipiv: %d\n", szipiv);
+      printf("size of x: %d\n", szx);
+      printf("size of u: %d\n", szu);
+      printf("size of r: %d\n", szr);
+      printf("size of b: %d\n", szb);
+      printf("size of v: %d\n", szv);
+      printf("size of q: %d\n", szq);
+      printf("size of p: %d\n", szp);
+      printf("size of randvect: %d\n", szrandvect);
+      printf("size of tempmem: %d\n", sztempmem);
+      printf("size of lam: %d\n", szlam);
+      printf("size of PTCmatrix: %d\n", szPTCmatrix);
+      printf("size of utmp: %d\n", szutmp);
+      printf("size of wtmp: %d\n", szwtmp);
+      printf("size of udgprev: %d\n", szudgprev);
+      printf("size of udgprev1: %d\n", szudgprev1);
+      printf("size of udgprev2: %d\n", szudgprev2);
+      printf("size of udgprev3: %d\n", szudgprev3);
+      printf("size of wprev: %d\n", szwprev);
+      printf("size of wprev1: %d\n", szwprev1);
+      printf("size of wprev2: %d\n", szwprev2);
+      printf("size of wprev3: %d\n", szwprev3);
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     void freememory(Int hostmemory)
     {
        CPUFREE(lam);  
@@ -1012,6 +1306,23 @@ struct precondstruct {
     // dstype *RBcoef=nullptr;     
     Int *ipiv=nullptr;
     
+    Int szipiv = 0, szW = 0, szU = 0;
+    int sizeofint() { return szipiv; }
+    int sizeoffloat() {
+      int sz = szW + szU;
+      return sz;
+    }
+
+    void printinfo()
+    { 
+      printf("--------------- Precond Struct Information ----------------\n");
+      printf("size of ipiv: %d\n", szipiv);
+      printf("size of W: %d\n", szW);
+      printf("size of U: %d\n", szU);
+      printf("size of int: %d\n", sizeofint());
+      printf("size of float: %d\n", sizeoffloat());
+    }
+
     void freememory(Int hostmemory)
     {
        if (hostmemory==1) {
@@ -1120,28 +1431,28 @@ struct commonstruct {
     Int Wdim; // maxium dimension of W
     Int Wcurrentdim;
     
-    Int extUhat=0;
-    Int extFhat=0;
-    Int extStab=0;
-    Int curvedMesh;    
+    Int extUhat=0; // external uhat function flag
+    Int extFhat=0; // external fhat function flag
+    Int extStab=0; // external stabilization function flag
+    Int curvedMesh;// curved mesh    
     Int debugMode; // 1: save data to binary files for debugging
     Int appname;   /* 0: Euler; 1: Compressible Navier-Stokes; etc. */
     Int tdep;      // 0: steady-state; 1: time-dependent;  
-    Int wave;      //     
+    Int wave;      // wave problem    
     Int linearProblem; // 0: nonlinear problem;  1: linear problem
     Int subproblem=0;
-    Int saveSolFreq;
-    Int saveSolOpt;
-    Int timestepOffset=0;
-    Int stgNmode=0;
-    Int tdfunc;
-    Int source;
-    Int modelnumber;
-    Int ibs;
-    Int saveSolBouFreq=0;
-    Int compudgavg=1;
-    Int readudgavg=0;
-    Int saveResNorm=1;
+    Int saveSolFreq;   // number of time steps to save the solution
+    Int saveSolOpt;    // option to save the solution
+    Int timestepOffset=0; // timestep offset to restart the simulation 
+    Int stgNmode=0;       // number of synthetic turbulence generation modes
+    Int tdfunc;           // time-derivative function flag
+    Int source;           // source function flag
+    Int modelnumber;      // model number
+    Int ibs;              // boundary index to save solution 
+    Int saveSolBouFreq=0; // number of time steps to save the solution on the boundary
+    Int compudgavg=1;     // compute time-averaged solution udg
+    Int readudgavg=0;     // flag to read time-averaged solution udg from file
+    Int saveResNorm=0;   
     
     Int spatialScheme;   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */
     Int temporalScheme;  // 0: DIRK; 1: BDF; 2: ERK
@@ -1202,11 +1513,11 @@ struct commonstruct {
     Int* nboufaces=nullptr;
     
     Int nstgib;
-    Int nnbsd;
+    Int nnbsd; // number of neighboring subdomains
     Int nelemsend;
     Int nelemrecv;
     Int nvindx;
-    Int* nbsd=nullptr;
+    Int* nbsd=nullptr; // neighboring subdomains
     Int* elemsend=nullptr;
     Int* elemrecv=nullptr;       
     Int* elemsendpts=nullptr;
@@ -1230,6 +1541,174 @@ struct commonstruct {
     MPI_Request * requests;
     MPI_Status * statuses;
 #endif
+    
+    void printinfo()
+    {
+      printf("--------------- Common Struct Information ----------------\n");
+      printf("backend: %d\n", backend);   
+      printf("number of MPI ranks: %d\n", mpiProcs);   
+      printf("number of models: %d\n", nomodels);               
+      printf("number of compoments of (u, q): %d\n", nc);   
+      printf("number of compoments of u: %d\n", ncu);   
+      printf("number of compoments of q: %d\n", ncq);   
+      printf("number of compoments of w: %d\n", ncw);   
+      printf("number of compoments of v: %d\n", nco);   
+      printf("number of compoments of uhat: %d\n", nch);   
+      printf("number of compoments of x: %d\n", ncx);   
+      printf("number of compoments of s: %d\n", ncs);   
+      printf("number of compoments of outputs: %d\n", nce);    
+      printf("spatial dimension: %d\n", nd);   
+      printf("spatial scheme: %d\n", spatialScheme);        
+      printf("element type: %d\n", elemtype);   
+      printf("node type: %d\n", 1);   
+      printf("polynomial degree: %d\n", porder);   
+      printf("gauss quadrature degree: %d\n", pgauss); 
+      printf("number of nodes on master element: %d\n", npe); 
+      printf("number of gauss points on master element: %d\n", nge); 
+      printf("number of nodes on master face: %d\n", npf); 
+      printf("number of gauss points on master face: %d\n", ngf); 
+      printf("temporal scheme: %d\n", temporalScheme);   
+      printf("temporal order: %d\n", torder);   
+      printf("number of DIRK stages: %d\n", tstages);   
+      printf("number of time steps: %d\n", tsteps);   
+      
+      printf("total number of elements: %d\n", ne);   
+      printf("number of interior elements: %d\n", ne0);   
+      printf("number of interior+interface elements: %d\n", ne1);   
+      printf("number of interior+interface+exterior elements: %d\n", ne2);   
+      printf("total number of faces: %d\n", nf);   
+      printf("number of interior faces: %d\n", nf0);   
+      
+      printf("number of faces per elements: %d\n", nfe);
+      printf("number of blocks for elements: %d\n", nbe);
+      printf("number of blocks for faces: %d\n", nbf);        
+      printf("maximum number of faces per block: %d\n", nfb);
+      printf("number of blocks for interior elements: %d\n", nbe0);
+      printf("number of blocks for interior+interface elements: %d\n", nbe1);
+      printf("number of blocks for interior+interface+exterior elements: %d\n", nbe2);
+      printf("number of blocks for interior faces: %d\n", nbf0);
+      printf("number of blocks for interior+interface faces: %d\n", nbf1);
+      printf("number of interface faces: %d\n", ninterfacefaces);
+
+      printf("number of degrees of freedom of u: %d\n", ndof);   
+      printf("number of degrees of freedom of q: %d\n", ndofq);   
+      printf("number of degrees of freedom of w: %d\n", ndofw);   
+      printf("number of degrees of freedom of uhat: %d\n", ndofuhat);   
+      printf("number of degrees of freedom of udg: %d\n", ndofudg);   
+      printf("number of degrees of freedom of sdg: %d\n", ndofsdg);   
+      printf("number of degrees of freedom of odg: %d\n", ndofodg);   
+      printf("number of degrees of freedom of edg: %d\n", ndofedg);   
+      printf("length of the stabilization: %d\n", ntau);   
+
+      printf("maximum dimension of the reduced basis space: %d\n", RBdim);
+      printf("current dimension of the reduced basis space: %d\n", RBcurrentdim);
+      printf("the vector to be removed from the RB space and replaced with new vector: %d\n", RBremovedind);
+     
+      printf("external uhat function flag: %d\n", extUhat);
+      printf("external fhat function flag: %d\n", extFhat);
+      printf("external stabilization function flag: %d\n", extStab);
+      printf("curved mesh flag: %d\n", curvedMesh);
+      printf("debug mode flag: %d\n", debugMode);
+      printf("time-dependent problem flag: %d\n", tdep);
+      printf("wave problem flag: %d\n", wave);
+      printf("linear problem flag: %d\n", linearProblem);
+      printf("save solution frequency: %d\n", saveSolFreq);
+      printf("save solution option: %d\n", saveSolOpt);
+      printf("timestep offset to restart simulation: %d\n", timestepOffset);
+      printf("time-derivative function flag: %d\n", tdfunc);
+      printf("source function flag: %d\n", source);
+      printf("model number: %d\n", modelnumber);
+      printf("boundary index to save solution: %d\n", ibs);
+      printf("save solution boundary frequency: %d\n", saveSolBouFreq);
+      printf("compute time-averaged solution flag: %d\n", compudgavg);
+      printf("read time-averaged solution flag: %d\n", readudgavg);
+    
+      printf("number of components of artificial viscosity: %d\n", ncAV);
+      printf("number of artificial viscosity smoothing iterations: %d\n", AVsmoothingIter);
+      printf("frozen artificial viscosity flag: %d\n", frozenAVflag);
+      printf("linear solver type: %d\n", linearSolver);
+      printf("nonlinear solver type: %d\n", nonlinearSolver);
+      printf("maximum linear solver iterations: %d\n", linearSolverMaxIter);
+      printf("current linear solver iteration: %d\n", linearSolverIter);
+      printf("maximum nonlinear solver iterations: %d\n", nonlinearSolverMaxIter);
+      printf("current nonlinear solver iteration: %d\n", nonlinearSolverIter);
+      printf("matrix-vector multiplication order: %d\n", matvecOrder);
+      printf("GMRES restart parameter: %d\n", gmresRestart);
+      printf("GMRES orthogonalization method: %d\n", gmresOrthogMethod);
+      printf("preconditioner type: %d\n", preconditioner);
+      printf("preconditioner matrix type: %d\n", precMatrixType);
+      printf("PTC matrix type: %d\n", ptcMatrixType);
+      printf("run mode: %d\n", runmode);
+      printf("time step factor: %f\n", dtfactor);
+      printf("current simulation time: %f\n", time);
+      printf("matrix-vector multiplication tolerance: %f\n", matvecTol);
+      printf("linear solver tolerance: %f\n", linearSolverTol);
+      printf("linear solver tolerance factor: %f\n", linearSolverTolFactor);
+      printf("nonlinear solver tolerance: %f\n", nonlinearSolverTol);
+      printf("linear solver relative error: %f\n", linearSolverRelError);
+      printf("artificial viscosity ramp factor: %f\n", rampFactor);
+      printf("PTC parameter: %f\n", PTCparam);
+      printf("initial stabilization parameter: %f\n", tau0);
+      printf("DAE alpha parameter: %f\n", dae_alpha);
+      printf("DAE beta parameter: %f\n", dae_beta);
+      printf("DAE gamma parameter: %f\n", dae_gamma);
+      printf("DAE epsilon parameter: %f\n", dae_epsilon);
+      
+      printf("number of boundary conditions: %d\n", maxnbc);
+      printf("number of neighboring subdomains: %d\n", nnbsd);      
+      printf("number of elements to send: %d\n", nelemsend);
+      printf("number of elements to receive: %d\n", nelemrecv);
+      
+      printf("eblks array: %d by %d\n", 3, nbe);
+      for (int j=0; j<3; j++) {
+        for (int i=0; i<nbe; i++)
+          printf("%d  ", eblks[j+3*i]);
+        printf("\n");  
+      }
+
+      printf("fblks array: %d by %d\n", 3, nbf);
+      for (int j=0; j<3; j++) {
+        for (int i=0; i<nbf; i++)
+          printf("%d  ", fblks[j+3*i]);
+        printf("\n");  
+      }
+
+      if (spatialScheme==1) {
+        printf("nboufaces array: %d by %d\n", maxnbc, nbe);
+        for (int j=0; j<maxnbc; j++) {
+          for (int i=0; i<nbe; i++)
+            printf("%d  ", nboufaces[1+j+maxnbc*i]);
+          printf("\n");  
+        }        
+      }
+      
+      if (nnbsd > 1) {
+        printf("nbsd array: %d by %d\n", 1, nnbsd);
+        for (int i=0; i<nnbsd; i++)
+          printf("%d  ", nbsd[i]);
+        printf("\n");        
+
+        printf("elemsendpts array: %d by %d\n", 1, nnbsd);
+        for (int i=0; i<nnbsd; i++)
+          printf("%d  ", elemsendpts[i]);
+        printf("\n");        
+
+        printf("elemrecvpts array: %d by %d\n", 1, nnbsd);
+        for (int i=0; i<nnbsd; i++)
+          printf("%d  ", elemrecvpts[i]);
+        printf("\n");          
+
+        printf("elemsend array: %d by %d\n", 1, nelemsend);
+        for (int i=0; i<nelemsend; i++)
+          printf("%d  ", elemsend[i]);
+        printf("\n");        
+
+        printf("elemrecv array: %d by %d\n", 1, nelemrecv);
+        for (int i=0; i<nelemrecv; i++)
+          printf("%d  ", elemrecv[i]);
+        printf("\n");        
+      }
+    }
     
     void freememory()
     {

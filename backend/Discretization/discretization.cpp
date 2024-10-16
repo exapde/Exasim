@@ -108,6 +108,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       getboundaryfaces(common.nboufaces, boufaces, mesh.bf, common.eblks, nbe, nfe, maxbc, nboufaces);
       TemplateMalloc(&mesh.boufaces, nboufaces, common.backend);
       TemplateCopytoDevice(mesh.boufaces, boufaces, nboufaces, common.backend);                       
+      mesh.szboufaces = nboufaces;
 
       if (common.mpiRank==0) 
         printf("Number of boundary faces = %d \n", nboufaces);        
@@ -122,6 +123,12 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateMalloc(&res.K, max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf), backend);
       TemplateMalloc(&res.H, npf*nfe*ncu*npf*nfe*ncu*common.ne, backend);
       TemplateMalloc(&res.ipiv, npe * ncu * neb * sizeof(Int), backend);      
+
+      res.szD = npe*ncu*npe*ncu*neb;
+      res.szF = npe*ncu*npf*nfe*ncu*common.ne;
+      res.szK = max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf);
+      res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne;
+      res.szipiv = npe * ncu * neb;
 
       if (common.mpiRank==0) 
         printf("Memory allocation ...\n");        
@@ -164,6 +171,8 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       if (common.ncq > 0) {        
         TemplateMalloc(&res.B, npe*ncu*npe*ncq*neb, backend);
         TemplateMalloc(&res.G, npf*nfe*ncu*npe*ncq*neb, backend);
+        res.szB = npe*ncu*npe*ncq*neb;
+        res.szG = npf*nfe*ncu*npe*ncq*neb;
 
         // compute M^{-1} * C and store it in res.C
         // compute M^{-1} * E and store it in res.E
@@ -180,14 +189,20 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         if (common.mpiRank==0) 
           printf("Finish hdgGetQ ... \n");        
       }
-
-      // uEquationHDG( sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
-      // hdgAssembleRHS(res.Rq, res.Rh, mesh, common);
-      // hdgMatVec(res.Rq, res.H, res.Rq, tmp.tempn, tmp.tempg, mesh, common, common.cublasHandle, backend);
-      // hdgBlockJacobi(res.K, res.H, tmp.tempg, res.ipiv, mesh, common, common.cublasHandle, backend);
     }
-    if (common.mpiRank==0) 
-        printf("finish CDiscretization constructor... \n");        
+    if (common.mpiRank==0) {
+      if (common.debugMode==1) {
+        common.printinfo();
+        app.printinfo();
+        res.printinfo();
+        tmp.printinfo();
+        sol.printinfo();
+        mesh.printinfo();
+        master.printinfo();
+      }
+      
+      printf("finish CDiscretization constructor... \n");        
+    }
 }
 
 // destructor 
@@ -248,7 +263,8 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
 #else    
     uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
     hdgAssembleRHS(b, res.Rh, mesh, common);
-    hdgBlockJacobi(res.K, res.H, tmp.tempg, res.ipiv, mesh, common, common.cublasHandle, backend);      
+    // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
+    hdgBlockJacobi(res.K, res.H, tmp.tempn, res.ipiv, mesh, common, common.cublasHandle, backend);      
 #endif
 
     // dstype nrmUDG = PNORM(common.cublasHandle, common.npe*common.nc*common.ne1, sol.udg, backend);  
