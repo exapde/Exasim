@@ -838,7 +838,10 @@ struct solstruct {
     dstype *sdg=nullptr; // source term due to the previous solution
     dstype *odg=nullptr; // auxilary term 
     dstype *wdg=nullptr; // dw/dt = u (wave problem)
-    dstype *uh=nullptr;  // uhat      
+    dstype *uh=nullptr;  // uhat  
+    // dstype *dudgt=nullptr; // for line search
+    dstype *udg0=nullptr;
+    dstype *uh0=nullptr;
 
     #ifdef HAVE_ENZYME
         dstype *dudg=nullptr; // solution (du, dq, dp) 
@@ -976,6 +979,9 @@ struct resstruct {
     dstype *Ruf=nullptr;  // face residual vector for u
     dstype *Rq=nullptr;   // residual vector for q     
     dstype *Ru=nullptr;   // residual vector for u    
+    dstype *Rp=nullptr;   // residual vector for p    
+    dstype *Rh=nullptr;   // residual vector for uhat
+    dstype *dudgt=nullptr;   // residual vector for uhat
     dstype *Rh=nullptr;   // residual vector for uhat    
 
     dstype *dRq=nullptr;   // residual vector for q     
@@ -1044,6 +1050,7 @@ struct resstruct {
             CPUFREE(Rq);    
             CPUFREE(Ru);    
             CPUFREE(Rh);    
+            CPUFREE(dudgt);
 #ifdef HAVE_ENZYME                   
             CPUFREE(dRq);   
             CPUFREE(dRu);   
@@ -1067,7 +1074,8 @@ struct resstruct {
        else {
             GPUFREE(Rq);   
             GPUFREE(Ru);   
-            GPUFREE(Rh);   
+            GPUFREE(Rh); 
+            GPUFREE(dudgt); 
 #ifdef HAVE_ENZYME                   
             GPUFREE(dRq);   
             GPUFREE(dRu);   
