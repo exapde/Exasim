@@ -1,0 +1,5 @@
+*.pyc
+*.vtu
+lib/Linux/*
+lib/Mac/*
+**/dataout

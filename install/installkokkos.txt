@@ -1,0 +1,17 @@
+# Build Kokkos Serial Library
+cd Exasim/kokkos
+mkdir buildserial
+cd buildserial
+cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+make install   
+
+# Build Kokkos CUDA Library
+cd Exasim/kokkos
+mkdir buildcuda
+cd buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=g++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+make install   
+
+
+# Fix kokkos library by stripping the debug information from the archive.
+strip --strip-debug /Exasim/kokkos/buildserial/core/src/libkokkoscore.a
