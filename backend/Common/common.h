@@ -982,7 +982,6 @@ struct resstruct {
     dstype *Rp=nullptr;   // residual vector for p    
     dstype *Rh=nullptr;   // residual vector for uhat
     dstype *dudgt=nullptr;   // residual vector for uhat
-    dstype *Rh=nullptr;   // residual vector for uhat    
 
     dstype *dRq=nullptr;   // residual vector for q     
     dstype *dRu=nullptr;   // residual vector for u        
