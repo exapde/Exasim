@@ -574,15 +574,17 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     else
         error("Input files are incorrect");   
-    std::cout << "====== read_uh before readarray: " << app.read_uh;
-    std::cout << "====== sol.nsize[5]: " << sol.nsize[5];
-    std::cout << "====== nfp*nf*ncu: " << npf*nf*ncu;
+    std::cout << "====== read_uh before readarray: " << app.read_uh << std::endl;
+    // std::cout << "====== sol.nsize[5]: " << sol.nsize[5];
+    // std::cout << "====== nfp*nf*ncu: " << npf*nf*ncu;
 
-    if (sol.nsize[5] == npf*nf*ncu) {
-        readarray(in, &sol.uh, sol.nsize[5]);
-        app.read_uh = 1;
-    }
-    std::cout << "====== read_uh after readarray: " << app.read_uh;
+    // if (sol.nsize[5] == npf*nf*ncu) {
+    //     std::cout << "Reading in uh ..." << std::endl;
+    //     readarray(in, &sol.uh, sol.nsize[5]);
+    //     print2darray(sol.uh, npf*ncu, nf);
+    //     app.read_uh = 1;
+    // }
+    // std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
 
 
     // For line search  
@@ -621,6 +623,14 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.nsize[4] = npe*ncw*ne;
         sol.szwdg = sol.nsize[4];
     }
+    if (sol.nsize[5] == npf*nf*ncu) {
+        std::cout << "Reading in uh ..." << std::endl;
+        readarray(in, &sol.uh, sol.nsize[5]);
+        print2darray(sol.uh, npf*ncu*10, 2);
+        app.read_uh = 1;
+    }
+    std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
+
         
     // Close file:
     in.close();            

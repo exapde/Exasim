@@ -34,12 +34,14 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         hcommon.backend = backend;        
         // allocate data for structs in CPU memory
         cpuInit(hsol, hres, happ, hmaster, hmesh, htmp, hcommon, filein, fileout, 
-                mpiprocs, mpirank, ompthreads, omprank);                    
-                
+        mpiprocs, mpirank, ompthreads, omprank);                    
+        std::cout << "What is happ.read_uh: " << happ.read_uh << std::endl;
+        
         // copy data from cpu memory to gpu memory
         gpuInit(sol, res, app, master, mesh, tmp, common, 
-            hsol, hres, happ, hmaster, hmesh, htmp, hcommon);                
-                
+        hsol, hres, happ, hmaster, hmesh, htmp, hcommon);                
+        std::cout << "What is app.read_uh: " << app.read_uh << std::endl;
+        app.read_uh = happ.read_uh;
         if (common.spatialScheme > 0)  { // HDG        
           TemplateMalloc(&mesh.bf, hcommon.nfe*hcommon.ne, 0);
           for (int i=0; i<hcommon.nfe*hcommon.ne; i++) mesh.bf[i] = hmesh.bf[i];   
@@ -61,6 +63,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         cpuInit(sol, res, app, master, mesh, tmp, common, filein, fileout, 
                 mpiprocs, mpirank, ompthreads, omprank);    
     }
+    common.read_uh = app.read_uh;
 
     // compute the geometry quantities
     if (common.mpiRank==0) printf("start compGeometry... \n");
@@ -158,14 +161,18 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 // #endif
 
       // compute uhat by getting u on faces
-        std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh;
-        if (!common.read_uh){
+        std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh << std::endl;
+        if (common.read_uh == 0){
            printf("========================================Constructing uh========================================\n");
-          GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
+            GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
         }
         else {
            printf("========================================Reading uh========================================\n");
+            // print2darray(sol.uh, npf*ncu*10, 2);
         }
+
+        // GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
+        // }
 
       if (common.mpiRank==0) 
         printf("Finish GetFaceNodes ... \n");        

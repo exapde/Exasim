@@ -44,6 +44,7 @@ sb0 = 0.02;                     % cutoff  dilatation
 sb1 = 2.5;                      % maximum dilatation 
 pde.physicsparam = [gam Re Pr Minf rinf ruinf rvinf rEinf Tinf Tref Twall avb avk avs pde.porder sb0 sb1];
 pde.tau = 4.0;                  % DG stabilization parameter
+pde.read_uh = 0;
 % pde.GMRESrestart = 2000;         %try 50
 % pde.linearsolvertol = 1e-5; % GMRES tolerance
 % pde.linearsolveriter = 50; %try 100
@@ -148,6 +149,7 @@ runcode(pde, 1); % run C++ code
 % get solution from output files in dataout folder
 sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
+pde.read_uh = 1;
 
 disp("Iter 2")
 mesh.vdg(:,1,:) = 0.04.*tanh(dist*30);
@@ -156,7 +158,7 @@ mesh.udg = sol;
 runcode(pde, 1); % run C++ code
 sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
-
+%%
 %
 disp("Iter 3")
 mesh.vdg(:,1,:) = 0.025.*tanh(dist*30);
@@ -243,9 +245,14 @@ master_mat.shapvl(:,:,d) = master_mat.shapvt(:,:,d)';
 end
 master_mat.gwvl = master_mat.gwe;
 mesh.dist = dist;
-pde.S0=0.2; pde.lambda = 0.04; pde.kappa=4;
+pde.S0=0.2; pde.lambda = 0.04; pde.kappa=3;
 a = avf(mesh1, master_mat, pde, real(sol));
 figure(1); clf; scaplot(mesh, a)
+mesh.vdg(:,1,:) = a;
+mesh.udg = sol;
+[pde,mesh,master,dmd] = preprocessing(pde,mesh);
+runcode(pde, 1); % run C++ code
+
 % % 
 % % %%
 % % disp("Iter 5")
