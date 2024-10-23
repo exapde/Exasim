@@ -16,12 +16,6 @@ pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 4;          % polynomial degree
-% pde.torder = 1;          % time-stepping order of accuracy
-% pde.nstage = 1;          % time-stepping number of stages
-% pde.dt = 1e-4*ones(1,10000)*5;   % time step sizes
-% pde.visdt = pde.dt(1);         % visualization timestep size
-% pde.saveSolFreq = 100;          % solution is saved every 10 time steps
-% pde.soltime = 100:100:length(pde.dt); % steps at which solution are collected
 
 gam = 1.4;                      % specific heat ratio
 Re = 1.835e5;                     % Reynolds number
@@ -44,19 +38,7 @@ sb0 = 0.02;                     % cutoff  dilatation
 sb1 = 2.5;                      % maximum dilatation 
 pde.physicsparam = [gam Re Pr Minf rinf ruinf rvinf rEinf Tinf Tref Twall avb avk avs pde.porder sb0 sb1];
 pde.tau = 4.0;                  % DG stabilization parameter
-% pde.GMRESrestart = 2000;         %try 50
-% pde.linearsolvertol = 1e-5; % GMRES tolerance
-% pde.linearsolveriter = 50; %try 100
-% pde.RBdim = 5;
 
-% pde.ppdegree = 50;
-% pde.precMatrixType=2;           % preconditioning type
-% pde.ptcMatrixType=0;
-% pde.NLtol = 1e-8;              % Newton tolerance
-% pde.NLiter = 30;                 % Newton iterations
-% pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
-% pde.timestepOffset=0;
-% pde.AV = 1;
 pde.GMRESrestart = 100;         %try 50
 pde.linearsolvertol = 1e-8; % GMRES tolerance
 pde.linearsolveriter = 100; %try 100
@@ -70,25 +52,11 @@ pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
 pde.timestepOffset=0;
 pde.AV = 1;
 %
-pde_tdep = pde;
-pde_tdep.linearsolveriter = 40;        % number of GMRES iterations
-pde_tdep.GMRESrestart = 20;
-pde_tdep.linearsolvertol = 1e-3; % GMRES tolerance
-pde_tdep.linearsolveriter = 40;
-pde_tdep.NLtol = 1e-6;              % Newton tolerance
-pde_tdep.NLiter = 3;                 % Newton iterations
-pde_tdep.dt = 1e-4*ones(1,1000)*5*10;   % time step sizes
-pde_tdep.soltime = 100:100:length(pde_tdep.dt); % steps at which solution are collected
-pde_tdep.torder = 1;          % time-stepping order of accuracy
-pde_tdep.nstage = 1;          % time-stepping number of stages
-pde_tdep.visdt = pde_tdep.dt(1);         % visualization timestep size
-pde_tdep.saveSolFreq = 100;          % solution is saved every 10 time steps
-%
 
 % [mesh.p,mesh.t,mesh.dgnodes] = mkmesh_circincirc_Ma17b(pde.porder,201,201,1,3,4);
-mesh = mkmesh_square(31,21,pde.porder,1,1,1,1,1);
-mesh.p(1,:) = logdec(mesh.p(1,:), 6);
-mesh.dgnodes(:,1,:) = logdec(mesh.dgnodes(:,1,:), 6);
+mesh = mkmesh_square(51,31,pde.porder,1,1,1,1,1);
+mesh.p(1,:) = logdec(mesh.p(1,:), 4.5);
+mesh.dgnodes(:,1,:) = logdec(mesh.dgnodes(:,1,:), 4.5);
 mesh = mkmesh_halfcircle(mesh, 1, 3, 4.7, pi/2, 3*pi/2);
 mesh.porder = pde.porder;
 mesh.boundaryexpr = {@(p) sqrt(p(1,:).^2+p(2,:).^2)<1+1e-6, @(p) p(1,:)>-1e-7, @(p) abs(p(1,:))<20};
@@ -167,16 +135,6 @@ sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
 UDG0_3 = real(sol);
 
-% %%
-% disp("Iter 4")
-% mesh.vdg(:,1,:) = 0.025.*tanh(dist*25);
-% mesh.udg = UDG0_3;
-% [pde,mesh,master,dmd] = preprocessing(pde,mesh);
-% runcode(pde, 1); % run C++ code
-% sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
-% figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
-% % UDG0_3 = real(sol);
-
 %%
 disp("Iter 4")
 UDG0_4 = UDG0_3;
@@ -193,46 +151,14 @@ for dd = [5]
     UDG0_4 = sol;
 end
 %%
-% disp("Iter 3")
-% mesh.vdg(:,1,:) = 0.02.*tanh(dist*2);
-% mesh.udg = sol;
-% [pde,mesh,master,dmd] = preprocessing(pde,mesh);
-% runcode(pde, 1); % run C++ code
-% sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
-% figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
+disp("Iter 5")
+mesh.vdg(:,1,:) = 0.02.*tanh(dist*2);
+mesh.udg = sol;
+[pde,mesh,master,dmd] = preprocessing(pde,mesh);
+runcode(pde, 1); % run C++ code
+sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
+figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
 
-% %%
-% disp("Iter 5")
-% mesh.vdg(:,1,:) = 0.03.*tanh(dist*);
-% mesh.udg = UDG_4;
-% [pde,mesh,master,dmd] = preprocessing(pde,mesh);
-% runcode(pde, 1); % run C++ code
-% sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
-% figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[]);
-% UDG0_5 = sol;
-% %%
-% % %%
-% % disp("Iter 5")
-% % mesh.vdg(:,1,:) = 0.03.*tanh(dist*5);
-% % pde_tdep.dt = 1e-4*ones(1,2000)*10;   % time step sizes
-% % pde_tdep.soltime = 100:100:length(pde_tdep.dt); % steps at which solution are collected
-% % 
-% % mesh.udg = UDG;
-% % [pde_tdep,mesh,master,dmd] = preprocessing(pde_tdep,mesh);
-% % runcode(pde_tdep, 1); % run C++ code
-% % %%
-% % sol = getsolution('/home/rloekvh/Exasim/build/dataout/out_t1300',dmd,master.npe);
-% % figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[]);
-% % % UDG = sol;
-% 
-% %%
-% mesh.udg = UDG;
-% [pde,mesh,master,dmd] = preprocessing(pde,mesh);
-% runcode(pde, 1); % run C++ code
-% 
-% %%
-% 
-% 
 %%
 mesh1 = hdgmesh(mesh,pde.porder);
 mesh1 = mkcgmesh(mesh1);
@@ -255,7 +181,7 @@ figure(1); clf; scaplot(mesh, a)
 % [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 % runcode(pde, 1); % run C++ code
 %%
-[UDG1, UH1] = hdgsolve_avloop(master, master_mat, mesh, mesh1, pde, mesh.dgnodes, sol, [], 0.04, 4);
+[UDG1, UH1] = hdgsolve_avloop(master, master_mat, mesh, mesh1, pde, mesh.dgnodes, sol, [], 0.02, 3);
 %%
 pde.arg = {gam, Minf, 0, Re, Pr, Tref, Twall, pde.tau}; %using matlab fhat, need same pde.arg as matlab
 

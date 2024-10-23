@@ -10,15 +10,15 @@ alpha=1e3;
 div = divergence(UDG, 1);
 divmax = max(div(:));
 hk = kappa^2*3e-3;
-s = limiting(div,0,divmax/2,alpha,0);
+s = limiting(div,0,3,alpha,0);
 mesh.ib = [];
-mesh.in = 1:size(mesh.p2,1);
+mesh.in = 1:size(mesh.p2,2);
 s = cgpoisson(mesh, master, s, [hk 1.0]);        
 s = s/max(s(:));
 a = (s-S0).*(atan(alpha*(s-S0))/pi + 0.5) - atan(alpha)/pi + 0.5;    
-a = reshape(a(mesh.t2'), size(UDG,1), 1, mesh.ne);    
+a = reshape(a(mesh.t2), size(UDG,1), 1, mesh.ne);    
 %[min(a(:)) max(a(:))]
-dist = tanh(mesh.dist*2.5);
+dist = tanh(mesh.dist*5);
 a = lambda*(a.*dist);         
 %a = 0.01*dist;
  
