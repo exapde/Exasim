@@ -1,6 +1,6 @@
 function [u,K,M,F] = cgpoisson(mesh,master,ubar,par)
-% mesh.p2 = mesh.p2';
-% mesh.t2 = mesh.t2';
+mesh.p2 = mesh.p2';
+mesh.t2 = mesh.t2';
 
 nn = size(mesh.p2,1);
 nd = size(mesh.p2,2);
