@@ -368,7 +368,8 @@ struct appstruct {
     Int szuinf=0, szdt=0, szdae_dt=0, szfactor=0, szphysicsparam=0, szsolversparam=0;
     Int sztau=0, szstgdata=0, szstgparam=0, szfc_u=0, szfc_q=0, szfc_w=0;
     Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0;
-
+    Int read_uh = 0;
+    
     int sizeofint() {
       int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx;
       return sz;
@@ -982,7 +983,7 @@ struct resstruct {
     dstype *Rp=nullptr;   // residual vector for p    
     dstype *Rh=nullptr;   // residual vector for uhat
     dstype *dudgt=nullptr;   // residual vector for uhat
-    dstype *Rh=nullptr;   // residual vector for uhat    
+    // dstype *Rh=nullptr;   // residual vector for uhat    
 
     dstype *dRq=nullptr;   // residual vector for q     
     dstype *dRu=nullptr;   // residual vector for u        
@@ -1476,7 +1477,8 @@ struct commonstruct {
     Int frozenAVflag;    // Flag deciding if artificial viscosity is calculated once per non-linear solve or in every residual evluation
                                 //   0: AV not frozen, evaluated as part of residual
                                 //   1: AV frozen, evluated once per solve (default)   
-
+    Int read_uh = 0;
+    
     Int linearSolver;  /* 0: GMRES; 1: CG; etc. */      
     Int nonlinearSolver;
     Int linearSolverMaxIter;   

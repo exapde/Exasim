@@ -524,7 +524,9 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     Int nco = app.ndims[9];
     Int ncx = app.ndims[11];
     Int ncw = app.ndims[13];
-    Int ne = mesh.ndims[1];    
+    Int ne = mesh.ndims[1];   
+    Int npf = master.ndims[6];
+    Int nf = mesh.ndims[2];
 
     sol.lsize = readiarrayfromdouble(in, 1);
     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
@@ -571,7 +573,17 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.szudg = sol.nsize[2];
     }
     else
-        error("Input files are incorrect");      
+        error("Input files are incorrect");   
+    std::cout << "====== read_uh before readarray: " << app.read_uh;
+    std::cout << "====== sol.nsize[5]: " << sol.nsize[5];
+    std::cout << "====== nfp*nf*ncu: " << npf*nf*ncu;
+
+    if (sol.nsize[5] == npf*nf*ncu) {
+        readarray(in, &sol.uh, sol.nsize[5]);
+        app.read_uh = 1;
+    }
+    std::cout << "====== read_uh after readarray: " << app.read_uh;
+
 
     // For line search  
     // sol.dudgt = (dstype*) malloc (sizeof (dstype)*npe*nc*ne);

@@ -163,6 +163,15 @@ for i = 1:mpiprocs
     if isfield(mesh, 'wdg')        
         nsize(5) = numel(mesh.wdg(:,:,dmd{i}.elempart));
     end
+    if isfield(app, 'read_uh') 
+        if app.read_uh
+            % First, read from UH (specifically np{i})
+            % Just write that directly, no need for UH(i,j,k);
+            fileID = fopen(app.buildpath+"/dataout/out_uhat_np"+string(i-1)+".bin",'r');
+            UH_tmp = fread(fileID,'double');
+            nsize(6) = length(UH_tmp); 
+        end
+    end
 
     fwrite(fileID1,length(nsize(:)),'double',endian);
     fwrite(fileID1,nsize(:),'double',endian);
@@ -179,6 +188,12 @@ for i = 1:mpiprocs
     end
     if isfield(mesh, 'wdg')        
         fwrite(fileID1,mesh.wdg(:,:,dmd{i}.elempart),'double',endian);                
+    end
+    if isfield(app, 'read_uh')    
+        if app.read_uh 
+        % Just write that directly, no need for UH(i,j,k);
+        fwrite(fileID1,UH_tmp,'double',endian);        
+        end
     end
     fclose(fileID1);         
     
