@@ -438,7 +438,11 @@ Int NonlinearSolverDamped(sysstruct &sys,  CDiscretization& disc, CPreconditione
         // scale x before inserting into reduced basis space
         ArrayMultiplyScalar(disc.common.cublasHandle, sys.x, alpha, N, backend); 
         // update the reduced basis space  
-        if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);   
+        if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);    
+
+        // writearray2file(disc.common.fileout + NumberToString(it) + "newton_uh.bin", disc.sol.uh, N, backend);
+        if (disc.common.mpiRank==0)
+            writeScalar2File(disc.common.fileout + "alpha.bin", alpha);
 
         nrmr0 = nrmr;
     }
@@ -507,6 +511,7 @@ Int NonlinearSolverFullStep(sysstruct &sys,  CDiscretization& disc, CPreconditio
           UpdateUDG(disc.sol.udg, disc.res.Ru, one, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
 
           if (disc.common.debugMode==1) {
+            std::cout << "We are sure this is being called, correct???" << std::endl;
             writearray2file(disc.common.fileout + "newton_x.bin", sys.x, N, backend);
             writearray2file(disc.common.fileout + "newton_u.bin", sys.u, N, backend);
             writearray2file(disc.common.fileout + "newton_uh.bin", disc.sol.uh, N, backend);
@@ -523,6 +528,7 @@ Int NonlinearSolverFullStep(sysstruct &sys,  CDiscretization& disc, CPreconditio
             writearray2file(disc.common.fileout+NumberToString(it+1)+"sys_b.bin", sys.b, N, backend);
             writearray2file(disc.common.fileout+NumberToString(it+1)+"Ru.bin", disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1, backend);
             writearray2file(disc.common.fileout+NumberToString(it+1)+"Rh.bin", disc.res.Rh, disc.common.npf*disc.common.nfe*disc.common.ne*disc.common.ncu, backend); 
+            error("stop for debugging...");
           }
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
         }
@@ -546,8 +552,11 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         return NonlinearSolverFullStep(sys, disc, prec, out, N, spatialScheme, backend); 
     }
     else
-    {
-        return NonlinearSolverDamped(sys, disc, prec, out, N, spatialScheme, backend); 
+    {          
+        if (disc.common.debugMode==1) 
+            return NonlinearSolverFullStep(sys, disc, prec, out, N, spatialScheme, backend); 
+        else
+            return NonlinearSolverDamped(sys, disc, prec, out, N, spatialScheme, backend); 
     }
 }
 

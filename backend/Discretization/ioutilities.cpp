@@ -393,4 +393,15 @@ void writeScalarField2File(string filename, double* field, Int ne, Int* ndims)
     out.close();
 }
 
+void writeScalar2File(string filename, double field)
+{    
+    ofstream out(filename.c_str(), ios::out | ios::binary);
+    if (!out)
+        cout <<"Unable to open file" << filename << endl;
+    else if (out) {
+        out.write( reinterpret_cast<char*>( &field ), sizeof(double) );
+    }
+    out.close();
+}
+
 #endif
