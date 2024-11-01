@@ -5,6 +5,9 @@ run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();
+addpath("hypersonicModelingKernels_HDG/kineticsMatlab/");
+addpath("hypersonicModelingKernels_HDG/transportMatlab/");
+addpath("hypersonicModelingKernels_HDG/thermodynamicsMatlab/");
 
 % Define a PDE model: governing equations, initial solutions, and boundary conditions
 pde.model = "ModelD";          % ModelC, ModelD, ModelW
