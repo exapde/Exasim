@@ -16,6 +16,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.enzyme = 1;
 #endif            
     
+    common.read_uh = app.read_uh;
     common.nc = app.ndims[5]; // number of compoments of (u, q)
     common.ncu = app.ndims[6];// number of compoments of (u)        
     common.ncq = app.ndims[7];// number of compoments of (q)
@@ -398,8 +399,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 {
     if (mpirank==0)
         printf("Reading data from binary files \n");
-    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, ompthreads, omprank);
-    common.read_uh = app.read_uh;
+    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, ompthreads, omprank);    
     
     if (mpirank==0)
         printf("Finish reading data from binary files \n");
@@ -510,8 +510,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     // allocate memory for uh
-    std::cout << "in set structs, read_uh is " << std::endl;
-    if (app.read_uh == 0) {
+    if (!app.read_uh) {
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
     }
     sol.uh0 = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
@@ -933,7 +932,6 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     cudaTemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf);    
-    std::cout << "hsol.nsize[5] = " << hsol.nsize[5];
     if (common.read_uh) {
         CHECK( cudaMemcpy( sol.uh, hsol.uh, hsol.nsize[5]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     }

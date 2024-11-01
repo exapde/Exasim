@@ -37,7 +37,7 @@ avs = 0.0;                      % shear viscosity parameter
 sb0 = 0.02;                     % cutoff  dilatation
 sb1 = 2.5;                      % maximum dilatation 
 pde.physicsparam = [gam Re Pr Minf rinf ruinf rvinf rEinf Tinf Tref Twall avb avk avs pde.porder sb0 sb1];
-pde.tau = 4.0;                  % DG stabilization parameter
+pde.tau = 5;                  % DG stabilization parameter
 
 pde.GMRESrestart = 100;         %try 50
 pde.linearsolvertol = 1e-8; % GMRES tolerance
@@ -51,6 +51,7 @@ pde.NLiter = 30;                 % Newton iterations
 pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
 pde.timestepOffset=0;
 pde.AV = 1;
+
 %
 
 % [mesh.p,mesh.t,mesh.dgnodes] = mkmesh_circincirc_Ma17b(pde.porder,201,201,1,3,4);
@@ -116,6 +117,7 @@ runcode(pde, 1); % run C++ code
 % get solution from output files in dataout folder
 sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
+pde.read_uh = 1;
 
 disp("Iter 2")
 mesh.vdg(:,1,:) = 0.04.*tanh(dist*30);
@@ -181,7 +183,7 @@ figure(1); clf; scaplot(mesh, a)
 % [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 % runcode(pde, 1); % run C++ code
 %%
-[UDG1, UH1] = hdgsolve_avloop(master, master_mat, mesh, mesh1, pde, mesh.dgnodes, sol, [], 0.02, 3);
+[UDG1, UH1] = hdgsolve_avloop(master, master_mat, mesh, mesh1, pde, mesh.dgnodes, sol, [], 0.03, 3);
 %%
 pde.arg = {gam, Minf, 0, Re, Pr, Tref, Twall, pde.tau}; %using matlab fhat, need same pde.arg as matlab
 

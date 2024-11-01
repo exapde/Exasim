@@ -70,6 +70,7 @@ e(23) = max(abs(BE(:)-BE1(:)));
 % e(24) = max(abs(v(:)-v1(:)));
 
 disp("Check udg and xdg...");
+pg = pg(:,1:nd); % For matlab, AV continuation uses dgnodes to store av field
 eu = UDG(:,1:ncu,:)-uqg1(:,1:ncu,:);
 fprintf('Maximum Absolue Error in U =  %e \n', max(abs(eu(:))));       
 if (nc>ncu)
