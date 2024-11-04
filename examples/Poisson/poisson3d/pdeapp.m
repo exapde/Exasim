@@ -23,7 +23,7 @@ pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-6; % GMRES tolerance
 pde.ppdegree = 1;           % degree of polynomial preconditioner
 pde.RBdim = 0;              % reduced basis dimension for preconditioner
-pde.GMRESrestart = 202;
+pde.GMRESrestart = 20;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
 [mesh.p,mesh.t] = cubemesh(8,8,8,1);
@@ -37,10 +37,11 @@ mesh.boundarycondition = [1;1;1;1;1;1]; % Set boundary condition for each bounda
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
 % visualize the numerical solution of the PDE model using Paraview
-% pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
-% pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
-% dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
-dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
+pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
+pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
+dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
+
+%dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
 x = dgnodes(:,1,:); y = dgnodes(:,2,:); z = dgnodes(:,3,:);
 uexact = sin(pi*x).*sin(pi*y).*sin(pi*z);           % exact solution
 uh = sol(:,1,:);                                    % numerical solution

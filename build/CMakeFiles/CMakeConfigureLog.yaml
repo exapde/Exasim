@@ -1,0 +1,556 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineSystem.cmake:211 (message)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      The system is: Darwin - 19.6.0 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is AppleClang, found in:
+        /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/3.27.0/CompilerIdCXX/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-kYChDV"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-kYChDV"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-kYChDV'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_e77b8/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_e77b8.dir/build.make CMakeFiles/cmTC_e77b8.dir/build
+        Building CXX object CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15   -v -Wl,-v -MD -MT CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Apple clang version 12.0.0 (clang-1200.0.32.29)
+        Target: x86_64-apple-darwin19.6.0
+        Thread model: posix
+        InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+        clang: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/c++/v1"
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple x86_64-apple-macosx10.15.0 -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all -disable-free -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mthread-model posix -mframe-pointer=all -fno-strict-return -masm-verbose -munwind-tables -target-sdk-version=11.1 -target-cpu penryn -dwarf-column-info -debugger-tuning=lldb -target-linker-version 609.8 -v -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0 -dependency-file CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -stdlib=libc++ -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -fdeprecated-macro -fdebug-compilation-dir /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-kYChDV -ferror-limit 19 -fmessage-length 0 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fobjc-runtime=macosx-10.15.0 -fcxx-exceptions -fexceptions -fmax-type-align=16 -fdiagnostics-show-option -o CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -x c++ /usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        clang -cc1 version 12.0.0 (clang-1200.0.32.29) default target x86_64-apple-darwin19.6.0
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/local/include"
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/Library/Frameworks"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks (framework directory)
+        End of search list.
+        Linking CXX executable cmTC_e77b8
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e77b8.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_e77b8 
+        Apple clang version 12.0.0 (clang-1200.0.32.29)
+        Target: x86_64-apple-darwin19.6.0
+        Thread model: posix
+        InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -platform_version macos 10.15.0 11.1 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -o cmTC_e77b8 -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/lib/darwin/libclang_rt.osx.a
+        @(#)PROGRAM:ld  PROJECT:ld64-609.8
+        BUILD 15:07:46 Dec 18 2020
+        configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+        Library search paths:
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib
+        Framework search paths:
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        end of search list found
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        implicit include dirs: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:152 (message)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-kYChDV']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_e77b8/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_e77b8.dir/build.make CMakeFiles/cmTC_e77b8.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15   -v -Wl -v -MD -MT CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Apple clang version 12.0.0 (clang-1200.0.32.29)]
+        ignore line: [Target: x86_64-apple-darwin19.6.0]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
+        ignore line: [clang: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/c++/v1"]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple x86_64-apple-macosx10.15.0 -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all -disable-free -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mthread-model posix -mframe-pointer=all -fno-strict-return -masm-verbose -munwind-tables -target-sdk-version=11.1 -target-cpu penryn -dwarf-column-info -debugger-tuning=lldb -target-linker-version 609.8 -v -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0 -dependency-file CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -stdlib=libc++ -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -fdeprecated-macro -fdebug-compilation-dir /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-kYChDV -ferror-limit 19 -fmessage-length 0 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fobjc-runtime=macosx-10.15.0 -fcxx-exceptions -fexceptions -fmax-type-align=16 -fdiagnostics-show-option -o CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -x c++ /usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [clang -cc1 version 12.0.0 (clang-1200.0.32.29) default target x86_64-apple-darwin19.6.0]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/local/include"]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/Library/Frameworks"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks (framework directory)]
+        ignore line: [End of search list.]
+        ignore line: [Linking CXX executable cmTC_e77b8]
+        ignore line: [/usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e77b8.dir/link.txt --verbose=1]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl -search_paths_first -Wl -headerpad_max_install_names  -v -Wl -v CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_e77b8 ]
+        ignore line: [Apple clang version 12.0.0 (clang-1200.0.32.29)]
+        ignore line: [Target: x86_64-apple-darwin19.6.0]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
+        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -platform_version macos 10.15.0 11.1 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -o cmTC_e77b8 -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/lib/darwin/libclang_rt.osx.a]
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
+          arg [-demangle] ==> ignore
+          arg [-lto_library] ==> ignore, skip following value
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib] ==> skip value of -lto_library
+          arg [-dynamic] ==> ignore
+          arg [-arch] ==> ignore
+          arg [x86_64] ==> ignore
+          arg [-platform_version] ==> ignore
+          arg [macos] ==> ignore
+          arg [10.15.0] ==> ignore
+          arg [11.1] ==> ignore
+          arg [-syslibroot] ==> ignore
+          arg [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_e77b8] ==> ignore
+          arg [-search_paths_first] ==> ignore
+          arg [-headerpad_max_install_names] ==> ignore
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_e77b8.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-lc++] ==> lib [c++]
+          arg [-lSystem] ==> lib [System]
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/lib/darwin/libclang_rt.osx.a]
+        Library search paths: [;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib]
+        Framework search paths: [;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/]
+        remove lib [System]
+        remove lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/lib/darwin/libclang_rt.osx.a]
+        collapse library dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib]
+        collapse framework dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks]
+        implicit libs: [c++]
+        implicit objs: []
+        implicit dirs: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib]
+        implicit fwks: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks]
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindBLAS.cmake:372 (check_function_exists)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindBLAS.cmake:416 (check_blas_libraries)"
+      - "CMakeLists.txt:25 (find_package)"
+    checks:
+      - "Looking for sgemm_"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-46b3x4"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-46b3x4"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "BLAS_WORKS"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-46b3x4'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_fac4e/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_fac4e.dir/build.make CMakeFiles/cmTC_fac4e.dir/build
+        Building CXX object CMakeFiles/cmTC_fac4e.dir/CheckFunctionExists.cxx.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=sgemm_ -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_fac4e.dir/CheckFunctionExists.cxx.o -MF CMakeFiles/cmTC_fac4e.dir/CheckFunctionExists.cxx.o.d -o CMakeFiles/cmTC_fac4e.dir/CheckFunctionExists.cxx.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-46b3x4/CheckFunctionExists.cxx
+        Linking CXX executable cmTC_fac4e
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fac4e.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=sgemm_ -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_fac4e.dir/CheckFunctionExists.cxx.o -o cmTC_fac4e 
+        Undefined symbols for architecture x86_64:
+          "_sgemm_", referenced from:
+              _main in CheckFunctionExists.cxx.o
+        ld: symbol(s) not found for architecture x86_64
+        clang: error: linker command failed with exit code 1 (use -v to see invocation)
+        make[1]: *** [cmTC_fac4e] Error 1
+        make: *** [cmTC_fac4e/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindThreads.cmake:99 (CHECK_CXX_SOURCE_COMPILES)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindBLAS.cmake:470 (find_package)"
+      - "CMakeLists.txt:25 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-JqC50A"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-JqC50A"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-JqC50A'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_dbf1b/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_dbf1b.dir/build.make CMakeFiles/cmTC_dbf1b.dir/build
+        Building CXX object CMakeFiles/cmTC_dbf1b.dir/src.cxx.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_dbf1b.dir/src.cxx.o -MF CMakeFiles/cmTC_dbf1b.dir/src.cxx.o.d -o CMakeFiles/cmTC_dbf1b.dir/src.cxx.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-JqC50A/src.cxx
+        Linking CXX executable cmTC_dbf1b
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_dbf1b.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_dbf1b.dir/src.cxx.o -o cmTC_dbf1b 
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindBLAS.cmake:372 (check_function_exists)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindBLAS.cmake:1207 (check_blas_libraries)"
+      - "CMakeLists.txt:25 (find_package)"
+    checks:
+      - "Looking for dgemm_"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-hmULdg"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-hmULdg"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "BLAS_Accelerate_WORKS"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-hmULdg'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_8cddd/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_8cddd.dir/build.make CMakeFiles/cmTC_8cddd.dir/build
+        Building CXX object CMakeFiles/cmTC_8cddd.dir/CheckFunctionExists.cxx.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks -DCHECK_FUNCTION_EXISTS=dgemm_ -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_8cddd.dir/CheckFunctionExists.cxx.o -MF CMakeFiles/cmTC_8cddd.dir/CheckFunctionExists.cxx.o.d -o CMakeFiles/cmTC_8cddd.dir/CheckFunctionExists.cxx.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-hmULdg/CheckFunctionExists.cxx
+        Linking CXX executable cmTC_8cddd
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8cddd.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=dgemm_ -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_8cddd.dir/CheckFunctionExists.cxx.o -o cmTC_8cddd  -Xlinker -framework -Xlinker Accelerate 
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindLAPACK.cmake:220 (check_function_exists)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindLAPACK.cmake:397 (check_lapack_libraries)"
+      - "CMakeLists.txt:26 (find_package)"
+    checks:
+      - "Looking for cheev_"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-oocSLm"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-oocSLm"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "LAPACK_WORKS"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-oocSLm'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_b5224/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_b5224.dir/build.make CMakeFiles/cmTC_b5224.dir/build
+        Building CXX object CMakeFiles/cmTC_b5224.dir/CheckFunctionExists.cxx.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks -DCHECK_FUNCTION_EXISTS=cheev_ -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_b5224.dir/CheckFunctionExists.cxx.o -MF CMakeFiles/cmTC_b5224.dir/CheckFunctionExists.cxx.o.d -o CMakeFiles/cmTC_b5224.dir/CheckFunctionExists.cxx.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-oocSLm/CheckFunctionExists.cxx
+        Linking CXX executable cmTC_b5224
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b5224.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=cheev_ -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_b5224.dir/CheckFunctionExists.cxx.o -o cmTC_b5224  -Xlinker -framework -Xlinker Accelerate -lm -ldl 
+        
+      exitCode: 0
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1278 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1322 (_MPI_try_staged_settings)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1645 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:78 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-20LsS7"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-20LsS7"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-20LsS7'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_394a3/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_394a3.dir/build.make CMakeFiles/cmTC_394a3.dir/build
+        Building CXX object CMakeFiles/cmTC_394a3.dir/test_mpi.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isystem /usr/local/Cellar/open-mpi/4.1.4_2/include -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_394a3.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_394a3.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_394a3.dir/test_mpi.cpp.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-20LsS7/test_mpi.cpp
+        Linking CXX executable cmTC_394a3
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_394a3.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/usr/local/Cellar/libevent/2.1.12_1/lib CMakeFiles/cmTC_394a3.dir/test_mpi.cpp.o -o cmTC_394a3  /usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib 
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1278 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1672 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:78 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-f9kOHl"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-f9kOHl"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-f9kOHl'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_f308c/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_f308c.dir/build.make CMakeFiles/cmTC_f308c.dir/build
+        Building CXX object CMakeFiles/cmTC_f308c.dir/test_mpi.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isystem /usr/local/Cellar/open-mpi/4.1.4_2/include -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_f308c.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_f308c.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_f308c.dir/test_mpi.cpp.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-f9kOHl/test_mpi.cpp
+        Linking CXX executable cmTC_f308c
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f308c.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/usr/local/Cellar/libevent/2.1.12_1/lib CMakeFiles/cmTC_f308c.dir/test_mpi.cpp.o -o cmTC_f308c  /usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib 
+        
+      exitCode: 0
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1278 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1322 (_MPI_try_staged_settings)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1645 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:78 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-mZcl3h"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-mZcl3h"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-mZcl3h'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_29d51/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_29d51.dir/build.make CMakeFiles/cmTC_29d51.dir/build
+        Building CXX object CMakeFiles/cmTC_29d51.dir/test_mpi.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isystem /usr/local/Cellar/open-mpi/4.1.4_2/include -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_29d51.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_29d51.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_29d51.dir/test_mpi.cpp.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-mZcl3h/test_mpi.cpp
+        Linking CXX executable cmTC_29d51
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_29d51.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/usr/local/Cellar/libevent/2.1.12_1/lib CMakeFiles/cmTC_29d51.dir/test_mpi.cpp.o -o cmTC_29d51  /usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib 
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1278 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1672 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:78 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-nNrOon"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-nNrOon"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-nNrOon'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2e9ab/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_2e9ab.dir/build.make CMakeFiles/cmTC_2e9ab.dir/build
+        Building CXX object CMakeFiles/cmTC_2e9ab.dir/test_mpi.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isystem /usr/local/Cellar/open-mpi/4.1.4_2/include -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_2e9ab.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_2e9ab.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_2e9ab.dir/test_mpi.cpp.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-nNrOon/test_mpi.cpp
+        Linking CXX executable cmTC_2e9ab
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2e9ab.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/usr/local/Cellar/libevent/2.1.12_1/lib CMakeFiles/cmTC_2e9ab.dir/test_mpi.cpp.o -o cmTC_2e9ab  /usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib 
+        
+      exitCode: 0
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1278 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1322 (_MPI_try_staged_settings)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1645 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:78 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-YBx1IU"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-YBx1IU"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-YBx1IU'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_91877/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_91877.dir/build.make CMakeFiles/cmTC_91877.dir/build
+        Building CXX object CMakeFiles/cmTC_91877.dir/test_mpi.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isystem /usr/local/Cellar/open-mpi/4.1.4_2/include -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_91877.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_91877.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_91877.dir/test_mpi.cpp.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-YBx1IU/test_mpi.cpp
+        Linking CXX executable cmTC_91877
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_91877.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/usr/local/Cellar/libevent/2.1.12_1/lib CMakeFiles/cmTC_91877.dir/test_mpi.cpp.o -o cmTC_91877  /usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib 
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1278 (try_compile)"
+      - "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake:1672 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:78 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-1PQHHw"
+      binary: "/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-1PQHHw"
+    cmakeVariables:
+      CMAKE_CUDA_ARCHITECTURES: "70"
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
+      CMAKE_OSX_SYSROOT: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-1PQHHw'
+        
+        Run Build Command(s): /usr/local/Cellar/cmake/3.27.0/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_a0489/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_a0489.dir/build.make CMakeFiles/cmTC_a0489.dir/build
+        Building CXX object CMakeFiles/cmTC_a0489.dir/test_mpi.cpp.o
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isystem /usr/local/Cellar/open-mpi/4.1.4_2/include -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -MD -MT CMakeFiles/cmTC_a0489.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_a0489.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_a0489.dir/test_mpi.cpp.o -c /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/CMakeScratch/TryCompile-1PQHHw/test_mpi.cpp
+        Linking CXX executable cmTC_a0489
+        /usr/local/Cellar/cmake/3.27.0/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a0489.dir/link.txt --verbose=1
+        /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk -mmacosx-version-min=10.15 -Wl,-search_paths_first -Wl,-headerpad_max_install_names -L/usr/local/Cellar/libevent/2.1.12_1/lib CMakeFiles/cmTC_a0489.dir/test_mpi.cpp.o -o cmTC_a0489  /usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib 
+        
+      exitCode: 0
+...

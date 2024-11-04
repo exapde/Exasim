@@ -13,8 +13,8 @@ pde.modelfile = "pdemodel"; % name of a file defining the PDE model
 pde.porder = 2;             % polynomial degree
 % unit thermal conductivity, zero Dirichlet data, and Neumman data
 pde.physicsparam = [1 0.0 1.0 0.0 0.0];
-pde.tau = 2.0;              % DG stabilization parameter
-pde.linearsolveriter = 151;
+pde.tau = 1.0;              % DG stabilization parameter
+pde.linearsolveriter = 150;
 pde.GMRESrestart = 150;
 pde.NLtol = 1e-4;
 pde.linearsolvertol = 1e-6;
