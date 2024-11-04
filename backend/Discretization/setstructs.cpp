@@ -510,8 +510,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     // allocate memory for uh
-    std::cout << "in set structs, read_uh is " << std::endl;
-    if (app.read_uh == 0) {
+    if (!app.read_uh) {
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
     }
     sol.uh0 = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
@@ -933,7 +932,6 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     cudaTemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf);    
-    std::cout << "hsol.nsize[5] = " << hsol.nsize[5];
     if (common.read_uh) {
         CHECK( cudaMemcpy( sol.uh, hsol.uh, hsol.nsize[5]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     }

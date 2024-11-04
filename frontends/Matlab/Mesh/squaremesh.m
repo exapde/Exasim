@@ -20,9 +20,9 @@ if nargin<3, parity=0; end
 if nargin<4, elemtype=0; end
 
 % Generate mesh for unit square
-
-m = m+1;
-n = n+1;
+% 
+% m = m+1;
+% n = n+1;
 [x,y]=ndgrid((0:m-1)/(m-1),(0:n-1)/(n-1));
 p=[x(:),y(:)];
 

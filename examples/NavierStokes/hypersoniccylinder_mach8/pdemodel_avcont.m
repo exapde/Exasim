@@ -166,8 +166,8 @@ function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     uinf = sym(mu(5:8)); % freestream flow
     uinf = uinf(:);
 
-    f_out = u - uhat;
-    f_in = uinf - uhat;
+    f_out = tau*(u - uhat);
+    f_in = tau*(uinf - uhat);
 
     % wall boundary condition    
     f1 = 0*u;
@@ -175,6 +175,7 @@ function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     f1(2) = 0.0  - uhat(2); % zero velocity
     f1(3) = 0.0  - uhat(3); % zero velocity           
     f1(4) = -uhat(4) +uhat(1)*TisoW;
+    f1 = tau*f1;
     % f = flux(uhat, q, w, v, x, t, mu, eta);
     % f1(4) = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4)); % zero heat flux
     % freestream, adiabatic wall, isothermal wall, adiabatic slip wall, supersonic inflow, supersonic outflow

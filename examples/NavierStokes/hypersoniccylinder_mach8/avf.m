@@ -18,7 +18,7 @@ s = s/max(s(:));
 a = (s-S0).*(atan(alpha*(s-S0))/pi + 0.5) - atan(alpha)/pi + 0.5;    
 a = reshape(a(mesh.t2), size(UDG,1), 1, mesh.ne);    
 %[min(a(:)) max(a(:))]
-dist = tanh(mesh.dist*5);
+dist = tanh(mesh.dist*2.5);
 a = lambda*(a.*dist);         
 %a = 0.01*dist;
  
