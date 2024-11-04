@@ -268,6 +268,7 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 EXASIM_CUDA:UNINITIALIZED=OFF
 
 //No help, variable specified on the command line.
+<<<<<<< Updated upstream
 EXASIM_MPI:UNINITIALIZED=ON
 
 //No help, variable specified on the command line.
@@ -325,6 +326,15 @@ PKG_CONFIG_ARGN:STRING=
 
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/local/bin/pkg-config
+=======
+EXASIM_MPI:UNINITIALIZED=OFF
+
+//No help, variable specified on the command line.
+EXASIM_NOMPI:UNINITIALIZED=ON
+
+//The directory containing a CMake configuration file for Kokkos.
+Kokkos_DIR:PATH=Kokkos_DIR-NOTFOUND
+>>>>>>> Stashed changes
 
 //Value Computed by CMake
 exasim_BINARY_DIR:STATIC=/Users/ngoccuongnguyen/GitHub/Exasim/build
@@ -523,14 +533,18 @@ CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 FIND_PACKAGE_MESSAGE_DETAILS_BLAS:INTERNAL=[/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Accelerate.framework][v()]
 //Details about finding LAPACK
 FIND_PACKAGE_MESSAGE_DETAILS_LAPACK:INTERNAL=[/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Accelerate.framework;-lm;-ldl][v()]
+<<<<<<< Updated upstream
 //Details about finding MPI
 FIND_PACKAGE_MESSAGE_DETAILS_MPI:INTERNAL=[TRUE][c ][v3.1()]
 //Details about finding MPI_CXX
 FIND_PACKAGE_MESSAGE_DETAILS_MPI_CXX:INTERNAL=[/usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib][mpi][/usr/local/Cellar/open-mpi/4.1.4_2/include][TRUE][v3.1()]
+=======
+>>>>>>> Stashed changes
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Have function cheev_
 LAPACK_WORKS:INTERNAL=1
+<<<<<<< Updated upstream
 //ADVANCED property for variable: MPIEXEC_EXECUTABLE
 MPIEXEC_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: MPIEXEC_MAX_NUMPROCS
@@ -569,4 +583,6 @@ MPI_mpi_LIBRARY-ADVANCED:INTERNAL=1
 PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
 PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
+=======
+>>>>>>> Stashed changes
 

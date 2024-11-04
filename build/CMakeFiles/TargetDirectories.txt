@@ -1,3 +1,7 @@
+<<<<<<< Updated upstream
 /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/cpumpiEXASIM.dir
+=======
+/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/cpuEXASIM.dir
+>>>>>>> Stashed changes
 /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/edit_cache.dir
 /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles/rebuild_cache.dir

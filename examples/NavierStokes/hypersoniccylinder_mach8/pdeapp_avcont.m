@@ -11,7 +11,7 @@ pde.model = "ModelD";          % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel_avcont";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
+pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 % Set discretization parameters, physical parameters, and solver parameters

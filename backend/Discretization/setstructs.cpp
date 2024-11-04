@@ -16,6 +16,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.enzyme = 1;
 #endif            
     
+    common.read_uh = app.read_uh;
     common.nc = app.ndims[5]; // number of compoments of (u, q)
     common.ncu = app.ndims[6];// number of compoments of (u)        
     common.ncq = app.ndims[7];// number of compoments of (q)
@@ -398,8 +399,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 {
     if (mpirank==0)
         printf("Reading data from binary files \n");
-    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, ompthreads, omprank);
-    common.read_uh = app.read_uh;
+    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, ompthreads, omprank);    
     
     if (mpirank==0)
         printf("Finish reading data from binary files \n");

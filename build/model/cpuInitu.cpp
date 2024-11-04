@@ -3,7 +3,18 @@ void cpuInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* pa
 	for (int i = 0; i <ng; i++) {
 		int j = i%npe;
 		int k = i/npe;
+<<<<<<< Updated upstream
 		f[j+npe*0+npe*nce*k] = 0.0;
+=======
+		dstype param5 = param[4];
+		dstype param6 = param[5];
+		dstype param7 = param[6];
+		dstype param8 = param[7];
+		f[j+npe*0+npe*nce*k] = param5;
+		f[j+npe*1+npe*nce*k] = param6;
+		f[j+npe*2+npe*nce*k] = param7;
+		f[j+npe*3+npe*nce*k] = param8;
+>>>>>>> Stashed changes
 	}
 }
 

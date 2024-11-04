@@ -161,8 +161,13 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 // #endif
 
       // compute uhat by getting u on faces
+<<<<<<< Updated upstream
         std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh << std::endl;
         if (common.read_uh == 0){
+=======
+        std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh<<endl;
+        if (!common.read_uh){
+>>>>>>> Stashed changes
            printf("========================================Constructing uh========================================\n");
             GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
         }

@@ -32,10 +32,15 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/Compiler/GNU.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindBLAS.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindLAPACK.cmake"
+<<<<<<< Updated upstream
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindMPI.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindPackageMessage.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindPkgConfig.cmake"
+=======
+  "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindPackageHandleStandardArgs.cmake"
+  "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindPackageMessage.cmake"
+>>>>>>> Stashed changes
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/FindThreads.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/Internal/CheckSourceCompiles.cmake"
   "/usr/local/Cellar/cmake/3.27.0/share/cmake/Modules/Platform/Apple-AppleClang-CXX.cmake"
@@ -59,5 +64,9 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+<<<<<<< Updated upstream
   "CMakeFiles/cpumpiEXASIM.dir/DependInfo.cmake"
+=======
+  "CMakeFiles/cpuEXASIM.dir/DependInfo.cmake"
+>>>>>>> Stashed changes
   )
