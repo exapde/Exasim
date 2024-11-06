@@ -152,53 +152,44 @@ end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     ns = 5;
-    ndim = 2;
-    [species_thermo_structs, Mw, ~] = thermodynamicsModels();
+    % uinf = initu(x, mu, eta);
 
-    ub = sym(zeros(ns+ndim+1, 3));
-    rho_scale   = eta(1);
-    u_scale     = eta(2);
-    rhoe_scale  = eta(3);
-    T_scale     = eta(4);
-    mu_scale    = eta(5);
-    kappa_scale = eta(6);
-    cp_scale    = eta(7);
-    L_scale     = eta(8);
+    uinf = [0.000000650000000   0.228300980000000   0.010260100000000   0.754307040000000   0.007131230000000   0.996653279785810 0   0.607507866832124];
+    uinf = uinf(:);
 
-    Ec = mu(23);
-%%%%%% C-CODE MANUALLY WRITTEN
-%     ub(:,1) = u(:);
-%     ub(:,2) = u(:); 
+    f_out = (u - uhat);
+    f_in = (uinf - uhat);
 
-    uinflow = initu(x, mu, eta);
+    % wall boundary condition    
+    un = u(ns+1).*n(1) + u(ns+2).*n(2);  
+    ui = u;
+    ui(ns+1) = ui(ns+1) - n(1).*un;
+    ui(ns+2) = ui(ns+2) - n(2).*un;
+    fh = ui - uhat;
 
-    uoutflow = u;
-
-    uadiabatic = u;
-    uadiabatic(ns+1:ns+ndim) = 0.0;
-
-
-    ub(:,1) = uinflow;
-    ub(:,2) = uoutflow;
-    ub(:,3) = uadiabatic;
-    ub(:,4) = uinflow;
-    ub(:,5) = uoutflow;
-    ub(:,6) = uadiabatic;
+    % freestream, adiabatic wall, isothermal wall, adiabatic slip wall, supersonic inflow, supersonic outflow
+    ub = 0*[f_in f_in fh fh f_in f_out];
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-
     ns = 5;
-    ndim = 2;
-    fb = sym(zeros(ns+ndim+1, 6));
+    % uinf = initu(x, mu, eta);
 
-%     fiso(1:ns) = 0.0;
-    % fb(:,1) = 0;
-    % fb(:,2) = 0;
-    % fb(:,3) = 0;
-    % fb(:,1) = 0;
-    % fb(:,2) = 0;
-    % fb(:,3) = 0;
+    uinf = [0.000000650000000   0.228300980000000   0.010260100000000   0.754307040000000   0.007131230000000   0.996653279785810 0   0.607507866832124];
+    uinf = uinf(:);
+
+    f_out = (u - uhat);
+    f_in = (uinf - uhat);
+
+    % wall boundary condition    
+    un = u(ns+1).*n(1) + u(ns+2).*n(2);  
+    ui = u;
+    ui(ns+1) = ui(ns+1) - n(1).*un;
+    ui(ns+2) = ui(ns+2) - n(2).*un;
+    fh = ui - uhat;
+
+    % freestream, adiabatic wall, isothermal wall, adiabatic slip wall, supersonic inflow, supersonic outflow
+    fb = 0*[f_in f_in fh fh f_in f_out];
 end
 
 function u0 = initu(x, mu, eta)

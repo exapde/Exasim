@@ -1,21 +1,22 @@
-function [UDG, UH, a] = steady_PTC(app, mesh, master, UDG, UH, a)
+function [UDG, WDG,UH, a] = steady_PTC(app, mesh, master, UDG, WDG, UH, a)
     % % setapp_dirklicationpath('FM/eulershock2');
     % % % app.S0=0.02; app.lambda = 0.01*avfactor; app.kappa=1.5;
     % app.S0=0.01; app.lambda = 0.01*avfactor; app.kappa=1.5;
     % % 
     % a = avf(mesh, master, app, UDG);
     % figure(1); clf; scaplot(mesh, a,[],2); 
-    ns = 1;
+    ns = 5;
     mesh.vdg(:,1,:) = a;
+    mesh.wdg = WDG;
     
     %
     app_tdep = app;
     app_tdep.GMRESrestart = 100;
-    app_tdep.linearsolvertol = 1e-4; % GMRES tolerance
-    app_tdep.linearsolveriter = 100;
+    app_tdep.linearsolvertol = 1e-8; % GMRES tolerance
+    app_tdep.linearsolveriter = 200;
     app_tdep.NLtol = 1e-12;              % Newton tolerance
     app_tdep.NLiter = 1;                 % Newton iterations
-    app_tdep.dt = 1e-4*ones(1,1);   % time step sizes
+    app_tdep.dt = 1e-4*ones(1,2);   % time step sizes
     app_tdep.soltime = [1]; % steps at which solution are collected
     app_tdep.torder = 1;          % time-stepping order of accuracy
     app_tdep.nstage = 1;          % time-stepping number of stages
@@ -40,18 +41,23 @@ function [UDG, UH, a] = steady_PTC(app, mesh, master, UDG, UH, a)
         fprintf('Timestep :  %d,  Time :   %g\n', itime, time);
         UDG_old = UDG;
         UH_old = UH;
+        WDG_old = WDG;
         %[UDG,UH] = hdg_solve_dirk(master,mesh,app_dirk,UDG,UH,[],time,dt(itime),nstage,torder);      
         %[Un,Hn,Pn] = hdg_solve_dirk(master,mesh,app_dirk,UDG,UH,PDG,time,dt,nstage,torder)
         %[Un,Hn,Pn] = hdg_solve_dirk(master,mesh,app_dirk,UDG,UH,PDG,time,dt,nstage,torder)
         mesh.udg = UDG;
+        mesh.wdg = WDG;
         [app_tdep,mesh,master,dmd] = preprocessing(app_tdep,mesh);
     
         runcode(app_tdep, 1); % run C++ code
         % UDG = fetchsolution(app_tdep,master,dmd, app_tdep.buildpath + '/dataout');
         UDG = getsolution(app_tdep.buildpath + '/dataout' + "/out_t1",dmd,master.npe);
+        WDG = getsolution(app_tdep.buildpath + '/dataout' + "/out_wdg_t2",dmd,master.npe);
+
         mesh.porder = app.porder;
         if mod(itime,10) == 0
-        figure(1); clf; scaplot(mesh, eulereval(UDG, 'M',1.4,17)); drawnow;
+        figure(1); clf; scaplot(mesh, UDG(:,8,:)); drawnow;
+        figure(2); clf; scaplot(mesh, WDG(:,1,:)); drawnow;
         end
         % [UDG,UH,~,it,alfa,duh] = hdg_solve_dirk(master,mesh,app_dirk,UDG,UH,[],time,dt,nstage,torder);    
         % [UDG,UH] = hdg_solve_dirk(master,mesh,app_dirk,UDG,UH,[],time,dt(itime),nstage,torder);    
@@ -71,10 +77,11 @@ function [UDG, UH, a] = steady_PTC(app, mesh, master, UDG, UH, a)
         if alfa == 1 && drho < 0.1 && drhoe < 0.1
             dt = min(dt*2, dtmax);
             disp("Increasing time step: dt = " + string(dt))
-        elseif alfa < 0.1 || drho > 1.0 ||drhoe >1.0
+        elseif alfa < 0.1 || drho > 1.0 ||drhoe >1.0 || any(isnan(UDG(:)))
             time = time - dt;
             UDG= UDG_old;
             UH = UH_old;
+            WDG = WDG_old;
             dt = dt/10;
             disp("Decreasing time step: dt = " + string(dt))
             revert_flag = 1;
@@ -83,6 +90,7 @@ function [UDG, UH, a] = steady_PTC(app, mesh, master, UDG, UH, a)
             % TODO:SAVEALPHA and read it
             disp("Unsteady converged...running steady:")
             mesh.udg = UDG;
+            mesh.wdg = WDG;
             [app,mesh,master,dmd] = preprocessing(app,mesh);
         
             runcode(app, 1); % run C++ code
@@ -94,7 +102,7 @@ function [UDG, UH, a] = steady_PTC(app, mesh, master, UDG, UH, a)
             break
             % end
         end
-        app_tdep.dt = dt*ones(1,1);   % time step sizes
+        app_tdep.dt = dt*ones(1,2);   % time step sizes
         % app_tdep.read_uh = 1;
     
         % if it == 1

@@ -27,7 +27,7 @@ rho_inf = [1.0055500000000001e-09 0.00035318161606 1.5872374699999997e-05 0.0011
 rhou_inf = 9.213932;
 rhov_inf = 0.0;
 rhoE_inf = 33563.20282790763; %TODO...do i need to change these to be consistent? 
-pde.debugmode=0; %NOTE:Remember a small mesh size is needed for debugging
+pde.debugmode=1; %NOTE:Remember a small mesh size is needed for debugging
 
 % Reference quantities for nondimensionalizing
 rho_ref = 0.001547;  % sum of inflow densities
@@ -132,7 +132,7 @@ rhoe = rhoe_dim / (rhoE_ref);
 WDG = ones(size(mesh.dgnodes,1),1,size(mesh.dgnodes,3));
 %
 for i = 1:1
- WDG(:,i,:) = 0.0 / pde.externalparam(4);
+ WDG(:,i,:) = 901.0 / pde.externalparam(4);
 end
 
 mesh.udg = UDG;
@@ -162,7 +162,7 @@ end
 
 compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
 
-% % runcode(pde, 1); %
+runcode(pde, 1); %
 %run C++ code
 % steady_PTC(pde, mesh, master, UDG, WDG, [], mesh.vdg(:,1,:));
 % %%
@@ -170,49 +170,49 @@ compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes
 % sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
 % figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2,1);
 % pde.read_uh = 0;
-[UDG1,WDG1]= steady_PTC(pde, mesh, master, UDG, WDG, [], mesh.vdg(:,1,:));
-% %
-mesh.vdg(:,1,:) = 0.05*tanh(dist*25);
-[UDG2,WDG2]= steady_PTC(pde, mesh, master, UDG1, WDG1, [], mesh.vdg(:,1,:));
-% %
-mesh.vdg(:,1,:) = 0.03*tanh(dist*25);
-[UDG3, WDG3] = steady_PTC(pde, mesh, master, UDG2, WDG2, [], mesh.vdg(:,1,:));
-% %
-mesh.vdg(:,1,:) = 0.01*tanh(dist*25);
-[UDG4, WDG4]= steady_PTC(pde, mesh, master, UDG3, WDG3, [], mesh.vdg(:,1,:));
+% [UDG1,WDG1]= steady_PTC(pde, mesh, master, UDG, WDG, [], mesh.vdg(:,1,:));
+% % %
+% mesh.vdg(:,1,:) = 0.05*tanh(dist*25);
+% [UDG2,WDG2]= steady_PTC(pde, mesh, master, UDG1, WDG1, [], mesh.vdg(:,1,:));
+% % %
+% mesh.vdg(:,1,:) = 0.03*tanh(dist*25);
+% [UDG3, WDG3] = steady_PTC(pde, mesh, master, UDG2, WDG2, [], mesh.vdg(:,1,:));
+% % %
+% mesh.vdg(:,1,:) = 0.01*tanh(dist*25);
+% [UDG4, WDG4]= steady_PTC(pde, mesh, master, UDG3, WDG3, [], mesh.vdg(:,1,:));
 % %
 % mesh.vdg(:,1,:) = 0.008*tanh(dist*25);
 % UDG5= steady_PTC(pde, mesh, master, UDG4, [], mesh.vdg(:,1,:));
 
-% %%
-% pde.source = 'source2d';
-% pde.flux = 'flux_mpp';
-% pde.fbou = 'fbou_mpp';
-% pde.fhat = 'fhat_mpp';
-% pde.arg = {rho_ref, u_ref, rhoE_ref, T_ref, mu_ref, kappa_ref, cp, L_ref, Ec, pde.tau};
-% pde.bcm  = [2,5,6];  % 2: Wall, 1: Far-field
-% pde.bcs  = [ui; ui; ui];
-% pde.bcd  = [1,1,1];  
-% pde.bcv  = [0; 0; 0];
-% 
-% pde.fc_q = 1;
-% pde.fc_u = 1;
-% pde.time = 0;
-% pde.tdep = 0;
-% pde.nd = 2;
-% mesh1 = hdgmesh(mesh, porder);
-% mesh1.dgnodes(:,3,:) = mesh.vdg(:,1,:);
-% master = Master(pde);
-% UDG0 = initu(mesh1,{ui(1),ui(2),ui(3),ui(4),ui(5),ui(6),ui(7),ui(8),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-% UDG0(:,ns+1,:) = UDG0(:,ns+1,:).*tanh(dist*4);
-% UDG0(:,ns+2,:) = UDG0(:,ns+2,:).*tanh(dist*4);
-% % TnearWall = pinf/(gam-1); % Tinf * (Twall/Tref-1) * exp(-10*dist) + Tinf;
-% rhoe_dim = rhoE_inf - 1/2 * sum(rho_inf) * u_inf^2;
-% rhoe = rhoe_dim / (rhoE_ref);
-% UDG0(:,ns+3,:) = rhoe + 1/2 * (UDG0(:,ns+1,:).^2 + UDG0(:,ns+2,:).^2) ./ sum( UDG0(:,1:ns,:), 2 ); 
-% UH0 = getuhat(UDG0, mesh1.f2t, master.perm, 8);
-% [UDG,UH] = hdgsolve(master,mesh1,pde,UDG0,UH0,[]);
-% 
+%%
+pde.source = 'source2d';
+pde.flux = 'flux_mpp';
+pde.fbou = 'fbou_mpp';
+pde.fhat = 'fhat_mpp';
+pde.arg = {rho_ref, u_ref, rhoE_ref, T_ref, mu_ref, kappa_ref, cp, L_ref, Ec, pde.tau};
+pde.bcm  = [2,5,6];  % 2: Wall, 1: Far-field
+pde.bcs  = [ui; ui; ui];
+pde.bcd  = [1,1,1];  
+pde.bcv  = [0; 0; 0];
+
+pde.fc_q = 1;
+pde.fc_u = 1;
+pde.time = 0;
+pde.tdep = 0;
+pde.nd = 2;
+mesh1 = hdgmesh(mesh, porder);
+mesh1.dgnodes(:,3,:) = mesh.vdg(:,1,:);
+master = Master(pde);
+UDG0 = initu(mesh1,{ui(1),ui(2),ui(3),ui(4),ui(5),ui(6),ui(7),ui(8),0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+UDG0(:,ns+1,:) = UDG0(:,ns+1,:).*tanh(dist*4);
+UDG0(:,ns+2,:) = UDG0(:,ns+2,:).*tanh(dist*4);
+% TnearWall = pinf/(gam-1); % Tinf * (Twall/Tref-1) * exp(-10*dist) + Tinf;
+rhoe_dim = rhoE_inf - 1/2 * sum(rho_inf) * u_inf^2;
+rhoe = rhoe_dim / (rhoE_ref);
+UDG0(:,ns+3,:) = rhoe + 1/2 * (UDG0(:,ns+1,:).^2 + UDG0(:,ns+2,:).^2) ./ sum( UDG0(:,1:ns,:), 2 ); 
+UH0 = getuhat(UDG0, mesh1.f2t, master.perm, 8);
+[UDG,UH] = hdgsolve(master,mesh1,pde,UDG0,UH0,[]);
+
 % % %%
 % % disp("Iter 2")
 % % mesh.vdg(:,1,:) = 0.04.*tanh(dist*30);
