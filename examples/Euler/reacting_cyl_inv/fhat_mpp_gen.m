@@ -6,7 +6,7 @@ nc = size(udg,2);
 
 % Huh, not sure what this is doing here...
 % [f,f_uhdg] = flux2d_backup_lastest(p,[uh,udg(:,nch+1:end)],param,time);
-[f,f_uhdg] = flux_mpp(p,[uh,udg(:,nch+1:end)],param,time);
+[f,f_uhdg] = flux2d2_mpp_manual(p,[uh,udg(:,nch+1:end)],param,time);
 
 tau = param{end};    
 dtau_duh = 0.0;

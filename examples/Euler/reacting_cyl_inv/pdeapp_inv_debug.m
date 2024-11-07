@@ -89,7 +89,7 @@ pde.AV = 1;%
 
 % [mesh.p,mesh.t,mesh.dgnodes] =
 % mkmesh_circincirc_Ma17b(pde.porder,201,201,1,3,4); 
-mesh = mkmesh_square(41 ,41,pde.porder,1,1,1,1,1);
+mesh = mkmesh_square(21 ,21,pde.porder,1,1,1,1,1);
 mesh.p(1,:) = logdec(mesh.p(1,:),0.5);
 mesh.dgnodes(:,1,:) = logdec(mesh.dgnodes(:,1,:),0.5);
 mesh = mkmesh_halfcircle(mesh,1,2,3,pi/2,3*pi/2);
@@ -188,7 +188,7 @@ runcode(pde, 1); %
 pde.source = 'source2d_gen';
 pde.flux = 'flux2d2_mpp_manual';
 pde.fbou = 'fbou_mpp';
-pde.fhat = 'fhat_mpp';
+pde.fhat = 'fhat_mpp_gen';
 pde.arg = {rho_ref, u_ref, rhoE_ref, T_ref, mu_ref, kappa_ref, cp, L_ref, Ec, pde.tau};
 pde.bcm  = [2,5,6];  % 2: Wall, 1: Far-field
 pde.bcs  = [ui; ui; ui];
