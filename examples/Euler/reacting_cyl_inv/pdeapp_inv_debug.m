@@ -18,7 +18,7 @@ pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 4;          % polynomial degree
+pde.porder = 2;          % polynomial degree
 porder = pde.porder;
 ns=5;
 pde.tau = 4.0;                  % DG stabilization parameter
@@ -89,7 +89,7 @@ pde.AV = 1;%
 
 % [mesh.p,mesh.t,mesh.dgnodes] =
 % mkmesh_circincirc_Ma17b(pde.porder,201,201,1,3,4); 
-mesh = mkmesh_square(21 ,21,pde.porder,1,1,1,1,1);
+mesh = mkmesh_square(41 ,41,pde.porder,1,1,1,1,1);
 mesh.p(1,:) = logdec(mesh.p(1,:),0.5);
 mesh.dgnodes(:,1,:) = logdec(mesh.dgnodes(:,1,:),0.5);
 mesh = mkmesh_halfcircle(mesh,1,2,3,pi/2,3*pi/2);
@@ -185,8 +185,8 @@ runcode(pde, 1); %
 % UDG5= steady_PTC(pde, mesh, master, UDG4, [], mesh.vdg(:,1,:));
 
 %%
-pde.source = 'source2d';
-pde.flux = 'flux_mpp';
+pde.source = 'source2d_gen';
+pde.flux = 'flux2d2_mpp_manual';
 pde.fbou = 'fbou_mpp';
 pde.fhat = 'fhat_mpp';
 pde.arg = {rho_ref, u_ref, rhoE_ref, T_ref, mu_ref, kappa_ref, cp, L_ref, Ec, pde.tau};
@@ -194,7 +194,7 @@ pde.bcm  = [2,5,6];  % 2: Wall, 1: Far-field
 pde.bcs  = [ui; ui; ui];
 pde.bcd  = [1,1,1];  
 pde.bcv  = [0; 0; 0];
-
+pde.debugmode=0;
 pde.fc_q = 1;
 pde.fc_u = 1;
 pde.time = 0;
@@ -212,7 +212,7 @@ rhoe = rhoe_dim / (rhoE_ref);
 UDG0(:,ns+3,:) = rhoe + 1/2 * (UDG0(:,ns+1,:).^2 + UDG0(:,ns+2,:).^2) ./ sum( UDG0(:,1:ns,:), 2 ); 
 UH0 = getuhat(UDG0, mesh1.f2t, master.perm, 8);
 [UDG,UH] = hdgsolve(master,mesh1,pde,UDG0,UH0,[]);
-
+% compareexasim(master, mesh1, pde);
 % % %%
 % % disp("Iter 2")
 % % mesh.vdg(:,1,:) = 0.04.*tanh(dist*30);
