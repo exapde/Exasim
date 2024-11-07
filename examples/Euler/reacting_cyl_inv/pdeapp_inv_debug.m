@@ -14,7 +14,7 @@ pde.model = "ModelD";          % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
+pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 % Set discretization parameters, physical parameters, and solver parameters
@@ -153,7 +153,7 @@ pde = setcompilers(pde);
 % generate input files and store them in datain folder
 [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
-pde.gencode = 0;
+pde.gencode = 1;
 % generate source codes and store them in app folder
 if pde.gencode==1
   %gencode(pde);

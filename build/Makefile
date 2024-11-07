@@ -117,19 +117,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-<<<<<<< Updated upstream
-# Target rules for targets named cpumpiEXASIM
-
-# Build rule for target.
-cpumpiEXASIM: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 cpumpiEXASIM
-.PHONY : cpumpiEXASIM
-
-# fast build rule for target.
-cpumpiEXASIM/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/build
-.PHONY : cpumpiEXASIM/fast
-=======
 # Target rules for targets named cpuEXASIM
 
 # Build rule for target.
@@ -141,18 +128,13 @@ cpuEXASIM: cmake_check_build_system
 cpuEXASIM/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpuEXASIM.dir/build.make CMakeFiles/cpuEXASIM.dir/build
 .PHONY : cpuEXASIM/fast
->>>>>>> Stashed changes
 
 Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.o: Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.o
 .PHONY : Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.o
 
 # target to build an object file
 Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.o:
-<<<<<<< Updated upstream
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.o
-=======
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpuEXASIM.dir/build.make CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.o
->>>>>>> Stashed changes
 .PHONY : Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.o
 
 Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.i: Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.i
@@ -160,11 +142,7 @@ Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.i: Users/ngoccuongnguyen/G
 
 # target to preprocess a source file
 Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.i:
-<<<<<<< Updated upstream
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.i
-=======
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpuEXASIM.dir/build.make CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.i
->>>>>>> Stashed changes
 .PHONY : Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.i
 
 Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.s: Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.s
@@ -172,11 +150,7 @@ Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.s: Users/ngoccuongnguyen/G
 
 # target to generate assembly for a file
 Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.s:
-<<<<<<< Updated upstream
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.s
-=======
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpuEXASIM.dir/build.make CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.s
->>>>>>> Stashed changes
 .PHONY : Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.cpp.s
 
 # Help Target
@@ -187,11 +161,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-<<<<<<< Updated upstream
-	@echo "... cpumpiEXASIM"
-=======
 	@echo "... cpuEXASIM"
->>>>>>> Stashed changes
 	@echo "... Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.o"
 	@echo "... Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.i"
 	@echo "... Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.s"

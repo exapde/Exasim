@@ -268,73 +268,10 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 EXASIM_CUDA:UNINITIALIZED=OFF
 
 //No help, variable specified on the command line.
-<<<<<<< Updated upstream
-EXASIM_MPI:UNINITIALIZED=ON
-
-//No help, variable specified on the command line.
-EXASIM_NOMPI:UNINITIALIZED=OFF
-
-//Executable for running MPI programs.
-MPIEXEC_EXECUTABLE:FILEPATH=/usr/local/bin/mpiexec
-
-//Maximum number of processors available to run MPI applications.
-MPIEXEC_MAX_NUMPROCS:STRING=4
-
-//Flag used by MPI to specify the number of processes for mpiexec;
-// the next option will be the number of processes.
-MPIEXEC_NUMPROC_FLAG:STRING=-n
-
-//These flags will be placed after all flags passed to mpiexec.
-MPIEXEC_POSTFLAGS:STRING=
-
-//These flags will be directly before the executable that is being
-// run by mpiexec.
-MPIEXEC_PREFLAGS:STRING=
-
-//MPI CXX additional include directories
-MPI_CXX_ADDITIONAL_INCLUDE_DIRS:STRING=
-
-//MPI compiler for CXX
-MPI_CXX_COMPILER:FILEPATH=/usr/local/bin/mpicxx
-
-//MPI CXX compiler wrapper include directories
-MPI_CXX_COMPILER_INCLUDE_DIRS:STRING=/usr/local/Cellar/open-mpi/4.1.4_2/include
-
-//MPI CXX compilation definitions
-MPI_CXX_COMPILE_DEFINITIONS:STRING=
-
-//MPI CXX compilation options
-MPI_CXX_COMPILE_OPTIONS:STRING=
-
-//Path to a file.
-MPI_CXX_HEADER_DIR:PATH=/usr/local/Cellar/open-mpi/4.1.4_2/include
-
-//MPI CXX libraries to link against
-MPI_CXX_LIB_NAMES:STRING=mpi
-
-//MPI CXX linker flags
-MPI_CXX_LINK_FLAGS:STRING=-L/usr/local/Cellar/libevent/2.1.12_1/lib
-
-//If true, the MPI-2 C++ bindings are disabled using definitions.
-MPI_CXX_SKIP_MPICXX:BOOL=OFF
-
-//Location of the mpi library for MPI
-MPI_mpi_LIBRARY:FILEPATH=/usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib
-
-//Arguments to supply to pkg-config
-PKG_CONFIG_ARGN:STRING=
-
-//pkg-config executable
-PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/local/bin/pkg-config
-=======
 EXASIM_MPI:UNINITIALIZED=OFF
 
 //No help, variable specified on the command line.
 EXASIM_NOMPI:UNINITIALIZED=ON
-
-//The directory containing a CMake configuration file for Kokkos.
-Kokkos_DIR:PATH=Kokkos_DIR-NOTFOUND
->>>>>>> Stashed changes
 
 //Value Computed by CMake
 exasim_BINARY_DIR:STATIC=/Users/ngoccuongnguyen/GitHub/Exasim/build
@@ -533,56 +470,8 @@ CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 FIND_PACKAGE_MESSAGE_DETAILS_BLAS:INTERNAL=[/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Accelerate.framework][v()]
 //Details about finding LAPACK
 FIND_PACKAGE_MESSAGE_DETAILS_LAPACK:INTERNAL=[/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/System/Library/Frameworks/Accelerate.framework;-lm;-ldl][v()]
-<<<<<<< Updated upstream
-//Details about finding MPI
-FIND_PACKAGE_MESSAGE_DETAILS_MPI:INTERNAL=[TRUE][c ][v3.1()]
-//Details about finding MPI_CXX
-FIND_PACKAGE_MESSAGE_DETAILS_MPI_CXX:INTERNAL=[/usr/local/Cellar/open-mpi/4.1.4_2/lib/libmpi.dylib][mpi][/usr/local/Cellar/open-mpi/4.1.4_2/include][TRUE][v3.1()]
-=======
->>>>>>> Stashed changes
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Have function cheev_
 LAPACK_WORKS:INTERNAL=1
-<<<<<<< Updated upstream
-//ADVANCED property for variable: MPIEXEC_EXECUTABLE
-MPIEXEC_EXECUTABLE-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPIEXEC_MAX_NUMPROCS
-MPIEXEC_MAX_NUMPROCS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPIEXEC_NUMPROC_FLAG
-MPIEXEC_NUMPROC_FLAG-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPIEXEC_POSTFLAGS
-MPIEXEC_POSTFLAGS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPIEXEC_PREFLAGS
-MPIEXEC_PREFLAGS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_ADDITIONAL_INCLUDE_DIRS
-MPI_CXX_ADDITIONAL_INCLUDE_DIRS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_COMPILER
-MPI_CXX_COMPILER-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_COMPILER_INCLUDE_DIRS
-MPI_CXX_COMPILER_INCLUDE_DIRS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_COMPILE_DEFINITIONS
-MPI_CXX_COMPILE_DEFINITIONS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_COMPILE_OPTIONS
-MPI_CXX_COMPILE_OPTIONS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_HEADER_DIR
-MPI_CXX_HEADER_DIR-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_LIB_NAMES
-MPI_CXX_LIB_NAMES-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_LINK_FLAGS
-MPI_CXX_LINK_FLAGS-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: MPI_CXX_SKIP_MPICXX
-MPI_CXX_SKIP_MPICXX-ADVANCED:INTERNAL=1
-//Result of TRY_COMPILE
-MPI_RESULT_CXX_test_mpi_MPICXX:INTERNAL=TRUE
-//Result of TRY_COMPILE
-MPI_RESULT_CXX_test_mpi_normal:INTERNAL=TRUE
-//ADVANCED property for variable: MPI_mpi_LIBRARY
-MPI_mpi_LIBRARY-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: PKG_CONFIG_ARGN
-PKG_CONFIG_ARGN-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
-PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
-=======
->>>>>>> Stashed changes
 

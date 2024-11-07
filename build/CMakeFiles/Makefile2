@@ -63,11 +63,7 @@ CMAKE_BINARY_DIR = /Users/ngoccuongnguyen/GitHub/Exasim/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-<<<<<<< Updated upstream
-all: CMakeFiles/cpumpiEXASIM.dir/all
-=======
 all: CMakeFiles/cpuEXASIM.dir/all
->>>>>>> Stashed changes
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -75,36 +71,6 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-<<<<<<< Updated upstream
-clean: CMakeFiles/cpumpiEXASIM.dir/clean
-.PHONY : clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/cpumpiEXASIM.dir
-
-# All Build rule for target.
-CMakeFiles/cpumpiEXASIM.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles --progress-num=1,2 "Built target cpumpiEXASIM"
-.PHONY : CMakeFiles/cpumpiEXASIM.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/cpumpiEXASIM.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/cpumpiEXASIM.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ngoccuongnguyen/GitHub/Exasim/build/CMakeFiles 0
-.PHONY : CMakeFiles/cpumpiEXASIM.dir/rule
-
-# Convenience name for target.
-cpumpiEXASIM: CMakeFiles/cpumpiEXASIM.dir/rule
-.PHONY : cpumpiEXASIM
-
-# clean rule for target.
-CMakeFiles/cpumpiEXASIM.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpumpiEXASIM.dir/build.make CMakeFiles/cpumpiEXASIM.dir/clean
-.PHONY : CMakeFiles/cpumpiEXASIM.dir/clean
-=======
 clean: CMakeFiles/cpuEXASIM.dir/clean
 .PHONY : clean
 
@@ -133,7 +99,6 @@ cpuEXASIM: CMakeFiles/cpuEXASIM.dir/rule
 CMakeFiles/cpuEXASIM.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cpuEXASIM.dir/build.make CMakeFiles/cpuEXASIM.dir/clean
 .PHONY : CMakeFiles/cpuEXASIM.dir/clean
->>>>>>> Stashed changes
 
 #=============================================================================
 # Special targets to cleanup operation of make.
