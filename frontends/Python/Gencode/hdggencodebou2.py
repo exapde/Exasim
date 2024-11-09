@@ -25,7 +25,7 @@ def hdggencodebou2(filename, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, 
     str_code = varsassign(str_code, "nlg", len(nlg), 1, fstr)
 
     # Call to the already implemented getccode function
-    str1 = getccode(f, "f")
+    str1 = getccode(f.flatten(), "f")
     str_code += str1
 
     strkk += str_code + "\t});\n" + "}\n\n"

@@ -30,7 +30,7 @@ for i = 1:length(xdg)
     str = str + "\t\tT " + str1 + " = " + str2 + ";\n";
 end
 
-n = length(f);
+n = length(f(:));
 ccode(f(:),'file','tmp.c');
 
 fid  = fopen('tmp.c','r');

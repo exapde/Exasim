@@ -1,7 +1,7 @@
 function [AE, FE, DUDG, DUDG_DUH] = uequationint(master,mesh,pde,UDG,UH,SH,MinvC,MinvE)
 
 ne  = size(mesh.dgnodes,3);
-ns  = 1000;
+ns  = 2000;
 nb = ceil(ne/ns);          
 nk = 1:ns:ne;
 nm = [nk(1:end); [nk(2:end)-1,ne]];    

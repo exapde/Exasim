@@ -18,7 +18,7 @@ function hdggencodebou(filename::String, f, xdg, udg, odg, wdg, uhg, nlg, tau, u
   str = varsassign(str, "odg", length(odg), 1, fstr)
   str = varsassign(str, "wdg", length(wdg), 1, fstr)
   str = varsassign(str, "nlg", length(nlg), 1, fstr)
-  str = sympyassign2(str, f, udg, wdg, uhg)
+  str = sympyassign2(str, f[:], udg, wdg, uhg)
 
   strkk = strkk * str * "\t});\n" * "}\n\n"
   strkk = replace(strkk, "T " => "dstype ")

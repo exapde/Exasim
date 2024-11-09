@@ -1,5 +1,6 @@
 function sympyassign2(mystr::String, f, udg, wdg, uhg)
 
+    f = f[:]
     str1 = getccode(f, "f[")
     str1 = "\t\t{\n" * str1 * "\t\t}\n"
     mystr = mystr * str1

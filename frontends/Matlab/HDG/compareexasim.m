@@ -78,7 +78,7 @@ if (nc>ncu)
 end
 fprintf('Maximum Absolue Error in UHAT =  %e \n', max(abs(UHAT(:)-uhat1(:))));    
 fprintf('Maximum Absolue Error in UDG at Gauss points =  %e \n', max(abs(udgg(:)-udg1(:))));       
-fprintf('Maximum Absolue Error in dgnodes =  %e \n', max(abs(pg(:)-xg1(:))));       
+%fprintf('Maximum Absolue Error in dgnodes =  %e \n', max(abs(pg(:)-xg1(:))));       
 fprintf('\n');
 
 disp("Check qEquation...");
