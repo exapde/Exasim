@@ -27,7 +27,7 @@ for k=1:1:ne
     dg = dgnodes(:,:,k);    
     
     % get dg nodes on faces
-    pn = reshape(dg(perm,1:nd,:),[npf nfe*nd]);
+    pn = reshape(dg(perm,:,:),[npf nfe*nd]);
     
     % compute volumetic Jacobian matrix 
     Jg = dshapvt*dg(:,1:nd);
