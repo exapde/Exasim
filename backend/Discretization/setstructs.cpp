@@ -249,6 +249,7 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.Ru, npe*ncu*ne, backend);
     TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
+    TemplateMalloc(&res.dudgt, npe*ncu*ne, backend);
     res.szRq = 2*npe*ncu*nd*ne;
     res.szRu = npe*ncu*ne;
     res.szRh = max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne);
@@ -509,6 +510,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     
     // allocate memory for uh
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
+    sol.uh0 = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
     sol.szuh = common.npf*common.ncu*common.nf;
     
     #ifdef HAVE_ENZYME
@@ -683,6 +685,8 @@ void devsolstruct(solstruct &dsol, solstruct &sol)
     //cudaTemplateMalloc(&dsol.uh, sol.nsize[3]);    
     cudaTemplateMalloc(&dsol.odg, sol.nsize[3]);          
     cudaTemplateMalloc(&dsol.wdg, sol.nsize[4]);
+    // cudaTemplateMalloc(&dsol.dudgt, sol.nsize[2]);
+    cudaTemplateMalloc(&dsol.udg0, sol.nsize[2]);    
 
     #ifdef HAVE_ENZYME
     cudaTemplateMalloc(&dsol.dudg, sol.nsize[2]);    
@@ -698,6 +702,8 @@ void devsolstruct(solstruct &dsol, solstruct &sol)
     //CHECK( cudaMemcpy( dsol.uh, sol.uh, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     CHECK( cudaMemcpy( dsol.odg, sol.odg, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     CHECK( cudaMemcpy( dsol.wdg, sol.wdg, sol.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );   
+    // CHECK( cudaMemcpy( dsol.dudgt, sol.dudgt, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );
+    CHECK( cudaMemcpy( dsol.udg0, sol.udg0, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
 
     #ifdef HAVE_ENZYME
     CHECK( cudaMemcpy( dsol.dudg, sol.dudg, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
@@ -923,6 +929,8 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     cudaTemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf);    
+    cudaTemplateMalloc(&sol.uh0, common.npf*common.ncu*common.nf);    
+
     #ifdef HAVE_ENZYME
         cudaTemplateMalloc(&sol.duh, common.npf*common.ncu*common.nf);
     #endif

@@ -1,8 +1,6 @@
 import sympy
 
 def getccode(f, varstr):
-
-    f = f.flatten()
     n = len(f)
     
     # Perform common subexpression elimination

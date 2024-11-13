@@ -15,7 +15,7 @@ function hdggencodeelem(filename::String, f, xdg, udg, odg, wdg, uinf, param, ti
     str = varsassign(str, "udg", length(udg), 1, fstr)
     str = varsassign(str, "odg", length(odg), 1, fstr)
     str = varsassign(str, "wdg", length(wdg), 1, fstr)
-    str = sympyassign2(str, f[:], udg, wdg, nothing)
+    str = sympyassign2(str, f, udg, wdg, nothing)
 
     strkk = strkk * str * "\t});\n" * "}\n\n"
     strkk = replace(strkk, "T " => "dstype ")

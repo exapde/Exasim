@@ -18,7 +18,7 @@ function hdggencodebou2(filename::String, f, xdg, udg, odg, wdg, uhg, nlg, tau, 
   str = varsassign(str, "odg", length(odg), 1, fstr)
   str = varsassign(str, "wdg", length(wdg), 1, fstr)
   str = varsassign(str, "nlg", length(nlg), 1, fstr)
-  str1 = getccode(f[:], "f[")
+  str1 = getccode(f, "f[")
   str = str * str1
 
   strkk = strkk * str * "\t});\n" * "}\n\n"

@@ -26,7 +26,7 @@ def hdggencodebou(filename, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, t
     str_code = varsassign(str_code, "nlg", len(nlg), 1, fstr)
 
     # Call to the already implemented sympyassign2 function
-    str_code = sympyassign2(str_code, f.flatten(), udg, wdg, uhg)
+    str_code = sympyassign2(str_code, f, udg, wdg, uhg)
 
     strkk += str_code + "\t});\n" + "}\n\n"
     strkk = strkk.replace("T ", "dstype ")
