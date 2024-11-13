@@ -1,6 +1,6 @@
 function mystr = symsassign(mystr, f)
 
-n = length(f(:));
+n = length(f);
 % for i=1:n
 %     f(i) = simplify(f(i));
 % end

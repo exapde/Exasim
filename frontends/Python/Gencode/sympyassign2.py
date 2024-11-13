@@ -2,9 +2,6 @@ import sympy
 from getccode import getccode
 
 def sympyassign2(mystr, f, udg, wdg, uhg):
-
-    f = f.flatten()
-
     # Generate C code for the original function
     str1 = getccode(f, "f")
     str1 = "\t\t{\n" + str1 + "\t\t}\n"
