@@ -246,8 +246,17 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
     Node2Gauss(handle, tmp.tempg, tmp.tempn, master.shapfgt, ngf, npf, nfe*ne*(ncu+nc+nco+ncw), backend);
 
     if ((ncw>0) & (common.wave==0)) {
+        // copy udg to tmp.tempn
+        ArrayCopy(tmp.tempn, udg, nga*nc);
+        
+        // replace u with uhat 
+        ArrayCopy(tmp.tempn, uhg, nga*ncu);
+    
         // solve the w equation to get wg and wg_uq
-        wEquation(wdg, wdg_uq, xg, udg, odg, wsrc, tmp.tempn, app, common, nga, backend);
+        wEquation(wdg, wdg_uq, xg, tmp.tempn, odg, wsrc, &tmp.tempn[nga*nc], app, common, nga, backend);
+      
+        // solve the w equation to get wg and wg_uq
+        //wEquation(wdg, wdg_uq, xg, udg, odg, wsrc, tmp.tempn, app, common, nga, backend);
     }
 
     ArraySetValue(fh, 0.0, nga*ncu);
@@ -258,7 +267,10 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         mesh, master, app, sol, tmp, common, nga, backend);      
 
     if ((ncw>0) & (common.wave==0)) {
-      ArrayGemmBatch2(fh_uq, fh_w, wdg_uq, one, ncu, nc, ncw, nga); // fix bug here       
+      ArrayGemmBatch2(fh_uh, fh_w, wdg_uq, one, ncu, ncu, ncw, nga); // fix bug here       
+      
+      ArraySetValue(wdg_uq, 0.0, nga*ncu*ncu);
+      ArrayGemmBatch2(fh_uq, fh_w, wdg_uq, one, ncu, nc, ncw, nga); // fix bug here                   
     }
     
     // if (common.debugMode==1) {    
@@ -339,7 +351,14 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         GetBoundaryNodes(nlb, nlg, &mesh.boufaces[start], ngf, nfe, ne, nd, nfaces);
 
         if ((ncw>0) & (common.wave==0)) {
-          wEquation(wgb, wgb_uq, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
+          // copy ugb to res.K
+          ArrayCopy(res.K, ugb, ngb*nc);
+        
+          // replace u with uhat 
+          ArrayCopy(res.K, uhb, ngb*ncu);
+        
+          wEquation(wgb, wgb_uq, xgb, res.K, ogb, wsb, Rb, app, common, ngb, backend);                    
+          //wEquation(wgb, wgb_uq, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
         // intialize fhb, fhb_uq, fhb_w, fhb_uh to zero 
@@ -357,7 +376,9 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         // print2darray(fhb_uq, ngb*ncu, nc);     
 
         if ((ncw>0) & (common.wave==0)) {
-          ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu, nc, ncw, ngb);  // fix bug here   
+          ArrayGemmBatch2(fhb_uh, fhb_w, wgb_uq, one, ncu, ncu, ncw, ngb);  // fix bug here             
+          ArraySetValue(wgb_uq, 0.0, ngb*ncu*ncu);          
+          ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu, nc, ncw, ngb);  // fix bug here                      
 //           print2darray(xgb, ngb, ncx);     
 //           print2darray(nlb, ngb, nd);     
 //           print2darray(ugb, ngb, nc);    
@@ -783,8 +804,14 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
     Node2Gauss(handle, tmp.tempg, tmp.tempn, master.shapfgt, ngf, npf, nfe*ne*(ncu+nc+nco+ncw+ncw), backend);
     
     if ((ncw>0) & (common.wave==0)) {
+        // copy udg to tmp.tempn
+        ArrayCopy(tmp.tempn, udg, nga*nc);
+        
+        // replace u with uhat 
+        ArrayCopy(tmp.tempn, uhg, nga*ncu);
+          
         // solve the w equation to get wg 
-        wEquation(wdg, xg, udg, odg, wsrcg, tmp.tempn, app, common, nga, backend);                
+        wEquation(wdg, xg, tmp.tempn, odg, wsrcg, &tmp.tempn[nga*nc], app, common, nga, backend);                      
     }
     
     FhatDriver(fh, tmp.tempn, xg, udg, odg, wdg, uhg, nlg, mesh, master, app, sol, tmp, common, nga, backend);      
@@ -821,7 +848,13 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         GetBoundaryNodes(nlb, nlg, &mesh.boufaces[start], ngf, nfe, ne, nd, nfaces);
 
         if ((ncw>0) & (common.wave==0)) {
-          wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
+          // copy ugb to tmp.tempn
+          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], ugb, ngb*nc);
+        
+          // replace u with uhat 
+          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], uhb, ngb*ncu);
+          
+          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, Rb, app, common, ngb, backend);                              
         }
         
         FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 

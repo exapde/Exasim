@@ -47,7 +47,7 @@ for i = 1:length(wdg)
     end
 end
 
-n = length(f);
+n = length(f(:));
 % for i=1:n
 %     f(i) = sympy.simplify(f(i));
 % end

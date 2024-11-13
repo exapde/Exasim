@@ -22,7 +22,7 @@ def hdggencodeelem2(filename, f, xdg, udg, odg, wdg, uinf, param, time, folderna
     str_code = varsassign(str_code, "wdg", len(wdg), 1, fstr)
     
     # Call to the already implemented sympyassign2 function
-    str_code = sympyassign2(str_code, f, None, wdg, None)
+    str_code = sympyassign2(str_code, f.flatten(), None, wdg, None)
 
     strkk += str_code + "\t});\n" + "}\n\n"
     strkk = strkk.replace("T ", "dstype ")

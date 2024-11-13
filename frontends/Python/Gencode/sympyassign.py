@@ -2,6 +2,7 @@ import sympy
 
 def sympyassign(mystr, f):
 
+    f = f.flatten();
     n = len(f);
     #for i in range(0,n):
     #    f[i] = sympy.simplify(f[i]);

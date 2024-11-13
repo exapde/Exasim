@@ -2,7 +2,7 @@ function mystr = getccode(f, varstr)
 
 mystr = "";
 
-n = length(f);
+n = length(f(:));
 ccode(f(:),'file','tmp.c');
 
 fid  = fopen('tmp.c','r');
