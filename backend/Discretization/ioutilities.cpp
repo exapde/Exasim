@@ -58,6 +58,17 @@ void print2darray(dstype* a, Int m, Int n)
     cout << endl;
 }
 
+void print2darray(dstype* a, Int m, Int n, Int M, Int N)
+{
+    //cout.precision(4);
+    for (Int i=0; i<m; i++) {
+        for (Int j=0; j<n; j++)
+            cout << scientific << a[j*M+i] << "   ";
+        cout << endl;
+    }
+    cout << endl;
+}
+
 void print3darray(dstype* a, Int m, Int n, Int p)
 {
     //cout.precision(8);

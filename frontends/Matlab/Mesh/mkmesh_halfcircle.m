@@ -11,14 +11,14 @@ function mesh = mkmesh_halfcircle(mesh,a,b,c,t1,t2)
 %      H:        Height of channel
 %      L:        Length of channel
 %
-p = mesh.p;
+p = mesh.p';
 t = t2 + p(:,2)*(t1-t2);
 d = -b*cos(t) + c*(1+cos(t));
 r = d + p(:,1).*(a-d);
 
 pnew(:,1) = r.*cos(t);
 pnew(:,2) = r.*sin(t);
-mesh.p = pnew;
+mesh.p = pnew';
 
 if isfield(mesh,'dgnodes') && ~isempty(mesh.dgnodes)
    clear pnew;

@@ -249,7 +249,6 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.Ru, npe*ncu*ne, backend);
     TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
-    TemplateMalloc(&res.dudgt, npe*ncu*ne, backend);
     res.szRq = 2*npe*ncu*nd*ne;
     res.szRu = npe*ncu*ne;
     res.szRh = max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne);
@@ -343,9 +342,14 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
 //     Int n10 = n9 + nga*ncu*nc;         // sg_w
 //     Int n11 = n10 + nga*ncu*ncw;        // wg_uq
     
+//     dstype *fh_uq  = &tmp.tempg[n8 + nga*ncu*nd];
+//     dstype *fh_uh  = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc];
+//     dstype *fh_w   = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu];
+//     dstype *wdg_uq = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu + nga*ncu*nd*ncw];        
+          
       int nga = nge*neb;
       k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc; // fix bug here      
-      nga = ngf*nfb; 
+      nga = ngf*neb*nfe; // fix bug here 
       k2 = nga*(ncu + nc + nco + ncw + ncw + ncu*nd + ncu*nd*nc + ncu*nd*ncu + ncu*nd*ncw + ncw*nc); // fix bug here            
       n3 = max(n3, k1);
       n3 = max(n3, k2);
@@ -510,7 +514,6 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     
     // allocate memory for uh
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
-    sol.uh0 = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
     sol.szuh = common.npf*common.ncu*common.nf;
     
     #ifdef HAVE_ENZYME
@@ -685,8 +688,6 @@ void devsolstruct(solstruct &dsol, solstruct &sol)
     //cudaTemplateMalloc(&dsol.uh, sol.nsize[3]);    
     cudaTemplateMalloc(&dsol.odg, sol.nsize[3]);          
     cudaTemplateMalloc(&dsol.wdg, sol.nsize[4]);
-    // cudaTemplateMalloc(&dsol.dudgt, sol.nsize[2]);
-    cudaTemplateMalloc(&dsol.udg0, sol.nsize[2]);    
 
     #ifdef HAVE_ENZYME
     cudaTemplateMalloc(&dsol.dudg, sol.nsize[2]);    
@@ -702,8 +703,6 @@ void devsolstruct(solstruct &dsol, solstruct &sol)
     //CHECK( cudaMemcpy( dsol.uh, sol.uh, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     CHECK( cudaMemcpy( dsol.odg, sol.odg, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
     CHECK( cudaMemcpy( dsol.wdg, sol.wdg, sol.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );   
-    // CHECK( cudaMemcpy( dsol.dudgt, sol.dudgt, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dsol.udg0, sol.udg0, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
 
     #ifdef HAVE_ENZYME
     CHECK( cudaMemcpy( dsol.dudg, sol.dudg, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
@@ -929,8 +928,6 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     cudaTemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf);    
-    cudaTemplateMalloc(&sol.uh0, common.npf*common.ncu*common.nf);    
-
     #ifdef HAVE_ENZYME
         cudaTemplateMalloc(&sol.duh, common.npf*common.ncu*common.nf);
     #endif
