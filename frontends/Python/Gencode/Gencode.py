@@ -134,14 +134,14 @@ def gencode(app):
         gencodeelem2("Sourcew" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
         if app['hybrid'] == 1:
             hdggencodeelem("Sourcew" + str(strn), f, xdg, udg, odg, wdg, uinf, param, time, foldername)
-            hdggencodeelem2("Sourcew2" + str(strn), f, xdg, udg, odg, wdg, uinf, param, time, foldername)
+            hdggencodeelem2("Sourcewonly" + str(strn), f, xdg, udg, odg, wdg, uinf, param, time, foldername)
         else:
             hdgnocodeelem("Sourcew" + str(strn), foldername)
-            hdgnocodeelem2("Sourcew2" + str(strn), foldername)    
+            hdgnocodeelem2("Sourcewonly" + str(strn), foldername)    
     else:
         nocodeelem2("Sourcew" + strn, foldername);
         hdgnocodeelem("Sourcew" + strn, foldername)
-        hdgnocodeelem2("Sourcew2" + strn, foldername)
+        hdgnocodeelem2("Sourcewonly" + strn, foldername)
     if hasattr(pde, 'mass'):
         #f = pde.mass(xdg, udg, odg, wdg, uinf, param, time);
         f = pde.mass(u, q, wdg, odg, xdg, time, param, uinf);
@@ -168,12 +168,12 @@ def gencode(app):
             f = pde.fbouhdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau)
             f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])),'F');
             hdggencodeface("Fbou" + str(strn), f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername)
-            hdggencodeface2("Fbou2" + str(strn), f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername)
+            hdggencodeface2("Fbouonly" + str(strn), f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername)
         else:
             raise AttributeError("pde.fbouhdg is not defined")
     else:
         hdgnocodeface("Fbou" + str(strn), foldername)
-        hdgnocodeface2("Fbou2" + str(strn), foldername)    
+        hdgnocodeface2("Fbouonly" + str(strn), foldername)    
     if hasattr(pde, 'fbou'):
         #f = pde.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);
         f = pde.fbou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);

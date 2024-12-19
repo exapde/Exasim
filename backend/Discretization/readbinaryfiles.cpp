@@ -524,7 +524,9 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     Int nco = app.ndims[9];
     Int ncx = app.ndims[11];
     Int ncw = app.ndims[13];
-    Int ne = mesh.ndims[1];    
+    Int ne = mesh.ndims[1];
+    Int npf = master.ndims[6];
+    Int nf = mesh.ndims[2];
 
     sol.lsize = readiarrayfromdouble(in, 1);
     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
@@ -603,6 +605,13 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.nsize[4] = npe*ncw*ne;
         sol.szwdg = sol.nsize[4];
     }
+    if (sol.nsize[5] == npf*nf*ncu) {
+        //std::cout << "Reading in uh ..." << std::endl;
+        //readarray(in, &sol.uh, sol.nsize[5]);
+        //print2darray(sol.uh, npf*ncu*10, 2);
+        app.read_uh = 1;
+    }
+    std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
         
     // Close file:
     in.close();            

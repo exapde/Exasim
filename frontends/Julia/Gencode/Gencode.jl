@@ -167,15 +167,15 @@ if isdefined(pdemodel, Symbol("sourcew"))
     gencodeelem2("Sourcew" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
     if app.hybrid==1
       hdggencodeelem("Sourcew" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
-      hdggencodeelem2("Sourcew2" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+      hdggencodeelem2("Sourcewonly" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
     else
       hdgnocodeelem("Sourcew" * strn, foldername);
-      hdgnocodeelem2("Sourcew2" * strn, foldername);
+      hdgnocodeelem2("Sourcewonly" * strn, foldername);
     end    
 else
     nocodeelem2("Sourcew" * strn, foldername);
     hdgnocodeelem("Sourcew" * strn, foldername);
-    hdgnocodeelem2("Sourcew2" * strn, foldername);
+    hdgnocodeelem2("Sourcewonly" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("mass"))
     #f = pdemodel.mass(xdg, udg, odg, wdg, uinf, param, time);
@@ -222,13 +222,13 @@ if app.hybrid==1
     end    
     f = reshape(f[:],app.ncu,Int(length(f)/app.ncu));
     hdggencodeface("Fbou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
-    hdggencodeface2("Fbou2" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+    hdggencodeface2("Fbouonly" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
   else
     error("pde.Fbouhdg is not defined");
   end
 else
   hdgnocodeface("Fbou" * strn, foldername);
-  hdgnocodeface2("Fbou2" * strn, foldername);
+  hdgnocodeface2("Fbouonly" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("fbou"))
     #f = pdemodel.fbou(xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time);

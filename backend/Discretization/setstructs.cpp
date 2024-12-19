@@ -15,7 +15,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
 #ifdef HAVE_ENZYME    
     common.enzyme = 1;
 #endif            
-    
+    common.read_uh = app.read_uh;
     common.nc = app.ndims[5]; // number of compoments of (u, q)
     common.ncu = app.ndims[6];// number of compoments of (u)        
     common.ncq = app.ndims[7];// number of compoments of (q)
@@ -513,7 +513,9 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     // allocate memory for uh
+    if (!app.read_uh) {
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
+    }
     sol.szuh = common.npf*common.ncu*common.nf;
     
     #ifdef HAVE_ENZYME
@@ -928,6 +930,10 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
     
     cudaTemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf);    
+    if (common.read_uh) {
+        CHECK( cudaMemcpy( sol.uh, hsol.uh, hsol.nsize[5]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
+    }
+
     #ifdef HAVE_ENZYME
         cudaTemplateMalloc(&sol.duh, common.npf*common.ncu*common.nf);
     #endif

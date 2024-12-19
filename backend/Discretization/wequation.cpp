@@ -31,7 +31,7 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
           // ->  (alpha * dtfactor + beta) w - alpha * wsrc - sourcew(u,q,w) = 0              
 
           // calculate the source term Sourcew(xdg, udg, odg, wdg)
-          HdgSourcew2(s, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
+          HdgSourcewonly(s, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
           
           // alpha*dirkd/dt + beta
           dstype scalar = common.dae_alpha*common.dtfactor + common.dae_beta;
@@ -98,12 +98,12 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
         dstype *s = tempg; // temporary array    
         dstype *s_wdg = &tempg[ng*ncw]; // temporary array              
         // use Newton to solve the nonlinear system  alpha * dw/dt + beta w = S(w, u, q) to obtain w for given (u, q)                
-        for (int iter=0; iter<10; iter++) {
+        for (int iter=0; iter<20; iter++) {
           // alpha * dw/dt + beta w = sourcew(u,q,w) -> alpha (dtfactor * w - wsrc) + beta w = sourcew(u,q,w) 
           // ->  (alpha * dtfactor + beta) w - alpha * wsrc - sourcew(u,q,w) = 0              
 
           // calculate the source term Sourcew(xdg, udg, odg, wdg)
-          HdgSourcew2(s, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
+          HdgSourcewonly(s, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
           
           // alpha*dirkd/dt + beta
           dstype scalar = common.dae_alpha*common.dtfactor + common.dae_beta;
@@ -139,7 +139,7 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
 
           // check convergence
           dstype nrm = NORM(common.cublasHandle, ng*ncw, s, backend);
-          if (nrm < 1e-6) {
+          if (nrm < 1e-8) {     // Try a tighter tolerance, -7 or -8
             // wdg_udg is actually s_udg 
             HdgSourcew(s, wdg_udg, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
             
@@ -168,6 +168,11 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
             }                          
             break;              
           }
+          else {
+            if (iter==20) {
+              error("Newton in wequation does not converge to 1e-8.");
+            }
+          } 
         }                        
     }            
 }

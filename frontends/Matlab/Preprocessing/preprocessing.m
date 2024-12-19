@@ -6,8 +6,8 @@ else
     strn = num2str(app.modelnumber);
 end
 
-if ~exist(char(app.buildpath + "/model"), 'dir')
-    mkdir(char(app.buildpath + "/model"));
+if ~exist(char(app.exasimpath + "/build/model"), 'dir')
+    mkdir(char(app.exasimpath + "/build/model"));
 end
 if  ~exist(char(app.buildpath + "/datain" + strn), 'dir')
     mkdir(char(app.buildpath + "/datain" + strn));
@@ -163,6 +163,20 @@ for i = 1:mpiprocs
     if isfield(mesh, 'wdg')        
         nsize(5) = numel(mesh.wdg(:,:,dmd{i}.elempart));
     end
+    if isfield(app, 'read_uh') 
+        if app.read_uh
+            % First, read from UH (specifically np{i})
+            % Just write that directly, no need for UH(i,j,k);
+            if isfield(app, 'read_uh_steady')
+                disp("FORCE THE READ OF UH STEADY")
+                fileID = fopen(app.buildpath+"/dataout/out_uhat_np"+string(i-1)+".bin",'r');
+            else
+            fileID = fopen(app.buildpath+"/dataout/out_uhat_t1500_np"+string(i-1)+".bin",'r');
+            end
+            UH_tmp = fread(fileID,'double');
+            nsize(6) = length(UH_tmp); 
+        end
+    end
 
     fwrite(fileID1,length(nsize(:)),'double',endian);
     fwrite(fileID1,nsize(:),'double',endian);
@@ -179,6 +193,12 @@ for i = 1:mpiprocs
     end
     if isfield(mesh, 'wdg')        
         fwrite(fileID1,mesh.wdg(:,:,dmd{i}.elempart),'double',endian);                
+    end
+    if isfield(app, 'read_uh')    
+        if app.read_uh 
+        % Just write that directly, no need for UH(i,j,k);
+        fwrite(fileID1,UH_tmp,'double',endian);        
+        end
     end
     fclose(fileID1);         
     

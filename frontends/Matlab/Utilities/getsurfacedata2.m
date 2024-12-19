@@ -36,9 +36,9 @@ end
 
 % Get shape functions on faces
 perm   = master.perm(:,:,1);
-for d=1:nd
-    master.shapft(:,:,d) = master.shapfc(:,:,d)';
-end
+% for d=1:nd
+%     master.shapft(:,:,d) = master.shapfc(:,:,d)';
+% end
 shapft = squeeze(master.shapft(:,:,1));
 dshapft  = reshape(permute(master.shapft(:,:,2:nd),[1 3 2]),[ngf*(nd-1) npf]);
 
@@ -49,6 +49,8 @@ cpData = [];
 cfData = [];
 chData = [];
 
+% ftmp = mkt2f(mesh.t',1);
+% mesh.f = setbndnbrs(mesh.p', ftmp, mesh.bndexpr);
 for i=1:ne
     dg = mesh.dgnodes(:,1:nd,i);
     udg = UDG(:,:,i);

@@ -67,7 +67,7 @@ elseif strcmp(str,'t')
     uv = u(:,2,:)./u(:,1,:);
     vv = u(:,3,:)./u(:,1,:);
     p  = (gam-1)*(u(:,4,:) - 0.5*(u(:,2,:).*uv + u(:,3,:).*vv));
-    sca = (gam*mach^2)*p./r;
+    sca = p./((gam-1)*r);
 elseif strcmp(str,'h')
     r  = u(:,1,:);
     uv = u(:,2,:)./u(:,1,:);

@@ -1,5 +1,8 @@
 function mesh=mkcgmesh(mesh)
 
+mesh.p = mesh.p';
+mesh.t = mesh.t';
+
 % remove duplicate nodes in mesh.p1
 dim = size(mesh.p,2);
 [ns,dim,nt]=size(mesh.dgnodes(:,1:dim,:));
@@ -13,5 +16,8 @@ B=flipdim(B,1);
 [~,b]=ismember(A,B,'rows');
 
 % CG mesh
-mesh.p2=B;
-mesh.t2=reshape(b,[ns nt])';
+mesh.p2=B';
+mesh.t2=reshape(b,[ns nt]);
+
+mesh.p = mesh.p';
+mesh.t = mesh.t';

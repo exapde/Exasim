@@ -390,10 +390,10 @@ void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int 
 
 #include "HdgFlux.cpp"
 #include "HdgFbou.cpp"
-#include "HdgFbou2.cpp"
+#include "HdgFbouonly.cpp"
 #include "HdgSource.cpp"
 #include "HdgSourcew.cpp"
-#include "HdgSourcew2.cpp"
+#include "HdgSourcewonly.cpp"
 #include "HdgEoS.cpp"
 
 void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
@@ -460,7 +460,7 @@ void SourcewDriver(dstype* f, dstype* f_wdg, const dstype* xg, const dstype* udg
   Int numPoints = nge*(e2-e1);    
   dstype time = common.time;            
   
-  HdgSourcew2(f, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+  HdgSourcewonly(f, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
@@ -513,7 +513,7 @@ void FbouDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, co
     Int numPoints = nga;
     dstype time = common.time;    
 
-    HdgFbou2(f, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+    HdgFbouonly(f, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 

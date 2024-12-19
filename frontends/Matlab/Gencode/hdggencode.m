@@ -1,6 +1,7 @@
 function hdggencode(app)
 
-kkdir = app.buildpath + "/model";
+%kkdir = app.buildpath + "/model";
+kkdir = app.exasimpath + "/build/model";
 
 [xdg, udg, ~, ~, wdg, ~, ~, odg, ~, ~, uhg, nlg, tau, uinf, param, time] = syminit(app);
 pdemodel = str2func(app.modelfile);
@@ -25,9 +26,9 @@ if app.hybrid == 0
   hdgnocodeelem("Source" + strn, kkdir);  
   hdgnocodeelem("EoS" + strn, kkdir);    
   hdgnocodeelem("Sourcew" + strn, kkdir);
-  hdgnocodeelem2("Sourcew2" + strn, kkdir);
+  hdgnocodeelem2("Sourcewonly" + strn, kkdir);
   hdgnocodeface("Fbou" + strn, kkdir);
-  hdgnocodeface2("Fbou2" + strn, kkdir);
+  hdgnocodeface2("Fbouonly" + strn, kkdir);
 else
   if isfield(pde, 'flux')    
       f = pde.flux(u, q, wdg, odg, xdg, time, param, uinf);    
@@ -50,16 +51,16 @@ else
   if isfield(pde, 'sourcew')    
       f = pde.sourcew(u, q, wdg, odg, xdg, time, param, uinf);
       hdggencodeelem("Sourcew" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);
-      hdggencodeelem2("Sourcew2" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);
+      hdggencodeelem2("Sourcewonly" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);
   else    
       hdgnocodeelem("Sourcew" + strn, kkdir);
-      hdgnocodeelem2("Sourcew2" + strn, kkdir);
+      hdgnocodeelem2("Sourcewonly" + strn, kkdir);
   end
   if isfield(pde, 'fbouhdg')    
       f = pde.fbouhdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
       f = reshape(f,ncu,[]);
       hdggencodeface("Fbou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
-      hdggencodeface2("Fbou2" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
+      hdggencodeface2("Fbouonly" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
   else
       error("pde.fbouhdg is not defined");
   end

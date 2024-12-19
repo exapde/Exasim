@@ -64,7 +64,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     GetElemNodes(tmp.tempn, sol.udg, npe, nc, 0, nc, e1, e2);
     //GetArrayAtIndex(tmp.tempn, sol.udg, &mesh.eindudg1[npe*nc*e1], nn*nc); // npe x ne x nc
     Node2Gauss(handle, uqg, tmp.tempn, master.shapegt, nge, npe, ne*nc, backend);    
-
+    
     if ((ncw>0) & (common.wave==0)) {
         GetElemNodes(tmp.tempn, sol.wdg, npe, ncw, 0, ncw, e1, e2);    
         Node2Gauss(handle, wg, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        

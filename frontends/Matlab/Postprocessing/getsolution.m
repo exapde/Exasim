@@ -1,7 +1,7 @@
 function UDG = getsolution(filename,dmd,npe)
 
 nproc = length(dmd);
-if nproc==1
+if nproc==1    
     fileID = fopen(filename + "_np0.bin",'r');
     UDG = fread(fileID,'double');
     fclose(fileID);
