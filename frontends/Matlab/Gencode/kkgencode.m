@@ -3,7 +3,8 @@ function kkgencode(app)
 disp("generate code...");
 
 %kkdir = app.buildpath + "/model";
-kkdir = app.exasimpath + "/build/model";
+%kkdir = app.exasimpath + "/build/model";
+kkdir = app.backendpath + "/Model";
 
 text = fileread(char(app.backendpath + "/Discretization/KokkosDrivers.cpp"));
 fid = fopen(kkdir + "/" + "KokkosDrivers.cpp", 'w');

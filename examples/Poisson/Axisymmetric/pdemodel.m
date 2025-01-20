@@ -1,4 +1,7 @@
 function pde = pdemodel
+% -(1/r) * d/dr (r du/dr) - d2u/dz2 = s
+% - d/dr (r du/dr) - d/dz (r du/dz) = r * s
+
 pde.flux = @flux;
 pde.source = @source;
 pde.fbou = @fbou;

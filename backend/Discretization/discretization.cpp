@@ -8,7 +8,7 @@
 #include "discretization.h"
 #include "errormsg.cpp"
 #include "ioutilities.cpp"
-#include "../../build/model/KokkosDrivers.cpp"
+#include "../Model/KokkosDrivers.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"
