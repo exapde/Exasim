@@ -69,5 +69,9 @@ axis equal; axis tight; axis on; box on;
 xlabel("$z$", 'interpreter', 'latex', 'FontSize', 28);
 ylabel("$r$", 'interpreter', 'latex', 'FontSize', 28);
 
-
+figure(1); clf; scaplot(meshht, (Tref/Tinf)*solht(:,1,:), [1500 1560]);
+set(gca,'FontSize',20); 
+axis equal; axis tight; axis on; box on;
+xlabel("$z$", 'interpreter', 'latex', 'FontSize', 28);
+ylabel("$r$", 'interpreter', 'latex', 'FontSize', 28);
 
