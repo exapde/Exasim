@@ -9,6 +9,7 @@ addpath(char(srcdir + "/Mesh"));
 addpath(char(srcdir + "/Mesh/mkmesh"));
 addpath(char(srcdir + "/Mesh/cmesh"));
 addpath(char(srcdir + "/Mesh/lesmesh"));
+addpath(char(srcdir + "/Mesh/surfmesh"));
 addpath(char(srcdir + "/HDG"));
 addpath(char(srcdir + "/Preprocessing"));
 addpath(char(srcdir + "/Postprocessing"));
