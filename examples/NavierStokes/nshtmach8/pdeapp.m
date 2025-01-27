@@ -22,6 +22,9 @@ while (iter < itermax)
   % transfer temperature from solid domain to fluid domain
   mesh.udg = sol;
   [mesh.vdg(:,2,:), UHbht, in, im] = solutiontransfer_ht2ns(pdeht, dmdht, meshht, mesh);
+  
+  % vdg(:,1,:) = artificial viscosity for shock capturing
+  % vdg(:,2,:) = temperature on the interface from the solid domain
 
   % check convergence if the solid temperature matches the fluid temperature
   Tns = eulereval(UHbns, 't', gam, Minf);

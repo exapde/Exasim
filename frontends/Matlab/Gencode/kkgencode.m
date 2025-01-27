@@ -4,8 +4,8 @@ disp("generate code...");
 
 %kkdir = app.buildpath + "/model";
 %kkdir = app.exasimpath + "/build/model";
-kkdir = app.backendpath + "/Model";
 
+kkdir = app.backendpath + "/Model";
 text = fileread(char(app.backendpath + "/Discretization/KokkosDrivers.cpp"));
 fid = fopen(kkdir + "/" + "KokkosDrivers.cpp", 'w');
 fprintf(fid, text);
@@ -110,16 +110,16 @@ if isfield(pde, 'fbou')
     f = reshape(f,ncu,[]);
     kkgencodeface("Fbou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
 else
-    disp("WARNING: fbou is not defined in the PDE model")
-    % error("pde.fbou is not defined");
+    % disp("WARNING: fbou is not defined in the PDE model")
+    error("pde.fbou is not defined");
 end
 if isfield(pde, 'ubou')
     f = pde.ubou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
     f = reshape(f,ncu,[]);
     kkgencodeface("Ubou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
 else
-    disp("WARNING: ubou is not defined in the PDE model")
-    % error("pde.ubou is not defined");
+    % disp("WARNING: ubou is not defined in the PDE model")
+    error("pde.ubou is not defined");
 end
 if isfield(pde, 'fhat')    
     f = pde.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);

@@ -391,6 +391,8 @@ void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int 
 #include "HdgFlux.cpp"
 #include "HdgFbou.cpp"
 #include "HdgFbouonly.cpp"
+#include "HdgFint.cpp"
+#include "HdgFintonly.cpp"
 #include "HdgSource.cpp"
 #include "HdgSourcew.cpp"
 #include "HdgSourcewonly.cpp"
@@ -514,6 +516,41 @@ void FbouDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, co
     dstype time = common.time;    
 
     HdgFbouonly(f, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                      common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
+}
+
+void FintDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
+        const dstype*  odg, const dstype*  wdg, dstype* uhg, const dstype* nl, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
+{
+    Int nc = common.nc; // number of compoments of (u, q, p)
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int ncw = common.ncw;// number of compoments of (w)
+    Int nco = common.nco;// number of compoments of (o)
+    Int ncx = common.ncx;// number of compoments of (xdg)        
+    Int nd = common.nd;     // spatial dimension        
+    Int numPoints = nga;
+    dstype time = common.time;    
+
+
+    HdgFint(f, f_udg, f_wdg, f_uhg, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                      common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
+}
+
+void FintDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
+        const dstype* nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nga, Int ib, Int backend)
+{
+    Int nc = common.nc; // number of compoments of (u, q, p)
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int ncw = common.ncw;// number of compoments of (w)
+    Int nco = common.nco;// number of compoments of (o)
+    Int ncx = common.ncx;// number of compoments of (xdg)        
+    Int nd = common.nd;     // spatial dimension        
+    Int numPoints = nga;
+    dstype time = common.time;    
+
+    HdgFintonly(f, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 

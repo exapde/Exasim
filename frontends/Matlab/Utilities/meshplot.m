@@ -20,7 +20,7 @@ p=mesh.p';
 t=mesh.t';
 f=mesh.f;
 dim=size(p,2);
-dpl=size(mesh.plocal,2);
+dpl=size(mesh.xpe,2);
 
 % surface mesh
 if dpl==2 && dim==3

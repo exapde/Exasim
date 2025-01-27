@@ -109,6 +109,7 @@ def initializepde(version):
     pde['boundaryconditions'] = [0, 0];
     pde['stgib'] = [0, 0];
     pde['vindx'] = numpy.array([]);
+    pde['interfacefluxmap'] = numpy.array([]);
 
     pde['tau'] = 1.0; # stabilization parameters
     pde['uinf'] = numpy.array([0.0, 0.0]); # freestream values

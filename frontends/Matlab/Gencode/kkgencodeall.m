@@ -39,6 +39,8 @@ kkgencodeelemface("HdgSourcew", npm, 6, foldername);
 kkgencodeelemface("HdgSourcewonly", npm, 7, foldername);
 kkgencodeelemface("HdgFbou", npm, 8, foldername);
 kkgencodeelemface("HdgFbouonly", npm, 9, foldername);
+kkgencodeelemface("HdgFint", npm, 8, foldername);
+kkgencodeelemface("HdgFintonly", npm, 9, foldername);
 
 end
 

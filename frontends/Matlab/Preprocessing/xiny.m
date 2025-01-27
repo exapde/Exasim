@@ -2,6 +2,7 @@ function in = xiny(x,y)
 % Determine if each row of x is a member of y
 % If row j of x is a member of y and x(j,:) = y(k,:) then in(j) = k
 % Else in(j) = 0
+% x(in>0) = y
 
 
 [m,dim] = size(x);

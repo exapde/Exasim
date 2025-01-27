@@ -288,12 +288,12 @@ template <typename T> static void cudaCopytoHost(T *h_data, T *d_data, Int n)
 #endif
 
 template <typename T> static void TemplateMalloc(T **data, Int n, Int backend)
-{
-    if (backend == 0)               
+{    
+    if ((backend == 0) && (n>0))              
         *data = (T *) malloc(n*sizeof(T));      
 
 #ifdef HAVE_CUDA            
-    if (backend == 2)  // CUDA C                
+    if ((backend == 2) && (n>0)) // CUDA C                
         // allocate the memory on the GPU            
         CHECK( cudaMalloc( (void**)data, n * sizeof(T) ) );
 #endif                 
@@ -301,7 +301,7 @@ template <typename T> static void TemplateMalloc(T **data, Int n, Int backend)
 
 template <typename T> static void TemplateFree(T *data,  Int backend)
 {
-    if (backend == 0)  CPUFREE(data);
+    if ((backend == 0) || (backend == 1))  CPUFREE(data);
         
 #ifdef HAVE_CUDA            
     if (backend == 2)  GPUFREE(data);
@@ -317,7 +317,7 @@ template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int
     
 #ifdef HAVE_CUDA            
     // copy data from CPU to GPU
-    if (backend == 2) CHECK( cudaMemcpy( d_data, h_data, n * sizeof(T), cudaMemcpyHostToDevice ) );            
+    if ((backend == 2) && (n>0)) CHECK( cudaMemcpy( d_data, h_data, n * sizeof(T), cudaMemcpyHostToDevice ) );            
 #endif    
 }
 
@@ -344,6 +344,7 @@ struct appstruct {
     Int *porder=nullptr; // polymnomial degrees
     Int *stgib=nullptr;
     Int *vindx=nullptr;
+    Int *interfacefluxmap=nullptr;
     
     dstype *uinf=nullptr;    // boundary data
     dstype *dt=nullptr;      // time steps       
@@ -364,14 +365,14 @@ struct appstruct {
     dstype *dtcoef_q=nullptr;    /* factor when discretizing the time derivative of the Q equation. Allow scalar field for local time stepping in steady problems? */
     dstype *dtcoef_w=nullptr;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
     
-    Int szflag=0, szproblem=0, szcomm=0, szporder=0, szstgib=0, szvindx=0;
+    Int szflag=0, szproblem=0, szcomm=0, szporder=0, szstgib=0, szvindx=0, szinterfacefluxmap=0;
     Int szuinf=0, szdt=0, szdae_dt=0, szfactor=0, szphysicsparam=0, szsolversparam=0;
     Int sztau=0, szstgdata=0, szstgparam=0, szfc_u=0, szfc_q=0, szfc_w=0;
     Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0;
     Int read_uh = 0;
 
     int sizeofint() {
-      int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx;
+      int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx + szinterfacefluxmap;
       return sz;
     }
     int sizeoffloat() {
@@ -390,6 +391,7 @@ struct appstruct {
       printf("size of porder: %d\n", szporder);
       printf("size of stgib: %d\n", szstgib);
       printf("size of vindx: %d\n", szvindx);
+      printf("size of interfacefluxmap: %d\n", szinterfacefluxmap);
       printf("size of uinf: %d\n", szuinf);
       printf("size of dt: %d\n", szdt);
       printf("size of dae_dt: %d\n", szdae_dt);
@@ -412,64 +414,97 @@ struct appstruct {
     #ifdef HAVE_MPP
     Mutation::Mixture *mix=nullptr;
     #endif
+
     // custom destructor
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {
-            CPUFREE(lsize);
-            CPUFREE(nsize);
-            CPUFREE(ndims);   
-            CPUFREE(comm);   
-            CPUFREE(porder);               
-            CPUFREE(flag);    
-            CPUFREE(problem);
-            CPUFREE(stgib);
-            CPUFREE(vindx);
-            CPUFREE(uinf);
-            CPUFREE(dt);
-            CPUFREE(dae_dt);
-            CPUFREE(factor);
-            CPUFREE(physicsparam);
-            CPUFREE(solversparam);
-            CPUFREE(tau);
-            CPUFREE(stgdata);
-            CPUFREE(stgparam);
-            CPUFREE(fc_u);
-            CPUFREE(fc_q);
-            CPUFREE(fc_w);
-            CPUFREE(dtcoef_u);
-            CPUFREE(dtcoef_q);
-            CPUFREE(dtcoef_w);
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(lsize);
-            GPUFREE(nsize);
-            GPUFREE(ndims);    
-            GPUFREE(comm);   
-            GPUFREE(porder);   
-            GPUFREE(flag);    
-            GPUFREE(problem);
-            GPUFREE(stgib);
-            GPUFREE(vindx);
-            GPUFREE(uinf);
-            GPUFREE(dt);
-            GPUFREE(dae_dt);
-            GPUFREE(factor);
-            GPUFREE(physicsparam);
-            GPUFREE(solversparam);
-            GPUFREE(tau);
-            GPUFREE(stgdata);
-            GPUFREE(stgparam);
-            GPUFREE(fc_u);
-            GPUFREE(fc_q);
-            GPUFREE(fc_w);
-            GPUFREE(dtcoef_u);
-            GPUFREE(dtcoef_q);
-            GPUFREE(dtcoef_w);
-       }
-#endif       
+        TemplateFree(lsize, backend);
+        TemplateFree(nsize, backend);
+        TemplateFree(ndims, backend);   
+        TemplateFree(comm, backend);   
+        TemplateFree(porder, backend);               
+        TemplateFree(flag, backend);    
+        TemplateFree(problem, backend);
+        TemplateFree(stgib, backend);
+        TemplateFree(vindx, backend);
+        TemplateFree(interfacefluxmap, backend);
+        TemplateFree(uinf, backend);
+        TemplateFree(dt, backend);
+        TemplateFree(dae_dt, backend);
+        TemplateFree(factor, backend);
+        TemplateFree(physicsparam, backend);
+        TemplateFree(solversparam, backend);
+        TemplateFree(tau, backend);
+        TemplateFree(stgdata, backend);
+        TemplateFree(stgparam, backend);
+        TemplateFree(fc_u, backend);
+        TemplateFree(fc_q, backend);
+        TemplateFree(fc_w, backend);
+        TemplateFree(dtcoef_u, backend);
+        TemplateFree(dtcoef_q, backend);
+        TemplateFree(dtcoef_w, backend);
     }
+
+//     // custom destructor
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {
+//             CPUFREE(lsize);
+//             CPUFREE(nsize);
+//             CPUFREE(ndims);   
+//             CPUFREE(comm);   
+//             CPUFREE(porder);               
+//             CPUFREE(flag);    
+//             CPUFREE(problem);
+//             CPUFREE(stgib);
+//             CPUFREE(vindx);
+//             CPUFREE(interfacefluxmap);
+//             CPUFREE(uinf);
+//             CPUFREE(dt);
+//             CPUFREE(dae_dt);
+//             CPUFREE(factor);
+//             CPUFREE(physicsparam);
+//             CPUFREE(solversparam);
+//             CPUFREE(tau);
+//             CPUFREE(stgdata);
+//             CPUFREE(stgparam);
+//             CPUFREE(fc_u);
+//             CPUFREE(fc_q);
+//             CPUFREE(fc_w);
+//             CPUFREE(dtcoef_u);
+//             CPUFREE(dtcoef_q);
+//             CPUFREE(dtcoef_w);
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(lsize);
+//             GPUFREE(nsize);
+//             GPUFREE(ndims);    
+//             GPUFREE(comm);   
+//             GPUFREE(porder);   
+//             GPUFREE(flag);    
+//             GPUFREE(problem);
+//             GPUFREE(stgib);
+//             GPUFREE(vindx);
+//             GPUFREE(interfacefluxmap);
+//             GPUFREE(uinf);
+//             GPUFREE(dt);
+//             GPUFREE(dae_dt);
+//             GPUFREE(factor);
+//             GPUFREE(physicsparam);
+//             GPUFREE(solversparam);
+//             GPUFREE(tau);
+//             GPUFREE(stgdata);
+//             GPUFREE(stgparam);
+//             GPUFREE(fc_u);
+//             GPUFREE(fc_q);
+//             GPUFREE(fc_w);
+//             GPUFREE(dtcoef_u);
+//             GPUFREE(dtcoef_q);
+//             GPUFREE(dtcoef_w);
+//        }
+// #endif       
+//     }
 };
 
 struct masterstruct {       
@@ -550,67 +585,97 @@ struct masterstruct {
       printf("size of float: %d\n", sizeoffloat());
     }
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {
-            CPUFREE(lsize);
-            CPUFREE(nsize);
-            CPUFREE(ndims);    
-            CPUFREE(shapegt); // element shape functions at Gauss points (transpose)
-            CPUFREE(shapegw); // element shape functions at Gauss points multiplied by Gauss weights
-            CPUFREE(shapfgt); // face shape functions at Gauss points (transpose)
-            CPUFREE(shapfgw); // face shape functions at Gauss points multiplied by Gauss weights    
-            CPUFREE(shapent); // element shape functions at nodes (transpose)
-            CPUFREE(shapen);  // element shape functions at nodes        
-            CPUFREE(shapfnt); // element shape functions at nodes (transpose)
-            CPUFREE(shapfn);  // element shape functions at nodes        
-            CPUFREE(xpe); // nodal points on master element
-            CPUFREE(gpe); // gauss points on master element
-            CPUFREE(gwe); // gauss weighs on master element
-            CPUFREE(xpf); // nodal points on master face
-            CPUFREE(gpf); // gauss points on master face
-            CPUFREE(gwf); // gauss weighs on master face            
-            CPUFREE(shap1dgt); 
-            CPUFREE(shap1dgw); 
-            CPUFREE(shap1dnt); 
-            CPUFREE(shap1dnl); 
-            CPUFREE(xp1d); 
-            CPUFREE(gp1d); 
-            CPUFREE(gw1d);            
-            CPUFREE(shapegwdotshapeg);
-            CPUFREE(shapfgwdotshapfg);             
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(lsize);
-            GPUFREE(nsize);
-            GPUFREE(ndims);    
-            GPUFREE(shapegt); // element shape functions at Gauss points (transpose)
-            GPUFREE(shapegw); // element shape functions at Gauss points multiplied by Gauss weights
-            GPUFREE(shapfgt); // face shape functions at Gauss points (transpose)
-            GPUFREE(shapfgw); // face shape functions at Gauss points multiplied by Gauss weights    
-            GPUFREE(shapent); // element shape functions at nodes (transpose)
-            GPUFREE(shapen);  // element shape functions at nodes        
-            GPUFREE(shapfnt); // element shape functions at nodes (transpose)
-            GPUFREE(shapfn);  // element shape functions at nodes        
-            GPUFREE(xpe); // nodal points on master element
-            GPUFREE(gpe); // gauss points on master element
-            GPUFREE(gwe); // gauss weighs on master element
-            GPUFREE(xpf); // nodal points on master face
-            GPUFREE(gpf); // gauss points on master face
-            GPUFREE(gwf); // gauss weighs on master face
-            GPUFREE(shap1dgt); 
-            GPUFREE(shap1dgw); 
-            GPUFREE(shap1dnt); 
-            GPUFREE(shap1dnl); 
-            GPUFREE(xp1d); 
-            GPUFREE(gp1d); 
-            GPUFREE(gw1d);             
-            GPUFREE(shapegwdotshapeg);
-            GPUFREE(shapfgwdotshapfg);                        
-       }
-#endif       
-    }    
+        TemplateFree(lsize, backend);
+        TemplateFree(nsize, backend);
+        TemplateFree(ndims, backend);    
+        TemplateFree(shapegt, backend); // element shape functions at Gauss points (transpose)
+        TemplateFree(shapegw, backend); // element shape functions at Gauss points multiplied by Gauss weights
+        TemplateFree(shapfgt, backend); // face shape functions at Gauss points (transpose)
+        TemplateFree(shapfgw, backend); // face shape functions at Gauss points multiplied by Gauss weights    
+        TemplateFree(shapent, backend); // element shape functions at nodes (transpose)
+        TemplateFree(shapen, backend);  // element shape functions at nodes        
+        TemplateFree(shapfnt, backend); // element shape functions at nodes (transpose)
+        TemplateFree(shapfn, backend);  // element shape functions at nodes        
+        TemplateFree(xpe, backend); // nodal points on master element
+        TemplateFree(gpe, backend); // gauss points on master element
+        TemplateFree(gwe, backend); // gauss weighs on master element
+        TemplateFree(xpf, backend); // nodal points on master face
+        TemplateFree(gpf, backend); // gauss points on master face
+        TemplateFree(gwf, backend); // gauss weighs on master face            
+        TemplateFree(shap1dgt, backend); 
+        TemplateFree(shap1dgw, backend); 
+        TemplateFree(shap1dnt, backend); 
+        TemplateFree(shap1dnl, backend); 
+        TemplateFree(xp1d, backend); 
+        TemplateFree(gp1d, backend); 
+        TemplateFree(gw1d, backend);            
+        TemplateFree(shapegwdotshapeg, backend);
+        TemplateFree(shapfgwdotshapfg, backend);             
+    }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {
+//             CPUFREE(lsize);
+//             CPUFREE(nsize);
+//             CPUFREE(ndims);    
+//             CPUFREE(shapegt); // element shape functions at Gauss points (transpose)
+//             CPUFREE(shapegw); // element shape functions at Gauss points multiplied by Gauss weights
+//             CPUFREE(shapfgt); // face shape functions at Gauss points (transpose)
+//             CPUFREE(shapfgw); // face shape functions at Gauss points multiplied by Gauss weights    
+//             CPUFREE(shapent); // element shape functions at nodes (transpose)
+//             CPUFREE(shapen);  // element shape functions at nodes        
+//             CPUFREE(shapfnt); // element shape functions at nodes (transpose)
+//             CPUFREE(shapfn);  // element shape functions at nodes        
+//             CPUFREE(xpe); // nodal points on master element
+//             CPUFREE(gpe); // gauss points on master element
+//             CPUFREE(gwe); // gauss weighs on master element
+//             CPUFREE(xpf); // nodal points on master face
+//             CPUFREE(gpf); // gauss points on master face
+//             CPUFREE(gwf); // gauss weighs on master face            
+//             CPUFREE(shap1dgt); 
+//             CPUFREE(shap1dgw); 
+//             CPUFREE(shap1dnt); 
+//             CPUFREE(shap1dnl); 
+//             CPUFREE(xp1d); 
+//             CPUFREE(gp1d); 
+//             CPUFREE(gw1d);            
+//             CPUFREE(shapegwdotshapeg);
+//             CPUFREE(shapfgwdotshapfg);             
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(lsize);
+//             GPUFREE(nsize);
+//             GPUFREE(ndims);    
+//             GPUFREE(shapegt); // element shape functions at Gauss points (transpose)
+//             GPUFREE(shapegw); // element shape functions at Gauss points multiplied by Gauss weights
+//             GPUFREE(shapfgt); // face shape functions at Gauss points (transpose)
+//             GPUFREE(shapfgw); // face shape functions at Gauss points multiplied by Gauss weights    
+//             GPUFREE(shapent); // element shape functions at nodes (transpose)
+//             GPUFREE(shapen);  // element shape functions at nodes        
+//             GPUFREE(shapfnt); // element shape functions at nodes (transpose)
+//             GPUFREE(shapfn);  // element shape functions at nodes        
+//             GPUFREE(xpe); // nodal points on master element
+//             GPUFREE(gpe); // gauss points on master element
+//             GPUFREE(gwe); // gauss weighs on master element
+//             GPUFREE(xpf); // nodal points on master face
+//             GPUFREE(gpf); // gauss points on master face
+//             GPUFREE(gwf); // gauss weighs on master face
+//             GPUFREE(shap1dgt); 
+//             GPUFREE(shap1dgw); 
+//             GPUFREE(shap1dnt); 
+//             GPUFREE(shap1dnl); 
+//             GPUFREE(xp1d); 
+//             GPUFREE(gp1d); 
+//             GPUFREE(gw1d);             
+//             GPUFREE(shapegwdotshapeg);
+//             GPUFREE(shapfgwdotshapfg);                        
+//        }
+// #endif       
+//     }    
 };
   
 struct meshstruct {       
@@ -624,7 +689,7 @@ struct meshstruct {
     Int *perm=nullptr;       // indices of element nodes on faces
     Int *bf=nullptr;         // boundary faces  
     Int *boufaces=nullptr;   // boundary faces
-    //Int *interfacefaces=nullptr;   // interface faces between two subdomains
+    Int *intfaces=nullptr;   // interface faces
     Int *eblks=nullptr;    // element blocks
     Int *fblks=nullptr;    // face blocks    
     Int *nbsd=nullptr;
@@ -645,6 +710,13 @@ struct meshstruct {
     Int *cole2f2=nullptr;
     Int *ent2ind2=nullptr;
     
+    Int *faceperm=nullptr;
+    Int *nbintf=nullptr;
+    Int *facesend=nullptr;
+    Int *facerecv=nullptr;
+    Int *facesendpts=nullptr;
+    Int *facerecvpts=nullptr;
+    
     Int *findxdg1=nullptr; 
     //Int *findxdg2=nullptr; 
     Int *findxdgp=nullptr; 
@@ -661,7 +733,7 @@ struct meshstruct {
     Int *elemrecvudg=nullptr;
     //Int *index=nullptr; 
     
-    Int szfacecon=0, szf2e=0, szelemcon=0, szperm=0, szbf=0, szboufaces=0; 
+    Int szfacecon=0, szf2e=0, szelemcon=0, szperm=0, szbf=0, szboufaces=0, szintfaces=0; 
     Int szeblks=0, szfblks=0, sznbsd=0, szelemsend=0;
     Int szelemrecv=0, szelemsendpts=0, szelemrecvpts=0, szelempart=0;
     Int szelempartpts=0, szcgelcon=0, szrowent2elem=0, szcgent2dgent=0;
@@ -669,8 +741,9 @@ struct meshstruct {
     Int szcole2f2=0, szent2ind2=0, szfindxdg1=0, szfindxdg2=0, szfindxdgp=0; 
     Int szfindudg1=0, szfindudg2=0, szfindudgp=0, szeindudg1=0, szeindudgp=0;
     Int szelemsendind=0, szelemrecvind=0, szelemsendodg=0, szelemrecvodg=0;
-    Int szelemsendudg=0, szelemrecvudg=0, szindex=0;
-
+    Int szelemsendudg=0, szelemrecvudg=0, szindex=0;    
+    Int szfaceperm=0, sznbintf=0, szfacesend=0, szfacerecv=0, szfacesendpts=0, szfacerecvpts=0;
+    
     int sizeoffloat() {return 0;}
     int sizeofint() {
       int sz = szeblks+szfblks + sznbsd + szelemsend + szelemrecv + 
@@ -679,7 +752,9 @@ struct meshstruct {
                szrowe2f1 + szcole2f1 + szent2ind1 + szrowe2f2 + szcole2f2 + 
                szent2ind2 + szfindxdg1 + szfindxdgp + szfindudg1 + szfindudg2 + 
                szfindudgp + szeindudg1 + szeindudgp + szelemsendind + szelemrecvind + 
-               szelemsendodg + szelemrecvodg + szelemsendudg + szelemrecvudg;
+               szelemsendodg + szelemrecvodg + szelemsendudg + szelemrecvudg + szfaceperm +
+               sznbintf + szfacesend + szfacerecv + szfacesendpts + szfacerecvpts +
+               szfacecon + szf2e + szelemcon + szperm + szbf + szboufaces + szintfaces;
       return sz;        
     }
 
@@ -692,7 +767,7 @@ struct meshstruct {
       printf("size of perm: %d\n", szperm);
       printf("size of bf: %d\n", szbf);
       printf("size of boufaces: %d\n", szboufaces);
-      //printf("size of interfacefaces: %d\n", szinterfacefaces);
+      printf("size of intfaces: %d\n", szintfaces);      
       printf("size of eblks: %d\n", szeblks);
       printf("size of fblks: %d\n", szfblks);
       printf("size of nbsd: %d\n", sznbsd);
@@ -726,107 +801,174 @@ struct meshstruct {
       printf("size of elemrecvodg: %d\n", szelemrecvodg);
       printf("size of elemsendudg: %d\n", szelemsendudg);
       printf("size of elemrecvudg: %d\n", szelemrecvudg);      
+      printf("size of faceperm: %d\n", szfaceperm);
+      printf("size of nbintf: %d\n", sznbintf);
+      printf("size of facesend: %d\n", szfacesend);
+      printf("size of facerecv: %d\n", szfacerecv);
+      printf("size of facesendpts: %d\n", szfacesendpts);
+      printf("size of facerecvpts: %d\n", szfacerecvpts);      
       printf("size of int: %d\n", sizeofint());
       printf("size of float: %d\n", sizeoffloat());
     }
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {
-            CPUFREE(lsize);
-            CPUFREE(nsize);
-            CPUFREE(ndims);    
-            CPUFREE(facecon);    // face-to-element connectivities 
-            CPUFREE(f2e);    // face-to-element connectivities 
-            CPUFREE(elemcon);    // element-to-face connectivities
-            CPUFREE(perm);       // indices of element nodes on faces
-            CPUFREE(boufaces);   // boundary faces
-            //CPUFREE(interfacefaces);   // interface faces
-            CPUFREE(eblks);    // element blocks
-            CPUFREE(fblks);    // face blocks    
-            CPUFREE(nbsd);
-            CPUFREE(elemsend);
-            CPUFREE(elemrecv);
-            CPUFREE(elemsendpts);
-            CPUFREE(elemrecvpts);            
-            CPUFREE(elempart);
-            CPUFREE(elempartpts);   
-            CPUFREE(cgelcon);            
-            CPUFREE(rowent2elem);
-            CPUFREE(cgent2dgent);
-            CPUFREE(colent2elem);
-            CPUFREE(rowe2f1);
-            CPUFREE(cole2f1);
-            CPUFREE(ent2ind1);
-            CPUFREE(rowe2f2);
-            CPUFREE(cole2f2);
-            CPUFREE(ent2ind2);
+        TemplateFree(lsize, backend);
+        TemplateFree(nsize, backend);
+        TemplateFree(ndims, backend);    
+        TemplateFree(facecon, backend);    // face-to-element connectivities 
+        TemplateFree(f2e, backend);    // face-to-element connectivities 
+        TemplateFree(elemcon, backend);    // element-to-face connectivities
+        TemplateFree(perm, backend);       // indices of element nodes on faces
+        TemplateFree(boufaces, backend);   // boundary faces
+        TemplateFree(intfaces, backend);   // interface faces
+        TemplateFree(eblks, backend);    // element blocks
+        TemplateFree(fblks, backend);    // face blocks    
+        TemplateFree(nbsd, backend);
+        TemplateFree(elemsend, backend);
+        TemplateFree(elemrecv, backend);
+        TemplateFree(elemsendpts, backend);
+        TemplateFree(elemrecvpts, backend);            
+        TemplateFree(elempart, backend);
+        TemplateFree(elempartpts, backend);   
+        TemplateFree(cgelcon, backend);            
+        TemplateFree(rowent2elem, backend);
+        TemplateFree(cgent2dgent, backend);
+        TemplateFree(colent2elem, backend);
+        TemplateFree(rowe2f1, backend);
+        TemplateFree(cole2f1, backend);
+        TemplateFree(ent2ind1, backend);
+        TemplateFree(rowe2f2, backend);
+        TemplateFree(cole2f2, backend);
+        TemplateFree(ent2ind2, backend);
+        
+        TemplateFree(findxdg1, backend);   
+        TemplateFree(findxdgp, backend);   
+        TemplateFree(findudg1, backend);   
+        TemplateFree(findudg2, backend);   
+        TemplateFree(findudgp, backend);               
+        TemplateFree(eindudg1, backend);               
+        TemplateFree(eindudgp, backend);  
+        TemplateFree(elemsendind, backend);   
+        TemplateFree(elemrecvind, backend); 
+        TemplateFree(elemsendodg, backend);
+        TemplateFree(elemrecvodg, backend);
+        TemplateFree(elemsendudg, backend);
+        TemplateFree(elemrecvudg, backend);
+        TemplateFree(faceperm, backend);
+        TemplateFree(nbintf, backend);
+        TemplateFree(facesend, backend);
+        TemplateFree(facerecv, backend);
+        TemplateFree(facesendpts, backend);
+        TemplateFree(facerecvpts, backend);            
+    }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {
+//             CPUFREE(lsize);
+//             CPUFREE(nsize);
+//             CPUFREE(ndims);    
+//             CPUFREE(facecon);    // face-to-element connectivities 
+//             CPUFREE(f2e);    // face-to-element connectivities 
+//             CPUFREE(elemcon);    // element-to-face connectivities
+//             CPUFREE(perm);       // indices of element nodes on faces
+//             CPUFREE(boufaces);   // boundary faces
+//             CPUFREE(eblks);    // element blocks
+//             CPUFREE(fblks);    // face blocks    
+//             CPUFREE(nbsd);
+//             CPUFREE(elemsend);
+//             CPUFREE(elemrecv);
+//             CPUFREE(elemsendpts);
+//             CPUFREE(elemrecvpts);            
+//             CPUFREE(elempart);
+//             CPUFREE(elempartpts);   
+//             CPUFREE(cgelcon);            
+//             CPUFREE(rowent2elem);
+//             CPUFREE(cgent2dgent);
+//             CPUFREE(colent2elem);
+//             CPUFREE(rowe2f1);
+//             CPUFREE(cole2f1);
+//             CPUFREE(ent2ind1);
+//             CPUFREE(rowe2f2);
+//             CPUFREE(cole2f2);
+//             CPUFREE(ent2ind2);
             
-            CPUFREE(findxdg1);   
-            //CPUFREE(findxdg2);   
-            CPUFREE(findxdgp);   
-            CPUFREE(findudg1);   
-            CPUFREE(findudg2);   
-            CPUFREE(findudgp);               
-            CPUFREE(eindudg1);               
-            CPUFREE(eindudgp);  
-            CPUFREE(elemsendind);   
-            CPUFREE(elemrecvind); 
-            CPUFREE(elemsendodg);
-            CPUFREE(elemrecvodg);
-            CPUFREE(elemsendudg);
-            CPUFREE(elemrecvudg);
-            //CPUFREE(index); 
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(lsize);
-            GPUFREE(nsize);
-            GPUFREE(ndims);
-            GPUFREE(facecon);    // face-to-element connectivities 
-            GPUFREE(f2e);    // face-to-element connectivities 
-            GPUFREE(elemcon);    // element-to-face connectivities
-            GPUFREE(perm);       // indices of element nodes on faces
-            GPUFREE(boufaces);   // boundary faces
-            //GPUFREE(interfacefaces);   // interface faces
-            GPUFREE(eblks);    // element blocks
-            GPUFREE(fblks);    // face blocks    
-            GPUFREE(nbsd);
-            GPUFREE(elemsend);
-            GPUFREE(elemrecv);
-            GPUFREE(elemsendpts);
-            GPUFREE(elemrecvpts);     
-            GPUFREE(elempart);
-            GPUFREE(elempartpts);   
-            GPUFREE(cgelcon);            
-            GPUFREE(rowent2elem);
-            GPUFREE(cgent2dgent);
-            GPUFREE(colent2elem);
-            GPUFREE(rowe2f1);
-            GPUFREE(cole2f1);
-            GPUFREE(ent2ind1);
-            GPUFREE(rowe2f2);
-            GPUFREE(cole2f2);
-            GPUFREE(ent2ind2);
+//             CPUFREE(findxdg1);   
+//             CPUFREE(findxdgp);   
+//             CPUFREE(findudg1);   
+//             CPUFREE(findudg2);   
+//             CPUFREE(findudgp);               
+//             CPUFREE(eindudg1);               
+//             CPUFREE(eindudgp);  
+//             CPUFREE(elemsendind);   
+//             CPUFREE(elemrecvind); 
+//             CPUFREE(elemsendodg);
+//             CPUFREE(elemrecvodg);
+//             CPUFREE(elemsendudg);
+//             CPUFREE(elemrecvudg);
+//             CPUFREE(faceperm);
+//             CPUFREE(nbintf);
+//             CPUFREE(facesend);
+//             CPUFREE(facerecv);
+//             CPUFREE(facesendpts);
+//             CPUFREE(facerecvpts);            
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(lsize);
+//             GPUFREE(nsize);
+//             GPUFREE(ndims);
+//             GPUFREE(facecon);    // face-to-element connectivities 
+//             GPUFREE(f2e);    // face-to-element connectivities 
+//             GPUFREE(elemcon);    // element-to-face connectivities
+//             GPUFREE(perm);       // indices of element nodes on faces
+//             GPUFREE(boufaces);   // boundary faces
+//             //GPUFREE(interfacefaces);   // interface faces
+//             GPUFREE(eblks);    // element blocks
+//             GPUFREE(fblks);    // face blocks    
+//             GPUFREE(nbsd);
+//             GPUFREE(elemsend);
+//             GPUFREE(elemrecv);
+//             GPUFREE(elemsendpts);
+//             GPUFREE(elemrecvpts);     
+//             GPUFREE(elempart);
+//             GPUFREE(elempartpts);   
+//             GPUFREE(cgelcon);            
+//             GPUFREE(rowent2elem);
+//             GPUFREE(cgent2dgent);
+//             GPUFREE(colent2elem);
+//             GPUFREE(rowe2f1);
+//             GPUFREE(cole2f1);
+//             GPUFREE(ent2ind1);
+//             GPUFREE(rowe2f2);
+//             GPUFREE(cole2f2);
+//             GPUFREE(ent2ind2);
             
-            GPUFREE(findxdg1);   
-            //GPUFREE(findxdg2);   
-            GPUFREE(findxdgp);   
-            GPUFREE(findudg1);   
-            GPUFREE(findudg2);   
-            GPUFREE(findudgp);               
-            GPUFREE(eindudg1);               
-            GPUFREE(eindudgp);   
-            GPUFREE(elemsendind);   
-            GPUFREE(elemrecvind); 
-            GPUFREE(elemsendodg);
-            GPUFREE(elemrecvodg); 
-            GPUFREE(elemsendudg);
-            GPUFREE(elemrecvudg);   
-            //GPUFREE(index);   
-       }
-#endif       
-    }        
+//             GPUFREE(findxdg1);   
+//             //GPUFREE(findxdg2);   
+//             GPUFREE(findxdgp);   
+//             GPUFREE(findudg1);   
+//             GPUFREE(findudg2);   
+//             GPUFREE(findudgp);               
+//             GPUFREE(eindudg1);               
+//             GPUFREE(eindudgp);   
+//             GPUFREE(elemsendind);   
+//             GPUFREE(elemrecvind); 
+//             GPUFREE(elemsendodg);
+//             GPUFREE(elemrecvodg); 
+//             GPUFREE(elemsendudg);
+//             GPUFREE(elemrecvudg);   
+//             GPUFREE(faceperm);
+//             GPUFREE(nbintf);
+//             GPUFREE(facesend);
+//             GPUFREE(facerecv);
+//             GPUFREE(facesendpts);
+//             GPUFREE(facerecvpts);            
+//             //GPUFREE(index);   
+//        }
+// #endif       
+//     }        
 };
 
 struct solstruct {       
@@ -852,6 +994,7 @@ struct solstruct {
     #endif
     dstype *elemg=nullptr;
     dstype *faceg=nullptr;
+    dstype *xdgint=nullptr;        
     dstype *elemfaceg=nullptr;        
     //dstype *udgg=nullptr;
     dstype *sdgg=nullptr;
@@ -865,13 +1008,13 @@ struct solstruct {
     
     Int szxdg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
     Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
-    Int szudgavg=0, szwsrc=0, szwdual=0;
+    Int szudgavg=0, szwsrc=0, szwdual=0, szxdgint=0;
 
     int sizeofint() {return 0;}
     int sizeoffloat() {
       int sz = szxdg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
                szelemfaceg + szsdgg + szodgg + szog1 + szog2 + szudgavg + 
-               szwsrc + szwdual;
+               szwsrc + szwdual + szxdgint;
       return sz;
     }
 
@@ -884,6 +1027,7 @@ struct solstruct {
       printf("size of odg: %d\n", szodg);
       printf("size of wdg: %d\n", szwdg);
       printf("size of uh: %d\n", szuh);
+       printf("size of xdgint: %d\n", szxdgint);
       printf("size of elemg: %d\n", szelemg);
       printf("size of faceg: %d\n", szfaceg);
       printf("size of elemfaceg: %d\n", szelemfaceg);
@@ -898,75 +1042,106 @@ struct solstruct {
       printf("size of float: %d\n", sizeoffloat());   
     } 
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {
-            CPUFREE(lsize);
-            CPUFREE(nsize);
-            CPUFREE(ndims);    
-            CPUFREE(xdg); // spatial coordinates
-            CPUFREE(udg); // solution (u, q, p) 
-            CPUFREE(sdg); // source term due to the previous solution
-            CPUFREE(odg); // auxilary term 
-            CPUFREE(wdg); // wave problem
-#ifdef HAVE_ENZYME                   
-            CPUFREE(dudg); // solution (u, q, p) 
-            CPUFREE(dwdg); // wave problem
-            CPUFREE(duh);
-            CPUFREE(dodg);
-            CPUFREE(dodgg);
-            CPUFREE(dog1);
-            CPUFREE(dog2);
-#endif            
-            CPUFREE(uh);  // uhat      
-            CPUFREE(elemg); 
-            CPUFREE(faceg); 
-            CPUFREE(elemfaceg);
-            //CPUFREE(udgg); 
-            CPUFREE(sdgg); 
-            CPUFREE(odgg); 
-            CPUFREE(wsrc);
-            CPUFREE(wdual);
-            CPUFREE(og1);
-            CPUFREE(og2);     
-            CPUFREE(udgavg); // time-average solution (u, q, p) 
-            //delete[] udgarray;
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(lsize);
-            GPUFREE(nsize);
-            GPUFREE(ndims);
-            GPUFREE(xdg); // spatial coordinates
-            GPUFREE(udg); // solution (u, q, p) 
-            GPUFREE(sdg); // source term due to the previous solution
-            GPUFREE(odg); // auxilary term 
-            GPUFREE(wdg); // wave problem
-#ifdef HAVE_ENZYME                   
-            GPUFREE(dudg); // solution (u, q, p) 
-            GPUFREE(dwdg); // wave problem
-            GPUFREE(duh);
-            GPUFREE(dodg);
-            GPUFREE(dodgg);
-            GPUFREE(dog1);
-            GPUFREE(dog2);
-#endif                        
-            GPUFREE(uh);  // uhat          
-            GPUFREE(elemg); 
-            GPUFREE(faceg); 
-            GPUFREE(elemfaceg);
-            //GPUFREE(udgg); 
-            GPUFREE(sdgg); 
-            GPUFREE(odgg); 
-            GPUFREE(wsrc); 
-            GPUFREE(wdual); 
-            GPUFREE(og1);
-            GPUFREE(og2);        
-            GPUFREE(udgavg); // time-average solution (u, q, p) 
-            //delete[] udgarray;
-       }
-#endif       
+        TemplateFree(lsize, backend);
+        TemplateFree(nsize, backend);
+        TemplateFree(ndims, backend);    
+        TemplateFree(xdg, backend); // spatial coordinates
+        TemplateFree(udg, backend); // solution (u, q, p) 
+        TemplateFree(sdg, backend); // source term due to the previous solution
+        TemplateFree(odg, backend); // auxilary term 
+        TemplateFree(wdg, backend); // wave problem
+        TemplateFree(xdgint, backend); // spatial coordinates
+      #ifdef HAVE_ENZYME                   
+        TemplateFree(dudg, backend); // solution (u, q, p) 
+        TemplateFree(dwdg, backend); // wave problem
+        TemplateFree(duh, backend);
+        TemplateFree(dodg, backend);
+        TemplateFree(dodgg, backend);
+        TemplateFree(dog1, backend);
+        TemplateFree(dog2, backend);
+      #endif            
+        TemplateFree(uh, backend);  // uhat      
+        TemplateFree(elemg, backend); 
+        TemplateFree(faceg, backend); 
+        TemplateFree(elemfaceg, backend);
+        TemplateFree(sdgg, backend); 
+        TemplateFree(odgg, backend); 
+        TemplateFree(wsrc, backend);
+        TemplateFree(wdual, backend);
+        TemplateFree(og1, backend);
+        TemplateFree(og2, backend);     
+        TemplateFree(udgavg, backend); // time-average solution (u, q, p) 
     }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {
+//             CPUFREE(lsize);
+//             CPUFREE(nsize);
+//             CPUFREE(ndims);    
+//             CPUFREE(xdg); // spatial coordinates
+//             CPUFREE(udg); // solution (u, q, p) 
+//             CPUFREE(sdg); // source term due to the previous solution
+//             CPUFREE(odg); // auxilary term 
+//             CPUFREE(wdg); // wave problem
+// #ifdef HAVE_ENZYME                   
+//             CPUFREE(dudg); // solution (u, q, p) 
+//             CPUFREE(dwdg); // wave problem
+//             CPUFREE(duh);
+//             CPUFREE(dodg);
+//             CPUFREE(dodgg);
+//             CPUFREE(dog1);
+//             CPUFREE(dog2);
+// #endif            
+//             CPUFREE(uh);  // uhat      
+//             CPUFREE(elemg); 
+//             CPUFREE(faceg); 
+//             CPUFREE(elemfaceg);
+//             CPUFREE(sdgg); 
+//             CPUFREE(odgg); 
+//             CPUFREE(wsrc);
+//             CPUFREE(wdual);
+//             CPUFREE(og1);
+//             CPUFREE(og2);     
+//             CPUFREE(udgavg); // time-average solution (u, q, p) 
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(lsize);
+//             GPUFREE(nsize);
+//             GPUFREE(ndims);
+//             GPUFREE(xdg); // spatial coordinates
+//             GPUFREE(udg); // solution (u, q, p) 
+//             GPUFREE(sdg); // source term due to the previous solution
+//             GPUFREE(odg); // auxilary term 
+//             GPUFREE(wdg); // wave problem
+// #ifdef HAVE_ENZYME                   
+//             GPUFREE(dudg); // solution (u, q, p) 
+//             GPUFREE(dwdg); // wave problem
+//             GPUFREE(duh);
+//             GPUFREE(dodg);
+//             GPUFREE(dodgg);
+//             GPUFREE(dog1);
+//             GPUFREE(dog2);
+// #endif                        
+//             GPUFREE(uh);  // uhat          
+//             GPUFREE(elemg); 
+//             GPUFREE(faceg); 
+//             GPUFREE(elemfaceg);
+//             //GPUFREE(udgg); 
+//             GPUFREE(sdgg); 
+//             GPUFREE(odgg); 
+//             GPUFREE(wsrc); 
+//             GPUFREE(wdual); 
+//             GPUFREE(og1);
+//             GPUFREE(og2);        
+//             GPUFREE(udgavg); // time-average solution (u, q, p) 
+//             //delete[] udgarray;
+//        }
+// #endif       
+//     }            
 };
 
 struct resstruct {
@@ -1000,8 +1175,14 @@ struct resstruct {
     dstype *K=nullptr; // store the diffusion matrix
     dstype *H=nullptr; // store the diffusion matrix
 
+    dstype *Ri=nullptr; // residual vector for uhat    
+    dstype *Gi=nullptr; // store the diffusion matrix
+    dstype *Ki=nullptr; // store the diffusion matrix
+    dstype *Hi=nullptr; // store the diffusion matrix
+    
     Int *ipiv=nullptr;    
-        
+    
+    Int szRi=0, szHi=0, szKi=0, szGi=0;
     Int szipiv=0, szH=0, szK=0, szG=0, szF=0, szB=0, szD=0, szE=0, szC=0, szMass=0, szMinv=0, szMass2=0, szMinv2=0;
     Int szRq=0, szRu=0, szRh=0, szRuf=0, szRue=0, szRqf=0, szRqe=0;  
 
@@ -1009,7 +1190,7 @@ struct resstruct {
     int sizeoffloat() {
       int sz = szH + szK + szG + szF + szB + szD + szE + szC + szMass + szMinv +
                szMass2 + szMinv2 + szRq + szRu + szRh + szRuf + szRue + szRqf + 
-               szRqe;        
+               szRqe + szHi + szKi + szGi + szRi;        
       return sz;
     }
 
@@ -1035,68 +1216,108 @@ struct resstruct {
       printf("size of G: %d\n", szG);
       printf("size of K: %d\n", szK);
       printf("size of H: %d\n", szH);
+      printf("size of Gi: %d\n", szGi);
+      printf("size of Ki: %d\n", szKi);
+      printf("size of Hi: %d\n", szHi);
       printf("size of int: %d\n", sizeofint());
       printf("size of float: %d\n", sizeoffloat());
     }
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {            
-            CPUFREE(Rq);    
-            CPUFREE(Ru);    
-            CPUFREE(Rh);    
-#ifdef HAVE_ENZYME                   
-            CPUFREE(dRq);   
-            CPUFREE(dRu);   
-            CPUFREE(dRh);   
-#endif                                                
-            CPUFREE(Mass);      
-            CPUFREE(Minv);      
-            CPUFREE(Mass2);      
-            CPUFREE(Minv2);      
-            CPUFREE(C);      
-            CPUFREE(E);      
-            CPUFREE(D);
-            CPUFREE(B);
-            CPUFREE(F);
-            CPUFREE(G);
-            CPUFREE(K);
-            CPUFREE(H);
-            CPUFREE(ipiv);
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(Rq);   
-            GPUFREE(Ru);   
-            GPUFREE(Rh);   
-#ifdef HAVE_ENZYME                   
-            GPUFREE(dRq);   
-            GPUFREE(dRu);   
-            GPUFREE(dRh);   
-#endif                                    
-            GPUFREE(Mass);   
-            GPUFREE(Minv);   
-            GPUFREE(Mass2);   
-            GPUFREE(Minv2);   
-            GPUFREE(C);   
-            GPUFREE(E);   
-            GPUFREE(D);
-            GPUFREE(B);
-            GPUFREE(F);
-            GPUFREE(G);
-            GPUFREE(K);
-            GPUFREE(H);
-            GPUFREE(ipiv);
-       }
+        TemplateFree(Rq, backend);    
+        TemplateFree(Ru, backend);    
+        TemplateFree(Rh, backend);    
+      #ifdef HAVE_ENZYME                   
+        TemplateFree(dRq, backend);   
+        TemplateFree(dRu, backend);   
+        TemplateFree(dRh, backend);   
+      #endif                                                
+        TemplateFree(Mass, backend);      
+        TemplateFree(Minv, backend);      
+        TemplateFree(Mass2, backend);      
+        TemplateFree(Minv2, backend);      
+        TemplateFree(C, backend);      
+        TemplateFree(E, backend);      
+        TemplateFree(D, backend);
+        TemplateFree(B, backend);
+        TemplateFree(F, backend);
+        TemplateFree(G, backend);
+        TemplateFree(K, backend);
+        TemplateFree(H, backend);
+        TemplateFree(Gi, backend);
+        TemplateFree(Ki, backend);
+        TemplateFree(Hi, backend);
+        TemplateFree(Ri, backend);
+        TemplateFree(ipiv, backend);
+    }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {            
+//             CPUFREE(Rq);    
+//             CPUFREE(Ru);    
+//             CPUFREE(Rh);    
+// #ifdef HAVE_ENZYME                   
+//             CPUFREE(dRq);   
+//             CPUFREE(dRu);   
+//             CPUFREE(dRh);   
+// #endif                                                
+//             CPUFREE(Mass);      
+//             CPUFREE(Minv);      
+//             CPUFREE(Mass2);      
+//             CPUFREE(Minv2);      
+//             CPUFREE(C);      
+//             CPUFREE(E);      
+//             CPUFREE(D);
+//             CPUFREE(B);
+//             CPUFREE(F);
+//             CPUFREE(G);
+//             CPUFREE(K);
+//             CPUFREE(H);
+//             CPUFREE(Gi);
+//             CPUFREE(Ki);
+//             CPUFREE(Hi);
+//             CPUFREE(Ri);
+//             CPUFREE(ipiv);
+//         }            
+// #ifdef HAVE_CUDA      
 //        else {
-//             cudaFreeHost(Rq);  
-//             cudaFreeHost(Ru);  
-//             cudaFreeHost(Rh);  
-//             cudaFreeHost(Mass);            
-//             cudaFreeHost(Minv);            
+//             GPUFREE(Rq);   
+//             GPUFREE(Ru);   
+//             GPUFREE(Rh);   
+// #ifdef HAVE_ENZYME                   
+//             GPUFREE(dRq);   
+//             GPUFREE(dRu);   
+//             GPUFREE(dRh);   
+// #endif                                    
+//             GPUFREE(Mass);   
+//             GPUFREE(Minv);   
+//             GPUFREE(Mass2);   
+//             GPUFREE(Minv2);   
+//             GPUFREE(C);   
+//             GPUFREE(E);   
+//             GPUFREE(D);
+//             GPUFREE(B);
+//             GPUFREE(F);
+//             GPUFREE(G);
+//             GPUFREE(K);
+//             GPUFREE(H);
+//             GPUFREE(Gi);
+//             GPUFREE(Ki);
+//             GPUFREE(Hi);
+//             GPUFREE(Ri);
+//             GPUFREE(ipiv);
 //        }
-#endif       
-    }                
+// //        else {
+// //             cudaFreeHost(Rq);  
+// //             cudaFreeHost(Ru);  
+// //             cudaFreeHost(Rh);  
+// //             cudaFreeHost(Mass);            
+// //             cudaFreeHost(Minv);            
+// //        }
+// #endif       
+//     }                
 };
 
 struct tempstruct {
@@ -1104,13 +1325,15 @@ struct tempstruct {
     dstype *tempg=nullptr;
     dstype *buffrecv=nullptr;
     dstype *buffsend=nullptr;
+    dstype *bufffacerecv=nullptr;
+    dstype *bufffacesend=nullptr;
     
-    int sztempn=0, sztempg = 0, szbuffrecv=0, szbuffsend=0;
+    int sztempn=0, sztempg = 0, szbuffrecv=0, szbuffsend=0, szbufffacerecv=0, szbufffacesend=0;
 
     int sizeofint() {return 0;}
     int sizeoffloat() 
     {
-      int sz = sztempn + sztempg + szbuffrecv + szbuffsend;
+      int sz = sztempn + sztempg + szbuffrecv + szbuffsend + szbufffacerecv + szbufffacesend;
       return sz;
     }
 
@@ -1121,31 +1344,47 @@ struct tempstruct {
       printf("size of tempg: %d\n", sztempg);
       printf("size of buffrecv: %d\n", szbuffrecv);
       printf("size of buffsend: %d\n", szbuffsend);
+      printf("size of bufffacerecv: %d\n", szbufffacerecv);
+      printf("size of bufffacesend: %d\n", szbufffacesend);
       printf("size of int: %d\n", sizeofint());
       printf("size of float: %d\n", sizeoffloat());
     }
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {
-            CPUFREE(tempn); 
-            CPUFREE(tempg); 
-            CPUFREE(buffrecv); 
-            CPUFREE(buffsend); 
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(tempn);
-            GPUFREE(tempg);
-            GPUFREE(buffrecv); 
-            GPUFREE(buffsend); 
-       }
-#endif       
-    }                     
+        TemplateFree(tempn, backend); 
+        TemplateFree(tempg, backend); 
+        TemplateFree(buffrecv, backend); 
+        TemplateFree(buffsend, backend); 
+        TemplateFree(bufffacerecv, backend); 
+        TemplateFree(bufffacesend, backend); 
+    }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {
+//             CPUFREE(tempn); 
+//             CPUFREE(tempg); 
+//             CPUFREE(buffrecv); 
+//             CPUFREE(buffsend); 
+//             CPUFREE(bufffacerecv); 
+//             CPUFREE(bufffacesend); 
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(tempn);
+//             GPUFREE(tempg);
+//             GPUFREE(buffrecv); 
+//             GPUFREE(buffsend); 
+//             GPUFREE(bufffacerecv); 
+//             GPUFREE(bufffacesend); 
+//        }
+// #endif       
+//     }                     
 };
 
 struct sysstruct {    
-    Int cpuMemory;
+    Int backend;
     Int *ipiv=nullptr;
 
     dstype *x=nullptr; 
@@ -1223,66 +1462,96 @@ struct sysstruct {
       printf("size of float: %d\n", sizeoffloat());
     }
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
        CPUFREE(lam);  
-       //CPUFREE(normcu);  
        CPUFREE(ipiv);  
-       if (hostmemory==1) {
-            CPUFREE(x); 
-            CPUFREE(u); 
-            CPUFREE(r); 
-            CPUFREE(b); 
-            CPUFREE(v); 
-            CPUFREE(q); 
-            CPUFREE(p); 
-            CPUFREE(randvect);
-            CPUFREE(tempmem);     
-            CPUFREE(utmp);            
-            //CPUFREE(w);
-            //CPUFREE(wsrc);             
-            CPUFREE(wtmp);             
-            CPUFREE(udgprev);  
-            CPUFREE(udgprev1);  
-            CPUFREE(udgprev2);  
-            CPUFREE(udgprev3);  
-            CPUFREE(wprev);  
-            CPUFREE(wprev1);  
-            CPUFREE(wprev2);  
-            CPUFREE(wprev3);  
-            CPUFREE(PTCmatrix);  
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(x);
-            GPUFREE(u);
-            GPUFREE(r);
-            GPUFREE(b);
-            GPUFREE(v);
-            GPUFREE(q);
-            GPUFREE(p);
-            GPUFREE(randvect);
-            cudaFreeHost(tempmem);      
-            //GPUFREE(w);
-            //GPUFREE(wsrc); 
-            GPUFREE(utmp);
-            GPUFREE(wtmp);             
-            GPUFREE(udgprev);  
-            GPUFREE(udgprev1);  
-            GPUFREE(udgprev2);  
-            GPUFREE(udgprev3);  
-            GPUFREE(wprev);  
-            GPUFREE(wprev1);  
-            GPUFREE(wprev2);  
-            GPUFREE(wprev3);  
-            GPUFREE(PTCmatrix);  
-       }
-#endif       
-    }                     
+
+        TemplateFree(x, backend); 
+        TemplateFree(u, backend); 
+        TemplateFree(r, backend); 
+        TemplateFree(b, backend); 
+        TemplateFree(v, backend); 
+        TemplateFree(q, backend); 
+        TemplateFree(p, backend); 
+        TemplateFree(randvect, backend);
+        if (backend <= 1)
+          TemplateFree(tempmem, backend);    
+        else if (backend==2) {
+#ifdef HAVE_CUDA                
+          cudaFreeHost(tempmem);      
+#endif                         
+        }        
+        TemplateFree(utmp, backend);            
+        TemplateFree(wtmp, backend);             
+        TemplateFree(udgprev, backend);  
+        TemplateFree(udgprev1, backend);  
+        TemplateFree(udgprev2, backend);  
+        TemplateFree(udgprev3, backend);  
+        TemplateFree(wprev, backend);  
+        TemplateFree(wprev1, backend);  
+        TemplateFree(wprev2, backend);  
+        TemplateFree(wprev3, backend);  
+        TemplateFree(PTCmatrix, backend);  
+    }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        CPUFREE(lam);  
+//        CPUFREE(ipiv);  
+//        if (hostmemory==1) {
+//             CPUFREE(x); 
+//             CPUFREE(u); 
+//             CPUFREE(r); 
+//             CPUFREE(b); 
+//             CPUFREE(v); 
+//             CPUFREE(q); 
+//             CPUFREE(p); 
+//             CPUFREE(randvect);
+//             CPUFREE(tempmem);     
+//             CPUFREE(utmp);            
+//             CPUFREE(wtmp);             
+//             CPUFREE(udgprev);  
+//             CPUFREE(udgprev1);  
+//             CPUFREE(udgprev2);  
+//             CPUFREE(udgprev3);  
+//             CPUFREE(wprev);  
+//             CPUFREE(wprev1);  
+//             CPUFREE(wprev2);  
+//             CPUFREE(wprev3);  
+//             CPUFREE(PTCmatrix);  
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(x);
+//             GPUFREE(u);
+//             GPUFREE(r);
+//             GPUFREE(b);
+//             GPUFREE(v);
+//             GPUFREE(q);
+//             GPUFREE(p);
+//             GPUFREE(randvect);
+//             cudaFreeHost(tempmem);      
+//             //GPUFREE(w);
+//             //GPUFREE(wsrc); 
+//             GPUFREE(utmp);
+//             GPUFREE(wtmp);             
+//             GPUFREE(udgprev);  
+//             GPUFREE(udgprev1);  
+//             GPUFREE(udgprev2);  
+//             GPUFREE(udgprev3);  
+//             GPUFREE(wprev);  
+//             GPUFREE(wprev1);  
+//             GPUFREE(wprev2);  
+//             GPUFREE(wprev3);  
+//             GPUFREE(PTCmatrix);  
+//        }
+// #endif       
+//     }                     
 };
 
 struct precondstruct {    
-    Int cpuMemory;
+    Int backend;
     
     dstype *W=nullptr; 
     dstype *U=nullptr;
@@ -1316,33 +1585,40 @@ struct precondstruct {
       printf("size of float: %d\n", sizeoffloat());
     }
 
-    void freememory(Int hostmemory)
+    void freememory(Int backend)
     {
-       if (hostmemory==1) {
-            CPUFREE(W); 
-            CPUFREE(U); 
-            // CPUFREE(V); 
-            // CPUFREE(R); 
-            // CPUFREE(C); 
-            //CPUFREE(H); 
-            //CPUFREE(y); 
-            //CPUFREE(z); 
-            CPUFREE(ipiv); 
-        }            
-#ifdef HAVE_CUDA      
-       else {
-            GPUFREE(W);
-            GPUFREE(U);
-            // GPUFREE(V);
-            // GPUFREE(R);
-            // GPUFREE(C);
-            //GPUFREE(H);
-            //GPUFREE(y); 
-            //GPUFREE(z); 
-            GPUFREE(ipiv);
-       }
-#endif       
-    }                     
+        TemplateFree(W, backend); 
+        TemplateFree(U, backend); 
+        TemplateFree(ipiv, backend); 
+    }            
+
+//     void freememory(Int hostmemory)
+//     {
+//        if (hostmemory==1) {
+//             CPUFREE(W); 
+//             CPUFREE(U); 
+//             // CPUFREE(V); 
+//             // CPUFREE(R); 
+//             // CPUFREE(C); 
+//             //CPUFREE(H); 
+//             //CPUFREE(y); 
+//             //CPUFREE(z); 
+//             CPUFREE(ipiv); 
+//         }            
+// #ifdef HAVE_CUDA      
+//        else {
+//             GPUFREE(W);
+//             GPUFREE(U);
+//             // GPUFREE(V);
+//             // GPUFREE(R);
+//             // GPUFREE(C);
+//             //GPUFREE(H);
+//             //GPUFREE(y); 
+//             //GPUFREE(z); 
+//             GPUFREE(ipiv);
+//        }
+// #endif       
+//     }                     
 };
 
 struct commonstruct {     
@@ -1350,7 +1626,6 @@ struct commonstruct {
     string fileout;      // Name of binary file to write the solution            
     
     Int backend;   // 0: Serial; 1: OpenMP; 2: CUDA  
-    Int cpuMemory; // 1: data in CPU memory; 0: data in GPU memory
     Int maxnbc;    // maximum number of boundary conditions
     
     Int mpiRank;  // MPI rank      
@@ -1379,8 +1654,11 @@ struct commonstruct {
     Int ngf;  // number of gauss poInts on master face                    
     Int np1d;
     Int ng1d;    
-    Int ppdegree=10; // polynomial preconditioner degree
-    
+    Int ppdegree=0; // polynomial preconditioner degree
+    Int coupledinterface;
+    Int coupledcondition;
+    Int coupledboundarycondition;
+            
     Int ne; // number of elements
     Int nf; // number of faces
     Int nv; // number of vertices      
@@ -1394,6 +1672,7 @@ struct commonstruct {
     Int nbe2; // number of blocks for interior+interface+exterior elements 
     Int nbf0; // number of blocks for interior faces
     Int nbf1; // number of blocks for interior+interface faces
+    Int ncie; // number of coupled interface elements
     
     Int ndof; // number of degrees of freedom of u
     Int ndofq; // number of degrees of freedom of q
@@ -1427,7 +1706,8 @@ struct commonstruct {
     Int extUhat=0; // external uhat function flag
     Int extFhat=0; // external fhat function flag
     Int extStab=0; // external stabilization function flag
-    Int curvedMesh;// curved mesh    
+    Int curvedMesh;// curved mesh   
+    Int fileoffset;
     Int debugMode; // 1: save data to binary files for debugging
     Int appname;   /* 0: Euler; 1: Compressible Navier-Stokes; etc. */
     Int tdep;      // 0: steady-state; 1: time-dependent;  
@@ -1506,11 +1786,13 @@ struct commonstruct {
     Int* ncarray=nullptr;
     Int* nboufaces=nullptr;
     
+    Int nintfaces;
     Int nstgib;
     Int nnbsd; // number of neighboring subdomains
     Int nelemsend;
     Int nelemrecv;
     Int nvindx;
+    Int szinterfacefluxmap;
     Int* nbsd=nullptr; // neighboring subdomains
     Int* elemsend=nullptr;
     Int* elemrecv=nullptr;       
@@ -1518,7 +1800,17 @@ struct commonstruct {
     Int* elemrecvpts=nullptr;        
     Int* stgib=nullptr;
     Int *vindx=nullptr;
+    Int *interfacefluxmap=nullptr;
     
+    Int nnbintf;
+    Int nfacesend;
+    Int nfacerecv;
+    Int* nbintf=nullptr;
+    Int* facesend=nullptr;
+    Int* facerecv=nullptr;       
+    Int* facesendpts=nullptr;
+    Int* facerecvpts=nullptr;        
+        
     dstype timing[128];
     dstype* dt=nullptr;
     dstype* dae_dt=nullptr;
@@ -1716,6 +2008,7 @@ struct commonstruct {
         CPUFREE(elemrecvpts); 
         CPUFREE(stgib); 
         CPUFREE(vindx); 
+        CPUFREE(interfacefluxmap); 
         CPUFREE(dt); 
         CPUFREE(dae_dt); 
         CPUFREE(DIRKcoeff_c); 

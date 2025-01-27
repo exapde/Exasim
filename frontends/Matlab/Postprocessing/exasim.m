@@ -40,25 +40,40 @@ else
     sol = cell(nmodels,1);
     res = cell(nmodels,1);
     
-    if pde{1}.gencode==1
-      % preprocess and generate code for all PDE models
-      for m = 1:nmodels    
-          [pde{m},mesh{m},master{m},dmd{m}] = generatecode(pde{m},mesh{m});
-      end              
-      kkgencodeall(nmodels, pde{m}.exasimpath + "/build/model");
-      compilerstr = cmakecompile(pde{1}); % use cmake to compile C++ source codes 
+    nummodels = nmodels;
+    mpiprocs = pde{1}.mpiprocs;
+    if isfield(mesh{1}, 'interfacecondition')           
+      if max(mesh{1}.interfacecondition) >= 1
+        nummodels = 100 + pde{1}.mpiprocs;
+        mpiprocs = mpiprocs + pde{2}.mpiprocs;        
+      end
     end
+
+    % preprocess all PDE models
+    for m = 1:nmodels    
+        [pde{m},mesh{m},master{m},dmd{m}] = preprocessing(pde{m},mesh{m});
+    end                  
     
-    runstr = runcode(pde{1}, nmodels); % run C++ code
+    if isfield(mesh{1}, 'interfacecondition')        
+      [dmd{1},dmd{2},isd1,isd2]=interfacepartition(mesh{1}, dmd{1}, mesh{2}, dmd{2});
+      writedmd(dmd{1}, pde{1}, isd1);
+      writedmd(dmd{2}, pde{2}, isd2);
+    end
+          
+    % generate code for all PDE models
+    if pde{1}.gencode==1
+      for m = 1:nmodels    
+        kkgencode(pde{m});
+      end      
+      kkgencodeall(nmodels, pde{1}.backendpath + "/Model");
+      compilerstr = cmakecompile(pde{1}, mpiprocs); % use cmake to compile C++ source codes 
+    end
+           
+    runstr = runcode(pde{1}, nummodels, mpiprocs); % run C++ code
     
     % get solution from output files in dataout folder
     for m = 1:nmodels        
         sol{m} = fetchsolution(pde{m},master{m},dmd{m}, pde{m}.buildpath + "/dataout" + num2str(m));        
-%         % get residual norms from output files in dataout folder
-%         if pde{m}.saveResNorm
-%             fileID = fopen(['dataout/out_residualnorms' num2str(m-1) '.bin'],'r'); tm = fread(fileID,'double'); fclose(fileID);
-%             res{m} = reshape(tm,4,[])';
-%         end            
     end    
 end
 

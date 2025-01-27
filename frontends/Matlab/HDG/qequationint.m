@@ -55,7 +55,8 @@ for k=1:1:ne
         for j=2:nd
             C(:,:,i) = C(:,:,i) + reshape(shapvgdotshapvl(:,:,j+1)*Xx(:,i,j),[npe npe]);
         end
-        MinvC(:,:,k,i) = -Mi*C(:,:,i);
+        % minus sign because Xx is negative
+        MinvC(:,:,k,i) = -Mi*C(:,:,i); 
     end                
         
     % face matrices

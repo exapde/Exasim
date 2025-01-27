@@ -40,6 +40,7 @@ void readappstruct(string filename, appstruct &app)
     app.stgib = readiarrayfromdouble(in, app.nsize[11]);
     app.vindx = readiarrayfromdouble(in, app.nsize[12]);
     readarray(in, &app.dae_dt, app.nsize[13]);   
+    app.interfacefluxmap = readiarrayfromdouble(in, app.nsize[14]);
 
     app.szflag = app.nsize[1];
     app.szproblem = app.nsize[2];
@@ -54,6 +55,7 @@ void readappstruct(string filename, appstruct &app)
     app.szstgib = app.nsize[11];
     app.szvindx = app.nsize[12];
     app.szdae_dt = app.nsize[13];
+    app.szinterfacefluxmap = app.nsize[14];
 
     #ifdef HAVE_MPP
         char a[50];
@@ -301,7 +303,7 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.elemcon = readiarrayfromdouble(in, mesh.nsize[22]);
     mesh.perm = readiarrayfromdouble(in, mesh.nsize[23]);
     mesh.bf = readiarrayfromdouble(in, mesh.nsize[24]);
-    
+            
     mesh.szfacecon = mesh.nsize[1];
     mesh.szeblks = mesh.nsize[2];
     mesh.szfblks = mesh.nsize[3];
@@ -326,17 +328,20 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.szelemcon = mesh.nsize[22];
     mesh.szperm = mesh.nsize[23];
     mesh.szbf = mesh.nsize[24];
-    
-//     mesh.nd = mesh.ndims[0]; // spatial dimension    
-//     mesh.ne = mesh.ndims[1]; // number of elements in this subdomain 
-//     mesh.nf = mesh.ndims[2]; // number of faces in this subdomain 
-//     mesh.nv = mesh.ndims[3]; // number of vertices in this subdomain       
-//     mesh.nfe = mesh.ndims[4]; // number of faces per element        
-//     mesh.nbe = mesh.ndims[5]; // number of blocks for elements 
-//     mesh.neb = mesh.ndims[6]; // maximum number of elements per block
-//     mesh.nbf = mesh.ndims[7]; // number of blocks for faces   
-//     mesh.nfb = mesh.ndims[8]; // maximum number of faces per block                                        
-    
+        
+    mesh.faceperm = readiarrayfromdouble(in, mesh.nsize[39]);
+    mesh.nbintf = readiarrayfromdouble(in, mesh.nsize[40]);
+    mesh.facesend = readiarrayfromdouble(in, mesh.nsize[41]);
+    mesh.facesendpts = readiarrayfromdouble(in, mesh.nsize[42]);
+    mesh.facerecv = readiarrayfromdouble(in, mesh.nsize[43]);
+    mesh.facerecvpts = readiarrayfromdouble(in, mesh.nsize[44]);    
+    mesh.szfaceperm = mesh.nsize[39];
+    mesh.sznbintf = mesh.nsize[40];
+    mesh.szfacesend = mesh.nsize[41];
+    mesh.szfacesendpts = mesh.nsize[42];
+    mesh.szfacerecv = mesh.nsize[43];
+    mesh.szfacerecvpts = mesh.nsize[44];
+        
     // Close file:
     in.close();            
 }
@@ -607,18 +612,18 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     if (sol.nsize[5] == npf*nf*ncu) {
         //std::cout << "Reading in uh ..." << std::endl;
-        //readarray(in, &sol.uh, sol.nsize[5]);
+        readarray(in, &sol.uh, sol.nsize[5]);
         //print2darray(sol.uh, npf*ncu*10, 2);
         app.read_uh = 1;
     }
-    std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
+    //std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
         
     // Close file:
     in.close();            
 }
 
 void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, 
-        Int mpiprocs, Int mpirank, Int ompthreads, Int omprank) 
+        Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {   
     if (mpirank==0) printf("Reading app from binary files \n");  
     string fileapp = filein + "app.bin";        
@@ -640,7 +645,7 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
                     
     // read meshsol structure
     if (mpiprocs>1) {     
-        Int filenumber = mpirank+1; //file number     
+        Int filenumber = mpirank+1-fileoffset; //file number     
         
         if (mpirank==0) printf("Reading mesh from binary files \n");            
         string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
@@ -664,7 +669,7 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
 }
 
 void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, 
-        Int mpiprocs, Int mpirank, Int ompthreads, Int omprank) 
+        Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {
     string fileoutapp = fileout + "app.bin";        
     writeappstruct(fileoutapp,app);
@@ -674,7 +679,7 @@ void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstru
                 
     // read meshsol structure
     if (mpiprocs>1) {     
-        Int filenumber = mpirank+1; //file number
+        Int filenumber = mpirank+1-fileoffset; //file number
         
         string fileoutmesh = fileout + "mesh" + NumberToString(filenumber) + ".bin";                
         writemeshstruct(fileoutmesh,mesh);    

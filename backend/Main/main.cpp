@@ -84,11 +84,18 @@ int main(int argc, char** argv)
     string filein[nummodels]; 
     string fileout[nummodels];
     
+    // two-physics and two-domain problems  
+    int mpiprocs0 = 0;
+    if (nummodels>100) {
+      mpiprocs0 = nummodels - 100;
+      nummodels = 2;
+    }
+    
     for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files
         fileout[i]  = string(argv[2*i+3]); // output files        
-        cout<<filein[i]<<endl;
-        cout<<fileout[i]<<endl;
+        //cout<<filein[i]<<endl;
+        //cout<<fileout[i]<<endl;
     }
     
     restart = 0;
@@ -96,6 +103,9 @@ int main(int argc, char** argv)
         mystr = string(argv[2*nummodels+2]);
         restart = stoi(mystr);
     }             
+    
+    // reset nummodels
+    if (mpiprocs0 > 0) nummodels = 1;
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
@@ -137,7 +147,12 @@ int main(int argc, char** argv)
 #ifdef HAVE_CUDA  // CUDA          
     backend=2;
 #endif
-          
+      
+    if ((mpiprocs0 > 0) && (mpiprocs<= mpiprocs0)) {
+      printf("For two-domain problem, total number of MPI processors (%d) must be greater than # MPI processors on the first domain (%d)\n", mpiprocs, mpiprocs0);
+      return 1;
+    }
+      
     if (backend==2) {
         if (mpirank==0) 
             printf("Using %d processors to solve the problem on GPU platform...\n", mpiprocs);
@@ -161,18 +176,27 @@ int main(int argc, char** argv)
     cout<<"Available GPU Memory: "<<available<<" Total GPU Memory: "<<total<<endl;
 #endif                           
     
-    Int ngpus = 0;
-    Int gpuid = 0;        
-    if (backend==2)
-        ngpus = 1;
-
+    Int fileoffset = 0;
+    Int gpuid = 0;            
+      
     // initialize PDE models
     CSolution** pdemodel = new CSolution*[nummodels];     
     // initialize file streams
     ofstream* out = new ofstream[nummodels];    
-            
-    for (int i=0; i<nummodels; i++) {                
-        pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, ngpus, gpuid, backend);       
+                
+    for (int i=0; i<nummodels; i++) {        
+        if (mpiprocs0==0) {
+          pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
+        }
+        else if (mpiprocs0 > 0) {
+          if (mpirank < mpiprocs0) { 
+            pdemodel[i] = new CSolution(filein[0], fileout[0], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+          }
+          else {
+            fileoffset = mpiprocs0;
+            pdemodel[i] = new CSolution(filein[1], fileout[1], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+          }
+        }
         pdemodel[i]->disc.common.nomodels = nummodels;
         
         // can move these to the constructor 
@@ -211,6 +235,8 @@ int main(int argc, char** argv)
 //         pdemodel[0]->SolveProblem(pdemodel[1], backend);               
 //     }
 //     else 
+    
+    
     if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
                         
         // initialize 

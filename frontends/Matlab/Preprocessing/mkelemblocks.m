@@ -1,7 +1,7 @@
 function [nm,nb] = mkelemblocks(ne,ns)
 
 if nargin<2
-    ns = 512; % default number of elements per block
+    ns = 2048; % default number of elements per block
 end
 
 if ne==1

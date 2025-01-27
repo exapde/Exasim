@@ -18,7 +18,7 @@ CSolver::CSolver(CDiscretization& disc, Int backend)
 // destructor
 CSolver::~CSolver()
 {        
-    sys.freememory(sys.cpuMemory);    
+    sys.freememory(sys.backend);    
     if (mpiRank==0) printf("CSolver destructor: sys memory is freed successfully.\n");
 }
 

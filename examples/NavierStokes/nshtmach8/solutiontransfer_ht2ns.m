@@ -28,6 +28,8 @@ end
 
 % store the temperature into vdg
 vdg = zeros(size(meshns.dgnodes,1), size(Ubns,2) ,size(meshns.dgnodes,3));
-vdg = putsolutiononboundary(vdg, Ubns, meshns.f, meshns.perm, meshns.ibwall);
+vdg = putsolutiononboundary(vdg, Ubns, meshns.f, meshns.perm, meshns.ibwall); % vdg in matlab = sol.odg in C++
+
+
 
 

@@ -171,6 +171,17 @@ def gencode(app):
             hdggencodeface2("Fbouonly" + str(strn), f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername)
         else:
             raise AttributeError("pde.fbouhdg is not defined")
+        if hasattr(pde, 'fint'):
+            f = pde.fint(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau)
+            ncu12 = pde['interfacefluxmap'].size
+            if ncu<=0 :
+              ncu12 = 1
+            f = numpy.reshape(f.flatten('F'),(ncu12,round(f.size/ncu12)),'F');
+            hdggencodeface("Fint" + str(strn), f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername)
+            hdggencodeface2("Fintonly" + str(strn), f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername)
+        else:
+            hdgnocodeface("Fint" + str(strn), foldername)
+            hdgnocodeface2("Fintonly" + str(strn), foldername)    
     else:
         hdgnocodeface("Fbou" + str(strn), foldername)
         hdgnocodeface2("Fbouonly" + str(strn), foldername)    

@@ -9,7 +9,8 @@ app.problem  = [app.hybrid appname app.temporalscheme app.torder app.nstage app.
                app.diffStabMethod app.rotatingFrame app.viscosityModel app.SGSmodel app.ALE app.AV...
                app.linearsolver app.NLiter app.linearsolveriter app.GMRESrestart app.RBdim ...
                app.saveSolFreq app.saveSolOpt app.timestepOffset app.stgNmode app.saveSolBouFreq app.ibs ...
-               app.dae_steps app.saveResNorm app.AVsmoothingIter app.frozenAVflag app.ppdegree app.problem];
+               app.dae_steps app.saveResNorm app.AVsmoothingIter app.frozenAVflag app.ppdegree ...
+               app.coupledinterface app.coupledcondition app.coupledboundarycondition app.problem];
 app.factor = [app.time app.dae_alpha app.dae_beta app.dae_gamma app.dae_epsilon app.factor];           
 app.solversparam = [app.NLtol app.linearsolvertol app.matvectol app.NLparam app.solversparam];        
 
@@ -50,6 +51,7 @@ nsize(11) = length(app.stgparam(:));
 nsize(12) = length(app.stgib(:));
 nsize(13) = length(app.vindx(:));
 nsize(14) = length(app.dae_dt(:));
+nsize(15) = length(app.interfacefluxmap(:));
 
 app.nsize = nsize;
 app.ndims = ndims;
@@ -69,10 +71,14 @@ fwrite(fileID,app.tau(:),'double',endian);
 fwrite(fileID,app.stgdata(:),'double',endian);
 fwrite(fileID,app.stgparam(:),'double',endian);
 fwrite(fileID,app.stgib(:),'double',endian);
-if (length(app.vindx(:)) > 1)    
+if (~isempty(app.vindx(:)))    
     fwrite(fileID,app.vindx(:)-1,'double',endian);
 end
 fwrite(fileID,app.dae_dt(:),'double',endian);
+if (~isempty(app.interfacefluxmap(:)))    
+    fwrite(fileID,app.interfacefluxmap(:)-1,'double',endian);
+end
+
 fclose(fileID);
 
 

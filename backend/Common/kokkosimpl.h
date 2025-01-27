@@ -731,6 +731,73 @@ void GetFaceNodes(dstype* uh, const dstype* udg, const int* f2e, const int* perm
     });
 }
 
+void GetBoudaryNodes(dstype* ub, const dstype* uh, const int* boufaces, const int* elemcon, const int nfe, const int npf, const int ncu, const int nf) 
+{
+    int K = npf*nf;
+    int N = K*ncu;
+    int ndf = npf*nfe;   
+    Kokkos::parallel_for("GetBoudaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx/K; // [0, ncu) 
+        int j = idx%K; // [0, npf*nf)
+        int n = j%npf;   // [0, npf)
+        int k = j/npf;   // [0, nf)
+        int e1 = boufaces[k]/nfe;
+        int l1 = boufaces[k]%nfe;
+        ub[idx] = uh[i + elemcon[n + npf*l1 + ndf*e1]*ncu];
+    });
+}
+
+void GetBoudaryNodes(dstype* ub, const dstype* udg, const int* boufaces, const int* perm, const int nfe, const int npf, const int npe, const int ncu, const int nc, const int nf) 
+{
+    int K = npf*nf;
+    int N = K*ncu;
+    int M = npe*nc;
+    Kokkos::parallel_for("GetBoudaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx/K; // [0, ncu) 
+        int j = idx%K; // [0, npf*nf)
+        int n = j%npf;   // [0, npf)
+        int k = j/npf;   // [0, nf)
+        int e1 = boufaces[k]/nfe;
+        int l1 = boufaces[k]%nfe;
+        int m = perm[n + npf*l1];
+        ub[idx] = udg[m+i*npe+e1*M];
+    });
+}
+
+void PutBoudaryNodes(dstype* udg, const dstype* ub, const int* boufaces, const int* perm, const int nfe, const int npf, const int npe, const int ncu, const int nc, const int nf) 
+{
+    int K = npf*nf;
+    int N = K*ncu;
+    int M = npe*nc;
+    Kokkos::parallel_for("PutBoudaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx/K; // [0, ncu) 
+        int j = idx%K; // [0, npf*nf)
+        int n = j%npf;   // [0, npf)
+        int k = j/npf;   // [0, nf)
+        int e1 = boufaces[k]/nfe;
+        int l1 = boufaces[k]%nfe;
+        int m = perm[n + npf*l1];
+        udg[m+i*npe+e1*M] = ub[idx];
+    });
+}
+
+void PutBoudaryNodes(dstype* uh, const dstype* ub, const int* boufaces, const int* faceperm, const int* comperm, const int nfe, const int npf, const int ncu, const int nc, const int nf) 
+{
+    int K = npf*nf;
+    int N = K*ncu;
+    int M = nc*npf;
+    int P = nc*npf*nfe;
+    Kokkos::parallel_for("PutBoudaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%ncu; // [0, ncu) 
+        int j = idx/ncu; // [0, npf*nf)
+        int n = j%npf;   // [0, npf)
+        int k = j/npf;   // [0, nf)
+        int e1 = boufaces[k]/nfe;
+        int l1 = boufaces[k]%nfe;
+        uh[comperm[i] + nc*n + M*l1 + P*e1] += ub[i + ncu*faceperm[n] + ncu*npf*k];
+    });
+}
+
 void GetElementFaceNodes(dstype* uh, const dstype* udg, const int* perm, const int ndf, const int ncu, const int npe, const int nc, const int e1, const int e2) 
 {
     int ne = e2-e1;
@@ -1045,6 +1112,71 @@ void assembleMatrixH(dstype* H, const dstype* Htmp, const int* perm, const int n
     });                        
 }
 
+// npf*npf*nfaces*ncu12*ncu -> ncu12*npf*npe*ncu*nfaces        
+void assembleMatrixKint(dstype* udg, const dstype* uh, const int* boufaces, const int* perm, const int npe, const int npf, const int nfe, const int ncu12, const int ncu, const int nfaces)
+{
+    int N = npf*npf*nfaces*ncu12*ncu; 
+    int M2 = ncu12*npf;
+    int M3 = ncu12*npf*npe;
+    int M4 = ncu12*npf*npe*ncu;
+    Kokkos::parallel_for("PutBoundaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%npf; // [0, npf] 
+        int k = idx/npf; // [0, npf*nfaces*ncu12*ncu]
+        int j = k%npf;   // [0, npf]
+        int m = k/npf;   // [0, nfaces*ncu12*ncu]
+        int e = m%nfaces;    // [0, nfaces]
+        int c = m/nfaces;    // [0, ncu12*ncu]
+        int a = c%ncu12; // [0, ncu12]
+        int b = c/ncu12; // [0, ncu]        
+        int l = boufaces[e]%nfe; // [0, nfe]        
+        int n = perm[j + npf*l]; // [0, npe]
+        udg[a + ncu12*i + M2*n + M3*b + M4*e] = uh[idx];
+    });
+}
+
+// npf*npf*nfaces*ncu12*ncq ->  npf*npe*nfaces*ncu12*ncq
+void assembleMatrixGint(dstype* udg, const dstype* uh, const int* boufaces, const int* perm, const int npe, const int npf, const int nfe, const int ncu12, const int ncq, const int nfaces)
+{
+    int N = npf*npf*nfaces*ncu12*ncq; 
+    int M2 = npf*npe;
+    int M3 = npf*npe*nfaces;
+    int M4 = npf*npe*nfaces*ncu12;
+    Kokkos::parallel_for("PutBoundaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%npf; // [0, npf] 
+        int k = idx/npf; // [0, npf*nfaces*ncu12*ncq]
+        int j = k%npf;   // [0, npf]
+        int m = k/npf;   // [0, nfaces*ncu12*ncq]
+        int e = m%nfaces;    // [0, nfaces]
+        int c = m/nfaces;    // [0, ncu12*ncq]
+        int a = c%ncu12; // [0, ncu12]
+        int b = c/ncu12; // [0, ncq]        
+        int l = boufaces[e]%nfe; // [0, nfe]        
+        int n = perm[j + npf*l]; // [0, npe]
+        udg[i + npf*n + M2*e + M3*a + M4*b] = uh[idx];
+    });
+}
+
+// npf*npf*nfaces*ncu12*ncu -> ncu12*npf*ncu*npf*nfe*nfaces        
+void assembleMatrixHint(dstype* udg, const dstype* uh, const int* boufaces, const int npe, const int npf, const int nfe, const int ncu12, const int ncu, const int nfaces)
+{
+    int N = npf*npf*nfaces*ncu12*ncu; 
+    int M2 = ncu12*npf;
+    int M3 = ncu12*npf*ncu;
+    int M4 = ncu12*npf*ncu*npf*nfe;
+    Kokkos::parallel_for("PutBoundaryNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%npf; // [0, npf] 
+        int k = idx/npf; // [0, npf*nfaces*ncu12*ncu]
+        int j = k%npf;   // [0, npf]
+        int m = k/npf;   // [0, nfaces*ncu12*ncu]
+        int e = m%nfaces;    // [0, nfaces]
+        int c = m/nfaces;    // [0, ncu12*ncu]
+        int a = c%ncu12; // [0, ncu12]
+        int b = c/ncu12; // [0, ncu]        
+        int l = boufaces[e]%nfe; // [0, nfe]                
+        udg[a + ncu12*i + M2*b + M3*(j + npf*l) + M4*e] = uh[idx];
+    });
+}
+
 // npe*npe*ne*ncu*ncu -> npe*ncu*npe*ncu*ne
 void schurMatrixD(dstype* D, const dstype* Dtmp,  const int npe, const int ncu, const int ne)
 {        
@@ -1130,16 +1262,16 @@ void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, dstype s
 }
 
 // (npf*nfe)*npe*ne*ncu*ncu -> ncu*(npf*nfe)*npe*ncu*ne
-void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = npe*ndf;    
     int L = npe*ndf*ne; 
-    int P = L*ncu;   
-    int N = ncu*(npf*nfe)*npe*ncu*ne;    
+    int P = L*ncu12;   
+    int N = ncu12*(npf*nfe)*npe*ncu*ne;    
     Kokkos::parallel_for("schurMatrixK", N, KOKKOS_LAMBDA(const size_t idx) {
-        int m = idx%ncu; // [0, ncu)
-        int q = idx/ncu; // [0, (npf*nfe)*npe*ncu*ne)                  
+        int m = idx%ncu12; // [0, ncu12)
+        int q = idx/ncu12; // [0, (npf*nfe)*npe*ncu12*ne)                  
         int i = q%ndf;   // [0, npf*nfe]
         int p = q/ndf;   // [0, npe*ncu*ne)        
         int j = p%npe;   // [0, npe]
@@ -1151,17 +1283,17 @@ void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const int ncu, 
 }
 
 // [(npf*nfe)*npe*ne*ncu*ncu] x [npe*npe*ne] -> ncu*(npf*nfe)*npe*ncu*ne
-void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int Q = npe*npe;
     int M = npe*ndf;    
     int L = npe*ndf*ne; 
-    int P = L*ncu;   
-    int N = ncu*(npf*nfe)*npe*ncu*ne;
+    int P = L*ncu12;   
+    int N = ncu12*(npf*nfe)*npe*ncu*ne;
     Kokkos::parallel_for("schurMatrixGMinvC", N, KOKKOS_LAMBDA(const size_t idx) {
-        int m = idx%ncu; // [0, ncu)
-        int q = idx/ncu; // [0, (npf*nfe)*npe*ncu*ne)                  
+        int m = idx%ncu12; // [0, ncu12)
+        int q = idx/ncu12; // [0, (npf*nfe)*npe*ncu12*ne)                  
         int i = q%ndf;   // [0, npf*nfe]
         int p = q/ndf;   // [0, npe*ncu*ne)        
         int j = p%npe;   // [0, npe]
@@ -1176,16 +1308,16 @@ void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, dstype s
 }
 
 // (npf*nfe)*(npf*nfe)*ne*ncu*ncu -> ncu*(npf*nfe)*ncu*(npf*nfe)*ne
-void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = ndf*ndf;    
     int L = ndf*ndf*ne; 
-    int P = L*ncu;   
-    int N = ncu*(npf*nfe)*ncu*(npf*nfe)*ne;    
+    int P = L*ncu12;   
+    int N = ncu12*(npf*nfe)*ncu*(npf*nfe)*ne;    
     Kokkos::parallel_for("schurMatrixH", N, KOKKOS_LAMBDA(const size_t idx) {
-        int m = idx%ncu; // [0, ncu)
-        int q = idx/ncu; // [0, (npf*nfe)*npe*ncu*ne)                  
+        int m = idx%ncu12; // [0, ncu12)
+        int q = idx/ncu12; // [0, (npf*nfe)*npe*ncu12*ne)                  
         int i = q%ndf;   // [0, npf*nfe]
         int p = q/ndf;   // [0, ncu*(npf*nfe)*ne)        
         int n = p%ncu;   // [0, ncu]
@@ -1197,16 +1329,16 @@ void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu, const int npf, 
 }
 
 // [(npf*nfe)*npe*ne*ncu*ncu] x [npe*(npf*nfe)*ne] -> ncu*(npf*nfe)*ncu*(npf*nfe)*ne
-void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = ndf*npe;    
     int L = ndf*npe*ne; 
-    int P = L*ncu;   
-    int N = ncu*(npf*nfe)*ncu*(npf*nfe)*ne;    
+    int P = L*ncu12;   
+    int N = ncu12*(npf*nfe)*ncu*(npf*nfe)*ne;    
     Kokkos::parallel_for("schurMatrixGMinvE", N, KOKKOS_LAMBDA(const size_t idx) {
-        int m = idx%ncu; // [0, ncu)
-        int q = idx/ncu; // [0, (npf*nfe)*npe*ncu*ne)                  
+        int m = idx%ncu12; // [0, ncu]
+        int q = idx/ncu12; // [0, (npf*nfe)*ncu*(npf*nfe)*ne]                  
         int i = q%ndf;   // [0, npf*nfe]
         int p = q/ndf;   // [0, ncu*(npf*nfe)*ne)        
         int n = p%ncu;   // [0, ncu]
@@ -1216,6 +1348,30 @@ void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype s
         dstype sum = 0;
         for (int k=0; k<npe; k++)
             sum += scalar*G[i + ndf*k + M*e + L*m + P*n]*MinvE[k + npe*j + M*e];
+        H[idx] -= sum;        
+    });                        
+}
+
+void schurMatrixGintMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
+{        
+    int ndf = npf*nfe;
+    int Q = npe*ndf;
+    int M = npf*npe;    
+    int L = npf*npe*ne; 
+    int P = L*ncu12;   
+    int N = ncu12*npf*ncu*ndf*ne;    
+    Kokkos::parallel_for("schurMatrixGMinvE", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncu12; // [0, ncu12]
+        int q = idx/ncu12; // [0, npf*ncu*npf*nfe*ne]                  
+        int i = q%npf;   // [0, npf]
+        int p = q/npf;   // [0, ncu*npf*nfe*ne)        
+        int n = p%ncu;   // [0, ncu]
+        int s = p/ncu;   // [0, npf*nfe*ne]                        
+        int j = s%ndf;   // [0, npf*nfe]
+        int e = s/ndf;   // [0, ne]
+        dstype sum = 0;
+        for (int k=0; k<npe; k++)
+            sum += scalar*G[i + npf*k + M*e + L*m + P*n]*MinvE[k + npe*j + Q*e];
         H[idx] -= sum;        
     });                        
 }

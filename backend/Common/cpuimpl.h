@@ -264,6 +264,44 @@ void elemperm(int *ind, int *indpts, int *eblks, int npe, int nc, int ncu, int n
     indpts[nbe] = N;
 }
 
+int getinterfacefaces(int *bf, int *eblks, int nbe, int nfe, int ibinterface)
+{ 
+    int nintfaces = 0;
+    for (int j=0; j<nbe; j++) { // loop over each chunk
+        int e1 = eblks[3*j]-1;
+        int e2 = eblks[3*j+1];               
+        for (int e=e1; e<e2; e++) {  // loop over each element in a chunk           
+          for (int k=0; k<nfe; k++) { // loop over each local face               
+              if (bf[k + nfe*e] == ibinterface) {
+                nintfaces += 1;
+              }                  
+          }
+        }  
+    }      
+    
+    return nintfaces;
+}
+
+void getinterfacefaces(int *intfaces, int *bf, int *eblks, int nbe, int nfe, int ibinterface, int nintfaces)
+{ 
+    for (int i=0; i<nintfaces; i++) intfaces[i] = 0;
+
+    for (int j=0; j<nbe; j++) { // loop over each chunk
+        int e1 = eblks[3*j]-1;
+        int e2 = eblks[3*j+1];       
+        int m = 0;
+        for (int e=e1; e<e2; e++) {  // loop over each element in a chunk           
+          for (int k=0; k<nfe; k++) { // loop over each local face               
+              if (bf[k + nfe*e] == ibinterface) {
+                intfaces[m] = k + nfe*e;     // local face on that element 
+                m += 1;
+              }                  
+          }
+        }  
+    }                     
+}
+
+
 void getboundaryfaces(int *numbf, int *boufaces, int *bf, int *eblks, int nbe, int nfe, int maxbc, int nboufaces)
 {
     for (int i=0; i<1+maxbc*nbe; i++) numbf[i] = 0;

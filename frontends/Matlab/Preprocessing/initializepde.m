@@ -105,6 +105,7 @@ pde.problem = [0 0];
 pde.boundaryconditions = [0 0];
 pde.stgib = [0 0];
 pde.vindx = [];
+pde.interfacefluxmap = [];
 
 pde.tau = 1.0; 
 pde.externalparam = [0.0 0.0]; 

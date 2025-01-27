@@ -1,7 +1,7 @@
 function [nm,nb] = mkfaceblocks(mf,bcm,ns)
 
 if nargin<3
-    ns = 4096; % default number of faces per block
+    ns = 2048; % default number of faces per block
 end
 
 nm = [];

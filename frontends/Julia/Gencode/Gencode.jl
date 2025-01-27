@@ -226,6 +226,22 @@ if app.hybrid==1
   else
     error("pde.Fbouhdg is not defined");
   end
+  if isdefined(pdemodel, Symbol("fint"))
+    f = pdemodel.fint(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);  
+    if length(f)==1
+        f = reshape([f],1,1);
+    end    
+    ncu12 = length(app.interfacefluxmap);
+    if ncu12<=0 
+      ncu12 = 1;
+    end
+    f = reshape(f[:],ncu12,Int(length(f)/ncu12));
+    hdggencodeface("Fint" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+    hdggencodeface2("Fintonly" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+  else
+    hdgnocodeface("Fint" * strn, foldername);
+    hdgnocodeface2("Fintonly" * strn, foldername);
+  end
 else
   hdgnocodeface("Fbou" * strn, foldername);
   hdgnocodeface2("Fbouonly" * strn, foldername);

@@ -17,7 +17,7 @@ CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 // destructor
 CPreconditioner::~CPreconditioner()
 {            
-    precond.freememory(precond.cpuMemory);
+    precond.freememory(precond.backend);
     if (mpiRank==0) printf("CPreconditioner destructor: precond memory is freed successfully.\n");
 }
 

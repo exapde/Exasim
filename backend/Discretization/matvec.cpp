@@ -138,8 +138,8 @@ void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct &mesh,
     }
 }
 
-void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, meshstruct &mesh, 
-        commonstruct &common, tempstruct &tmp, cublasHandle_t handle, Int backend)
+void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstruct &res, appstruct &app, 
+        meshstruct &mesh, commonstruct &common, tempstruct &tmp, cublasHandle_t handle, Int backend)
 {   
     Int ne1 = common.ne1; // number of elements in this subdomain 
     Int nf = common.nf; // number of faces in this subdomain
@@ -189,6 +189,46 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, meshstr
         }
     }
 
+    if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
+      int ncu12 = common.szinterfacefluxmap;
+      int szRi = ncu12*npf;  
+      int neI = common.nintfaces;
+      
+      // perform  matrix-vector products for interface elements
+      // (ncu12 * npf) * (ncu * npf * nfe ) * neI x (ncu * npf * nfe ) * neI  = (ncu12 * npf) * neI    
+      PGEMNMStridedBached(handle, szRi, 1, m, one, res.Hi, szRi, &ve[m*ne0], m, zero, res.Ri, szRi, neI, backend); 
+      
+      for (int n=0; n<common.nfacesend; n++)  {       
+        ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
+      }
+            
+      /* non-blocking send */
+      psend = 0; 
+      for (int n=0; n<common.nnbintf; n++) {
+          neighbor = common.nbintf[n];
+          nsend = common.facesendpts[n]*szRi;
+          if (nsend>0) {
+              MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
+                    MPI_COMM_WORLD, &common.requests[request_counter]);
+              psend += nsend;
+              request_counter += 1;
+          }
+      }
+      
+      /* non-blocking receive */
+      precv = 0;
+      for (int n=0; n<common.nnbintf; n++) {
+          neighbor = common.nbintf[n];
+          nrecv = common.facerecvpts[n]*szRi;
+          if (nrecv>0) {
+              MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
+                    MPI_COMM_WORLD, &common.requests[request_counter]);
+              precv += nrecv;
+              request_counter += 1;
+          }
+      }      
+    }
+    
     // perform matrix-vector products for interior elements
     PGEMNMStridedBached(handle, m, 1, m, one, AE, m, ve, m, zero, we, m, ne0, backend); 
 
@@ -198,11 +238,22 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, meshstr
       ArrayCopy(&we[bsz*common.elemrecv[n]], &tmp.buffrecv[bsz*n], bsz);       
     }
 
+    if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
+      int ncu12 = common.szinterfacefluxmap;
+      int szRi = ncu12*npf;  
+      
+      for (int n=0; n<common.nfacerecv; n++) {        
+        ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
+      }      
+      
+      PutBoudaryNodes(we, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces); 
+    }
+    
     // assemble vector w from we using the FIRST elements in mesh.f2e
     PutElementFaceNodes(w, we, mesh.f2e, npf, nfe, ncu, nf);
 
     // assemble vector w from we using the SECOND elements in mesh.f2e
-    PutElementFaceNodes(w, we, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);        
+    PutElementFaceNodes(w, we, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);           
 #else 
     // (ncu * npf * nfe)  * (ncu * npf * nfe) * ne x (ncu * npf * nfe) * ne -> (ncu * npf * nfe) * ne
     PGEMNMStridedBached(handle, m, 1, m, one, AE, m, ve, m, zero, we, m, ne1, backend); 
@@ -327,6 +378,8 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     Int szH = szR*szR;
     Int bsz = szH + szR; // send and receive H and Rh together   
 
+    //printf("hdgAssembleLinearSystemMPI: %d %d %d %d\n", common.nbe0, common.nbe1, common.nelemsend, common.nnbsd);
+    
     // perform HDG descrization for interface elements
     for (Int j=common.nbe0; j<common.nbe1; j++) {     // fixed bug here             
       uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
@@ -366,6 +419,46 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
         }
     }
 
+    if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
+      int ncu12 = common.szinterfacefluxmap;
+      int szRi = ncu12*npf;  
+      
+//       if (common.mpiRank==1)
+//         print2darray(res.Ri, szRi, common.nfacesend);
+      
+      for (int n=0; n<common.nfacesend; n++)  {       
+        ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
+      }
+      
+      //printf("hdgAssembleLinearSystemMPI: %d %d %d %d %d %d %d %d %d %d %d\n", common.mpiRank, common.nnbintf, common.nbintf[0], common.facesendpts[0], common.facerecvpts[0], common.nfacesend, common.nelemsend, szRi, common.coupledcondition, common.coupledboundarycondition, app.interfacefluxmap[0]);
+      
+      /* non-blocking send */
+      psend = 0; 
+      for (int n=0; n<common.nnbintf; n++) {
+          neighbor = common.nbintf[n];
+          nsend = common.facesendpts[n]*szRi;
+          if (nsend>0) {
+              MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
+                    MPI_COMM_WORLD, &common.requests[request_counter]);
+              psend += nsend;
+              request_counter += 1;
+          }
+      }
+      
+      /* non-blocking receive */
+      precv = 0;
+      for (int n=0; n<common.nnbintf; n++) {
+          neighbor = common.nbintf[n];
+          nrecv = common.facerecvpts[n]*szRi;
+          if (nrecv>0) {
+              MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
+                    MPI_COMM_WORLD, &common.requests[request_counter]);
+              precv += nrecv;
+              request_counter += 1;
+          }
+      }      
+    }
+      
     // perform HDG descrization for interior elements
     for (Int j=0; j<common.nbe0; j++) {                  
       uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
@@ -380,6 +473,20 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
       ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n + szH], szR);            
     }
 
+    if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
+      int ncu12 = common.szinterfacefluxmap;
+      int szRi = ncu12*npf;  
+      
+      for (int n=0; n<common.nfacerecv; n++) {        
+        ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
+      }      
+      
+      PutBoudaryNodes(res.Rh, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces); 
+      
+//       if (common.mpiRank==1)
+//         print2darray(res.Ri, szRi, common.nfacerecv);
+    }
+    
     ArraySetValue(b, 0.0, ncu*npf*common.nf); // fix bug here
 
     // assemble RHS vector b from res.Rh using the FIRST elements in mesh.f2e
@@ -481,6 +588,41 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
         }
     }
 
+    if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
+      int ncu12 = common.szinterfacefluxmap;
+      int szRi = ncu12*npf;  
+      
+      for (int n=0; n<common.nfacesend; n++)  {       
+        ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
+      }
+            
+      /* non-blocking send */
+      psend = 0; 
+      for (int n=0; n<common.nnbintf; n++) {
+          neighbor = common.nbintf[n];
+          nsend = common.facesendpts[n]*szRi;
+          if (nsend>0) {
+              MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
+                    MPI_COMM_WORLD, &common.requests[request_counter]);
+              psend += nsend;
+              request_counter += 1;
+          }
+      }
+      
+      /* non-blocking receive */
+      precv = 0;
+      for (int n=0; n<common.nnbintf; n++) {
+          neighbor = common.nbintf[n];
+          nrecv = common.facerecvpts[n]*szRi;
+          if (nrecv>0) {
+              MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
+                    MPI_COMM_WORLD, &common.requests[request_counter]);
+              precv += nrecv;
+              request_counter += 1;
+          }
+      }      
+    }
+    
     // perform HDG descrization for interior elements
     for (Int j=0; j<common.nbe0; j++) {                  
       RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
@@ -493,11 +635,36 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
       ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n], szR);            
     }
 
+    if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
+      int ncu12 = common.szinterfacefluxmap;
+      int szRi = ncu12*npf;  
+      
+//       if (common.mpiRank==1) {
+//         print2darray(res.Ri, ncu*npf, common.nintfaces);    
+//       }
+      
+      for (int n=0; n<common.nfacerecv; n++) {        
+        ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
+      }      
+      
+//       if (common.mpiRank==1) {
+//         print2darray(res.Rh, ncu*npf*nfe, common.ne1);    
+//         print2darray(res.Ri, ncu*npf, common.nintfaces);    
+//       }
+      
+      PutBoudaryNodes(res.Rh, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces);       
+    }
+        
     // assemble RHS vector b from res.Rh using the FIRST elements in mesh.f2e
     PutElementFaceNodes(b, res.Rh, mesh.f2e, npf, nfe, ncu, common.nf);
 
     // assemble RHS vector b from res.Rh using the SECOND elements in mesh.f2e
     PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
+    
+//     if (common.mpiRank==0) {
+//       print2darray(res.Rh, ncu*npf*nfe, common.ne1);    
+//       print2darray(b, ncu*npf, common.nf);    
+//     }
 }
 #endif
 

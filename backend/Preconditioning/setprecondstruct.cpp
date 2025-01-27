@@ -27,10 +27,7 @@ void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend
     //     ArraySetValue(precond.C, one, N);  
     // }
     
-    if (backend<=1)  // CPU
-        precond.cpuMemory = 1;    
-    else  // GPU
-        precond.cpuMemory = 0;    
+    precond.backend = backend;       
 }
 
 #endif

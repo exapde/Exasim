@@ -10,8 +10,8 @@ public:
     //ofstream filestr;     // storing residual norms
     
     // constructor 
-    CSolution(string filein, string fileout, Int mpiprocs, Int mpirank, Int ompthreads, Int omprank, Int backend)   
-       : disc(filein, fileout, mpiprocs, mpirank, ompthreads, omprank, backend),
+    CSolution(string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend)   
+       : disc(filein, fileout, mpiprocs, mpirank, fileoffset, omprank, backend),
          prec(disc, backend),
          solv(disc, backend) { };        
     

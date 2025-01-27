@@ -296,7 +296,7 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
     else if (spatialScheme==1) {            
       auto begin = chrono::high_resolution_clock::now();   
       
-      if (disc.common.mpiRank==0) printf("hdgAssembleLinearSystem\n");   
+      //if (disc.common.mpiRank==0) printf("hdgAssembleLinearSystem\n");   
       
       disc.hdgAssembleLinearSystem(sys.b, backend);
             
@@ -405,13 +405,14 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
           nrm0 = nrmr; // original norm          
           // compute the updated residual norm |[Ru; Rh]|
           disc.hdgAssembleResidual(sys.b, backend);
-          nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend); 
-          nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);           
-          
+          nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);           
+          nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
+                    
           // damped Newton loop to determine alpha
           while (nrmr>nrm0 && alpha > 0.1) 
           {
-            printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, alpha, nrm0, nrmr);
+            if (disc.common.mpiRank==0)
+              printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, alpha, nrm0, nrmr);
             alpha = alpha/2.0;             
             ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, -alpha, N, backend); 
             ArrayCopy(disc.sol.uh, sys.u, N);

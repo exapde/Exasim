@@ -1,4 +1,4 @@
-function dist = meshdist3(f,dgnodes,perm,ib)
+function [dist,p] = meshdist3(f,dgnodes,perm,ib)
 
 % compute the distance to the wall
 perm = perm(:,:,1);

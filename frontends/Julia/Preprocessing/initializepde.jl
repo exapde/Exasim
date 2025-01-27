@@ -98,6 +98,7 @@ mutable struct PDEStruct
     boundaryconditions::Array{IntP,2};# a list of boundary condition numbers
     stgib::Array{IntP,2};  # synthetic turbulence
     vindx;  
+    interfacefluxmap;
 
     dt::Array{FloatP,1};      # time steps
     tau::Array{FloatP,1}; # stabilization parameters
@@ -242,6 +243,7 @@ function initializepde(version)
     pde.boundaryconditions = [0 0];
     pde.stgib = [0 0];
     pde.vindx = [];
+    pde.interfacefluxmap = [];
 
     pde.tau = [1.0]; # stabilization parameters
     pde.dt = [0.0];  # time steps

@@ -49,6 +49,7 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
     TemplateMalloc(&sys.r, ndof, backend); 
     TemplateMalloc(&sys.v, ndof*M, backend);         
     
+    sys.backend = backend;  
     sys.szu = ndof;
     sys.szx = ndof;
     sys.szb = ndof;
@@ -139,12 +140,10 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
 #ifdef HAVE_CUDA        
         cudaTemplateHostAlloc(&sys.tempmem, (5*M + M*M), cudaHostAllocMapped); // zero copy
         //TemplateMalloc(&sys.tempmem, (5*M + M*M), backend);            
-#endif        
-        sys.cpuMemory = 0;    
+#endif                  
     }
     else { // CPU
         sys.tempmem = (dstype *) malloc((5*M + M*M)*sizeof(dstype));
-        sys.cpuMemory = 1;    
     }
     sys.ipiv = (Int *) malloc(max(common.ppdegree, M*M)*sizeof(Int));             
     
@@ -158,7 +157,7 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
 #ifdef HAVE_CUDA                               
     dstype *rvec = (dstype *) malloc((N)*sizeof(dstype));
     for (int i=0; i<N; i++) rvec[i] = rand_normal(0.0, 1.0);   
-    CHECK( cudaMemcpy(sys.randvect, rvec, N*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+    TemplateCopytoDevice(sys.randvect, rvec, N, common.backend );   
     free(rvec);
 #endif                
 #ifndef HAVE_CUDA      

@@ -1,5 +1,28 @@
 function [app,mesh,master,dmd] = preprocessing(app,mesh)
 
+coupledinterface = 0;
+coupledcondition = 0;
+coupledboundarycondition = 0;
+if isfield(mesh, 'interfacecondition')
+  coupledinterface = find(mesh.interfacecondition > 0);
+  coupledcondition = mesh.interfacecondition(coupledinterface);  
+  coupledboundarycondition = mesh.boundarycondition(coupledinterface);  
+  if length(find(mesh.boundarycondition == coupledboundarycondition)) > 1
+    error("mesh.boundarycondition is invalid because interface condition is not unique.");
+  end
+  if length(coupledinterface) > 1
+    error("mesh.interfacecondition is invalid because there are more than one coupled interface.");
+  end
+  if isempty(coupledinterface)
+    coupledinterface = 0;
+    coupledcondition = 0;
+    coupledboundarycondition = 0;
+  end
+end
+app.coupledinterface = coupledinterface;
+app.coupledcondition = coupledcondition;
+app.coupledboundarycondition = coupledboundarycondition;
+
 if app.modelnumber==0
     strn = "";
 else
@@ -48,6 +71,10 @@ end
 % master struct
 master = Master(app);
 writemaster(master,filemaster,'native');        
+
+mesh.coupledinterface = app.coupledinterface;
+mesh.porder = app.porder;
+mesh.perm = master.perm;
 
 % obtain the PDE model
 pdemodel = str2func(app.modelfile);
@@ -109,7 +136,7 @@ disp('run facenumbering...');
 mpiprocs = app.mpiprocs;
 %dmd = meshpartition(mesh.p,mesh.t,mesh.f,t2t,mesh.tprd,app.elemtype,app.boundaryconditions,mesh.boundaryexpr,mesh.periodicexpr,app.porder,mpiprocs,app.metis);
 if (app.hybrid ==1)
-  dmd = meshpartitionhdg(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+  dmd = meshpartitionhdg(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,coupledinterface,mpiprocs,app.metis);
 else
   dmd = meshpartition2(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
 end
@@ -129,7 +156,7 @@ for i = 1:mpiprocs
     
     [~,cgelcon,rowent2elem,colent2elem,cgent2dgent] = mkcgent2dgent(xdg,1e-6);
     disp(['Writing initial solution into file ' num2str(i) '...']);
-    if mpiprocs>1
+    if (mpiprocs>1) || (coupledinterface>0)
         fileID1 = fopen(filename + "sol" + string(i) + ".bin",'w');
     else
         fileID1 = fopen(filename + "sol" + ".bin",'w');
@@ -204,16 +231,26 @@ for i = 1:mpiprocs
     
     % divide elements and faces into blocks
     if mpiprocs==1
-        ne = length(dmd{i}.elempart);
-        [eblks,nbe] = mkelemblocks(ne,app.neb);
-        eblks(3,:) = 0;        
+        if coupledinterface>0
+          me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2)]);
+          [eblks,nbe] = mkfaceblocks(me,[0 -1],app.neb);                
+        else
+          ne = length(dmd{i}.elempart);        
+          [eblks,nbe] = mkelemblocks(ne,app.neb);
+          eblks(3,:) = 0;        
+        end     
         mf = cumsum([0 dmd{i}.facepartpts]);    
         [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);       
         neb = max(eblks(2,:)-eblks(1,:))+1;
         nfb = max(fblks(2,:)-fblks(1,:))+1;
     else
-        me = cumsum([0 dmd{i}.elempartpts(1) dmd{i}.elempartpts(2) dmd{i}.elempartpts(3)]);
-        [eblks,nbe] = mkfaceblocks(me,[0 1 2],app.neb);          
+        if coupledinterface>0
+          me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2) dmd{i}.intepartpts(3) dmd{i}.intepartpts(4)]);
+          [eblks,nbe] = mkfaceblocks(me,[0 -1 1 2],app.neb);          
+        else
+          me = cumsum([0 dmd{i}.elempartpts(1) dmd{i}.elempartpts(2) dmd{i}.elempartpts(3)]);
+          [eblks,nbe] = mkfaceblocks(me,[0 1 2],app.neb);          
+        end
         mf = cumsum([0 dmd{i}.facepartpts]);                 
         [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);        
         neb = max(eblks(2,:)-eblks(1,:))+1;
@@ -229,8 +266,7 @@ for i = 1:mpiprocs
         if fblks(3,ii)>0
             ind = [ind fblks(1,ii):fblks(2,ii)];
         end
-    end        
-    
+    end            
     facecon2(:,ind)=[];        
     [rowe2f1,cole2f1,ent2ind1] = mkdge2dgf(facecon1,npe*length(dmd{i}.elempart));                
     [rowe2f2,cole2f2,ent2ind2] = mkdge2dgf(facecon2,npe*length(dmd{i}.elempart));      
@@ -238,7 +274,7 @@ for i = 1:mpiprocs
     %writebin("facecon" + num2str(i) + ".bin",facecon2(:));
         
     disp(['Writing mesh into file ' num2str(i) '...']); 
-    if mpiprocs>1
+    if (mpiprocs>1) || (coupledinterface>0)
         fileID2 = fopen(filename + "mesh" + string(i) + ".bin",'w');
     else
         fileID2 = fopen(filename + "mesh" + ".bin",'w');
@@ -254,7 +290,7 @@ for i = 1:mpiprocs
     ndims(8) = nbf;
     ndims(9) = nfb;
         
-    nsize = zeros(25,1);
+    nsize = zeros(50,1);
     nsize(1) = length(ndims(:));
     nsize(2) = length(dmd{i}.facecon(:));  
     nsize(3) = length(eblks(:)); 
@@ -280,7 +316,10 @@ for i = 1:mpiprocs
       nsize(22) = length(dmd{i}.f2t(:));  
       nsize(23) = length(dmd{i}.elemcon(:));  
       nsize(24) = length(master.perm(:));  
-      nsize(25) = length(dmd{i}.bf(:));            
+      nsize(25) = length(dmd{i}.bf(:));           
+%       if coupledinterface>0
+%         nsize(26) = length(dmd{i}.intepartpts(:));    
+%       end
     end
     fwrite(fileID2,length(nsize(:)),'double',endian);
     fwrite(fileID2,nsize(:),'double',endian);
@@ -310,6 +349,9 @@ for i = 1:mpiprocs
       fwrite(fileID2,dmd{i}.elemcon(:)-1,'double',endian);        
       fwrite(fileID2,master.perm(:)-1,'double',endian);        
       fwrite(fileID2,dmd{i}.bf(:),'double',endian);      
+%       if coupledinterface>0
+%         fwrite(fileID2,dmd{i}.intepartpts(:),'double',endian);      
+%       end
     end
     fclose(fileID2);             
 end

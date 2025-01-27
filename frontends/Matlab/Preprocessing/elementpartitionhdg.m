@@ -1,4 +1,4 @@
-function dmd = elementpartitionhdg(t,t2t,nproc,metis)
+function dmd = elementpartitionhdg(t,t2t,f,coupledinterface,nproc,metis)
  
 [~,ne] = size(t);
 dmd = cell(nproc,1);
@@ -13,10 +13,20 @@ if nproc==1
     dmd{i}.elemsend = [];
     dmd{i}.elemrecvpts = [];    
     dmd{i}.elemsendpts = [];
+    if coupledinterface>0
+      [~, inte] = find(f == coupledinterface);
+      dmd{i}.elempart = [setdiff((1:ne)', inte); inte];
+      dmd{i}.elempartpts = [ne-length(inte) length(inte) 0];
+      dmd{i}.intepartpts = [ne-length(inte) length(inte) 0 0];
+    end    
     return;
 end
 
 elem2cpu = partition(t',ne,nproc,metis);
+
+if coupledinterface>0
+  [~, inte] = find(f == coupledinterface);
+end    
 
 for i = 1:nproc
     disp(['element partition ' num2str(i)]); 
@@ -27,8 +37,18 @@ for i = 1:nproc
     elem = neighboringelements(t2t, extelem); % all elements connected to exterior elements
     bndelem = intersect(elem,intelem);  % interface elements in subdmain i
     
+    % split bndelem into bndelem1 and bndelem2
+    if coupledinterface>0
+      bndelem1 = intersect(bndelem, inte);
+      bndelem2 = setdiff(bndelem, bndelem1);
+      bndelem = [bndelem1; bndelem2];
+    end
+    
     dmd{i}.elempart = [setdiff(intelem,bndelem); bndelem; extelem]; % partitions of elements
     dmd{i}.elempartpts = [length(intelem)-length(bndelem) length(bndelem) length(extelem)];    
+    if coupledinterface>0
+      dmd{i}.intepartpts = [length(intelem)-length(bndelem) length(bndelem1) length(bndelem2) length(extelem)];    
+    end
     dmd{i}.elem2cpu = elem2cpu(dmd{i}.elempart);
     nelem = dmd{i}.elempartpts;
 

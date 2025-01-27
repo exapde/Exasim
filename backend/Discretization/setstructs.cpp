@@ -4,7 +4,7 @@
 #include "ismeshcurved.cpp"
 
 void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, 
-        string filein, string fileout, Int curvedMesh)
+        string filein, string fileout, Int curvedMesh, Int fileoffset)
 {               
     common.filein = filein;
     common.fileout = fileout;
@@ -67,6 +67,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     if (common.ntau>0) common.tau0 = app.tau[0];
 		
     common.curvedMesh = curvedMesh;        
+    common.fileoffset = fileoffset;
 
     common.tdep = app.flag[0];      // 0: steady-state; 1: time-dependent;  
     common.wave = app.flag[1];
@@ -122,6 +123,9 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
                                            //   0: AV not frozen, evaluated every iteration
                                            //   1: AV frozen, evluated once per solve (default)          
     common.ppdegree = app.problem[27]; // degree of polynomial preconditioner
+    common.coupledinterface = app.problem[28]; 
+    common.coupledcondition = app.problem[29]; 
+    common.coupledboundarycondition = app.problem[30];
     
     common.RBcurrentdim = 0; // current dimension of the reduced basis space
     common.RBremovedind = 0; // the vector to be removed from the RB space and replaced with new vector
@@ -150,8 +154,10 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.dt = copyarray(app.dt,app.nsize[4]); // timestep sizes       
     common.nvindx = app.nsize[12];
     common.vindx = copyarray(app.vindx,app.nsize[12]); 
-    common.dae_dt = copyarray(app.dae_dt,app.nsize[13]); // dual timestep sizes   
-        
+    common.dae_dt = copyarray(app.dae_dt,app.nsize[13]); // dual timestep sizes           
+    common.szinterfacefluxmap = app.nsize[14];
+    common.interfacefluxmap = copyarray(app.interfacefluxmap,app.nsize[14]); 
+    
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
         Int f1 = common.fblks[3*j]-1;
@@ -170,7 +176,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.BDFcoeff_c = (dstype*) malloc((common.torder+1)*sizeof(dstype));
         common.BDFcoeff_t = (dstype*) malloc(sizeof(dstype));
     }    
-    
+        
     if (common.mpiProcs>1) { // MPI
         common.ne0 = mesh.elempartpts[0]; // number of interior elements
         common.ne1 = mesh.elempartpts[0]+mesh.elempartpts[1]; // added with number of interface elements
@@ -186,13 +192,16 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.nbe0 = 0;
         common.nbe1 = 0;
         common.nbe2 = 0;
+        common.ncie = 0; // number of coupled interface elements
         for (Int j=0; j<common.nbe; j++) {           
-            if (common.eblks[3*j+2] <= 0)
+            if (common.eblks[3*j+2] == 0)
                 common.nbe0 += 1;
             if (common.eblks[3*j+2] <= 1)
                 common.nbe1 += 1;
             if (common.eblks[3*j+2] <= 2)
                 common.nbe2 += 1;
+            if (common.eblks[3*j+2] == -1)
+              common.ncie += common.eblks[3*j+1] - common.eblks[3*j+0] + 1;
         }        
         
         common.nbf0 = mesh.ndims[9]; // number of blocks for faces   
@@ -207,9 +216,18 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.elemsendpts = copyarray(mesh.elemsendpts,mesh.nsize[7]); 
         common.elemrecvpts = copyarray(mesh.elemrecvpts,mesh.nsize[8]); 
             
+        common.nnbintf = mesh.sznbintf;
+        common.nfacesend = mesh.szfacesend;
+        common.nfacerecv = mesh.szfacerecv;            
+        common.nbintf = copyarray(mesh.nbintf,mesh.sznbintf); 
+        common.facesend = copyarray(mesh.facesend,mesh.szfacesend); 
+        common.facesendpts = copyarray(mesh.facesendpts,mesh.szfacesendpts); 
+        common.facerecv = copyarray(mesh.facerecv,mesh.szfacerecv);         
+        common.facerecvpts = copyarray(mesh.facerecvpts,mesh.szfacerecvpts); 
+        
 #ifdef  HAVE_MPI
-        common.requests = (MPI_Request *) malloc( 2*common.nnbsd * sizeof(MPI_Request) );
-        common.statuses = (MPI_Status *) malloc( 2*common.nnbsd * sizeof(MPI_Status) );     
+        common.requests = (MPI_Request *) malloc( 2*(common.nnbsd + common.nnbintf) * sizeof(MPI_Request) );
+        common.statuses = (MPI_Status *) malloc( 2*(common.nnbsd + common.nnbintf) * sizeof(MPI_Status) );     
         if (common.spatialScheme==1)
           common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
 #endif        
@@ -258,29 +276,6 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     TemplateMalloc(&res.dRu, npe*ncu*ne, backend);
     TemplateMalloc(&res.dRh, npf*max(ncu,ncq)*nf, backend);
 #endif
-
-//     if (cpuMemory==0) { // GPU memory
-// #ifdef HAVE_CUDA    
-//         cudaTemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne);    
-//         cudaTemplateMalloc(&res.Ru, npe*ncu*ne); 
-//         cudaTemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne)); 
-// #ifdef HAVE_ENZYME                    
-//         cudaTemplateMalloc(&res.dRq, 2*npe*ncu*nd*ne);    
-//         cudaTemplateMalloc(&res.dRu, npe*ncu*ne); 
-//         cudaTemplateMalloc(&res.dRh, npf*max(ncu,ncq)*nf);         
-// #endif                    
-// #endif            
-//     }
-//     else {// CPU memory
-//         res.Rq = (dstype *) malloc(2*npe*ncu*nd*ne*sizeof(dstype));
-//         res.Ru = (dstype *) malloc((npe*ncu*ne)*sizeof(dstype));
-//         res.Rh = (dstype *) malloc(max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne)*sizeof(dstype));
-// #ifdef HAVE_ENZYME                    
-//         res.dRq = (dstype *) malloc(2*npe*ncu*nd*ne*sizeof(dstype));
-//         res.dRu = (dstype *) malloc((npe*ncu*ne)*sizeof(dstype));
-//         res.dRh = (dstype *) malloc((npf*max(ncu,ncq)*nf)*sizeof(dstype));
-// #endif                            
-//     }
     
     // set pointers    
     res.Rqe = &res.Rq[0];
@@ -332,21 +327,6 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
       n0 = max(n0, k2);      
       n0 = max(n0, k3);  // fix bug here
 
-// Int n3 = 0;                        // fg    
-//     Int n4 = nga*ncu*nd;               // sg  
-//     Int n5 = n4 + nga*ncu;             // ug
-//     Int n6 = n5 + nga*nc;              // wg
-//     Int n7 = n6 + nga*ncw;             // fg_uq
-//     Int n8 = n7 + nga*ncu*nd*nc;       // fg_w
-//     Int n9 = n8 + nga*ncu*nd*ncw;      // sg_uq
-//     Int n10 = n9 + nga*ncu*nc;         // sg_w
-//     Int n11 = n10 + nga*ncu*ncw;        // wg_uq
-    
-//     dstype *fh_uq  = &tmp.tempg[n8 + nga*ncu*nd];
-//     dstype *fh_uh  = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc];
-//     dstype *fh_w   = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu];
-//     dstype *wdg_uq = &tmp.tempg[n8 + nga*ncu*nd + nga*ncu*nd*nc + nga*ncu*ncu + nga*ncu*nd*ncw];        
-          
       int nga = nge*neb;
       k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc; // fix bug here      
       nga = ngf*neb*nfe; // fix bug here 
@@ -373,46 +353,33 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
       TemplateMalloc(&tmp.buffrecv, max(m*m + m, n)*mesh.nsize[6], backend);
       tmp.szbuffsend = max(m*m + m, n)*mesh.nsize[5];
       tmp.szbuffrecv = max(m*m + m, n)*mesh.nsize[6];
+      
+      TemplateMalloc(&tmp.bufffacesend, app.nsize[14]*npf*mesh.szfacesend, backend);
+      TemplateMalloc(&tmp.bufffacerecv, app.nsize[14]*npf*mesh.szfacerecv, backend);
+      tmp.szbufffacesend = app.nsize[14]*npf*mesh.szfacesend;
+      tmp.szbufffacerecv = app.nsize[14]*npf*mesh.szfacerecv;
     }
 #endif
-
-//     if (cpuMemory==0) { // GPU memory
-// #ifdef HAVE_CUDA    
-//         cudaTemplateMalloc(&tmp.tempn, n0);  
-//         cudaTemplateMalloc(&tmp.tempg, n3);       
-// #ifdef  HAVE_MPI    
-//         cudaTemplateMalloc(&tmp.buffsend, max(nc,nco)*npe*mesh.nsize[5]);  
-//         cudaTemplateMalloc(&tmp.buffrecv, max(nc,nco)*npe*mesh.nsize[6]);       
-// #endif                      
-// #endif            
-//     }
-//     else { // CPU memory    
-//         tmp.tempn = (dstype *) malloc(n0*sizeof(dstype));
-//         tmp.tempg = (dstype *) malloc(n3*sizeof(dstype));
-// #ifdef  HAVE_MPI            
-//         tmp.buffsend = (dstype *) malloc(max(nc,nco)*npe*mesh.nsize[5]*sizeof(dstype));
-//         tmp.buffrecv = (dstype *) malloc(max(nc,nco)*npe*mesh.nsize[6]*sizeof(dstype));
-// #endif                    
-//     }        
 }
 
 void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
-        string filein, string fileout, Int mpiprocs, Int mpirank, Int ompthreads, Int omprank) 
+        string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {
+     
     if (mpirank==0)
         printf("Reading data from binary files \n");
-    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, ompthreads, omprank);            
+    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, fileoffset, omprank);            
     
     if (mpirank==0)
         printf("Finish reading data from binary files \n");
     
-    if (mpiprocs != app.ndims[0]) {
-        if (mpirank==0) {
-            printf("# processors = %d, # subdomains = %d\n", mpiprocs, app.ndims[0]);
-            error("Number of MPI processes is incorrect\n");
-        }
-    }
+//     if (mpiprocs != app.ndims[0]) {
+//         if (mpirank==0) {
+//             printf("# processors = %d, # subdomains = %d\n", mpiprocs, app.ndims[0]);
+//             error("Number of MPI processes is incorrect\n");
+//         }
+//     }
          
     // offset facecon
     for (Int i=0; i<mesh.nsize[1]; i++)
@@ -443,8 +410,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     if (mpirank==0) printf("IsMeshCurved = %d \n",curvedmesh);        
     
     if (mpirank==0) printf("Set common struct... \n");
-    setcommonstruct(common, app, master, mesh, filein, fileout, curvedmesh);        
-    common.cpuMemory = 1;
+    setcommonstruct(common, app, master, mesh, filein, fileout, curvedmesh, fileoffset);            
     common.cublasHandle = 0;
     common.eventHandle = 0; 
     if (mpirank==0) printf("Finish setting common struct... \n");
@@ -629,245 +595,278 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 
 #ifdef HAVE_CUDA
 
-void devappstruct(appstruct &dapp, appstruct &app)
+void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
 {        
-    cudaTemplateMalloc(&dapp.nsize, app.lsize[0]);
-    cudaTemplateMalloc(&dapp.ndims, app.nsize[0]);
-    cudaTemplateMalloc(&dapp.flag, app.nsize[1]);    
-    cudaTemplateMalloc(&dapp.problem, app.nsize[2]);    
-    cudaTemplateMalloc(&dapp.uinf, app.nsize[3]);    
-    cudaTemplateMalloc(&dapp.dt, app.nsize[4]);    
-    cudaTemplateMalloc(&dapp.factor, app.nsize[5]);    
-    cudaTemplateMalloc(&dapp.physicsparam, app.nsize[6]);    
-    cudaTemplateMalloc(&dapp.solversparam, app.nsize[7]);  
-    cudaTemplateMalloc(&dapp.tau, app.nsize[8]);  
-    cudaTemplateMalloc(&dapp.stgdata, app.nsize[9]);  
-    cudaTemplateMalloc(&dapp.stgparam, app.nsize[10]);  
+    TemplateMalloc(&dapp.nsize, app.lsize[0], common.backend);
+    TemplateMalloc(&dapp.ndims, app.nsize[0], common.backend);
+    TemplateMalloc(&dapp.flag, app.nsize[1], common.backend);    
+    TemplateMalloc(&dapp.problem, app.nsize[2], common.backend);    
+    TemplateMalloc(&dapp.uinf, app.nsize[3], common.backend);    
+    TemplateMalloc(&dapp.dt, app.nsize[4], common.backend);    
+    TemplateMalloc(&dapp.factor, app.nsize[5], common.backend);    
+    TemplateMalloc(&dapp.physicsparam, app.nsize[6], common.backend);    
+    TemplateMalloc(&dapp.solversparam, app.nsize[7], common.backend);  
+    TemplateMalloc(&dapp.tau, app.nsize[8], common.backend);  
+    TemplateMalloc(&dapp.stgdata, app.nsize[9], common.backend);  
+    TemplateMalloc(&dapp.stgparam, app.nsize[10], common.backend);  
+    TemplateMalloc(&dapp.stgib, app.nsize[11], common.backend);  
+    TemplateMalloc(&dapp.vindx, app.nsize[12], common.backend);  
+    TemplateMalloc(&dapp.dae_dt, app.nsize[13], common.backend);  
+    TemplateMalloc(&dapp.interfacefluxmap, app.nsize[14], common.backend);  
     
-    CHECK( cudaMemcpy( dapp.nsize, app.nsize, app.lsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.ndims, app.ndims, app.nsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.flag, app.flag, app.nsize[1]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.problem, app.problem, app.nsize[2]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.uinf, app.uinf, app.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.dt, app.dt, app.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.factor, app.factor, app.nsize[5]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.physicsparam, app.physicsparam, app.nsize[6]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dapp.solversparam, app.solversparam, app.nsize[7]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dapp.tau, app.tau, app.nsize[8]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dapp.stgdata, app.stgdata, app.nsize[9]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dapp.stgparam, app.stgparam, app.nsize[10]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
+    TemplateCopytoDevice( dapp.nsize, app.nsize, app.lsize[0], common.backend );      
+    TemplateCopytoDevice( dapp.ndims, app.ndims, app.nsize[0], common.backend );      
+    TemplateCopytoDevice( dapp.flag, app.flag, app.nsize[1], common.backend );      
+    TemplateCopytoDevice( dapp.problem, app.problem, app.nsize[2], common.backend );      
+    TemplateCopytoDevice( dapp.uinf, app.uinf, app.nsize[3], common.backend );      
+    TemplateCopytoDevice( dapp.dt, app.dt, app.nsize[4], common.backend );      
+    TemplateCopytoDevice( dapp.factor, app.factor, app.nsize[5], common.backend );      
+    TemplateCopytoDevice( dapp.physicsparam, app.physicsparam, app.nsize[6], common.backend );      
+    TemplateCopytoDevice( dapp.solversparam, app.solversparam, app.nsize[7], common.backend );          
+    TemplateCopytoDevice( dapp.tau, app.tau, app.nsize[8], common.backend );          
+    TemplateCopytoDevice( dapp.stgdata, app.stgdata, app.nsize[9], common.backend );          
+    TemplateCopytoDevice( dapp.stgparam, app.stgparam, app.nsize[10], common.backend );          
+    TemplateCopytoDevice( dapp.stgib, app.stgib, app.nsize[11], common.backend );   
+    TemplateCopytoDevice( dapp.vindx, app.vindx, app.nsize[12], common.backend );   
+    TemplateCopytoDevice( dapp.dae_dt, app.dae_dt, app.nsize[13], common.backend );   
+    TemplateCopytoDevice( dapp.interfacefluxmap, app.interfacefluxmap, app.nsize[14], common.backend );   
     
     Int ncu, ncq, ncw;
     ncu = app.ndims[6];// number of compoments of (u)
     ncq = app.ndims[7];// number of compoments of (q)
     ncw = app.ndims[13];// number of compoments of (w)    
     if (ncu>0) {
-        cudaTemplateMalloc(&dapp.fc_u, ncu); 
-        CHECK( cudaMemcpy( dapp.fc_u, app.fc_u, ncu*sizeof(dstype), cudaMemcpyHostToDevice ) );  
-        cudaTemplateMalloc(&dapp.dtcoef_u, ncu); 
-        CHECK( cudaMemcpy( dapp.dtcoef_u, app.dtcoef_u, ncu*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        TemplateMalloc(&dapp.fc_u, ncu, common.backend); 
+        TemplateCopytoDevice( dapp.fc_u, app.fc_u, ncu, common.backend );          
+        TemplateMalloc(&dapp.dtcoef_u, ncu, common.backend); 
+        TemplateCopytoDevice( dapp.dtcoef_u, app.dtcoef_u, ncu, common.backend );          
     }        
     if (ncq>0) {
-        cudaTemplateMalloc(&dapp.fc_q, ncq); 
-        CHECK( cudaMemcpy( dapp.fc_q, app.fc_q, ncq*sizeof(dstype), cudaMemcpyHostToDevice ) );       
-        cudaTemplateMalloc(&dapp.dtcoef_q, ncq); 
-        CHECK( cudaMemcpy( dapp.dtcoef_q, app.dtcoef_q, ncq*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        TemplateMalloc(&dapp.fc_q, ncq, common.backend); 
+        TemplateCopytoDevice( dapp.fc_q, app.fc_q, ncq, common.backend );           
+        TemplateMalloc(&dapp.dtcoef_q, ncq, common.backend); 
+        TemplateCopytoDevice( dapp.dtcoef_q, app.dtcoef_q, ncq, common.backend );          
     }        
     if (ncw>0) {
-        cudaTemplateMalloc(&dapp.fc_w, ncw); 
-        CHECK( cudaMemcpy( dapp.fc_w, app.fc_w, ncw*sizeof(dstype), cudaMemcpyHostToDevice ) );              
-        cudaTemplateMalloc(&dapp.dtcoef_w, ncw); 
-        CHECK( cudaMemcpy( dapp.dtcoef_w, app.dtcoef_w, ncw*sizeof(dstype), cudaMemcpyHostToDevice ) );              
+        TemplateMalloc(&dapp.fc_w, ncw, common.backend); 
+        TemplateCopytoDevice( dapp.fc_w, app.fc_w, ncw, common.backend );          
+        TemplateMalloc(&dapp.dtcoef_w, ncw, common.backend); 
+        TemplateCopytoDevice( dapp.dtcoef_w, app.dtcoef_w, ncw, common.backend );          
     }                    
 }
 
-void devsolstruct(solstruct &dsol, solstruct &sol)
+void devsolstruct(solstruct &dsol, solstruct &sol, commonstruct &common)
 {    
-    cudaTemplateMalloc(&dsol.nsize, sol.lsize[0]);
-    cudaTemplateMalloc(&dsol.ndims, sol.nsize[0]);
-    cudaTemplateMalloc(&dsol.xdg, sol.nsize[1]);    
-    cudaTemplateMalloc(&dsol.udg, sol.nsize[2]);    
-    //cudaTemplateMalloc(&dsol.uh, sol.nsize[3]);    
-    cudaTemplateMalloc(&dsol.odg, sol.nsize[3]);          
-    cudaTemplateMalloc(&dsol.wdg, sol.nsize[4]);
+    TemplateMalloc(&dsol.nsize, sol.lsize[0], common.backend);
+    TemplateMalloc(&dsol.ndims, sol.nsize[0], common.backend);
+    TemplateMalloc(&dsol.xdg, sol.nsize[1], common.backend);    
+    TemplateMalloc(&dsol.udg, sol.nsize[2], common.backend);    
+    //TemplateMalloc(&dsol.uh, sol.nsize[3], common.backend);    
+    TemplateMalloc(&dsol.odg, sol.nsize[3], common.backend);          
+    TemplateMalloc(&dsol.wdg, sol.nsize[4], common.backend);
 
     #ifdef HAVE_ENZYME
-    cudaTemplateMalloc(&dsol.dudg, sol.nsize[2]);    
-    //cudaTemplateMalloc(&dsol.uh, sol.nsize[3]);    
-    cudaTemplateMalloc(&dsol.dodg, sol.nsize[3]);          
-    cudaTemplateMalloc(&dsol.dwdg, sol.nsize[4]);
+    TemplateMalloc(&dsol.dudg, sol.nsize[2], common.backend);    
+    //TemplateMalloc(&dsol.uh, sol.nsize[3], common.backend);    
+    TemplateMalloc(&dsol.dodg, sol.nsize[3], common.backend);          
+    TemplateMalloc(&dsol.dwdg, sol.nsize[4], common.backend);
     #endif          
     
-    CHECK( cudaMemcpy( dsol.nsize, sol.nsize, sol.lsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.ndims, sol.ndims, sol.nsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.xdg, sol.xdg, sol.nsize[1]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.udg, sol.udg, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    //CHECK( cudaMemcpy( dsol.uh, sol.uh, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.odg, sol.odg, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.wdg, sol.wdg, sol.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );   
+    TemplateCopytoDevice( dsol.nsize, sol.nsize, sol.lsize[0], common.backend );          
+    TemplateCopytoDevice( dsol.ndims, sol.ndims, sol.nsize[0], common.backend );      
+    TemplateCopytoDevice( dsol.xdg, sol.xdg, sol.nsize[1], common.backend );      
+    TemplateCopytoDevice( dsol.udg, sol.udg, sol.nsize[2], common.backend );      
+    //TemplateCopytoDevice( dsol.uh, sol.uh, sol.nsize[3], common.backend );      
+    TemplateCopytoDevice( dsol.odg, sol.odg, sol.nsize[3], common.backend );      
+    TemplateCopytoDevice( dsol.wdg, sol.wdg, sol.nsize[4], common.backend );   
 
     #ifdef HAVE_ENZYME
-    CHECK( cudaMemcpy( dsol.dudg, sol.dudg, sol.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
+    TemplateCopytoDevice( dsol.dudg, sol.dudg, sol.nsize[2], common.backend );   
     //CHECK( cudaMemcpy( dsol.uh, sol.uh, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.dodg, sol.dodg, sol.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dsol.wdg, sol.dwdg, sol.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+    TemplateCopytoDevice( dsol.dodg, sol.dodg, sol.nsize[3], common.backend );   
+    TemplateCopytoDevice( dsol.wdg, sol.dwdg, sol.nsize[4], common.backend );   
     #endif
 }
 
-void devmasterstruct(masterstruct &dmaster, masterstruct &master)
+void devmasterstruct(masterstruct &dmaster, masterstruct &master, commonstruct &common)
 {    
-    cudaTemplateMalloc(&dmaster.nsize, master.lsize[0]);
-    cudaTemplateMalloc(&dmaster.ndims, master.nsize[0]);
-    cudaTemplateMalloc(&dmaster.shapegt, master.nsize[1]);    
-    cudaTemplateMalloc(&dmaster.shapegw, master.nsize[2]);    
-    cudaTemplateMalloc(&dmaster.shapfgt, master.nsize[3]);    
-    cudaTemplateMalloc(&dmaster.shapfgw, master.nsize[4]);    
-    cudaTemplateMalloc(&dmaster.shapent, master.nsize[5]);    
-    cudaTemplateMalloc(&dmaster.shapen, master.nsize[6]);    
-    cudaTemplateMalloc(&dmaster.shapfnt, master.nsize[7]);    
-    cudaTemplateMalloc(&dmaster.shapfn, master.nsize[8]);        
-    cudaTemplateMalloc(&dmaster.xpe, master.nsize[9]);    
-    cudaTemplateMalloc(&dmaster.gpe, master.nsize[10]);    
-    cudaTemplateMalloc(&dmaster.gwe, master.nsize[11]);    
-    cudaTemplateMalloc(&dmaster.xpf, master.nsize[12]);    
-    cudaTemplateMalloc(&dmaster.gpf, master.nsize[13]);    
-    cudaTemplateMalloc(&dmaster.gwf, master.nsize[14]);    
-    cudaTemplateMalloc(&dmaster.shap1dgt, master.nsize[15]);    
-    cudaTemplateMalloc(&dmaster.shap1dgw, master.nsize[16]);    
-    cudaTemplateMalloc(&dmaster.shap1dnt, master.nsize[17]);    
-    cudaTemplateMalloc(&dmaster.shap1dnl, master.nsize[18]);    
-    cudaTemplateMalloc(&dmaster.xp1d, master.nsize[19]);    
-    cudaTemplateMalloc(&dmaster.gp1d, master.nsize[20]);    
-    cudaTemplateMalloc(&dmaster.gw1d, master.nsize[21]);    
+    TemplateMalloc(&dmaster.nsize, master.lsize[0], common.backend);
+    TemplateMalloc(&dmaster.ndims, master.nsize[0], common.backend);
+    TemplateMalloc(&dmaster.shapegt, master.nsize[1], common.backend);    
+    TemplateMalloc(&dmaster.shapegw, master.nsize[2], common.backend);    
+    TemplateMalloc(&dmaster.shapfgt, master.nsize[3], common.backend);    
+    TemplateMalloc(&dmaster.shapfgw, master.nsize[4], common.backend);    
+    TemplateMalloc(&dmaster.shapent, master.nsize[5], common.backend);    
+    TemplateMalloc(&dmaster.shapen, master.nsize[6], common.backend);    
+    TemplateMalloc(&dmaster.shapfnt, master.nsize[7], common.backend);    
+    TemplateMalloc(&dmaster.shapfn, master.nsize[8], common.backend);        
+    TemplateMalloc(&dmaster.xpe, master.nsize[9], common.backend);    
+    TemplateMalloc(&dmaster.gpe, master.nsize[10], common.backend);    
+    TemplateMalloc(&dmaster.gwe, master.nsize[11], common.backend);    
+    TemplateMalloc(&dmaster.xpf, master.nsize[12], common.backend);    
+    TemplateMalloc(&dmaster.gpf, master.nsize[13], common.backend);    
+    TemplateMalloc(&dmaster.gwf, master.nsize[14], common.backend);    
+    TemplateMalloc(&dmaster.shap1dgt, master.nsize[15], common.backend);    
+    TemplateMalloc(&dmaster.shap1dgw, master.nsize[16], common.backend);    
+    TemplateMalloc(&dmaster.shap1dnt, master.nsize[17], common.backend);    
+    TemplateMalloc(&dmaster.shap1dnl, master.nsize[18], common.backend);    
+    TemplateMalloc(&dmaster.xp1d, master.nsize[19], common.backend);    
+    TemplateMalloc(&dmaster.gp1d, master.nsize[20], common.backend);    
+    TemplateMalloc(&dmaster.gw1d, master.nsize[21], common.backend);    
     
-    CHECK( cudaMemcpy( dmaster.nsize, master.nsize, master.lsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.ndims, master.ndims, master.nsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapegt, master.shapegt, master.nsize[1]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapegw, master.shapegw, master.nsize[2]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapfgt, master.shapfgt, master.nsize[3]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapfgw, master.shapfgw, master.nsize[4]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapent, master.shapent, master.nsize[5]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapen, master.shapen, master.nsize[6]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapfnt, master.shapfnt, master.nsize[7]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.shapfn, master.shapfn, master.nsize[8]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.xpe, master.xpe, master.nsize[9]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.gpe, master.gpe, master.nsize[10]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.gwe, master.gwe, master.nsize[11]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.xpf, master.xpf, master.nsize[12]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.gpf, master.gpf, master.nsize[13]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
-    CHECK( cudaMemcpy( dmaster.gwf, master.gwf, master.nsize[14]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.shap1dgt, master.shap1dgt, master.nsize[15]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.shap1dgw, master.shap1dgw, master.nsize[16]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.shap1dnt, master.shap1dnt, master.nsize[17]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.shap1dnl, master.shap1dnl, master.nsize[18]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.xp1d, master.xp1d, master.nsize[19]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.gp1d, master.gp1d, master.nsize[20]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
-    CHECK( cudaMemcpy( dmaster.gw1d, master.gw1d, master.nsize[21]*sizeof(dstype), cudaMemcpyHostToDevice ) );          
+    TemplateCopytoDevice( dmaster.nsize, master.nsize, master.lsize[0], common.backend);    
+    TemplateCopytoDevice( dmaster.ndims, master.ndims, master.nsize[0], common.backend );      
+    TemplateCopytoDevice( dmaster.shapegt, master.shapegt, master.nsize[1], common.backend );      
+    TemplateCopytoDevice( dmaster.shapegw, master.shapegw, master.nsize[2], common.backend );      
+    TemplateCopytoDevice( dmaster.shapfgt, master.shapfgt, master.nsize[3], common.backend );      
+    TemplateCopytoDevice( dmaster.shapfgw, master.shapfgw, master.nsize[4], common.backend );      
+    TemplateCopytoDevice( dmaster.shapent, master.shapent, master.nsize[5], common.backend );      
+    TemplateCopytoDevice( dmaster.shapen, master.shapen, master.nsize[6], common.backend );      
+    TemplateCopytoDevice( dmaster.shapfnt, master.shapfnt, master.nsize[7], common.backend );      
+    TemplateCopytoDevice( dmaster.shapfn, master.shapfn, master.nsize[8], common.backend );      
+    TemplateCopytoDevice( dmaster.xpe, master.xpe, master.nsize[9], common.backend );      
+    TemplateCopytoDevice( dmaster.gpe, master.gpe, master.nsize[10], common.backend );      
+    TemplateCopytoDevice( dmaster.gwe, master.gwe, master.nsize[11], common.backend );      
+    TemplateCopytoDevice( dmaster.xpf, master.xpf, master.nsize[12], common.backend );      
+    TemplateCopytoDevice( dmaster.gpf, master.gpf, master.nsize[13], common.backend );      
+    TemplateCopytoDevice( dmaster.gwf, master.gwf, master.nsize[14], common.backend );          
+    TemplateCopytoDevice( dmaster.shap1dgt, master.shap1dgt, master.nsize[15], common.backend );          
+    TemplateCopytoDevice( dmaster.shap1dgw, master.shap1dgw, master.nsize[16], common.backend );          
+    TemplateCopytoDevice( dmaster.shap1dnt, master.shap1dnt, master.nsize[17], common.backend );          
+    TemplateCopytoDevice( dmaster.shap1dnl, master.shap1dnl, master.nsize[18], common.backend );          
+    TemplateCopytoDevice( dmaster.xp1d, master.xp1d, master.nsize[19], common.backend );          
+    TemplateCopytoDevice( dmaster.gp1d, master.gp1d, master.nsize[20], common.backend );          
+    TemplateCopytoDevice( dmaster.gw1d, master.gw1d, master.nsize[21], common.backend );          
 }
 
 void devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
 {
-    cudaTemplateMalloc(&dmesh.nsize, mesh.lsize[0]);
-    cudaTemplateMalloc(&dmesh.ndims, mesh.nsize[0]);
-    cudaTemplateMalloc(&dmesh.facecon, mesh.nsize[1]);
-    cudaTemplateMalloc(&dmesh.eblks, mesh.nsize[2]);
-    cudaTemplateMalloc(&dmesh.fblks, mesh.nsize[3]);
-    cudaTemplateMalloc(&dmesh.nbsd, mesh.nsize[4]);
-    cudaTemplateMalloc(&dmesh.elemsend, mesh.nsize[5]);
-    cudaTemplateMalloc(&dmesh.elemrecv, mesh.nsize[6]);
-    cudaTemplateMalloc(&dmesh.elemsendpts, mesh.nsize[7]);
-    cudaTemplateMalloc(&dmesh.elemrecvpts, mesh.nsize[8]);
-    cudaTemplateMalloc(&dmesh.elempart, mesh.nsize[9]);
-    cudaTemplateMalloc(&dmesh.elempartpts, mesh.nsize[10]);
-    cudaTemplateMalloc(&dmesh.cgelcon, mesh.nsize[11]);
-    cudaTemplateMalloc(&dmesh.rowent2elem, mesh.nsize[12]);
-    cudaTemplateMalloc(&dmesh.cgent2dgent, mesh.nsize[13]);
-    cudaTemplateMalloc(&dmesh.colent2elem, mesh.nsize[14]);
-    cudaTemplateMalloc(&dmesh.rowe2f1, mesh.nsize[15]);
-    cudaTemplateMalloc(&dmesh.cole2f1, mesh.nsize[16]);
-    cudaTemplateMalloc(&dmesh.ent2ind1, mesh.nsize[17]);
-    cudaTemplateMalloc(&dmesh.rowe2f2, mesh.nsize[18]);
-    cudaTemplateMalloc(&dmesh.cole2f2, mesh.nsize[19]);
-    cudaTemplateMalloc(&dmesh.ent2ind2, mesh.nsize[20]);
-    
-    CHECK( cudaMemcpy( dmesh.nsize, mesh.nsize, mesh.lsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.ndims, mesh.ndims, mesh.nsize[0]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.facecon, mesh.facecon, mesh.nsize[1]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.eblks, mesh.eblks, mesh.nsize[2]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.fblks, mesh.fblks, mesh.nsize[3]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.nbsd, mesh.nbsd, mesh.nsize[4]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.elemsend, mesh.elemsend, mesh.nsize[5]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.elemrecv, mesh.elemrecv, mesh.nsize[6]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.elemsendpts, mesh.elemsendpts, mesh.nsize[7]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.elemrecvpts, mesh.elemrecvpts, mesh.nsize[8]*sizeof(Int), cudaMemcpyHostToDevice ) );    
-    CHECK( cudaMemcpy( dmesh.elempart, mesh.elempart, mesh.nsize[9]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.elempartpts, mesh.elempartpts, mesh.nsize[10]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.cgelcon, mesh.cgelcon, mesh.nsize[11]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.rowent2elem, mesh.rowent2elem, mesh.nsize[12]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.cgent2dgent, mesh.cgent2dgent, mesh.nsize[13]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.colent2elem, mesh.colent2elem, mesh.nsize[14]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.rowe2f1, mesh.rowe2f1, mesh.nsize[15]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.cole2f1, mesh.cole2f1, mesh.nsize[16]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.ent2ind1, mesh.ent2ind1, mesh.nsize[17]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.rowe2f2, mesh.rowe2f2, mesh.nsize[18]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.cole2f2, mesh.cole2f2, mesh.nsize[19]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.ent2ind2, mesh.ent2ind2, mesh.nsize[20]*sizeof(Int), cudaMemcpyHostToDevice ) );
+    TemplateMalloc(&dmesh.nsize, mesh.lsize[0], common.backend);
+    TemplateMalloc(&dmesh.ndims, mesh.nsize[0], common.backend);
+    TemplateMalloc(&dmesh.facecon, mesh.nsize[1], common.backend);
+    TemplateMalloc(&dmesh.eblks, mesh.nsize[2], common.backend);
+    TemplateMalloc(&dmesh.fblks, mesh.nsize[3], common.backend);
+    TemplateMalloc(&dmesh.nbsd, mesh.nsize[4], common.backend);
+    TemplateMalloc(&dmesh.elemsend, mesh.nsize[5], common.backend);
+    TemplateMalloc(&dmesh.elemrecv, mesh.nsize[6], common.backend);
+    TemplateMalloc(&dmesh.elemsendpts, mesh.nsize[7], common.backend);
+    TemplateMalloc(&dmesh.elemrecvpts, mesh.nsize[8], common.backend);
+    TemplateMalloc(&dmesh.elempart, mesh.nsize[9], common.backend);
+    TemplateMalloc(&dmesh.elempartpts, mesh.nsize[10], common.backend);
+    TemplateMalloc(&dmesh.cgelcon, mesh.nsize[11], common.backend);
+    TemplateMalloc(&dmesh.rowent2elem, mesh.nsize[12], common.backend);
+    TemplateMalloc(&dmesh.cgent2dgent, mesh.nsize[13], common.backend);
+    TemplateMalloc(&dmesh.colent2elem, mesh.nsize[14], common.backend);
+    TemplateMalloc(&dmesh.rowe2f1, mesh.nsize[15], common.backend);
+    TemplateMalloc(&dmesh.cole2f1, mesh.nsize[16], common.backend);
+    TemplateMalloc(&dmesh.ent2ind1, mesh.nsize[17], common.backend);
+    TemplateMalloc(&dmesh.rowe2f2, mesh.nsize[18], common.backend);
+    TemplateMalloc(&dmesh.cole2f2, mesh.nsize[19], common.backend);
+    TemplateMalloc(&dmesh.ent2ind2, mesh.nsize[20], common.backend);
+
+    TemplateCopytoDevice( dmesh.nsize, mesh.nsize, mesh.lsize[0], common.backend);
+    TemplateCopytoDevice(dmesh.ndims, mesh.ndims, mesh.nsize[0], common.backend);
+    TemplateCopytoDevice(dmesh.facecon, mesh.facecon, mesh.nsize[1], common.backend);
+    TemplateCopytoDevice(dmesh.eblks, mesh.eblks, mesh.nsize[2], common.backend);
+    TemplateCopytoDevice(dmesh.fblks, mesh.fblks, mesh.nsize[3], common.backend);
+    TemplateCopytoDevice(dmesh.nbsd, mesh.nbsd, mesh.nsize[4], common.backend);
+    TemplateCopytoDevice(dmesh.elemsend, mesh.elemsend, mesh.nsize[5], common.backend);
+    TemplateCopytoDevice(dmesh.elemrecv, mesh.elemrecv, mesh.nsize[6], common.backend);
+    TemplateCopytoDevice(dmesh.elemsendpts, mesh.elemsendpts, mesh.nsize[7], common.backend);
+    TemplateCopytoDevice(dmesh.elemrecvpts, mesh.elemrecvpts, mesh.nsize[8], common.backend);
+    TemplateCopytoDevice(dmesh.elempart, mesh.elempart, mesh.nsize[9], common.backend);
+    TemplateCopytoDevice(dmesh.elempartpts, mesh.elempartpts, mesh.nsize[10], common.backend);
+    TemplateCopytoDevice(dmesh.cgelcon, mesh.cgelcon, mesh.nsize[11], common.backend);
+    TemplateCopytoDevice(dmesh.rowent2elem, mesh.rowent2elem, mesh.nsize[12], common.backend);
+    TemplateCopytoDevice(dmesh.cgent2dgent, mesh.cgent2dgent, mesh.nsize[13], common.backend);
+    TemplateCopytoDevice(dmesh.colent2elem, mesh.colent2elem, mesh.nsize[14], common.backend);
+    TemplateCopytoDevice(dmesh.rowe2f1, mesh.rowe2f1, mesh.nsize[15], common.backend);
+    TemplateCopytoDevice(dmesh.cole2f1, mesh.cole2f1, mesh.nsize[16], common.backend);
+    TemplateCopytoDevice(dmesh.ent2ind1, mesh.ent2ind1, mesh.nsize[17], common.backend);
+    TemplateCopytoDevice(dmesh.rowe2f2, mesh.rowe2f2, mesh.nsize[18], common.backend);
+    TemplateCopytoDevice(dmesh.cole2f2, mesh.cole2f2, mesh.nsize[19], common.backend);
+    TemplateCopytoDevice(dmesh.ent2ind2, mesh.ent2ind2, mesh.nsize[20], common.backend);
     
     if (common.spatialScheme > 0) {      
         TemplateMalloc(&dmesh.f2e, mesh.nsize[21], common.backend);
         TemplateMalloc(&dmesh.elemcon, mesh.nsize[22], common.backend);
         TemplateMalloc(&dmesh.perm, mesh.nsize[23], common.backend);
-        CHECK( cudaMemcpy( dmesh.f2e, mesh.f2e, mesh.nsize[21]*sizeof(Int), cudaMemcpyHostToDevice ) );
-        CHECK( cudaMemcpy( dmesh.elemcon, mesh.elemcon, mesh.nsize[22]*sizeof(Int), cudaMemcpyHostToDevice ) );
-        CHECK( cudaMemcpy( dmesh.perm, mesh.perm, mesh.nsize[23]*sizeof(Int), cudaMemcpyHostToDevice ) );         
+        TemplateCopytoDevice(dmesh.f2e, mesh.f2e, mesh.nsize[21], common.backend);
+        TemplateCopytoDevice(dmesh.elemcon, mesh.elemcon, mesh.nsize[22], common.backend);
+        TemplateCopytoDevice(dmesh.perm, mesh.perm, mesh.nsize[23], common.backend);
+        
+        if (mesh.szfaceperm>0) {
+          TemplateMalloc(&dmesh.faceperm, mesh.szfaceperm, common.backend);
+          TemplateCopytoDevice(dmesh.faceperm, mesh.faceperm, mesh.szfaceperm, common.backend);
+        }          
+        if (mesh.sznbintf>0) {
+          TemplateMalloc(&dmesh.nbintf, mesh.sznbintf, common.backend);
+          TemplateCopytoDevice(dmesh.nbintf, mesh.nbintf, mesh.sznbintf, common.backend);
+        }          
+        if (mesh.szfacesend>0) {
+          TemplateMalloc(&dmesh.facesend, mesh.szfacesend, common.backend);
+          TemplateCopytoDevice(dmesh.facesend, mesh.facesend, mesh.szfacesend, common.backend);
+        }          
+        if (mesh.szfacesendpts>0) {
+          TemplateMalloc(&dmesh.facesendpts, mesh.szfacesendpts, common.backend);
+          TemplateCopytoDevice(dmesh.facesendpts, mesh.facesendpts, mesh.szfacesendpts, common.backend);
+        }          
+        if (mesh.szfacerecv>0) {
+          TemplateMalloc(&dmesh.facerecv, mesh.szfacerecv, common.backend);
+          TemplateCopytoDevice(dmesh.facerecv, mesh.facerecv, mesh.szfacerecv, common.backend);
+        }          
+        if (mesh.szfacerecvpts>0) {
+          TemplateMalloc(&dmesh.facerecvpts, mesh.szfacerecvpts, common.backend);
+          TemplateCopytoDevice(dmesh.facerecvpts, mesh.facerecvpts, mesh.szfacerecvpts, common.backend);
+        }          
     }
 
     //cudaTemplateMalloc(&dmesh.index, 1024);
     
     Int nbe = mesh.ndims[5];
     Int nbf = mesh.ndims[7];
-    cudaTemplateMalloc(&dmesh.findxdg1, mesh.findxdgp[nbf]);
-    cudaTemplateMalloc(&dmesh.findxdgp, nbf+1);
-    cudaTemplateMalloc(&dmesh.findudg1, mesh.findudgp[nbf]);
-    cudaTemplateMalloc(&dmesh.findudg2, mesh.findudgp[nbf]);
-    cudaTemplateMalloc(&dmesh.findudgp, nbf+1);
-    cudaTemplateMalloc(&dmesh.eindudg1, mesh.eindudgp[nbe]);
-    cudaTemplateMalloc(&dmesh.eindudgp, nbe+1);
+    TemplateMalloc(&dmesh.findxdg1, mesh.findxdgp[nbf], common.backend);
+    TemplateMalloc(&dmesh.findxdgp, nbf+1, common.backend);
+    TemplateMalloc(&dmesh.findudg1, mesh.findudgp[nbf], common.backend);
+    TemplateMalloc(&dmesh.findudg2, mesh.findudgp[nbf], common.backend);
+    TemplateMalloc(&dmesh.findudgp, nbf+1, common.backend);
+    TemplateMalloc(&dmesh.eindudg1, mesh.eindudgp[nbe], common.backend);
+    TemplateMalloc(&dmesh.eindudgp, nbe+1, common.backend);
             
-    CHECK( cudaMemcpy( dmesh.findxdg1, mesh.findxdg1, mesh.findxdgp[nbf]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.findxdgp, mesh.findxdgp, (nbf+1)*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.findudg1, mesh.findudg1, mesh.findudgp[nbf]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.findudg2, mesh.findudg2, mesh.findudgp[nbf]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.findudgp, mesh.findudgp, (nbf+1)*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.eindudg1, mesh.eindudg1, mesh.eindudgp[nbe]*sizeof(Int), cudaMemcpyHostToDevice ) );
-    CHECK( cudaMemcpy( dmesh.eindudgp, mesh.eindudgp, (nbe+1)*sizeof(Int), cudaMemcpyHostToDevice ) );
+    TemplateCopytoDevice(dmesh.findxdg1, mesh.findxdg1, mesh.findxdgp[nbf], common.backend);
+    TemplateCopytoDevice(dmesh.findxdgp, mesh.findxdgp, nbf+1, common.backend);
+    TemplateCopytoDevice(dmesh.findudg1, mesh.findudg1, mesh.findudgp[nbf], common.backend);
+    TemplateCopytoDevice(dmesh.findudg2, mesh.findudg2, mesh.findudgp[nbf], common.backend);
+    TemplateCopytoDevice(dmesh.findudgp, mesh.findudgp, nbf+1, common.backend);
+    TemplateCopytoDevice(dmesh.eindudg1, mesh.eindudg1, mesh.eindudgp[nbe], common.backend);
+    TemplateCopytoDevice(dmesh.eindudgp, mesh.eindudgp, nbe+1, common.backend);
         
     if (common.nelemsend>0) {
         Int bsz = common.npe*common.ncu*common.nelemsend;
-        cudaTemplateMalloc(&dmesh.elemsendind, bsz);
-        CHECK( cudaMemcpy( dmesh.elemsendind , mesh.elemsendind , bsz*sizeof(Int), cudaMemcpyHostToDevice ) );        
+        TemplateMalloc(&dmesh.elemsendind, bsz, common.backend);
+        TemplateCopytoDevice(dmesh.elemsendind, mesh.elemsendind, bsz, common.backend);
     
         bsz = common.npe*common.nc*common.nelemsend;
-        cudaTemplateMalloc(&dmesh.elemsendudg, bsz);
-        CHECK( cudaMemcpy( dmesh.elemsendudg, mesh.elemsendudg, bsz*sizeof(Int), cudaMemcpyHostToDevice ) );
+        TemplateMalloc(&dmesh.elemsendudg, bsz, common.backend);
+        TemplateCopytoDevice(dmesh.elemsendudg, mesh.elemsendudg, bsz, common.backend);
     
         bsz = common.npe*common.ncAV*common.nelemsend;
-        cudaTemplateMalloc(&dmesh.elemsendodg, bsz);
-        CHECK( cudaMemcpy( dmesh.elemsendodg, mesh.elemsendodg, bsz*sizeof(Int), cudaMemcpyHostToDevice ) );
+        TemplateMalloc(&dmesh.elemsendodg, bsz, common.backend);
+        TemplateCopytoDevice(dmesh.elemsendodg, mesh.elemsendodg, bsz, common.backend);
     }
     
     if (common.nelemrecv>0) {
         Int bsz = common.npe*common.ncu*common.nelemrecv;
-        cudaTemplateMalloc(&dmesh.elemrecvind, bsz);
-        CHECK( cudaMemcpy( dmesh.elemrecvind , mesh.elemrecvind , bsz*sizeof(Int), cudaMemcpyHostToDevice ) );        
+        TemplateMalloc(&dmesh.elemrecvind, bsz, common.backend);
+        TemplateCopytoDevice(dmesh.elemrecvind, mesh.elemrecvind, bsz, common.backend);
     
         bsz = common.npe*common.nc*common.nelemrecv;
-        cudaTemplateMalloc(&dmesh.elemrecvudg, bsz);
-        CHECK( cudaMemcpy( dmesh.elemrecvudg , mesh.elemrecvudg , bsz*sizeof(Int), cudaMemcpyHostToDevice ) );
+        TemplateMalloc(&dmesh.elemrecvudg, bsz, common.backend);
+        TemplateCopytoDevice(dmesh.elemrecvudg, mesh.elemrecvudg, bsz, common.backend);
      
         bsz = common.npe*common.ncAV*common.nelemrecv;
-        cudaTemplateMalloc(&dmesh.elemrecvodg, bsz);
-        CHECK( cudaMemcpy( dmesh.elemrecvodg , mesh.elemrecvodg , bsz*sizeof(Int), cudaMemcpyHostToDevice ) );
+        TemplateMalloc(&dmesh.elemrecvodg, bsz, common.backend);
+        TemplateCopytoDevice(dmesh.elemrecvodg, mesh.elemrecvodg, bsz, common.backend);
     }
 }
 
@@ -875,17 +874,16 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
        meshstruct &mesh, tempstruct &tmp, commonstruct &common, solstruct &hsol, resstruct &hres, 
        appstruct &happ, masterstruct &hmaster, meshstruct &hmesh, tempstruct &htmp, commonstruct &hcommon) 
 {    
-    devappstruct(app, happ);
-    devmasterstruct(master, hmaster);    
+    devappstruct(app, happ, hcommon);
+    devmasterstruct(master, hmaster, hcommon);    
     devmeshstruct(mesh, hmesh, hcommon);
-    devsolstruct(sol, hsol);    
+    devsolstruct(sol, hsol, hcommon);    
     setresstruct(res, happ, hmaster, hmesh, hcommon.backend);    
     settempstruct(tmp, happ, hmaster, hmesh, hcommon.backend);            
                 
     // set common struct
     setcommonstruct(common, happ, hmaster, hmesh, 
-            hcommon.filein, hcommon.fileout, hcommon.curvedMesh);        
-    common.cpuMemory = 0;            
+            hcommon.filein, hcommon.fileout, hcommon.curvedMesh, hcommon.fileoffset);        
     
     if (common.spatialScheme > 0) {
 //       if (common.nelemsend > 0) {
@@ -894,12 +892,12 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 //       }
 
       int M = common.npe*common.npe*common.nge*(common.nd+1);
-      cudaTemplateMalloc(&master.shapegwdotshapeg, M);       
-      CHECK( cudaMemcpy(master.shapegwdotshapeg, hmaster.shapegwdotshapeg, M*sizeof(dstype), cudaMemcpyHostToDevice ) );   
+      TemplateMalloc(&master.shapegwdotshapeg, M, common.backend);       
+      TemplateCopytoDevice(master.shapegwdotshapeg, hmaster.shapegwdotshapeg, M, common.backend);
 
       M = common.npf*common.npf*common.ngf*(common.nd);
-      cudaTemplateMalloc(&master.shapfgwdotshapfg, M);       
-      CHECK( cudaMemcpy(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M*sizeof(dstype), cudaMemcpyHostToDevice ) );   
+      TemplateMalloc(&master.shapfgwdotshapfg, M, common.backend);       
+      TemplateCopytoDevice(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M, common.backend);
     }
 
     // create cuda event handle
@@ -912,46 +910,46 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     if (common.ncs>0) {
         // initialize source term
         Int N = common.npe*common.ncs*common.ne;
-        cudaTemplateMalloc(&sol.sdg, N);       
-        CHECK( cudaMemcpy( sol.sdg, hsol.sdg, N*sizeof(dstype), cudaMemcpyHostToDevice ) );   
-        cudaTemplateMalloc(&sol.sdgg, common.nge*common.ncs*common.ne);              
+        TemplateMalloc(&sol.sdg, N, common.backend);       
+        TemplateCopytoDevice(sol.sdg, hsol.sdg, N, common.backend);
+        TemplateMalloc(&sol.sdgg, common.nge*common.ncs*common.ne, common.backend);              
     }          
     
     if (common.ncw>0) {        
         Int N = common.npe*common.ncw*common.ne;
-        cudaTemplateMalloc(&sol.wsrc, N);       
-        CHECK( cudaMemcpy( sol.wsrc, hsol.wsrc, N*sizeof(dstype), cudaMemcpyHostToDevice ) );    
+        TemplateMalloc(&sol.wsrc, N, common.backend);       
+        TemplateCopytoDevice(sol.wsrc, hsol.wsrc, N, common.backend);
         if (common.dae_steps>0)
-            cudaTemplateMalloc(&sol.wdual, N);                 
+            TemplateMalloc(&sol.wdual, N, common.backend);                 
     }          
     
     if (common.compudgavg>0) {
-        cudaTemplateMalloc(&sol.udgavg, common.npe*common.nc*common.ne1+1);
+        TemplateMalloc(&sol.udgavg, common.npe*common.nc*common.ne1+1, common.backend);
     }
     
-    cudaTemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf);    
+    TemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf, common.backend);    
     if (common.read_uh) {
-        CHECK( cudaMemcpy( sol.uh, hsol.uh, hsol.nsize[5]*sizeof(dstype), cudaMemcpyHostToDevice ) );      
+        TemplateCopytoDevice(sol.uh, hsol.uh, common.npf*common.ncu*common.nf, common.backend);
     }
 
     #ifdef HAVE_ENZYME
-        cudaTemplateMalloc(&sol.duh, common.npf*common.ncu*common.nf);
+        TemplateMalloc(&sol.duh, common.npf*common.ncu*common.nf, common.backend);
     #endif
     //cudaTemplateMalloc(&sol.uhg, common.ngf*common.ncu*common.nf);   
     //cudaTemplateMalloc(&sol.udgg, common.nge*common.nc*common.ne);   
     if (common.nco>0) {
-        cudaTemplateMalloc(&sol.odgg, common.nge*common.nco*common.ne);
-        cudaTemplateMalloc(&sol.og1, common.ngf*common.nco*common.nf);    
-        cudaTemplateMalloc(&sol.og2, common.ngf*common.nco*common.nf);    
+        TemplateMalloc(&sol.odgg, common.nge*common.nco*common.ne, common.backend);
+        TemplateMalloc(&sol.og1, common.ngf*common.nco*common.nf, common.backend);    
+        TemplateMalloc(&sol.og2, common.ngf*common.nco*common.nf, common.backend);    
         #ifdef HAVE_ENZYME
-        cudaTemplateMalloc(&sol.dodgg, common.nge*common.nco*common.ne);
-        CHECK( cudaMemcpy( sol.dodgg, hsol.dodgg, common.nge*common.nco*common.ne*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        TemplateMalloc(&sol.dodgg, common.nge*common.nco*common.ne, common.backend);
+        TemplateCopytoDevice(sol.dodgg, hsol.dodgg, common.nge*common.nco*common.ne, common.backend);
 
-        cudaTemplateMalloc(&sol.dog1, common.ngf*common.nco*common.nf);    
-        CHECK( cudaMemcpy( sol.dog1, hsol.dog1, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        TemplateMalloc(&sol.dog1, common.ngf*common.nco*common.nf, common.backend);    
+        TemplateCopytoDevice(sol.dog1, hsol.dog1, common.ngf*common.nco*common.nf, common.backend);
 
-        cudaTemplateMalloc(&sol.dog2, common.ngf*common.nco*common.nf); 
-        CHECK( cudaMemcpy( sol.dog2, hsol.dog2, common.ngf*common.nco*common.nf*sizeof(dstype), cudaMemcpyHostToDevice ) );  
+        TemplateMalloc(&sol.dog2, common.ngf*common.nco*common.nf, common.backend); 
+        TemplateCopytoDevice(sol.dog2, hsol.dog2, common.ngf*common.nco*common.nf, common.backend);
         #endif
     }
     

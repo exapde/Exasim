@@ -3,7 +3,7 @@ function pde = pdemodel1
 pde.flux = @flux;
 pde.source = @source;
 pde.fbou = @fbou;
-%pde.fint = @fint;
+pde.fint = @fint;
 pde.fbouhdg = @fbouhdg;
 pde.ubou = @ubou;
 pde.initu = @initu;
@@ -38,12 +38,13 @@ function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 x1 = x(1);
 x2 = x(2);
 ub = sin(pi*x1)*sin(pi*x2);
-fb = tau*(ub - uhat);
+fb1 = tau*(ub - uhat);
+fb = [fb1 uhat];
 end
 
-% function fi = fint(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-% f = flux(u, q, w, v, x, t, mu, eta);
-% fi = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
-% end
+function fi = fint(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+f = flux(u, q, w, v, x, t, mu, eta);
+fi = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
+end
 
 
