@@ -35,7 +35,8 @@ from hdgnocodeface2 import hdgnocodeface2
 
 def gencode(app):
 
-    foldername = os.path.join(app['exasimpath'], "build", "model")
+    # foldername = os.path.join(app['exasimpath'], "build", "model")
+    foldername = os.path.join(app['backendpath'], "Model")
 
     # Ensure the target directory exists
     os.makedirs(foldername, exist_ok=True)

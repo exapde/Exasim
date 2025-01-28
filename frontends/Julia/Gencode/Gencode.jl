@@ -49,7 +49,9 @@ function gencode(app)
 
 print("generate code...\n");
 
-foldername = app.exasimpath * "/build/model";
+# foldername = app.exasimpath * "/build/model";
+
+foldername = app.backendpath * "/Model";
 
 # Read the content of the file
 text = read(joinpath(app.backendpath * "/Discretization", "KokkosDrivers.cpp"), String)
