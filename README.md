@@ -11,7 +11,8 @@ What make Exasim unique are the following distinctive features:
    - Generate stand-alone C++ production code via the mathematical expressions of the PDEs
    - Implement local DG and hybridized DG methods for spatial discretization
    - Implement diagonally implicit Runge-Kutta methods for temporal discretization
-   - Implement parallel Newton-GMRES solvers and scalable preconditioners using reduced basis method and polynomial preconditioners.   
+   - Implement parallel Newton-GMRES solvers and scalable preconditioners using reduced basis method and polynomial preconditioners
+   - Implement monolithic multi-physics solvers for the HDG discretization    
    - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
    - Leverage [Enzyme](https://github.com/EnzymeAD/Enzyme) for automatic differentiation and [Mutation++](https://github.com/mutationpp/Mutationpp) for thermodynamic, transport, chemistry, and energy transfer properties. 
    - Provide interfaces to Julia, Python, and Matlab. 
