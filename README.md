@@ -3,11 +3,11 @@
 </p>
 
 # Generating Discontinuous Galerkin Codes For Extreme Scalable Simulations
-Exasim is an open-source software for generating high-order discontinuous Galerkin (DG) codes to numerically solve parametrized partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages and low-level languages to easily construct parametrized PDE models and automatically produce high-performance C++ codes. The construction of parametrized PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with both CPU and Nvidia GPU processors. 
+Exasim is an open-source software for generating high-order discontinuous Galerkin (DG) codes to numerically solve parametrized partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages and low-level languages to easily construct parametrized PDE models and automatically produce high-performance C++ codes. The construction of parametrized PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with  AMD and Nvidia GPU processors. 
 
 What make Exasim unique are the following distinctive features:
 
-   - Solve a wide variety of PDEs in fluid and solid mechanics, and electromagnetism
+   - Solve a wide variety of PDEs in fluid and solid mechanics, and electromagnetism, as well as fullly coupled multi-physics models 
    - Generate stand-alone C++ production code via the mathematical expressions of the PDEs
    - Implement local DG and hybridized DG methods for spatial discretization
    - Implement diagonally implicit Runge-Kutta methods for temporal discretization
@@ -40,6 +40,15 @@ To build Kokkos CUDA library for Nvidia GPU platform, please follow the below st
   $ cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
   $ make install   
 ```
+To build Kokkos HIP library for AMD GPU platform, please follow the below steps
+```
+  $ cd Exasim/kokkos
+  $ mkdir buildhip
+  $ cd buildhip
+  $ cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+  $ make install   
+```
+
 Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
 # Examples
