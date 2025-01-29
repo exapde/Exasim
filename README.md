@@ -45,7 +45,7 @@ To build Kokkos HIP library for AMD GPU platform, please follow the below steps
   $ cd Exasim/kokkos
   $ mkdir buildhip
   $ cd buildhip
-  $ cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+  $ cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
   $ make install   
 ```
 
