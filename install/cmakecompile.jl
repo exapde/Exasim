@@ -41,12 +41,16 @@ end
 if pde.mpiprocs==1 
   if pde.platform == "gpu"
     comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON ../install";  
+  elseif pde.platform == "hip"
+    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON ../install";  
   else
     comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF ../install";
   end
 else
   if pde.platform == "gpu"
     comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON ../install";  
+  elseif pde.platform == "hip"
+    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON ../install";  
   else
     comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF ../install";
   end  
