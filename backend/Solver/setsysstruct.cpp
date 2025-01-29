@@ -142,6 +142,12 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
         //TemplateMalloc(&sys.tempmem, (5*M + M*M), backend);            
 #endif                  
     }
+    else if (backend==3) { // GPU
+#ifdef HAVE_HIP        
+        hipTemplateHostMalloc(&sys.tempmem, (5*M + M*M), hipHostMallocMapped); // zero copy
+        //TemplateMalloc(&sys.tempmem, (5*M + M*M), backend);            
+#endif                  
+    }    
     else { // CPU
         sys.tempmem = (dstype *) malloc((5*M + M*M)*sizeof(dstype));
     }
@@ -154,13 +160,13 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
         
     N = ndof; // fix bug here                
     TemplateMalloc(&sys.randvect, N, backend);    
-#ifdef HAVE_CUDA                               
+#ifdef HAVE_GPU                               
     dstype *rvec = (dstype *) malloc((N)*sizeof(dstype));
     for (int i=0; i<N; i++) rvec[i] = rand_normal(0.0, 1.0);   
     TemplateCopytoDevice(sys.randvect, rvec, N, common.backend );   
     free(rvec);
 #endif                
-#ifndef HAVE_CUDA      
+#ifndef HAVE_GPU      
     for (int i=0; i<N; i++) sys.randvect[i] = rand_normal(0.0, 1.0);        
 #endif                   
     dstype normr = PNORM(common.cublasHandle, N, sys.randvect, backend);    

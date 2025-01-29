@@ -68,9 +68,9 @@ void CSolution::SteadyProblem(ofstream &out, Int backend)
             //    ArrayCopy(&disc.tmp.buffsend[bsz*n], &disc.sol.odg[nudg*disc.common.elemsend[n]], bsz, backend);
             GetArrayAtIndex(disc.tmp.buffsend, disc.sol.odg, disc.mesh.elemsendodg, bsz*disc.common.nelemsend);
 
-#ifdef HAVE_CUDA
-            cudaDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//             cudaDeviceSynchronize();
+// #endif
 
             Int neighbor, nsend, psend = 0, request_counter = 0;
             for (n=0; n<disc.common.nnbsd; n++) {
@@ -315,12 +315,13 @@ void CSolution::SolveProblem(ofstream &out, Int backend)
     else {
         // solve steady-state problems
         this->SteadyProblem(out, backend);        
-        
+                
         // save solutions into binary files            
         this->SaveSolutions(backend);    
+                
         this->SaveSolutionsOnBoundary(backend);         
         if (disc.common.nce>0)
-            this->SaveOutputCG(backend);    
+            this->SaveOutputCG(backend);            
     }        
 }
 

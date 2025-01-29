@@ -16,7 +16,13 @@
 #endif
 
 #ifdef _CUDA
+#define HAVE_GPU
 #define HAVE_CUDA
+#endif
+
+#ifdef _HIP
+#define HAVE_GPU
+#define HAVE_HIP
 #endif
 
 #ifdef _ENZYME
@@ -39,6 +45,13 @@
 #include <cuda_runtime.h>
 #include <cuda.h>
 #include "cublas_v2.h"
+#endif
+
+#ifdef HAVE_HIP
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>
+#include <hipblas/hipblas.h>
+#include <rocblas/rocblas.h>
 #endif
 
 #ifdef HAVE_MPP
@@ -81,8 +94,8 @@ int main(int argc, char** argv)
     Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
     string mystr = string(argv[1]);
     nummodels = stoi(mystr);  // number of pde models
-    string filein[nummodels]; 
-    string fileout[nummodels];
+    string filein[10]; 
+    string fileout[10];
     
     // two-physics and two-domain problems  
     int mpiprocs0 = 0;
@@ -147,6 +160,9 @@ int main(int argc, char** argv)
 #ifdef HAVE_CUDA  // CUDA          
     backend=2;
 #endif
+#ifdef HAVE_HIP  // HIP          
+    backend=3;
+#endif
       
     if ((mpiprocs0 > 0) && (mpiprocs<= mpiprocs0)) {
       printf("For two-domain problem, total number of MPI processors (%d) must be greater than # MPI processors on the first domain (%d)\n", mpiprocs, mpiprocs0);
@@ -155,7 +171,11 @@ int main(int argc, char** argv)
       
     if (backend==2) {
         if (mpirank==0) 
-            printf("Using %d processors to solve the problem on GPU platform...\n", mpiprocs);
+            printf("Using %d processors to solve the problem on CUDA platform...\n", mpiprocs);
+    }
+    else if (backend==3) {
+        if (mpirank==0) 
+            printf("Using %d processors to solve the problem on HIP platform...\n", mpiprocs);
     }
     else {
         if (mpirank==0) 
@@ -173,8 +193,31 @@ int main(int argc, char** argv)
 //     printf("MPI rank %d using GPU %d and CPU %d on host %s\n", mpirank, device, cpu, hostname );
     size_t available, total;
     cudaMemGetInfo(&available, &total);
-    cout<<"Available GPU Memory: "<<available<<" Total GPU Memory: "<<total<<endl;
+    
+    std::cout << "MPI Rank: " << mpirank << ", CUDA Device: " << device 
+              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+              << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
+              << std::endl;
 #endif                           
+    
+#ifdef HAVE_HIP
+    int device;
+    // Set the device based on the rank
+    CHECK(hipSetDevice(shmrank));
+
+    // Get the current device ID
+    CHECK(hipGetDevice(&device));
+
+    // Query memory information for the current device
+    size_t available, total;
+    CHECK(hipMemGetInfo(&available, &total));
+
+    // Print memory information
+    std::cout << "MPI Rank: " << mpirank << ", HIP Device: " << device 
+              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+              << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
+              << std::endl;
+#endif
     
     Int fileoffset = 0;
     Int gpuid = 0;            

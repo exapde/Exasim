@@ -34,8 +34,13 @@ typedef int Int;
 #endif
 
 #ifndef HAVE_CUDA    
+#ifdef HAVE_HIP    
+#define cublasHandle_t hipblasHandle_t
+#define cudaEvent_t hipEvent_t
+#else
 #define cublasHandle_t int
 #define cudaEvent_t int
+#endif        
 #endif
 
 // #ifdef HAVE_ENZYME                
@@ -287,9 +292,62 @@ template <typename T> static void cudaCopytoHost(T *h_data, T *d_data, Int n)
 
 #endif
 
+#ifdef HAVE_HIP
+
+#define CHECK(call)                                                            \
+{                                                                              \
+    const hipError_t error = call;                                             \
+    if (error != hipSuccess)                                                   \
+    {                                                                          \
+        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
+        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
+                hipGetErrorString(error));                                     \
+        exit(1);                                                               \
+    }                                                                          \
+}
+
+#define CHECK_HIPBLAS(call)                                                    \
+{                                                                              \
+    hipblasStatus_t err;                                                       \
+    if ((err = (call)) != HIPBLAS_STATUS_SUCCESS)                              \
+    {                                                                          \
+        fprintf(stderr, "Got hipBLAS error %d at %s:%d\n", err, __FILE__,      \
+                __LINE__);                                                     \
+        exit(1);                                                               \
+    }                                                                          \
+}
+
+#define CHECK_ROCBLAS(call)                                                    \
+{                                                                              \
+    rocblas_status err;                                                        \
+    if ((err = (call)) != rocblas_status_success)                              \
+    {                                                                          \
+        fprintf(stderr, "Got rocBLAS error %d at %s:%d\n", err, __FILE__,      \
+                __LINE__);                                                     \
+        exit(1);                                                               \
+    }                                                                          \
+}
+
+#define HIPFREE(x)                                                       \
+{                                                                         \
+    if (x != nullptr) {                                                      \
+        CHECK( hipFree(x) );                                              \
+        x = nullptr;                                                         \
+    }                                                                     \
+}
+
+
+template <typename T> static void hipTemplateHostMalloc(T **h_data, Int n, unsigned int flags)
+{
+    // allocate zero-copy memory on host    
+    CHECK(hipHostMalloc((void **)h_data, n * sizeof(T), flags));                
+}
+
+#endif
+
 template <typename T> static void TemplateMalloc(T **data, Int n, Int backend)
 {    
-    if ((backend == 0) && (n>0))              
+    if ((backend <= 1) && (n>0))              
         *data = (T *) malloc(n*sizeof(T));      
 
 #ifdef HAVE_CUDA            
@@ -297,20 +355,32 @@ template <typename T> static void TemplateMalloc(T **data, Int n, Int backend)
         // allocate the memory on the GPU            
         CHECK( cudaMalloc( (void**)data, n * sizeof(T) ) );
 #endif                 
+    
+#ifdef HAVE_HIP
+    if ((backend == 3) && (n > 0)) // HIP
+    {
+        // Allocate memory on the GPU using HIP
+        CHECK( hipMalloc( (void**)data, n * sizeof(T) ) );
+    }
+#endif    
 }
 
 template <typename T> static void TemplateFree(T *data,  Int backend)
 {
-    if ((backend == 0) || (backend == 1))  CPUFREE(data);
+    if (backend <= 1)  CPUFREE(data);
         
 #ifdef HAVE_CUDA            
     if (backend == 2)  GPUFREE(data);
 #endif                  
+    
+#ifdef HAVE_HIP            
+    if (backend == 3)  HIPFREE(data);
+#endif                      
 }
 
 template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int n, Int backend)
 {
-    if (backend == 0)  {
+    if (backend <= 1)  {
         for (Int i=0; i<n; i++)
             d_data[i] = h_data[i];
     }
@@ -319,11 +389,18 @@ template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int
     // copy data from CPU to GPU
     if ((backend == 2) && (n>0)) CHECK( cudaMemcpy( d_data, h_data, n * sizeof(T), cudaMemcpyHostToDevice ) );            
 #endif    
+    
+#ifdef HAVE_HIP
+    // Copy data from CPU to GPU using HIP
+    if ((backend == 3) && (n > 0)) {
+        CHECK( hipMemcpy(d_data, h_data, n * sizeof(T), hipMemcpyHostToDevice) );
+    }
+#endif    
 }
 
 template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n, Int backend)
 {
-    if (backend == 0)  {
+    if (backend <= 1)  {
         for (Int i=0; i<n; i++)
             h_data[i] = d_data[i];
     }
@@ -331,6 +408,13 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
 #ifdef HAVE_CUDA
     // copy data from GPU to CPU
     if (backend == 2) CHECK( cudaMemcpy( h_data, d_data, n * sizeof(T), cudaMemcpyDeviceToHost ) );
+#endif    
+    
+#ifdef HAVE_HIP
+    // Copy data from GPU to CPU using HIP
+    if (backend == 3) {
+        CHECK( hipMemcpy(h_data, d_data, n * sizeof(T), hipMemcpyDeviceToHost) );
+    }
 #endif    
 }
 
@@ -1481,6 +1565,11 @@ struct sysstruct {
 #ifdef HAVE_CUDA                
           cudaFreeHost(tempmem);      
 #endif                         
+        }        
+        else if (backend == 3) {
+#ifdef HAVE_HIP
+            CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
+#endif
         }        
         TemplateFree(utmp, backend);            
         TemplateFree(wtmp, backend);             

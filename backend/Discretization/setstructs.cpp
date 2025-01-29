@@ -593,7 +593,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
 }
 
-#ifdef HAVE_CUDA
+#ifdef HAVE_GPU
 
 void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
 {        
@@ -900,13 +900,24 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       TemplateCopytoDevice(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M, common.backend);
     }
 
+#ifdef HAVE_CUDA    
     // create cuda event handle
     CHECK(cudaEventCreate(&common.eventHandle));
     
     // create cublas handle
     CHECK_CUBLAS(cublasCreate(&common.cublasHandle));
     CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_HOST));                     //     CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_DEVICE));    
-        
+#endif        
+
+#ifdef HAVE_HIP    
+    // create cuda event handle
+    CHECK(hipEventCreate(&common.eventHandle));
+    
+    // create cublas handle
+    CHECK_HIPBLAS(hipblasCreate(&common.cublasHandle));
+    CHECK_HIPBLAS(hipblasSetPointerMode(common.cublasHandle, HIPBLAS_POINTER_MODE_HOST));                     //     CHECK_CUBLAS(cublasSetPointerMode(common.cublasHandle, CUBLAS_POINTER_MODE_DEVICE));    
+#endif        
+    
     if (common.ncs>0) {
         // initialize source term
         Int N = common.npe*common.ncs*common.ne;

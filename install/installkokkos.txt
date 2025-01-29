@@ -9,9 +9,36 @@ make install
 cd Exasim/kokkos
 mkdir buildcuda
 cd buildcuda
-cmake .. -DCMAKE_CXX_COMPILER=g++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
 make install   
 
 
 # Fix kokkos library by stripping the debug information from the archive.
 strip --strip-debug /Exasim/kokkos/buildserial/core/src/libkokkoscore.a
+
+# Install kokkos on Lassen
+
+module load cmake/3.20.2
+
+mkdir buildcuda
+cd buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+make install   
+
+Loaded Modules:
+  1) base-gcc/8.3.1   2) clang/ibm-16.0.6-cuda-11.2.0-gcc-8.3.1   3) spectrum-mpi/rolling-release   4) cuda/11.2.0   5) StdEnv (S)   6) cmake/3.20.2
+
+# Install kokkos on Tioga
+
+module load  rocm
+module load cmake/3.22.4
+export CRAYPE_LINK_TYPE=dynamic
+
+mkdir buildamd
+cd buildamd
+cmake ..  -DCMAKE_CXX_COMPILER=hipcc          -DKokkos_ENABLE_HIP=ON          -DKokkos_ENABLE_ROCM=ON          -DKokkos_ARCH_VEGA90A=ON             -DCMAKE_INSTALL_PREFIX=../buildamd 
+make install   
+
+Loaded Modules:
+  1) flux_wrappers/0.1   2) StdEnv (S)   3) cmake/3.22.4   4) rocm/6.2.1
+

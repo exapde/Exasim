@@ -20,8 +20,8 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 {
     common.backend = backend;
 
-    if (backend==2) { // GPU
-#ifdef HAVE_CUDA        
+    if (backend>1) { // GPU
+#ifdef HAVE_GPU        
         // host structs
         solstruct hsol;
         resstruct hres;
@@ -273,6 +273,13 @@ CDiscretization::~CDiscretization()
         CHECK_CUBLAS(cublasDestroy(common.cublasHandle));
     }
 #endif    
+    
+#ifdef HAVE_HIP    
+    if (common.backend==3) {
+        CHECK(hipEventDestroy(common.eventHandle));
+        CHECK_HIPBLAS(hipblasDestroy(common.cublasHandle));
+    }
+#endif        
 }
 
 // Compute and store the geometry
@@ -305,7 +312,7 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
 #ifdef HAVE_MPI     
     hdgAssembleLinearSystemMPI(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 #else    
-    uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
     hdgAssembleRHS(b, res.Rh, mesh, common);
     // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
     hdgBlockJacobi(res.K, res.H, tmp.tempn, res.ipiv, mesh, common, common.cublasHandle, backend);      
@@ -448,9 +455,9 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
     //    ArrayCopy(&tmp.buffsend[bsz*n], &sol.udg[nudg*common.elemsend[n]], bsz, backend);           
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendudg, bsz*common.nelemsend);
 
-#ifdef HAVE_CUDA
-    cudaDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
  
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
@@ -502,9 +509,9 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
     /* copy some portion of u to buffsend */
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendudg, bsz*common.nelemsend);
 
-#ifdef HAVE_CUDA
-    cudaDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
  
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;

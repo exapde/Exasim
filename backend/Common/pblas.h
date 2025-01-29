@@ -58,7 +58,19 @@ static void Node2Gauss(cublasHandle_t handle, dstype *ug, dstype *un, dstype *sh
         cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, ng, nn, np, 
             cublasOne, shapt, ng, un, np, cublasZero, ug, ng);
 #endif        
-#endif             
+#endif        
+    
+#ifdef HAVE_HIP
+#ifdef USE_FLOAT  
+    if (backend == 3) 
+        hipblasSgemm(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, ng, nn, np, 
+            &one, shapt, ng, un, np, &zero, ug, ng);    
+#else
+    if (backend == 3) 
+        hipblasDgemm(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, ng, nn, np, 
+            &one, shapt, ng, un, np, &zero, ug, ng);
+#endif        
+#endif        
 }
 
 static void Gauss2Node(cublasHandle_t handle, dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn, Int backend)
@@ -82,6 +94,18 @@ static void Gauss2Node(cublasHandle_t handle, dstype *un, dstype *ug, dstype *sh
             cublasOne, shapg, np, ug, ng, cublasZero, un, np);
 #endif        
 #endif             
+    
+#ifdef HAVE_HIP
+#ifdef USE_FLOAT
+    if (backend == 3)
+        hipblasSgemm(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, np, nn, ng, 
+            &one, shapg, np, ug, ng, &zero, un, np);
+#else
+    if (backend == 3)
+        hipblasDgemm(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, np, nn, ng, 
+            &one, shapg, np, ug, ng, &zero, un, np);
+#endif        
+#endif
 }
 
 static void Gauss2Node1(cublasHandle_t handle, dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn, Int backend)
@@ -105,6 +129,18 @@ static void Gauss2Node1(cublasHandle_t handle, dstype *un, dstype *ug, dstype *s
             cublasOne, shapg, np, ug, ng, cublasOne, un, np);
 #endif        
 #endif             
+    
+#ifdef HAVE_HIP
+#ifdef USE_FLOAT
+    if (backend == 3)
+        hipblasSgemm(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, np, nn, ng, 
+            &one, shapg, np, ug, ng, &one, un, np);
+#else
+    if (backend == 3)
+        hipblasDgemm(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, np, nn, ng, 
+            &one, shapg, np, ug, ng, &one, un, np);
+#endif        
+#endif    
 }
 
 #ifdef HAVE_CUDA       
@@ -150,6 +186,48 @@ static void gpuComputeInverse(cublasHandle_t handle, dstype* A, dstype *C, Int n
 }
 #endif     
 
+#ifdef HAVE_HIP
+static void hipComputeInverse(cublasHandle_t handle, dstype* A, dstype* C, Int n, Int batchSize)
+{    
+    Int *ipiv, *info;
+    CHECK(hipMalloc(&ipiv, n * batchSize * sizeof(Int)));
+    CHECK(hipMalloc(&info, batchSize * sizeof(Int)));     
+    
+    // Allocate host and device pointer arrays
+    dstype **Ap_h = (dstype **)malloc(batchSize * sizeof(dstype *));
+    dstype **Ap_d;
+    CHECK(hipMalloc(&Ap_d, batchSize * sizeof(dstype *)));
+    Ap_h[0] = A;
+    for (Int i = 1; i < batchSize; i++)
+        Ap_h[i] = Ap_h[i-1] + (n * n);
+    CHECK(hipMemcpy(Ap_d, Ap_h, batchSize * sizeof(dstype *), hipMemcpyHostToDevice));
+    
+    dstype **Cp_h = (dstype **)malloc(batchSize * sizeof(dstype *));
+    dstype **Cp_d;
+    CHECK(hipMalloc(&Cp_d, batchSize * sizeof(dstype *)));
+    Cp_h[0] = C;
+    for (Int i = 1; i < batchSize; i++)
+        Cp_h[i] = Cp_h[i-1] + (n * n);
+    CHECK(hipMemcpy(Cp_d, Cp_h, batchSize * sizeof(dstype *), hipMemcpyHostToDevice));
+            
+#ifdef USE_FLOAT        
+    hipblasSgetrfBatched(handle, n, Ap_d, n, ipiv, info, batchSize);    
+    hipblasSgetriBatched(handle, n, Ap_d, n, ipiv, Cp_d, n, info, batchSize);
+#else            
+    CHECK_HIPBLAS(hipblasDgetrfBatched(handle, n, Ap_d, n, ipiv, info, batchSize));    
+    CHECK_HIPBLAS(hipblasDgetriBatched(handle, n, Ap_d, n, ipiv, Cp_d, n, info, batchSize));    
+#endif            
+            
+    // Copy C back to A
+    ArrayCopy(A, C, n * n * batchSize);
+                
+    // Cleanup
+    CHECK(hipFree(Ap_d)); free(Ap_h);
+    CHECK(hipFree(Cp_d)); free(Cp_h);
+    CHECK(hipFree(ipiv)); CHECK(hipFree(info));     
+}
+#endif  
+
 static void cpuComputeInverse(dstype* A, dstype* work, Int* ipiv, Int n)
 {
     Int lwork = n*n;
@@ -168,12 +246,17 @@ static void Inverse(cublasHandle_t handle, dstype* A, dstype *C, Int *ipiv, Int 
 #ifdef HAVE_CUDA        
     if (backend == 2)   
         gpuComputeInverse(handle, A, C, n, batchSize);
-#else       
+#endif       
+    
+#ifdef HAVE_HIP        
+    if (backend == 3)   
+        hipComputeInverse(handle, A, C, n, batchSize);    
+#endif           
+    
     if (backend <= 1) {        
         for (int k=0; k<batchSize; k++) 
             cpuComputeInverse(&A[n*n*k], C, ipiv, n);                
     }    
-#endif              
 }
 
 // static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, 
@@ -221,8 +304,6 @@ static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, I
         dstype *global_dot, Int backend) 
 {           
     dstype local_dot=zero;
-    INIT_TIMING;
-    START_TIMING;
 
 #ifdef USE_FLOAT    
     if (backend <= 1) 
@@ -240,11 +321,18 @@ static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, I
     if (backend == 2)  
         cublasDdot(handle, m, x, incx, y, incy, &local_dot);    
 #endif
-    //cudaDeviceSynchronize();        
 #endif             
-    END_TIMING_DISC(94);
     
-    START_TIMING;
+#ifdef HAVE_HIP  
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSdot(handle, m, x, incx, y, incy, &local_dot);    
+#else            
+    if (backend == 3)  
+        hipblasDdot(handle, m, x, incx, y, incy, &local_dot);    
+#endif
+#endif  
+    
 #ifdef HAVE_MPI        
 #ifdef USE_FLOAT        
     MPI_Allreduce(&local_dot, global_dot, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
@@ -255,7 +343,6 @@ static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, I
     //ArrayCopy(global_dot, local_dot, 1, backend);
     *global_dot = local_dot;
 #endif    
-    END_TIMING_DISC(95);
 }
 
 static dstype PNORM(cublasHandle_t handle, Int m, dstype* x, Int backend) 
@@ -284,6 +371,16 @@ static void DOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, In
         cublasDdot(handle, m, x, incx, y, incy, dot);    
 #endif        
 #endif                 
+    
+#ifdef HAVE_HIP  
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSdot(handle, m, x, incx, y, incy, dot);    
+#else            
+    if (backend == 3)  
+        hipblasDdot(handle, m, x, incx, y, incy, dot);    
+#endif
+#endif      
 }
 
 static void ArrayCopy(cublasHandle_t handle, dstype* y, dstype* x, Int m, Int backend) 
@@ -304,7 +401,17 @@ static void ArrayCopy(cublasHandle_t handle, dstype* y, dstype* x, Int m, Int ba
     if (backend == 2)  
         cublasDcopy(handle, m, x, inc1, y, inc1);    
 #endif        
-#endif                 
+#endif              
+    
+#ifdef HAVE_HIP          
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasScopy(handle, m, x, inc1, y, inc1);    
+#else            
+    if (backend == 3)  
+        hipblasDcopy(handle, m, x, inc1, y, inc1);    
+#endif        
+#endif                  
 }
 
 static void ArrayMultiplyScalar(cublasHandle_t handle, dstype* x, dstype alpha, Int m, Int backend) 
@@ -326,6 +433,16 @@ static void ArrayMultiplyScalar(cublasHandle_t handle, dstype* x, dstype alpha, 
         cublasDscal(handle, m, &alpha, x, inc1);    
 #endif        
 #endif                 
+    
+#ifdef HAVE_HIP
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSscal(handle, m, &alpha, x, inc1);    
+#else            
+    if (backend == 3)  
+        hipblasDscal(handle, m, &alpha, x, inc1);    
+#endif        
+#endif                     
 }
 
 //    cublasDaxpy(handle, n, &a, x, 1, z, 1);
@@ -348,6 +465,16 @@ static void ArrayAXPY(cublasHandle_t handle, dstype* z, dstype* x, dstype a, Int
         cublasDaxpy(handle, m, &a, x, inc1, z, inc1);
 #endif
 #endif
+    
+#ifdef HAVE_HIP
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSaxpy(handle, m, &a, x, inc1, z, inc1);
+#else
+    if (backend == 3)  
+        hipblasDaxpy(handle, m, &a, x, inc1, z, inc1);
+#endif
+#endif    
 }
 
 static void ArrayAXPBY(cublasHandle_t handle, dstype* z, dstype* x, dstype* y, dstype a, dstype b, Int m, Int backend) 
@@ -393,6 +520,18 @@ static void PGEMNV(cublasHandle_t handle, Int m, Int n, dstype* alpha, dstype* A
                              beta, y, incy);
 #endif        
 #endif                     
+    
+#ifdef HAVE_HIP          
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSgemv(handle, HIPBLAS_OP_N, m, n, alpha, A, lda, x, incx,
+                             beta, y, incy);        
+#else            
+    if (backend == 3)  
+        hipblasDgemv(handle, HIPBLAS_OP_N, m, n, alpha, A, lda, x, incx,
+                             beta, y, incy);
+#endif        
+#endif     
 }
 
 static void PGEMTV(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A, Int lda, 
@@ -418,6 +557,18 @@ static void PGEMTV(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A
                              beta, ylocal, incy);
 #endif        
 #endif             
+    
+#ifdef HAVE_HIP          
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSgemv(handle, HIPBLAS_OP_T, m, n, alpha, A, lda, x, incx,
+                             beta, ylocal, incy);        
+#else            
+    if (backend == 3)  
+        hipblasDgemv(handle, HIPBLAS_OP_T, m, n, alpha, A, lda, x, incx,
+                             beta, ylocal, incy);
+#endif        
+#endif  
     
 #ifdef  HAVE_MPI          
 #ifdef USE_FLOAT         
@@ -520,6 +671,18 @@ static void PGEMTM(cublasHandle_t handle, Int m, Int n, Int k, dstype *alpha, ds
 #endif        
 #endif                     
     
+#ifdef HAVE_HIP          
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        hipblasSgemm(handle, HIPBLAS_OP_T, HIPBLAS_OP_N, m, n, k, 
+            alpha, A, lda, B, ldb, beta, Clocal, ldc);                    
+#else            
+    if (backend == 3)  
+        hipblasDgemm(handle, HIPBLAS_OP_T, HIPBLAS_OP_N, m, n, k, 
+            alpha, A, lda, B, ldb, beta, Clocal, ldc);
+#endif        
+#endif     
+    
     Int p = m*n;
     
 #ifdef  HAVE_MPI          
@@ -557,6 +720,18 @@ static void PGEMNMStridedBached(cublasHandle_t handle, Int m, Int n, Int k, dsty
             &alpha, A, lda, m*k, B, ldb, k*n, &beta, C, ldc, m*n, batchCount));
 #endif        
 #endif                     
+    
+#ifdef HAVE_HIP          
+#ifdef USE_FLOAT  
+    if (backend == 3)     
+        CHECK_HIPBLAS(hipblasSgemmStridedBatched(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, m, n, k, 
+            &alpha, A, lda, m * k, B, ldb, k * n, &beta, C, ldc, m * n, batchCount));                    
+#else            
+    if (backend == 3)  
+        CHECK_HIPBLAS(hipblasDgemmStridedBatched(handle, HIPBLAS_OP_N, HIPBLAS_OP_N, m, n, k, 
+            &alpha, A, lda, m * k, B, ldb, k * n, &beta, C, ldc, m * n, batchCount));
+#endif        
+#endif     
 }
 
 #endif  

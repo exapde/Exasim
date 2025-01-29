@@ -94,6 +94,15 @@ void printArray2D(Int* a, Int m, Int n, Int backend)
         free(b);
 #endif
     }
+    else if (backend==3) {
+#ifdef HAVE_HIP
+        Int N = m*n;
+        Int *b = (Int*) malloc (sizeof (Int)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(Int), hipMemcpyDeviceToHost));
+        print2iarray(b, m, n);
+        free(b);
+#endif
+    }    
     else
         print2iarray(a, m, n);
 }
@@ -109,6 +118,15 @@ void printArray3D(Int* a, Int m, Int n, Int p, Int backend)
         free(b);
 #endif
     }
+    else if (backend==3) {
+#ifdef HAVE_HIP
+        Int N = m*n*p;
+        Int *b = (Int*) malloc (sizeof (Int)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(Int), hipMemcpyDeviceToHost));
+        print3iarray(b, m, n, p);
+        free(b);
+#endif
+    }    
     else
         print3iarray(a, m, n, p);
 }
@@ -124,6 +142,15 @@ void printArray2D(dstype* a, Int m, Int n, Int backend)
         free(b);
 #endif        
     }
+    else if (backend==3) {
+#ifdef  HAVE_HIP        
+        Int N = m*n;
+        dstype *b = (dstype*) malloc (sizeof (dstype)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(dstype), hipMemcpyDeviceToHost));    
+        print2darray(b, m, n);
+        free(b);
+#endif        
+    }    
     else
         print2darray(a, m, n);
 }
@@ -139,6 +166,15 @@ void printArray3D(dstype* a, Int m, Int n, Int p, Int backend)
         free(b);
 #endif        
     }
+    else if (backend==3) {
+#ifdef  HAVE_HIP        
+        Int N = m*n*p;
+        dstype *b = (dstype*) malloc (sizeof (dstype)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(dstype), hipMemcpyDeviceToHost));    
+        print3darray(b, m, n, p);
+        free(b);
+#endif        
+    }    
     else
         print3darray(a, m, n, p);
 }
@@ -326,6 +362,20 @@ template <typename T> void readarrayfromfile(string filename, T **a, Int N, Int 
             free(a_host);
 #endif            
         }
+        else if (backend==3) { //GPU
+#ifdef  HAVE_HIP                        
+            T *a_host;            
+            a_host = (T*) malloc (sizeof (T)*N);            
+            
+            // read data from file
+            in.read( reinterpret_cast<char*>(a_host ), sizeof(T)*N );        
+
+            // transfer data from CPU to GPU 
+            CHECK(hipMemcpy(*a, &a_host[0], N*sizeof(T), hipMemcpyHostToDevice));    
+                        
+            free(a_host);
+#endif            
+        }        
         else {
             //*a = (T*) malloc (sizeof (T)*N);
             in.read( reinterpret_cast<char*>( *a ), sizeof(T)*N );        
@@ -374,6 +424,20 @@ template <typename T> void writearray2file(string filename, T *a, Int N, Int bac
             free(a_host);
 #endif            
         }
+      else if (backend == 3) { // HIP GPU
+#ifdef HAVE_HIP
+            T *a_host;
+            a_host = (T *)malloc(sizeof(T) * N);
+
+            // Transfer data from GPU to CPU to save in a file
+            CHECK(hipMemcpy(&a_host[0], &a[0], N * sizeof(T), hipMemcpyDeviceToHost));
+
+            // Write to file
+            out.write(reinterpret_cast<char *>(&a_host[0]), sizeof(T) * N);
+
+            free(a_host);
+#endif
+        }        
         else 
             out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );                    
         

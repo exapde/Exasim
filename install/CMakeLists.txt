@@ -63,8 +63,47 @@ if(EXASIM_CUDA)
         target_link_libraries(gpumpiEXASIM PRIVATE Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${MPI_LIBRARIES})            
       endif()
     endif()
+elseif(EXASIM_HIP)
+    set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildhip)
+    find_package(Kokkos REQUIRED)
+
+    enable_language(HIP)
+    find_package(HIP REQUIRED)
+    find_package(rocBLAS REQUIRED)
+    find_package(hipBLAS REQUIRED)
+
+    # Specify the include directories
+    include_directories(${HIP_INCLUDE_DIRS})
+
+    if(EXASIM_NOMPI)
+      add_executable(gpuEXASIM ${MAIN_SOURCES})
+      target_compile_definitions(gpuEXASIM PRIVATE -D_HIP)    
+      target_compile_options(gpuEXASIM PRIVATE -std=c++17 -ffast-math -O3 -DNDEBUG -fno-unroll-loops)   
+      target_link_libraries(gpuEXASIM PRIVATE Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries})          
+    endif()
+
+    if(EXASIM_MPI)  
+      find_package(MPI)
+      if (MPI_FOUND)
+        message("An MPI library is found")
+      else()
+        message("MPI library is not found")
+      endif()
+
+      if(MPI_FOUND)
+        include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+        add_executable(gpumpiEXASIM ${MAIN_SOURCES})
+        target_compile_definitions(gpumpiEXASIM PRIVATE -D_MPI -D_HIP)    
+        target_compile_options(gpumpiEXASIM PRIVATE -std=c++17 -ffast-math -O3 -DNDEBUG -fno-unroll-loops)             
+        target_link_libraries(gpumpiEXASIM PRIVATE Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${MPI_LIBRARIES})            
+      endif()
+    endif()
 else()
     set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildserial)
+
+    #message(${EXASIM_DIR})
+    #message(${Kokkos_DIR})
+
     find_package(Kokkos REQUIRED)
 
     if(EXASIM_NOMPI)
