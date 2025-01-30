@@ -8,11 +8,11 @@ Below are the steps to deploy, compile, build and run Exasim on a HPC system
 
 2. Transfer Exasim/install folder from your local machine to the Exasim folder on the target HPC system
 
-3. Transfer Exasim/kokkos folder from your local machine to the Exasim folder on the target HPC system. The kokkos folder must be "fresh" and "clean".  You can download the latest release version of kokkos from https://github.com/kokkos/kokkos.
+3. Transfer kokkos folder from your local machine to the Exasim folder on the target HPC system. The kokkos folder must be "fresh" and "clean", meaning that you have not compiled kokkos at all. You can download the latest release version of kokkos from https://github.com/kokkos/kokkos and transfer it to the Exasim folder on the target HPC system.
 
 4. On the target HPC system, build Kokkos libraries with the following instructions
     
-    b. Build Kokkos serial library for CPU platform
+    a. Build Kokkos serial library for CPU platform
 
 	module load cmake/3.20.2
 
@@ -24,7 +24,7 @@ Below are the steps to deploy, compile, build and run Exasim on a HPC system
 
       Please use cmake version 3.20 or higher to compile kokkos. You can choose a C++ compiler by using the flag -DCMAKE_CXX_COMPILER.
 
-    c. Build Kokkos CUDA library for NVIDIA GPU platform
+    b. Build Kokkos CUDA library for NVIDIA GPU platform
 
         module load cmake/3.20.2
         module load cuda/11.2.0
@@ -38,7 +38,7 @@ Below are the steps to deploy, compile, build and run Exasim on a HPC system
 
       Please use cmake 3.20 (or higher), clang++ 12 (or higher), cuda 11 (or higher) to compile kokkos. 
 
-    d. Build Kokkos HIP library for AMD GPU platform
+    c. Build Kokkos HIP library for AMD GPU platform
 
 	module load cmake/3.20.2		
        	module load rocm/6.2.1       	
