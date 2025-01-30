@@ -5,9 +5,9 @@
      cd Exasim
      mkdir build 
 
-2. Transfer Exasim/install folder from your local folder to the Exasim folder on the target HPC system
+2. Transfer Exasim/install folder from your local machine to the Exasim folder on the target HPC system
 
-3. Transfer Exasim/kokkos folder from your local folder to the Exasim folder on the target HPC system. The kokkos folder must be "fresh" and "clean".  You can download the latest release version of kokkos from https://github.com/kokkos/kokkos.
+3. Transfer Exasim/kokkos folder from your local machine to the Exasim folder on the target HPC system. The kokkos folder must be "fresh" and "clean".  You can download the latest release version of kokkos from https://github.com/kokkos/kokkos.
 
 4. On the target HPC system, build Kokkos libraries with the following instructions
     
@@ -125,15 +125,14 @@
         bsub -nnodes 1 -Ip -W 10 /bin/tcsh
 	jsrun --smpiargs="-gpu" -n1 -a4 -c 4 -g 4 ./gpumpiEXASIM 1 datain/ dataout/out
 
-
     f. Run HIP version on many GPUs 
 
 	export MPICH_GPU_SUPPORT_ENABLED=1
 	flux run -N2 -n4 -g1 -o gpu-affinity=per-task --exclusive ./gpumpiEXASIM 1 datain/ dataout/out
 
-10. Transfer the build/dataout folder from the target HPC system to Exasim/build on your local machine 
+10. Transfer the build/dataout folder from the target HPC system to Exasim/build on your local machine. 
 
-11. Postprocess and view the numerical solution in Exasim/build/dataout with Paraview. 
+11. Postprocess and view the numerical solution in Exasim/build/dataout on your local machine with Paraview. 
       
 12. Repeat Steps 5 to 11 if you want to solve new PDE models.
 
