@@ -82,43 +82,8 @@ using namespace std;
 
 int main(int argc, char** argv) 
 {   
-  Kokkos::initialize(argc, argv);
-  {        
-    if( argc >= 4 ) {
-    }
-    else {      
-      printf("Usage: ./cppfile nummodels InputFile OutputFile\n");
-      return 1;
-    }                
-    
+  
     Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
-    string mystr = string(argv[1]);
-    nummodels = stoi(mystr);  // number of pde models
-    string filein[10]; 
-    string fileout[10];
-    
-    // two-physics and two-domain problems  
-    int mpiprocs0 = 0;
-    if (nummodels>100) {
-      mpiprocs0 = nummodels - 100;
-      nummodels = 2;
-    }
-    
-    for (int i=0; i<nummodels; i++) {
-        filein[i]  = string(argv[2*i+2]); // input files
-        fileout[i]  = string(argv[2*i+3]); // output files        
-        //cout<<filein[i]<<endl;
-        //cout<<fileout[i]<<endl;
-    }
-    
-    restart = 0;
-    if (argc>=(2*nummodels+3)) {
-        mystr = string(argv[2*nummodels+2]);
-        restart = stoi(mystr);
-    }             
-    
-    // reset nummodels
-    if (mpiprocs0 > 0) nummodels = 1;
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
@@ -141,7 +106,7 @@ int main(int argc, char** argv)
     mpirank = 0;
     shmrank = 0;
 #endif                
-        
+  
 #ifdef HAVE_OPENMP    
     // set OpenMP threads
     ncores = omp_get_num_procs();
@@ -163,12 +128,7 @@ int main(int argc, char** argv)
 #ifdef HAVE_HIP  // HIP          
     backend=3;
 #endif
-      
-    if ((mpiprocs0 > 0) && (mpiprocs<= mpiprocs0)) {
-      printf("For two-domain problem, total number of MPI processors (%d) must be greater than # MPI processors on the first domain (%d)\n", mpiprocs, mpiprocs0);
-      return 1;
-    }
-      
+            
     if (backend==2) {
         if (mpirank==0) 
             printf("Using %d processors to solve the problem on CUDA platform...\n", mpiprocs);
@@ -219,6 +179,49 @@ int main(int argc, char** argv)
               << std::endl;
 #endif
     
+  Kokkos::initialize(argc, argv);
+  {        
+    if( argc >= 4 ) {
+    }
+    else {      
+      printf("Usage: ./cppfile nummodels InputFile OutputFile\n");
+      return 1;
+    }                
+    
+    //Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
+    string mystr = string(argv[1]);
+    nummodels = stoi(mystr);  // number of pde models
+    string filein[10]; 
+    string fileout[10];
+    
+    // two-physics and two-domain problems  
+    int mpiprocs0 = 0;
+    if (nummodels>100) {
+      mpiprocs0 = nummodels - 100;
+      nummodels = 2;
+    }
+    
+    if ((mpiprocs0 > 0) && (mpiprocs<= mpiprocs0)) {
+      printf("For two-domain problem, total number of MPI processors (%d) must be greater than # MPI processors on the first domain (%d)\n", mpiprocs, mpiprocs0);
+      return 1;
+    }
+    
+    for (int i=0; i<nummodels; i++) {
+        filein[i]  = string(argv[2*i+2]); // input files
+        fileout[i]  = string(argv[2*i+3]); // output files        
+        //cout<<filein[i]<<endl;
+        //cout<<fileout[i]<<endl;
+    }
+    
+    restart = 0;
+    if (argc>=(2*nummodels+3)) {
+        mystr = string(argv[2*nummodels+2]);
+        restart = stoi(mystr);
+    }             
+    
+    // reset nummodels
+    if (mpiprocs0 > 0) nummodels = 1;
+                
     Int fileoffset = 0;
     Int gpuid = 0;            
       
@@ -418,14 +421,14 @@ int main(int argc, char** argv)
     }
 
     delete[] pdemodel; // Delete the array of pointers
-    delete[] out; // Delete the array of ofstream objects
-
+    delete[] out; // Delete the array of ofstream objects    
+  }
+  Kokkos::finalize();  
+  
 #ifdef HAVE_MPI
   MPI_Finalize();
 #endif         
-    
-  }
-  Kokkos::finalize();  
+  
   return 0;             
      
 }
