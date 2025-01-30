@@ -1,3 +1,4 @@
+Below are the steps to deploy, compile, build and run Exasim on a HPC system
 
 1. Create an empty Exasim folder and build subfolder on the target HPC system
   
