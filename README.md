@@ -19,6 +19,8 @@ What make Exasim unique are the following distinctive features:
    
 After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. Please make sure that the directory containing the folder Exasim does not have any white space, because Kokkos libraries can not be compiled properly in such case. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
 
+To deploy, compile, and run Exasim on a **HPC system**, please follow the intructions in [the hpc documentation](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
+
 # Installation 
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. These external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab.
