@@ -217,6 +217,9 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       ArraySetValue(work, zero, npe*npf*nfe*ns);
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
       PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &res.E[npe*npe*e1], npe, ns, backend); // fixed bug here  
+//       printArray2D(work, npe, npf*nfe, backend);     
+//       printArray2D(nlg, nga, ncx, backend);     
+//       error("here");
     }
     else if (nd==2) {
       dstype *Ex = res.E;

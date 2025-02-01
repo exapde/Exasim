@@ -87,6 +87,7 @@ void FaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, temps
         FaceGeom1D(&tmp.tempg[n2], &tmp.tempg[n1], &tmp.tempg[n3], nga);    
         // Change the direction of the normal vector on the left boundary to make it outward
         FixNormal1D(&tmp.tempg[n1], &mesh.facecon[2*f1], nga);    
+        //printArray2D(&tmp.tempg[n1], ngf, nf, backend);       
 //         for (int i=0; i<nga; i++)
 //             if (mesh.facecon[2*(f1+i)]==0)
 //                 tmp.tempg[n1 + i] = -1.0;        
@@ -149,7 +150,8 @@ void ElemFaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, t
     
     // (jac, nlg) = (tmp.tempg[n2], tmp.tempg[n1]) at gauss points on face
     if (nd==1) {
-        FaceGeom1D(&tmp.tempg[n2], &tmp.tempg[n1], &tmp.tempg[n3], nga);            
+        FaceGeom1D(&tmp.tempg[n2], &tmp.tempg[n1], &tmp.tempg[n3], nga);      
+        FixNormal1D(&tmp.tempg[n1], nga);    
     }
     else if (nd==2){
         Node2Gauss(handle, &tmp.tempg[n3], tmp.tempn, &master.shapfgt[ngf*npf], ngf, npf, nfe*ne*nd, backend);                

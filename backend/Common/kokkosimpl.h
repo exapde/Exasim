@@ -97,9 +97,50 @@ void PutArrayAtIndex(dstype* y, const dstype* x, const int* ind, const int n)
     });
 }
 
+
+void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int m, const int n)
+{    
+    int N = m*n;
+    Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%m;
+        int j = idx/m;
+        y[idx] = x[i + m*ind[j]];
+    });
+}
+
+void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int m, const int n)
+{    
+    int N = m*n;
+    Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%m;
+        int j = idx/m;
+        y[i + m*ind[j]] = x[idx];
+    });
+}
+
+void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int i0, const int k, const int m, const int n)
+{    
+    int N = m*n;
+    Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%m;
+        int j = idx/m;
+        y[i0 + i + k*j] = x[i + m*ind[j]];
+    });
+}
+
+void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int i0, const int k, const int m, const int n)
+{    
+    int N = m*n;
+    Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx%m;
+        int j = idx/m;
+        y[i + m*ind[j]] = x[i0 + i + k*j];
+    });
+}
+
 void ArrayCopy(dstype* y, const dstype* x, const int n)
 {    
-    Kokkos::parallel_for("GetArrayAtIndex", n, KOKKOS_LAMBDA(const size_t i) {
+    Kokkos::parallel_for("ArrayCopy", n, KOKKOS_LAMBDA(const size_t i) {
         y[i] = x[i];
     });
 }
@@ -1755,6 +1796,14 @@ void FixNormal1D(dstype* nlg, const int* facecon, const int na)
 {       
     Kokkos::parallel_for("FixNormal1D", na, KOKKOS_LAMBDA(const size_t i) {
         if (facecon[2*i]==0)
+            nlg[i] = -1.0;
+    });
+}
+
+void FixNormal1D(dstype* nlg, const int na)
+{       
+    Kokkos::parallel_for("FixNormal1D", na, KOKKOS_LAMBDA(const size_t i) {
+        if (i%2 == 0)
             nlg[i] = -1.0;
     });
 }

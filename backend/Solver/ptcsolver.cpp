@@ -297,7 +297,21 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
       auto begin = chrono::high_resolution_clock::now();   
             
       disc.hdgAssembleLinearSystem(sys.b, backend);
-            
+      
+//       int npe = disc.common.npe;
+//       int npf = disc.common.npf;
+//       int ne = disc.common.ne;
+//       int nf = disc.common.nf;
+//       
+//       printArray3D(disc.res.Mass2, npe, npe, ne, backend); 
+//       printArray3D(disc.res.Minv2, npe, npe, ne, backend);
+//       printArray3D(disc.res.C, npe, npe, ne, backend);
+//       printArray3D(disc.res.E, npe, npe, ne, backend);
+//       
+//       printArray3D(disc.res.H, 2, 2, disc.common.ne, backend);        
+//       printArray2D(sys.b, npf, nf, backend);      
+//       error("here");
+        
       auto end = chrono::high_resolution_clock::now();
       double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;      
 
@@ -369,6 +383,12 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;          
     }                
 
+//     if (disc.common.mpiRank==0) {
+//       printArray2D(sys.b, disc.common.npf, disc.common.nf, backend);
+//       printArray2D(disc.res.Ru, disc.common.npe, disc.common.ne1, backend);
+//     }
+//     error("here");
+    
     // use PTC to solve the system: R(u) = 0
     for (it=0; it<maxit; it++) {              
                       
@@ -377,7 +397,8 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
                         
 //         printArray2D(sys.u, disc.common.npf, disc.common.nf, backend);
 //         printArray2D(sys.x, disc.common.npf, disc.common.nf, backend);
-                        
+//         error("here");                
+        
         alpha = 1.0;        
         // update the solution: u = u + alpha*x
         ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, alpha, N, backend); 
@@ -401,7 +422,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
             error("stop for debugging...");
           }          
-          
+                    
           if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
                               
           nrm0 = nrmr; // original norm          
@@ -409,7 +430,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
           disc.hdgAssembleResidual(sys.b, backend);          
           nrmr = PNORM(disc.common.cublasHandle, N, sys.b, backend);           
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
-                          
+                                    
           // damped Newton loop to determine alpha
           while (nrmr>nrm0 && alpha > 0.1) 
           {
@@ -432,7 +453,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         if (disc.common.RBdim > 0) UpdateRB(sys, disc, prec, N, backend);         
                 
         if (disc.common.mpiRank==0)
-          printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, alpha, tol, nrmr);
+          printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, alpha, nrm0, nrmr);
         
         // check convergence
         if (nrmr < tol) return (it+1);           

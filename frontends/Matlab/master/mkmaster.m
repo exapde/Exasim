@@ -87,7 +87,7 @@ end
 % mass and convection matrices on the master element
 master.mass = squeeze(master.shapvl(:,:,1))*diag(master.gwvl)*squeeze(master.shapvl(:,:,1))';
 for ii=1:dim
-    master.conv(:,:,ii) = squeeze(master.shapvl(:,:,1))*diag(master.gwvl)*squeeze(master.shapvl(:,:,ii+1))';
+    master.conv(:,:,ii) = squeeze(master.shapvl(:,:,1))*diag(master.gwvl)*squeeze(master.shapvl(:,:,ii+1))'; % v du/dxi  
 end   
 
 master.ngv = size(master.gpvl,1);   % number of gasss points per element

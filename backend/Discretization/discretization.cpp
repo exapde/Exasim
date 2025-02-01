@@ -458,7 +458,11 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
 // #ifdef HAVE_CUDA
 //     cudaDeviceSynchronize();
 // #endif
- 
+
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
     for (n=0; n<common.nnbsd; n++) {
@@ -512,7 +516,11 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 // #ifdef HAVE_CUDA
 //     cudaDeviceSynchronize();
 // #endif
- 
+
+#ifdef HAVE_CUDA
+    hipDeviceSynchronize();
+#endif
+    
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
     for (n=0; n<common.nnbsd; n++) {

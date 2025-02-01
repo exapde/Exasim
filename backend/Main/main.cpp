@@ -130,16 +130,16 @@ int main(int argc, char** argv)
 #endif
             
     if (backend==2) {
-        if (mpirank==0) 
-            printf("Using %d processors to solve the problem on CUDA platform...\n", mpiprocs);
+        //if (mpirank==0) 
+            printf("Using %d processors with %d rank and %d shmrank to solve the problem on CUDA platform...\n", mpiprocs, mpirank, shmrank);
     }
     else if (backend==3) {
-        if (mpirank==0) 
-            printf("Using %d processors to solve the problem on HIP platform...\n", mpiprocs);
+        //if (mpirank==0) 
+            printf("Using %d processors with %d rank and %d shmrank to solve the problem on HIP platform...\n", mpiprocs, mpirank, shmrank);
     }
     else {
-        if (mpirank==0) 
-            printf("Using %d processors to solve the problem on CPU platform...\n", mpiprocs);
+        //if (mpirank==0) 
+            printf("Using %d processors with %d rank and %d shmrank to solve the problem on CPU platform...\n", mpiprocs, mpirank, shmrank);
     }
     
 #ifdef HAVE_CUDA            

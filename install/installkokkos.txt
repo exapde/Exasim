@@ -28,17 +28,35 @@ make install
 Loaded Modules:
   1) base-gcc/8.3.1   2) clang/ibm-16.0.6-cuda-11.2.0-gcc-8.3.1   3) spectrum-mpi/rolling-release   4) cuda/11.2.0   5) StdEnv (S)   6) cmake/3.20.2
 
+cmake -D CMAKE_CXX_COMPILER=clang++ -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON ../../../install
+cmake -D CMAKE_CXX_COMPILER=clang++ -D EXASIM_MPI=ON -D EXASIM_CUDA=ON ../../../install
+
+bsub -nnodes 1 -Ip -W 10 /bin/tcsh
+jsrun --smpiargs="-gpu" -n1 -a4 -c 4 -g 4 ./gpumpiEXASIM 1 datain/ dataout/out
+
 # Install kokkos on Tioga
 
 module load  rocm
 module load cmake/3.22.4
 export CRAYPE_LINK_TYPE=dynamic
 
-mkdir buildamd
-cd buildamd
-cmake ..  -DCMAKE_CXX_COMPILER=hipcc          -DKokkos_ENABLE_HIP=ON          -DKokkos_ENABLE_ROCM=ON          -DKokkos_ARCH_VEGA90A=ON             -DCMAKE_INSTALL_PREFIX=../buildamd 
+mkdir buildhip
+cd buildhip
+cmake ..  -DCMAKE_CXX_COMPILER=hipcc          -DKokkos_ENABLE_HIP=ON          -DKokkos_ENABLE_ROCM=ON          -DKokkos_ARCH_VEGA90A=ON             -DCMAKE_INSTALL_PREFIX=../buildhip 
 make install   
 
 Loaded Modules:
   1) flux_wrappers/0.1   2) StdEnv (S)   3) cmake/3.22.4   4) rocm/6.2.1
+
+
+cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF -D EXASIM_HIP=ON ../../../install
+
+cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=ON ../../../install
+
+cmake -D CMAKE_CXX_COMPILER=mpiamdclang++ -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=ON ../../../install
+
+export MPICH_GPU_SUPPORT_ENABLED=1
+flux run -N2 -n4 -g1 -o gpu-affinity=per-task --exclusive ./gpumpiEXASIM 1 datain/ dataout/out
+
+
 

@@ -264,38 +264,38 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/cpuimpl.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/kokkosimpl.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/pblas.h \
-  model/HdgEoS.cpp \
-  model/HdgFbou.cpp \
-  model/HdgFbouonly.cpp \
-  model/HdgFlux.cpp \
-  model/HdgSource.cpp \
-  model/HdgSourcew.cpp \
-  model/HdgSourcewonly.cpp \
-  model/KokkosAvfield.cpp \
-  model/KokkosDrivers.cpp \
-  model/KokkosEoS.cpp \
-  model/KokkosEoSdu.cpp \
-  model/KokkosEoSdw.cpp \
-  model/KokkosFbou.cpp \
-  model/KokkosFhat.cpp \
-  model/KokkosFlux.cpp \
-  model/KokkosInitodg.cpp \
-  model/KokkosInitq.cpp \
-  model/KokkosInitu.cpp \
-  model/KokkosInitudg.cpp \
-  model/KokkosInitwdg.cpp \
-  model/KokkosOutput.cpp \
-  model/KokkosSource.cpp \
-  model/KokkosSourcew.cpp \
-  model/KokkosStab.cpp \
-  model/KokkosTdfunc.cpp \
-  model/KokkosUbou.cpp \
-  model/KokkosUhat.cpp \
-  model/cpuInitodg.cpp \
-  model/cpuInitq.cpp \
-  model/cpuInitu.cpp \
-  model/cpuInitudg.cpp \
-  model/cpuInitwdg.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgEoS.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbou.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbouonly.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFlux.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSource.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcew.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcewonly.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosAvfield.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosDrivers.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosEoS.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosEoSdu.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosEoSdw.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosFbou.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosFhat.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosFlux.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitodg.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitq.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitu.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitudg.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitwdg.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosOutput.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosSource.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosSourcew.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosStab.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosTdfunc.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosUbou.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosUhat.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitodg.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitq.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitu.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitudg.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitwdg.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/discretization.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/discretization.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/errormsg.cpp \
@@ -576,6 +576,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_Combined_Reducer.hpp:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_ChaseLev.hpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_BitOps.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_Atomic_View.hpp:
@@ -620,10 +622,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/decl/Kokkos_Declare_SERIAL.hpp:
 
-model/KokkosEoSdu.cpp:
-
-model/KokkosInitu.cpp:
-
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_MemoryTraits.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_MemoryPool.hpp:
@@ -650,6 +648,8 @@ model/KokkosInitu.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Complex.hpp:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Clamp.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/AvailabilityInternal.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/pthread/qos.h:
@@ -664,17 +664,13 @@ model/KokkosInitu.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Atomics_Desul_Volatile_Wrapper.hpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Array.hpp:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Fetch_Op.hpp:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_AnonymousSpace.hpp:
-
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_AcquireUniqueTokenImpl.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Abort.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/KokkosExp_MDRangePolicy.hpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitudg.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Thread_Fence_GCC.hpp:
 
@@ -685,6 +681,8 @@ model/KokkosInitu.cpp:
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Generic.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Fetch_Op_ScopeCaller.hpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSource.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Fetch_Op_Generic.hpp:
 
@@ -722,9 +720,17 @@ model/KokkosInitu.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/previoussolutions.cpp:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TaskQueueCommon.hpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/setprecondstruct.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/xlocale/_ctype.h:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosEoS.cpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/applymatrix.cpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitudg.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/readbinaryfiles.cpp:
 
@@ -734,75 +740,59 @@ model/KokkosInitu.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/geometry.cpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/errormsg.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_xlocale.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/stdio.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/discretization.cpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/residual.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosUbou.cpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/appleapiopts.h:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosTdfunc.cpp:
 
-model/cpuInitudg.cpp:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__errc:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_uid_t.h:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/new:
 
-model/cpuInitodg.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosStab.cpp:
 
-model/KokkosStab.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Fetch_Op.hpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Clamp.hpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_AnonymousSpace.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/wctype.h:
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Thread_Fence.hpp:
 
-model/KokkosInitudg.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosOutput.cpp:
 
-model/KokkosInitq.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitu.cpp:
 
-model/KokkosInitodg.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitq.cpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/traits/Kokkos_Traits_fwd.hpp:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/__stddef_max_align_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitodg.cpp:
 
-model/KokkosFlux.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Array.hpp:
 
-model/KokkosEoSdw.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosFlux.cpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TaskQueueCommon.hpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosFhat.cpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/setprecondstruct.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/errormsg.cpp:
 
-model/KokkosEoS.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcewonly.cpp:
 
-model/KokkosDrivers.cpp:
-
-model/KokkosAvfield.cpp:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/buildserial/KokkosCore_Config_FwdBackend.hpp:
-
-model/HdgSourcewonly.cpp:
-
-model/HdgFbou.cpp:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_EBO.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/xlocale/_wchar.h:
-
-model/KokkosFhat.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgEoS.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/kokkosimpl.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/stdint.h:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosSourcew.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/stddef.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/stdbool.h:
-
-model/HdgSourcew.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/stdarg.h:
 
@@ -810,11 +800,7 @@ model/HdgSourcew.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/inttypes.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/__stddef_max_align_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_int16_t.h:
-
-model/KokkosUhat.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFlux.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/errno.h:
 
@@ -832,9 +818,13 @@ model/KokkosUhat.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/unordered_map:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/buildserial/KokkosCore_Config_FwdBackend.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/math.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solver/gmres.cpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosInitwdg.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_clock_t.h:
 
@@ -843,10 +833,6 @@ model/KokkosUhat.cpp:
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/string_view:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Atomic.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__nullptr:
-
-model/HdgSource.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/system_error:
 
@@ -864,8 +850,6 @@ model/HdgSource.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/stdbool.h:
 
-model/KokkosTdfunc.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/sstream:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/traits/Kokkos_IndexTypeTrait.hpp:
@@ -882,15 +866,11 @@ model/KokkosTdfunc.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_Utilities.hpp:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbouonly.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/optional:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_ucontext.h:
-
-model/HdgEoS.cpp:
-
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__errc:
-
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/new:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosAvfield.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/updatesource.cpp:
 
@@ -954,8 +934,6 @@ model/HdgEoS.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/ctype.h:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Thread_Fence.hpp:
-
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_ClockTic.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_wctrans_t.h:
@@ -969,6 +947,8 @@ model/HdgEoS.cpp:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_in_addr_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Compare_Exchange.hpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosEoSdu.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/preconditioner.cpp:
 
@@ -991,6 +971,8 @@ model/HdgEoS.cpp:
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/discretization.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cfloat:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbou.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cctype:
 
@@ -1040,6 +1022,8 @@ model/HdgEoS.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__string:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/wctype.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_uint16_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Common.hpp:
@@ -1052,7 +1036,7 @@ model/HdgEoS.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/wchar.h:
 
-model/KokkosOutput.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosEoSdw.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/xlocale/__wctype.h:
 
@@ -1070,11 +1054,11 @@ model/KokkosOutput.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/stdio.h:
 
-model/KokkosSourcew.cpp:
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/residual.cpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/appleapiopts.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_wchar_t.h:
-
-model/KokkosFbou.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/qos.h:
 
@@ -1092,13 +1076,15 @@ model/KokkosFbou.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_DetectionIdiom.hpp:
 
-model/KokkosInitwdg.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_u_char.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_ScratchSpace.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/nl_types.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_uid_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_ucontext.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_u_short.h:
 
@@ -1140,9 +1126,11 @@ model/KokkosInitwdg.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_uint8_t.h:
 
-model/HdgFlux.cpp:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__nullptr:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_sigaltstack.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosUhat.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/uequation.cpp:
 
@@ -1162,11 +1150,15 @@ model/HdgFlux.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosFbou.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_useconds_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/pblas.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__config:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosSource.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/ctype.h:
 
@@ -1177,10 +1169,6 @@ model/HdgFlux.cpp:
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/massinv.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_mode_t.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_ChaseLev.hpp:
-
-model/cpuInitq.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_mach_port_t.h:
 
@@ -1203,6 +1191,10 @@ model/cpuInitq.cpp:
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TaskTeamMember.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cstring:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_int16_t.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitu.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__mutex_base:
 
@@ -1238,6 +1230,8 @@ model/cpuInitq.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_ino64_t.h:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcew.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_in_port_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/tpls/desul/include/desul/atomics/Compare_Exchange_GCC.hpp:
@@ -1263,6 +1257,8 @@ model/cpuInitq.cpp:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_pthread/_pthread_cond_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_FunctorAnalysis.hpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/KokkosDrivers.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_fd_def.h:
 
@@ -1308,6 +1304,8 @@ model/cpuInitq.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_pthread/_pthread_t.h:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitodg.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cstdint:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/machine/_mcontext.h:
@@ -1338,6 +1336,10 @@ model/cpuInitq.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/setstructs.cpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/mach/i386/_structs.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitq.cpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_AnalyzePolicy.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/assert.h:
@@ -1356,8 +1358,6 @@ model/cpuInitq.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/pthread/sched.h:
 
-model/KokkosSource.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_wctype_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/pthread.h:
@@ -1365,8 +1365,6 @@ model/KokkosSource.cpp:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/runetype.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/pthread/pthread_impl.h:
-
-model/cpuInitwdg.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_nl_item.h:
 
@@ -1378,13 +1376,15 @@ model/cpuInitwdg.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/float.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/mach/i386/_structs.h:
-
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_TaskScheduler.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/tuple:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__tree:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/traits/Kokkos_Traits_fwd.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/i386/limits.h:
 
@@ -1393,6 +1393,8 @@ model/cpuInitwdg.cpp:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_wctype.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/i386/_mcontext.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitwdg.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/istream:
 
@@ -1414,13 +1416,15 @@ model/cpuInitwdg.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/i386/_limits.h:
 
-model/KokkosUbou.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/exception:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/machine/_types.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_uint64_t.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_EBO.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/xlocale/_wchar.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Core_fwd.hpp:
 
@@ -1436,15 +1440,11 @@ model/KokkosUbou.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_blkcnt_t.h:
 
-model/cpuInitu.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/__wctype.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_pthread/_pthread_attr_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/qequation.cpp:
-
-model/HdgFbouonly.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/syslimits.h:
 

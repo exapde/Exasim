@@ -72,6 +72,10 @@ void CSolution::SteadyProblem(ofstream &out, Int backend)
 //             cudaDeviceSynchronize();
 // #endif
 
+#ifdef HAVE_HIP
+            hipDeviceSynchronize();
+#endif
+            
             Int neighbor, nsend, psend = 0, request_counter = 0;
             for (n=0; n<disc.common.nnbsd; n++) {
                 neighbor = disc.common.nbsd[n];

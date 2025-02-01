@@ -11,6 +11,7 @@ nodetype = app.nodetype;
 if (dim==1)
     xpf = 0;
     tface = 1;
+    perm = reshape(perm, [1 2]);
 end
 
 % Gauss points and weights on the master volume element

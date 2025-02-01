@@ -159,10 +159,15 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
     PGEMNMStridedBached(handle, m, 1, m, one, &AE[m*m*ne0], m, &ve[m*ne0], m, zero, &we[m*ne0], m, ne1-ne0, backend); 
     
     // copy we to buffsend
-    for (int n=0; n<common.nelemsend; n++)  {       
-      ArrayCopy(&tmp.buffsend[bsz*n], &we[bsz*common.elemsend[n]], bsz);     
-    }
+//     for (int n=0; n<common.nelemsend; n++)  {       
+//       ArrayCopy(&tmp.buffsend[bsz*n], &we[bsz*common.elemsend[n]], bsz);     
+//     }
+    GetCollumnAtIndex(tmp.buffsend, we, mesh.elemsend, bsz, common.nelemsend);   
 
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
     for (int n=0; n<common.nnbsd; n++) {
@@ -198,10 +203,15 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
       // (ncu12 * npf) * (ncu * npf * nfe ) * neI x (ncu * npf * nfe ) * neI  = (ncu12 * npf) * neI    
       PGEMNMStridedBached(handle, szRi, 1, m, one, res.Hi, szRi, &ve[m*ne0], m, zero, res.Ri, szRi, neI, backend); 
       
-      for (int n=0; n<common.nfacesend; n++)  {       
-        ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
-      }
-            
+//       for (int n=0; n<common.nfacesend; n++)  {       
+//         ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
+//       }
+      GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);   
+       
+#ifdef HAVE_HIP
+      hipDeviceSynchronize();
+#endif
+      
       /* non-blocking send */
       psend = 0; 
       for (int n=0; n<common.nnbintf; n++) {
@@ -234,17 +244,19 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
 
     // copy buffrecv to we
     MPI_Waitall(request_counter, common.requests, common.statuses);    
-    for (int n=0; n<common.nelemrecv; n++) {        
-      ArrayCopy(&we[bsz*common.elemrecv[n]], &tmp.buffrecv[bsz*n], bsz);       
-    }
+//     for (int n=0; n<common.nelemrecv; n++) {        
+//       ArrayCopy(&we[bsz*common.elemrecv[n]], &tmp.buffrecv[bsz*n], bsz);       
+//     }
+    PutCollumnAtIndex(we, tmp.buffrecv, mesh.elemrecv, bsz, common.nelemrecv);   
 
     if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
       int ncu12 = common.szinterfacefluxmap;
       int szRi = ncu12*npf;  
       
-      for (int n=0; n<common.nfacerecv; n++) {        
-        ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
-      }      
+//       for (int n=0; n<common.nfacerecv; n++) {        
+//         ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
+//       }      
+      PutCollumnAtIndex(res.Ri, tmp.bufffacerecv, mesh.facerecv, szRi, common.nfacerecv);   
       
       PutBoudaryNodes(we, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces); 
     }
@@ -266,103 +278,6 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
       writearray2file(common.fileout + "hdgMatVec.bin", w, ncu * npf * nf, backend);
     }
 #endif
-}
-
-void hdgAssembleSerial(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
-        meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
-{
-    Int ncu = common.ncu;// number of compoments of (u)
-    Int npf = common.npf; // number of nodes on master face           
-    Int npe = common.npe; // number of nodes on master element
-    Int nfe = common.nfe; // number of faces in each element
-    Int ncq = common.ncq; // number of compoments of (q)
-    Int ncf = ncu*npf;
-
-    string filename;
-    if (common.mpiProcs==1)
-      filename = common.fileout;
-    else
-      filename = common.fileout + NumberToString(common.mpiRank);      
-
-    // perform HDG descrization for interface elements
-    for (Int j=0; j<common.nbe1; j++) {                  
-      uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);      
-      uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-
-      Int e1 = common.eblks[3*j]-1;
-      Int e2 = common.eblks[3*j+1];            
-      Int ne = e2-e1;
-
-      if (common.mpiRank==0)  {        
-        // print2darray(&res.Ru[npe*e1], npe, ne);   
-        // print3darray(&res.D[0], npe, npe, ne);   
-        // print3darray(&res.B[0], npe, npe, ne);   
-        // print3darray(&res.B[npe*npe*ne], npe, npe, ne);   
-        print3darray(&res.H[npf*nfe*npf*nfe*e1], npf*nfe, npf*nfe, ne);   
-      }
-    }                             
-
-#ifdef  HAVE_MPI     
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-    error("stop here");
-
-    Int ne = common.ne;
-    Int e1 = 0;
-    Int n = npe*ncu; 
-    Int m = npf*nfe*ncu;
-
-    writearray2file(filename + "uEquationElem_Ru.bin", res.Ru, npe*ncu*ne, backend);
-    writearray2file(filename + "uEquationElem_D.bin", res.D, npe*npe*ncu*ncu*ne, backend);  
-    if (ncq > 0) writearray2file(filename + "uEquationElem_B.bin", res.B, npe*npe*ncu*ncq*ne, backend);      
-
-    for (Int j=0; j<common.nbe; j++) {                  
-      uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-    }                             
-
-    writearray2file(filename + "uEquationElemFace_Ru.bin", &res.Ru[npe*ncu*e1], npe*ne*ncu, backend);
-    writearray2file(filename + "uEquationElemFace_D.bin", res.D, npe*npe*ncu*ncu*ne, backend);
-    writearray2file(filename + "uEquationElemFace_B.bin", res.B, npe*npe*ncu*ncq*ne, backend);
-    writearray2file(filename + "uEquationElemFace_F.bin", &res.F[npe*npf*nfe*ncu*ncu*e1], npe*npf*nfe*ncu*ncu*ne, backend);
-    writearray2file(filename + "uEquationElemFace_Rh.bin", &res.Rh[npf*nfe*ncu*e1], npf*nfe*ne*ncu, backend);
-    writearray2file(filename + "uEquationElemFace_K.bin", res.K, npf*nfe*npe*ne*ncu*ncu, backend);  
-    writearray2file(filename + "uEquationElemFace_G.bin", res.G, npf*nfe*npe*ne*ncu*ncq, backend);  
-    writearray2file(filename + "uEquationElemFace_H.bin", &res.H[npf*nfe*npf*nfe*ncu*ncu*e1], npf*nfe*npf*nfe*ne*ncu*ncu, backend);      
-
-    for (Int j=0; j<common.nbe; j++) {                  
-      uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-    }                             
-
-    dstype *DinvF = &res.F[n*m*e1];    
-    dstype *Ru = &res.Ru[n*e1];
-    dstype *DinvH =&res.H[m*m*e1];
-    dstype *Rh = &res.Rh[m*e1];
-    writearray2file(filename + "uEquationElemSchur_DinvF.bin", DinvF, n*m*ne, backend);
-    writearray2file(filename + "uEquationElemSchur_Ru.bin", Ru, n*ne, backend);
-    writearray2file(filename + "uEquationElemSchur_DinvH.bin", DinvH, m*m*ne, backend);  
-    writearray2file(filename + "uEquationElemSchur_Rh.bin", Rh, m*ne, backend);      
-
-    // assemble RHS vector b from res.Rh using the FIRST elements in mesh.f2e
-    PutElementFaceNodes(b, res.Rh, mesh.f2e, npf, nfe, ncu, common.nf);    
-    // assemble RHS vector b from res.Rh using the SECOND elements in mesh.f2e
-    PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
-
-    // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
-    blockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
-    // assemble block Jacobi matrix from res.H using the SECOND elements in mesh.f2e
-    blockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
-
-    // inverse block Jacobi matrix
-    Inverse(handle, res.K, tmp.tempg, res.ipiv, ncf, common.nf, backend); 
-
-
-#ifdef  HAVE_MPI     
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-    error("stop here");
 }
 
 #ifdef  HAVE_MPI     
@@ -388,11 +303,17 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     }                             
         
     // copy H and Rh to buffsend
-    for (int n=0; n<common.nelemsend; n++)  {       
-      ArrayCopy(&tmp.buffsend[bsz*n], &res.H[szH*common.elemsend[n]], szH);     
-      ArrayCopy(&tmp.buffsend[bsz*n + szH], &res.Rh[szR*common.elemsend[n]], szR);         
-    }
-
+//     for (int n=0; n<common.nelemsend; n++)  {       
+//       ArrayCopy(&tmp.buffsend[bsz*n], &res.H[szH*common.elemsend[n]], szH);     
+//       ArrayCopy(&tmp.buffsend[bsz*n + szH], &res.Rh[szR*common.elemsend[n]], szR);         
+//     }
+    GetCollumnAtIndex(tmp.buffsend, res.H, mesh.elemsend, 0, bsz, szH, common.nelemsend);
+    GetCollumnAtIndex(tmp.buffsend, res.Rh, mesh.elemsend, szH, bsz, szR, common.nelemsend);
+    
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
     for (int n=0; n<common.nnbsd; n++) {
@@ -426,11 +347,16 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
 //       if (common.mpiRank==1)
 //         print2darray(res.Ri, szRi, common.nfacesend);
       
-      for (int n=0; n<common.nfacesend; n++)  {       
-        ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
-      }
-      
+//       for (int n=0; n<common.nfacesend; n++)  {       
+//         ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
+//       }
+      GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);   
+
       //printf("hdgAssembleLinearSystemMPI: %d %d %d %d %d %d %d %d %d %d %d\n", common.mpiRank, common.nnbintf, common.nbintf[0], common.facesendpts[0], common.facerecvpts[0], common.nfacesend, common.nelemsend, szRi, common.coupledcondition, common.coupledboundarycondition, app.interfacefluxmap[0]);
+      
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
       
       /* non-blocking send */
       psend = 0; 
@@ -468,18 +394,21 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
 
     // copy buffrecv to H and Rh 
     MPI_Waitall(request_counter, common.requests, common.statuses);    
-    for (int n=0; n<common.nelemrecv; n++) {        
-      ArrayCopy(&res.H[szH*common.elemrecv[n]], &tmp.buffrecv[bsz*n], szH); 
-      ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n + szH], szR);            
-    }
-
+//     for (int n=0; n<common.nelemrecv; n++) {        
+//       ArrayCopy(&res.H[szH*common.elemrecv[n]], &tmp.buffrecv[bsz*n], szH); 
+//       ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n + szH], szR);            
+//     }
+    PutCollumnAtIndex(res.H, tmp.buffrecv, mesh.elemrecv, 0, bsz, szH, common.nelemrecv);
+    PutCollumnAtIndex(res.Rh, tmp.buffrecv, mesh.elemrecv, szH, bsz, szR, common.nelemrecv);
+    
     if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
       int ncu12 = common.szinterfacefluxmap;
       int szRi = ncu12*npf;  
       
-      for (int n=0; n<common.nfacerecv; n++) {        
-        ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
-      }      
+//       for (int n=0; n<common.nfacerecv; n++) {        
+//         ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
+//       }      
+      PutCollumnAtIndex(res.Ri, tmp.bufffacerecv, mesh.facerecv, szRi, common.nfacerecv);  
       
       PutBoudaryNodes(res.Rh, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces); 
       
@@ -503,41 +432,6 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
 
     // inverse block Jacobi matrix
     Inverse(handle, res.K, tmp.tempg, res.ipiv, ncf, common.nf, backend); 
-
-    // string filename = common.fileout + NumberToString(common.mpiRank);    
-    // writearray2file(filename + "hdgAssembleRHS.bin", b, ncu * npf * common.nf, common.backend);    
-
-//     if ((common.mpiRank==0) || (common.mpiRank==0))  {
-//       int m = npf*nfe*ncu; 
-//       int n = npe*ncu;
-//       // print2darray(&res.Ru[0], n, common.ne1);       
-//       print2darray(&res.Rh[0], m, common.ne);         
-//       // print3darray(&res.F[0], n, m, common.ne1);    
-//       // print3darray(&res.H[0], m, m, common.ne1);     
-//       cout<<common.nf<<endl; 
-//       print2darray(b, ncu*npf, common.nf);             
-//     }
-  
-//     for (Int j=0; j<common.mpiProcs; j++) {       
-//       if (common.mpiRank==j) {
-//         cout<<common.mpiRank<<endl;                       
-//         print2darray(b, ncu*npf, common.nf);             
-// // #ifdef  HAVE_MPI     
-// //         MPI_Barrier(MPI_COMM_WORLD);
-// #endif
-//       }
-//     }
-
-    // cout<<common.mpiRank<<endl;                       
-//     print2darray(b, ncu*npf, common.nf);             
-//     // cout<<PNORM(common.cublasHandle, ncu*npf*nfe*common.nf, b, backend)<<endl;
-
-// #ifdef  HAVE_MPI     
-//     MPI_Barrier(MPI_COMM_WORLD);
-// #endif
-
-//     error("stop here");
-
 }
 
 void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
@@ -558,10 +452,15 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
     }                             
         
     // copy H and Rh to buffsend
-    for (int n=0; n<common.nelemsend; n++)  {       
-      ArrayCopy(&tmp.buffsend[bsz*n], &res.Rh[szR*common.elemsend[n]], szR);         
-    }
-
+//     for (int n=0; n<common.nelemsend; n++)  {       
+//       ArrayCopy(&tmp.buffsend[bsz*n], &res.Rh[szR*common.elemsend[n]], szR);         
+//     }
+    GetCollumnAtIndex(tmp.buffsend, res.Rh, mesh.elemsend, szR, common.nelemsend);   
+    
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+        
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
     for (int n=0; n<common.nnbsd; n++) {
@@ -592,10 +491,15 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
       int ncu12 = common.szinterfacefluxmap;
       int szRi = ncu12*npf;  
       
-      for (int n=0; n<common.nfacesend; n++)  {       
-        ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
-      }
-            
+//       for (int n=0; n<common.nfacesend; n++)  {       
+//         ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
+//       }            
+      GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);   
+      
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
       /* non-blocking send */
       psend = 0; 
       for (int n=0; n<common.nnbintf; n++) {
@@ -628,30 +532,23 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
       RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
       RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                        
-
+    
     // copy buffrecv to Rh 
     MPI_Waitall(request_counter, common.requests, common.statuses);    
-    for (int n=0; n<common.nelemrecv; n++) {        
-      ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n], szR);            
-    }
-
+//     for (int n=0; n<common.nelemrecv; n++) {        
+//       ArrayCopy(&res.Rh[szR*common.elemrecv[n]], &tmp.buffrecv[bsz*n], szR);            
+//     }
+    PutCollumnAtIndex(res.Rh, tmp.buffrecv, mesh.elemrecv, szR, common.nelemrecv);         
+    
     if ((common.nnbintf > 0) && (common.nfacesend > 0) && (common.coupledcondition>0)) {
       int ncu12 = common.szinterfacefluxmap;
       int szRi = ncu12*npf;  
       
-//       if (common.mpiRank==1) {
-//         print2darray(res.Ri, ncu*npf, common.nintfaces);    
-//       }
-      
-      for (int n=0; n<common.nfacerecv; n++) {        
-        ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
-      }      
-      
-//       if (common.mpiRank==1) {
-//         print2darray(res.Rh, ncu*npf*nfe, common.ne1);    
-//         print2darray(res.Ri, ncu*npf, common.nintfaces);    
-//       }
-      
+//       for (int n=0; n<common.nfacerecv; n++) {        
+//         ArrayCopy(&res.Ri[szRi*common.facerecv[n]], &tmp.bufffacerecv[szRi*n], szRi); 
+//       }      
+      PutCollumnAtIndex(res.Ri, tmp.bufffacerecv, mesh.facerecv, szRi, common.nfacerecv);  
+
       PutBoudaryNodes(res.Rh, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces);       
     }
         
@@ -661,11 +558,8 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
     // assemble RHS vector b from res.Rh using the SECOND elements in mesh.f2e
     PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
     
-//     if (common.mpiRank==0) {
-//       print2darray(res.Rh, ncu*npf*nfe, common.ne1);    
-//       print2darray(b, ncu*npf, common.nf);    
-//     }
 }
+
 #endif
 
 #endif

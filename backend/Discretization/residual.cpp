@@ -268,9 +268,9 @@ void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 //     cudaDeviceSynchronize();
 // #endif
 // 
-// #ifdef HAVE_HIP
-//     hipDeviceSynchronize();
-// #endif
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
     
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
@@ -342,6 +342,10 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
 //     cudaDeviceSynchronize();
 // #endif
 
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
     END_TIMING(13);    
     
     START_TIMING;    
@@ -467,6 +471,10 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 // #ifdef HAVE_CUDA
 //     cudaDeviceSynchronize();
 // #endif
+
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
     
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
@@ -694,6 +702,10 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 //     cudaDeviceSynchronize();
 // #endif
 
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
     /* non-blocking send */
     Int neighbor, nsend, psend = 0, request_counter = 0;
     for (n=0; n<common.nnbsd; n++) {
