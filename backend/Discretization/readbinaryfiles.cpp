@@ -41,7 +41,8 @@ void readappstruct(string filename, appstruct &app)
     app.vindx = readiarrayfromdouble(in, app.nsize[12]);
     readarray(in, &app.dae_dt, app.nsize[13]);   
     app.interfacefluxmap = readiarrayfromdouble(in, app.nsize[14]);
-
+    readarray(in, &app.avparam, app.nsize[15]);   
+    
     app.szflag = app.nsize[1];
     app.szproblem = app.nsize[2];
     app.szuinf = app.nsize[3];
@@ -56,6 +57,7 @@ void readappstruct(string filename, appstruct &app)
     app.szvindx = app.nsize[12];
     app.szdae_dt = app.nsize[13];
     app.szinterfacefluxmap = app.nsize[14];
+    app.szavparam = app.nsize[15];
 
     #ifdef HAVE_MPP
         char a[50];

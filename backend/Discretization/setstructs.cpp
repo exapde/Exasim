@@ -126,6 +126,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.coupledinterface = app.problem[28]; 
     common.coupledcondition = app.problem[29]; 
     common.coupledboundarycondition = app.problem[30];
+    common.AVdistfunction = app.problem[31];
     
     common.RBcurrentdim = 0; // current dimension of the reduced basis space
     common.RBremovedind = 0; // the vector to be removed from the RB space and replaced with new vector
@@ -320,8 +321,9 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     n3 = 2*max(n3, ndofucg);
     
     if (spatialScheme > 0) {
-      Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
-      Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + 2*npf*npf*nfe*neb*ncu*ncu;
+      //Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
+      Int k1 = max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
+      Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + npf*npf*nfe*neb*ncu*ncu;
       Int k3 = npf*ncu*npf*ncu*nf; // fix bug here 
       n0 = max(n0, k1);
       n0 = max(n0, k2);      
@@ -613,6 +615,7 @@ void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
     TemplateMalloc(&dapp.vindx, app.nsize[12], common.backend);  
     TemplateMalloc(&dapp.dae_dt, app.nsize[13], common.backend);  
     TemplateMalloc(&dapp.interfacefluxmap, app.nsize[14], common.backend);  
+    TemplateMalloc(&dapp.avparam, app.nsize[15], common.backend);  
     
     TemplateCopytoDevice( dapp.nsize, app.nsize, app.lsize[0], common.backend );      
     TemplateCopytoDevice( dapp.ndims, app.ndims, app.nsize[0], common.backend );      
@@ -630,6 +633,23 @@ void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
     TemplateCopytoDevice( dapp.vindx, app.vindx, app.nsize[12], common.backend );   
     TemplateCopytoDevice( dapp.dae_dt, app.dae_dt, app.nsize[13], common.backend );   
     TemplateCopytoDevice( dapp.interfacefluxmap, app.interfacefluxmap, app.nsize[14], common.backend );   
+    TemplateCopytoDevice( dapp.avparam, app.avparam, app.nsize[15], common.backend );   
+    
+    dapp.szflag = app.nsize[1];
+    dapp.szproblem = app.nsize[2];
+    dapp.szuinf = app.nsize[3];
+    dapp.szdt = app.nsize[4];
+    dapp.szfactor = app.nsize[5];
+    dapp.szphysicsparam = app.nsize[6];
+    dapp.szsolversparam = app.nsize[7];
+    dapp.sztau = app.nsize[8];
+    dapp.szstgdata = app.nsize[9];
+    dapp.szstgparam = app.nsize[10];
+    dapp.szstgib = app.nsize[11];
+    dapp.szvindx = app.nsize[12];
+    dapp.szdae_dt = app.nsize[13];
+    dapp.szinterfacefluxmap = app.nsize[14];
+    dapp.szavparam = app.nsize[15];
     
     Int ncu, ncq, ncw;
     ncu = app.ndims[6];// number of compoments of (u)

@@ -282,8 +282,10 @@ int main(int argc, char** argv)
 //     }
 //     else 
     
-    
-    if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
+    if (pdemodel[0]->disc.common.AVdistfunction==1) {
+      avdistfunc(pdemodel, out, nummodels, backend);
+    }    
+    else if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
                         
         // initialize 
         for (int i=0; i<nummodels; i++) {

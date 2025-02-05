@@ -68,9 +68,9 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
         
         if (common.ncw>0) {
             //TemplateMalloc(&sys.w, N, backend); 
-            TemplateMalloc(&sys.wtmp, npe*common.ncw*ne, backend); 
+            TemplateMalloc(&sys.wtmp, npe*common.ncw*common.ne2, backend); 
             //TemplateMalloc(&sys.wsrc, N, backend);               
-            sys.szwtmp = npe*common.ncw*ne; 
+            sys.szwtmp = npe*common.ncw*common.ne2; 
         }                
         
         // allocate memory for the previous solutions
@@ -130,8 +130,8 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
             TemplateMalloc(&sys.udgprev, npe*common.ncs*common.ne2, backend);      
             sys.szudgprev = npe*common.ncs*common.ne2;
             if (common.ncw>0) {
-                TemplateMalloc(&sys.wprev, npe*common.ncw*ne, backend);                
-                sys.szwprev = npe*common.ncw*ne;
+                TemplateMalloc(&sys.wprev, npe*common.ncw*common.ne2, backend);                
+                sys.szwprev = npe*common.ncw*common.ne2;
             }
         }        
     }    

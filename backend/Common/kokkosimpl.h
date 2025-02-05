@@ -376,6 +376,16 @@ void ArrayEosInverseMatrix11(dstype* A, const int npe, const int ncw, const int 
     });
 }
 
+// void AVdistfunc(dstype* A, const dstype* param, const int npe, const int ncu, const int ne)
+// {        
+//     int N = npe*ne;
+//     Kokkos::parallel_for("AVdistfunc", N, KOKKOS_LAMBDA(const size_t i) {
+//         int j = i%npe; // [1, npe]
+//         int k = i/npe; // [1, ne]
+//         A[j + npe*ncu*k] = param[0] * tanh(param[1] * A[j + npe + npe*ncu*k]);
+//     });
+// }
+
 void ArrayEosInverseMatrix22(dstype* A, const int npe, const int ncw, const int ne)
 {        
     int N = npe*ne;

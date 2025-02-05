@@ -11,7 +11,7 @@ void PreviousSolutions(solstruct &sol, sysstruct &sys, commonstruct &common, Int
     Int ne2 = common.ne2; // number of elements in this subdomain       
     //Int N = common.ndof1;
     Int N2 = npe*common.ncw*ne2;  
-    
+        
     if (common.temporalScheme==0) {//DIRK     
         dstype scalar = one;
         for (Int j=0; j<common.tstages; j++)

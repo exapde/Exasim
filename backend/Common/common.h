@@ -438,7 +438,8 @@ struct appstruct {
     dstype *solversparam=nullptr; // solvers parameters
     dstype *tau=nullptr; // stabilization parameters
     dstype *stgdata=nullptr; 
-    dstype *stgparam=nullptr; 
+    dstype *stgparam=nullptr;
+    dstype *avparam=nullptr;
     
     //dstype time=nullptr;     /* current time */
     dstype *fc_u=nullptr;    /* factor when discretizing the time derivative of the U equation. Allow scalar field for local time stepping in steady problems? */
@@ -452,7 +453,7 @@ struct appstruct {
     Int szflag=0, szproblem=0, szcomm=0, szporder=0, szstgib=0, szvindx=0, szinterfacefluxmap=0;
     Int szuinf=0, szdt=0, szdae_dt=0, szfactor=0, szphysicsparam=0, szsolversparam=0;
     Int sztau=0, szstgdata=0, szstgparam=0, szfc_u=0, szfc_q=0, szfc_w=0;
-    Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0;
+    Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0, szavparam=0;
     Int read_uh = 0;
 
     int sizeofint() {
@@ -462,7 +463,7 @@ struct appstruct {
     int sizeoffloat() {
       int sz = szuinf+szdt+szdae_dt+szfactor+szphysicsparam+szsolversparam+
                sztau+szstgdata+szstgparam+szfc_u+szfc_q+szfc_w+szdtcoef_u+
-               szdtcoef_q+szdtcoef_w;
+               szdtcoef_q+szdtcoef_w+szavparam;
       return sz;        
     }
 
@@ -485,6 +486,7 @@ struct appstruct {
       printf("size of tau: %d\n", sztau);
       printf("size of stgdata: %d\n", szstgdata);
       printf("size of stgparam: %d\n", szstgparam);
+      printf("size of avparam: %d\n", szavparam);
       printf("size of fc_u: %d\n", szfc_u);
       printf("size of fc_q: %d\n", szfc_q);
       printf("size of fc_w: %d\n", szfc_w);
@@ -521,6 +523,7 @@ struct appstruct {
         TemplateFree(tau, backend);
         TemplateFree(stgdata, backend);
         TemplateFree(stgparam, backend);
+        TemplateFree(avparam, backend);
         TemplateFree(fc_u, backend);
         TemplateFree(fc_q, backend);
         TemplateFree(fc_w, backend);
@@ -528,67 +531,6 @@ struct appstruct {
         TemplateFree(dtcoef_q, backend);
         TemplateFree(dtcoef_w, backend);
     }
-
-//     // custom destructor
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {
-//             CPUFREE(lsize);
-//             CPUFREE(nsize);
-//             CPUFREE(ndims);   
-//             CPUFREE(comm);   
-//             CPUFREE(porder);               
-//             CPUFREE(flag);    
-//             CPUFREE(problem);
-//             CPUFREE(stgib);
-//             CPUFREE(vindx);
-//             CPUFREE(interfacefluxmap);
-//             CPUFREE(uinf);
-//             CPUFREE(dt);
-//             CPUFREE(dae_dt);
-//             CPUFREE(factor);
-//             CPUFREE(physicsparam);
-//             CPUFREE(solversparam);
-//             CPUFREE(tau);
-//             CPUFREE(stgdata);
-//             CPUFREE(stgparam);
-//             CPUFREE(fc_u);
-//             CPUFREE(fc_q);
-//             CPUFREE(fc_w);
-//             CPUFREE(dtcoef_u);
-//             CPUFREE(dtcoef_q);
-//             CPUFREE(dtcoef_w);
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(lsize);
-//             GPUFREE(nsize);
-//             GPUFREE(ndims);    
-//             GPUFREE(comm);   
-//             GPUFREE(porder);   
-//             GPUFREE(flag);    
-//             GPUFREE(problem);
-//             GPUFREE(stgib);
-//             GPUFREE(vindx);
-//             GPUFREE(interfacefluxmap);
-//             GPUFREE(uinf);
-//             GPUFREE(dt);
-//             GPUFREE(dae_dt);
-//             GPUFREE(factor);
-//             GPUFREE(physicsparam);
-//             GPUFREE(solversparam);
-//             GPUFREE(tau);
-//             GPUFREE(stgdata);
-//             GPUFREE(stgparam);
-//             GPUFREE(fc_u);
-//             GPUFREE(fc_q);
-//             GPUFREE(fc_w);
-//             GPUFREE(dtcoef_u);
-//             GPUFREE(dtcoef_q);
-//             GPUFREE(dtcoef_w);
-//        }
-// #endif       
-//     }
 };
 
 struct masterstruct {       
@@ -698,68 +640,6 @@ struct masterstruct {
         TemplateFree(shapegwdotshapeg, backend);
         TemplateFree(shapfgwdotshapfg, backend);             
     }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {
-//             CPUFREE(lsize);
-//             CPUFREE(nsize);
-//             CPUFREE(ndims);    
-//             CPUFREE(shapegt); // element shape functions at Gauss points (transpose)
-//             CPUFREE(shapegw); // element shape functions at Gauss points multiplied by Gauss weights
-//             CPUFREE(shapfgt); // face shape functions at Gauss points (transpose)
-//             CPUFREE(shapfgw); // face shape functions at Gauss points multiplied by Gauss weights    
-//             CPUFREE(shapent); // element shape functions at nodes (transpose)
-//             CPUFREE(shapen);  // element shape functions at nodes        
-//             CPUFREE(shapfnt); // element shape functions at nodes (transpose)
-//             CPUFREE(shapfn);  // element shape functions at nodes        
-//             CPUFREE(xpe); // nodal points on master element
-//             CPUFREE(gpe); // gauss points on master element
-//             CPUFREE(gwe); // gauss weighs on master element
-//             CPUFREE(xpf); // nodal points on master face
-//             CPUFREE(gpf); // gauss points on master face
-//             CPUFREE(gwf); // gauss weighs on master face            
-//             CPUFREE(shap1dgt); 
-//             CPUFREE(shap1dgw); 
-//             CPUFREE(shap1dnt); 
-//             CPUFREE(shap1dnl); 
-//             CPUFREE(xp1d); 
-//             CPUFREE(gp1d); 
-//             CPUFREE(gw1d);            
-//             CPUFREE(shapegwdotshapeg);
-//             CPUFREE(shapfgwdotshapfg);             
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(lsize);
-//             GPUFREE(nsize);
-//             GPUFREE(ndims);    
-//             GPUFREE(shapegt); // element shape functions at Gauss points (transpose)
-//             GPUFREE(shapegw); // element shape functions at Gauss points multiplied by Gauss weights
-//             GPUFREE(shapfgt); // face shape functions at Gauss points (transpose)
-//             GPUFREE(shapfgw); // face shape functions at Gauss points multiplied by Gauss weights    
-//             GPUFREE(shapent); // element shape functions at nodes (transpose)
-//             GPUFREE(shapen);  // element shape functions at nodes        
-//             GPUFREE(shapfnt); // element shape functions at nodes (transpose)
-//             GPUFREE(shapfn);  // element shape functions at nodes        
-//             GPUFREE(xpe); // nodal points on master element
-//             GPUFREE(gpe); // gauss points on master element
-//             GPUFREE(gwe); // gauss weighs on master element
-//             GPUFREE(xpf); // nodal points on master face
-//             GPUFREE(gpf); // gauss points on master face
-//             GPUFREE(gwf); // gauss weighs on master face
-//             GPUFREE(shap1dgt); 
-//             GPUFREE(shap1dgw); 
-//             GPUFREE(shap1dnt); 
-//             GPUFREE(shap1dnl); 
-//             GPUFREE(xp1d); 
-//             GPUFREE(gp1d); 
-//             GPUFREE(gw1d);             
-//             GPUFREE(shapegwdotshapeg);
-//             GPUFREE(shapfgwdotshapfg);                        
-//        }
-// #endif       
-//     }    
 };
   
 struct meshstruct {       
@@ -946,113 +826,6 @@ struct meshstruct {
         TemplateFree(facesendpts, backend);
         TemplateFree(facerecvpts, backend);            
     }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {
-//             CPUFREE(lsize);
-//             CPUFREE(nsize);
-//             CPUFREE(ndims);    
-//             CPUFREE(facecon);    // face-to-element connectivities 
-//             CPUFREE(f2e);    // face-to-element connectivities 
-//             CPUFREE(elemcon);    // element-to-face connectivities
-//             CPUFREE(perm);       // indices of element nodes on faces
-//             CPUFREE(boufaces);   // boundary faces
-//             CPUFREE(eblks);    // element blocks
-//             CPUFREE(fblks);    // face blocks    
-//             CPUFREE(nbsd);
-//             CPUFREE(elemsend);
-//             CPUFREE(elemrecv);
-//             CPUFREE(elemsendpts);
-//             CPUFREE(elemrecvpts);            
-//             CPUFREE(elempart);
-//             CPUFREE(elempartpts);   
-//             CPUFREE(cgelcon);            
-//             CPUFREE(rowent2elem);
-//             CPUFREE(cgent2dgent);
-//             CPUFREE(colent2elem);
-//             CPUFREE(rowe2f1);
-//             CPUFREE(cole2f1);
-//             CPUFREE(ent2ind1);
-//             CPUFREE(rowe2f2);
-//             CPUFREE(cole2f2);
-//             CPUFREE(ent2ind2);
-            
-//             CPUFREE(findxdg1);   
-//             CPUFREE(findxdgp);   
-//             CPUFREE(findudg1);   
-//             CPUFREE(findudg2);   
-//             CPUFREE(findudgp);               
-//             CPUFREE(eindudg1);               
-//             CPUFREE(eindudgp);  
-//             CPUFREE(elemsendind);   
-//             CPUFREE(elemrecvind); 
-//             CPUFREE(elemsendodg);
-//             CPUFREE(elemrecvodg);
-//             CPUFREE(elemsendudg);
-//             CPUFREE(elemrecvudg);
-//             CPUFREE(faceperm);
-//             CPUFREE(nbintf);
-//             CPUFREE(facesend);
-//             CPUFREE(facerecv);
-//             CPUFREE(facesendpts);
-//             CPUFREE(facerecvpts);            
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(lsize);
-//             GPUFREE(nsize);
-//             GPUFREE(ndims);
-//             GPUFREE(facecon);    // face-to-element connectivities 
-//             GPUFREE(f2e);    // face-to-element connectivities 
-//             GPUFREE(elemcon);    // element-to-face connectivities
-//             GPUFREE(perm);       // indices of element nodes on faces
-//             GPUFREE(boufaces);   // boundary faces
-//             //GPUFREE(interfacefaces);   // interface faces
-//             GPUFREE(eblks);    // element blocks
-//             GPUFREE(fblks);    // face blocks    
-//             GPUFREE(nbsd);
-//             GPUFREE(elemsend);
-//             GPUFREE(elemrecv);
-//             GPUFREE(elemsendpts);
-//             GPUFREE(elemrecvpts);     
-//             GPUFREE(elempart);
-//             GPUFREE(elempartpts);   
-//             GPUFREE(cgelcon);            
-//             GPUFREE(rowent2elem);
-//             GPUFREE(cgent2dgent);
-//             GPUFREE(colent2elem);
-//             GPUFREE(rowe2f1);
-//             GPUFREE(cole2f1);
-//             GPUFREE(ent2ind1);
-//             GPUFREE(rowe2f2);
-//             GPUFREE(cole2f2);
-//             GPUFREE(ent2ind2);
-            
-//             GPUFREE(findxdg1);   
-//             //GPUFREE(findxdg2);   
-//             GPUFREE(findxdgp);   
-//             GPUFREE(findudg1);   
-//             GPUFREE(findudg2);   
-//             GPUFREE(findudgp);               
-//             GPUFREE(eindudg1);               
-//             GPUFREE(eindudgp);   
-//             GPUFREE(elemsendind);   
-//             GPUFREE(elemrecvind); 
-//             GPUFREE(elemsendodg);
-//             GPUFREE(elemrecvodg); 
-//             GPUFREE(elemsendudg);
-//             GPUFREE(elemrecvudg);   
-//             GPUFREE(faceperm);
-//             GPUFREE(nbintf);
-//             GPUFREE(facesend);
-//             GPUFREE(facerecv);
-//             GPUFREE(facesendpts);
-//             GPUFREE(facerecvpts);            
-//             //GPUFREE(index);   
-//        }
-// #endif       
-//     }        
 };
 
 struct solstruct {       
@@ -1157,75 +930,7 @@ struct solstruct {
         TemplateFree(og1, backend);
         TemplateFree(og2, backend);     
         TemplateFree(udgavg, backend); // time-average solution (u, q, p) 
-    }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {
-//             CPUFREE(lsize);
-//             CPUFREE(nsize);
-//             CPUFREE(ndims);    
-//             CPUFREE(xdg); // spatial coordinates
-//             CPUFREE(udg); // solution (u, q, p) 
-//             CPUFREE(sdg); // source term due to the previous solution
-//             CPUFREE(odg); // auxilary term 
-//             CPUFREE(wdg); // wave problem
-// #ifdef HAVE_ENZYME                   
-//             CPUFREE(dudg); // solution (u, q, p) 
-//             CPUFREE(dwdg); // wave problem
-//             CPUFREE(duh);
-//             CPUFREE(dodg);
-//             CPUFREE(dodgg);
-//             CPUFREE(dog1);
-//             CPUFREE(dog2);
-// #endif            
-//             CPUFREE(uh);  // uhat      
-//             CPUFREE(elemg); 
-//             CPUFREE(faceg); 
-//             CPUFREE(elemfaceg);
-//             CPUFREE(sdgg); 
-//             CPUFREE(odgg); 
-//             CPUFREE(wsrc);
-//             CPUFREE(wdual);
-//             CPUFREE(og1);
-//             CPUFREE(og2);     
-//             CPUFREE(udgavg); // time-average solution (u, q, p) 
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(lsize);
-//             GPUFREE(nsize);
-//             GPUFREE(ndims);
-//             GPUFREE(xdg); // spatial coordinates
-//             GPUFREE(udg); // solution (u, q, p) 
-//             GPUFREE(sdg); // source term due to the previous solution
-//             GPUFREE(odg); // auxilary term 
-//             GPUFREE(wdg); // wave problem
-// #ifdef HAVE_ENZYME                   
-//             GPUFREE(dudg); // solution (u, q, p) 
-//             GPUFREE(dwdg); // wave problem
-//             GPUFREE(duh);
-//             GPUFREE(dodg);
-//             GPUFREE(dodgg);
-//             GPUFREE(dog1);
-//             GPUFREE(dog2);
-// #endif                        
-//             GPUFREE(uh);  // uhat          
-//             GPUFREE(elemg); 
-//             GPUFREE(faceg); 
-//             GPUFREE(elemfaceg);
-//             //GPUFREE(udgg); 
-//             GPUFREE(sdgg); 
-//             GPUFREE(odgg); 
-//             GPUFREE(wsrc); 
-//             GPUFREE(wdual); 
-//             GPUFREE(og1);
-//             GPUFREE(og2);        
-//             GPUFREE(udgavg); // time-average solution (u, q, p) 
-//             //delete[] udgarray;
-//        }
-// #endif       
-//     }            
+    }             
 };
 
 struct resstruct {
@@ -1334,74 +1039,7 @@ struct resstruct {
         TemplateFree(Hi, backend);
         TemplateFree(Ri, backend);
         TemplateFree(ipiv, backend);
-    }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {            
-//             CPUFREE(Rq);    
-//             CPUFREE(Ru);    
-//             CPUFREE(Rh);    
-// #ifdef HAVE_ENZYME                   
-//             CPUFREE(dRq);   
-//             CPUFREE(dRu);   
-//             CPUFREE(dRh);   
-// #endif                                                
-//             CPUFREE(Mass);      
-//             CPUFREE(Minv);      
-//             CPUFREE(Mass2);      
-//             CPUFREE(Minv2);      
-//             CPUFREE(C);      
-//             CPUFREE(E);      
-//             CPUFREE(D);
-//             CPUFREE(B);
-//             CPUFREE(F);
-//             CPUFREE(G);
-//             CPUFREE(K);
-//             CPUFREE(H);
-//             CPUFREE(Gi);
-//             CPUFREE(Ki);
-//             CPUFREE(Hi);
-//             CPUFREE(Ri);
-//             CPUFREE(ipiv);
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(Rq);   
-//             GPUFREE(Ru);   
-//             GPUFREE(Rh);   
-// #ifdef HAVE_ENZYME                   
-//             GPUFREE(dRq);   
-//             GPUFREE(dRu);   
-//             GPUFREE(dRh);   
-// #endif                                    
-//             GPUFREE(Mass);   
-//             GPUFREE(Minv);   
-//             GPUFREE(Mass2);   
-//             GPUFREE(Minv2);   
-//             GPUFREE(C);   
-//             GPUFREE(E);   
-//             GPUFREE(D);
-//             GPUFREE(B);
-//             GPUFREE(F);
-//             GPUFREE(G);
-//             GPUFREE(K);
-//             GPUFREE(H);
-//             GPUFREE(Gi);
-//             GPUFREE(Ki);
-//             GPUFREE(Hi);
-//             GPUFREE(Ri);
-//             GPUFREE(ipiv);
-//        }
-// //        else {
-// //             cudaFreeHost(Rq);  
-// //             cudaFreeHost(Ru);  
-// //             cudaFreeHost(Rh);  
-// //             cudaFreeHost(Mass);            
-// //             cudaFreeHost(Minv);            
-// //        }
-// #endif       
-//     }                
+    }                        
 };
 
 struct tempstruct {
@@ -1443,28 +1081,6 @@ struct tempstruct {
         TemplateFree(bufffacerecv, backend); 
         TemplateFree(bufffacesend, backend); 
     }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {
-//             CPUFREE(tempn); 
-//             CPUFREE(tempg); 
-//             CPUFREE(buffrecv); 
-//             CPUFREE(buffsend); 
-//             CPUFREE(bufffacerecv); 
-//             CPUFREE(bufffacesend); 
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(tempn);
-//             GPUFREE(tempg);
-//             GPUFREE(buffrecv); 
-//             GPUFREE(buffsend); 
-//             GPUFREE(bufffacerecv); 
-//             GPUFREE(bufffacesend); 
-//        }
-// #endif       
-//     }                     
 };
 
 struct sysstruct {    
@@ -1582,79 +1198,14 @@ struct sysstruct {
         TemplateFree(wprev2, backend);  
         TemplateFree(wprev3, backend);  
         TemplateFree(PTCmatrix, backend);  
-    }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        CPUFREE(lam);  
-//        CPUFREE(ipiv);  
-//        if (hostmemory==1) {
-//             CPUFREE(x); 
-//             CPUFREE(u); 
-//             CPUFREE(r); 
-//             CPUFREE(b); 
-//             CPUFREE(v); 
-//             CPUFREE(q); 
-//             CPUFREE(p); 
-//             CPUFREE(randvect);
-//             CPUFREE(tempmem);     
-//             CPUFREE(utmp);            
-//             CPUFREE(wtmp);             
-//             CPUFREE(udgprev);  
-//             CPUFREE(udgprev1);  
-//             CPUFREE(udgprev2);  
-//             CPUFREE(udgprev3);  
-//             CPUFREE(wprev);  
-//             CPUFREE(wprev1);  
-//             CPUFREE(wprev2);  
-//             CPUFREE(wprev3);  
-//             CPUFREE(PTCmatrix);  
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(x);
-//             GPUFREE(u);
-//             GPUFREE(r);
-//             GPUFREE(b);
-//             GPUFREE(v);
-//             GPUFREE(q);
-//             GPUFREE(p);
-//             GPUFREE(randvect);
-//             cudaFreeHost(tempmem);      
-//             //GPUFREE(w);
-//             //GPUFREE(wsrc); 
-//             GPUFREE(utmp);
-//             GPUFREE(wtmp);             
-//             GPUFREE(udgprev);  
-//             GPUFREE(udgprev1);  
-//             GPUFREE(udgprev2);  
-//             GPUFREE(udgprev3);  
-//             GPUFREE(wprev);  
-//             GPUFREE(wprev1);  
-//             GPUFREE(wprev2);  
-//             GPUFREE(wprev3);  
-//             GPUFREE(PTCmatrix);  
-//        }
-// #endif       
-//     }                     
+    }                
 };
 
 struct precondstruct {    
     Int backend;
     
     dstype *W=nullptr; 
-    dstype *U=nullptr;
-    // dstype *V=nullptr;
-    // dstype *R=nullptr;
-    // dstype *C=nullptr;
-    // dstype *H=nullptr;
-    
-    // dstype *y;
-    // dstype *z=nullptr;
-    
-    // dstype *Cmat;
-    
-    // dstype *RBcoef=nullptr;     
+    dstype *U=nullptr; 
     Int *ipiv=nullptr;
     
     Int szipiv = 0, szW = 0, szU = 0;
@@ -1680,34 +1231,6 @@ struct precondstruct {
         TemplateFree(U, backend); 
         TemplateFree(ipiv, backend); 
     }            
-
-//     void freememory(Int hostmemory)
-//     {
-//        if (hostmemory==1) {
-//             CPUFREE(W); 
-//             CPUFREE(U); 
-//             // CPUFREE(V); 
-//             // CPUFREE(R); 
-//             // CPUFREE(C); 
-//             //CPUFREE(H); 
-//             //CPUFREE(y); 
-//             //CPUFREE(z); 
-//             CPUFREE(ipiv); 
-//         }            
-// #ifdef HAVE_CUDA      
-//        else {
-//             GPUFREE(W);
-//             GPUFREE(U);
-//             // GPUFREE(V);
-//             // GPUFREE(R);
-//             // GPUFREE(C);
-//             //GPUFREE(H);
-//             //GPUFREE(y); 
-//             //GPUFREE(z); 
-//             GPUFREE(ipiv);
-//        }
-// #endif       
-//     }                     
 };
 
 struct commonstruct {     
@@ -1838,6 +1361,7 @@ struct commonstruct {
     Int frozenAVflag;    // Flag deciding if artificial viscosity is calculated once per non-linear solve or in every residual evluation
                                 //   0: AV not frozen, evaluated as part of residual
                                 //   1: AV frozen, evluated once per solve (default)   
+    Int AVdistfunction=0;
     Int read_uh = 0;
 
     Int linearSolver;  /* 0: GMRES; 1: CG; etc. */      

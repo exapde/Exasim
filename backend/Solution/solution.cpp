@@ -7,6 +7,7 @@
 #include "updatesolution.cpp"
 #include "updatesource.cpp"
 #include "timestepcoeff.cpp"
+#include "avsolution.cpp"
 //#include "subproblem.cpp"
 
 #ifdef TIMESTEP  
