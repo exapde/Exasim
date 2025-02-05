@@ -3,23 +3,21 @@
 </p>
 
 # Generating Discontinuous Galerkin Codes For Extreme Scalable Simulations
-Exasim is an open-source software for generating high-order discontinuous Galerkin (DG) codes to numerically solve parametrized partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages and low-level languages to easily construct parametrized PDE models and automatically produce high-performance C++ codes. The construction of parametrized PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with  AMD and Nvidia GPU processors. 
+Exasim is an open-source software for generating high-order discontinuous Galerkin (DG) codes to numerically solve parametrized partial differential equations (PDEs) on different computing platforms with distributed memory.  It combines high-level languages and low-level languages to easily construct parametrized PDE models and automatically produce high-performance C++ codes. The construction of parametrized PDE models and the generation of the stand-alone C++ production code are handled by high-level languages, while the production code itself can run on various machines, from laptops to the largest supercomputers, with  AMD and Nvidia GPU processors. Exasim has the following capabilities:
 
-What make Exasim unique are the following distinctive features:
-
-   - Solve a wide variety of PDEs in fluid and solid mechanics, and electromagnetism, as well as fullly coupled multi-physics models 
+   - Solve a wide variety of PDEs in fluid mechanics, solid mechanics, electromagnetism, and multi-physics models, in 1D, 2D, and 3D
    - Generate stand-alone C++ production code via the mathematical expressions of the PDEs
    - Implement local DG and hybridized DG methods for spatial discretization
    - Implement diagonally implicit Runge-Kutta methods for temporal discretization
    - Implement parallel Newton-GMRES solvers and scalable preconditioners using reduced basis method and polynomial preconditioners
    - Implement monolithic multi-physics solvers for the HDG discretization    
    - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
-   - Leverage [Enzyme](https://github.com/EnzymeAD/Enzyme) for automatic differentiation and [Mutation++](https://github.com/mutationpp/Mutationpp) for thermodynamic, transport, chemistry, and energy transfer properties. 
-   - Provide interfaces to Julia, Python, and Matlab. 
+   - Provide auto-gen tools to calculate thermodynamic, transport, chemistry, and energy transfer properties for chemically-reacting flows 
+   - Provide application programming interfaces to Julia, Python, and Matlab. 
    
 After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. Please make sure that the directory containing the folder Exasim does not have any white space, because Kokkos libraries can not be compiled properly in such case. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
 
-To deploy, compile, and run Exasim on a **HPC system**, please follow the intructions in [the hpc documentation](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
+To deploy, compile, and run Exasim on **HPC systems**, please follow the intructions in [the hpc manual](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
 
 # Installation 
 
