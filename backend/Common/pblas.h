@@ -3,39 +3,12 @@
 
 static void cpuNode2Gauss(dstype *ug, dstype *un, dstype *shapt, Int ng, Int np, Int nn)
 {    
-    //dstype alpha = 1.0, beta = 0.0;
-    //char chn = 'N';
-    //DGEMM(&chn, &chn, &ng, &nn, &np, &alpha, shapt, &ng, un, &np, &beta, ug, &ng);      
 #ifdef USE_FLOAT        
     SGEMM(&chn, &chn, &ng, &nn, &np, &one, shapt, &ng, un, &np, &zero, ug, &ng);   
 #else        
     DGEMM(&chn, &chn, &ng, &nn, &np, &one, shapt, &ng, un, &np, &zero, ug, &ng);   
 #endif    
 }
-
-// static void cpuGauss2Node(dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn)
-// {    
-//     //dstype alpha = 1.0, beta = 0.0;
-//     //char chn = 'N';
-//     //DGEMM(&chn, &chn, &np, &nn, &ng, &alpha, shapg, &np, ug, &ng, &beta, un, &np);    
-// #ifdef USE_FLOAT    
-//     SGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &zero, un, &np);    
-// #else    
-//     DGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &zero, un, &np);    
-// #endif    
-// }
-
-// static void cpuGauss2Node1(dstype *un, dstype *ug, dstype *shapg, Int ng, Int np, Int nn)
-// {    
-//     //dstype alpha = 1.0, beta = 0.0;
-//     //char chn = 'N';
-//     //DGEMM(&chn, &chn, &np, &nn, &ng, &alpha, shapg, &np, ug, &ng, &beta, un, &np);    
-// #ifdef USE_FLOAT        
-//     SGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &one, un, &np);    
-// #else        
-//     DGEMM(&chn, &chn, &np, &nn, &ng, &one, shapg, &np, ug, &ng, &one, un, &np);    
-// #endif    
-// }
 
 
 static void Node2Gauss(cublasHandle_t handle, dstype *ug, dstype *un, dstype *shapt, Int ng, Int np, Int nn, Int backend)
@@ -258,47 +231,6 @@ static void Inverse(cublasHandle_t handle, dstype* A, dstype *C, Int *ipiv, Int 
             cpuComputeInverse(&A[n*n*k], C, ipiv, n);                
     }    
 }
-
-// static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, 
-//         dstype *global_dot, dstype *local_dot, Int backend) 
-// {           
-// #ifdef USE_FLOAT    
-//     if (backend <= 1) 
-//         *local_dot = SDOT(&m, x, &incx, y, &incy);
-// #else   
-//     if (backend <= 1) 
-//         *local_dot = DDOT(&m, x, &incx, y, &incy);
-// #endif        
-//     
-// #ifdef HAVE_CUDA          
-// #ifdef USE_FLOAT  
-//     if (backend == 2)     
-//         cublasSdot(handle, m, x, incx, y, incy, local_dot);    
-// #else            
-//     if (backend == 2)  
-//         cublasDdot(handle, m, x, incx, y, incy, local_dot);    
-// #endif        
-//    // cudaDeviceSynchronize();
-// #endif             
-//     
-// #ifdef HAVE_MPI        
-// #ifdef USE_FLOAT        
-//     MPI_Allreduce(local_dot, global_dot, 1, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-// #else        
-//     MPI_Allreduce(local_dot, global_dot, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-// #endif         
-// #else    
-//     //ArrayCopy(global_dot, local_dot, 1, backend);
-//     *global_dot = *local_dot;
-// #endif    
-// }
-// 
-// static dstype PNORM(cublasHandle_t handle, Int m, dstype* x, 
-//         dstype* global_dot, dstype* local_dot, Int backend) 
-// {              
-//     PDOT(handle, m, x, inc1, x, inc1, global_dot, local_dot, backend); 
-//     return sqrt(*global_dot);    
-// }
 
 static void PDOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, 
         dstype *global_dot, Int backend) 

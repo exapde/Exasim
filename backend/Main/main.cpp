@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
 
     // Get the number of processes    
     MPI_Comm_size(MPI_COMM_WORLD, &mpiprocs);

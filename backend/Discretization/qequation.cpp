@@ -231,21 +231,11 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
       PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ex[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here  
 
-      // print2darray(jac, ngf, nfe);
-      // print2darray(nlg, ngf, nfe);
-      // print2darray(Etmp, npf, npf*nfe);      
-      // print2darray(Ex, npe, npf*nfe);
-      // print2iarray(mesh.perm, npf, nfe);
-
       ArrayAXY(tmp.tempg, &nlg[nga], jac, one, nga);
       Gauss2Node(handle, Etmp, tmp.tempg, master.shapfgwdotshapfg, ngf, npf*npf, nfe*ns, backend);
       ArraySetValue(work, zero, npe*npf*nfe*ns);
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
       PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ey[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here  
-
-      // print2darray(&nlg[nga], ngf, nfe);
-      // print2darray(Etmp, npf, npf*nfe);      
-      // print2darray(Ey, npe, npf*nfe);
     }
     else if (nd==3) {
       dstype *Ex = res.E;
@@ -257,15 +247,7 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       ArraySetValue(work, zero, npe*npf*nfe*ns);
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
       PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ex[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here  
-      
-//       print2darray(jac, ngf, nfe);
-//       print2darray(nlg, ngf, nfe);
-//       print2darray(Etmp, npf, npf*nfe);      
-//       print2darray(Ex, npe, npf*nfe);
-//       print2iarray(mesh.perm, npf, nfe);
-//       print2darray(master.shapfgwdotshapfg, npf*npf, ngf);
-//       error("here");
-      
+            
       ArrayAXY(tmp.tempg, &nlg[nga], jac, one, nga);
       Gauss2Node(handle, Etmp, tmp.tempg, master.shapfgwdotshapfg, ngf, npf*npf, nfe*ns, backend);
       ArraySetValue(work, zero, npe*npf*nfe*ns);
@@ -276,13 +258,7 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       Gauss2Node(handle, Etmp, tmp.tempg, master.shapfgwdotshapfg, ngf, npf*npf, nfe*ns, backend);
       ArraySetValue(work, zero, npe*npf*nfe*ns);
       assembleMatrixE(work, Etmp, mesh.perm, npf, npe, nfe, ns);
-      PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ez[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here  
-      
-//       print2darray(&Ex[npe*npf*nfe*e1], npe, npf*nfe);
-//       print2darray(&Ey[npe*npf*nfe*e1], npe, npf*nfe);
-//       print2darray(&Ez[npe*npf*nfe*e1], npe, npf*nfe);
-//       cout<<e1<<endl;
-//       error("here");
+      PGEMNMStridedBached(handle, npe, npf*nfe, npe, one, &res.Minv2[npe*npe*e1], npe, work, npe, zero, &Ez[npe*npf*nfe*e1], npe, ns, backend); // fixed bug here        
     }        
 
     TemplateFree(work, backend);
@@ -391,13 +367,6 @@ void hdgGetQ(dstype *udg, dstype *uhat, solstruct &sol, resstruct &res, meshstru
           ArrayAXPBY(q, q, s, scalar, scalar, npe*ncu*ns); // scalar*(q + s)
         }
         ArrayInsert(udg, q, npe, nc, ne, 0, npe, ncu, 2*ncu, e1, e2);
-
-        // print2darray(Cx, npe, npe);            
-        // print2darray(Ex, npe, npf*nfe);            
-        // print2darray(u, npe, ncu);            
-        // print2darray(uh, npf*nfe, ncu);            
-        // print2darray(q, npe, ncu);            
-        // error("here");
 
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npe, one, &Cy[npe*npe*e1], npe, u, npe, zero, q, npe, ns, backend);
         PGEMNMStridedBached(common.cublasHandle, npe, ncu, npf*nfe, minusone, &Ey[npe*npf*nfe*e1], npe, uh, ndf, one, q, npe, ns, backend);

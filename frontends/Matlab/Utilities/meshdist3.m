@@ -2,7 +2,14 @@ function [dist,p] = meshdist3(f,dgnodes,perm,ib)
 
 % compute the distance to the wall
 perm = perm(:,:,1);
-[ir,ic]=find(f==ib);
+
+ir = [];
+ic = [];
+for i = 1:length(ib)
+  [ir1,ic1]=find(f==ib(i));
+  ir = [ir; ir1];
+  ic = [ic; ic1];
+end
 
 % compute the nodes on the boundary ib
 p = [];

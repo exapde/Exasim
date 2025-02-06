@@ -171,11 +171,7 @@ void setsysstruct(sysstruct &sys, commonstruct &common, Int backend)
 #endif                   
     dstype normr = PNORM(common.cublasHandle, N, sys.randvect, backend);    
 //    cout<<common.mpiRank<<" "<<normr<<" "<<N<<endl;
-    ArrayMultiplyScalar(common.cublasHandle, sys.randvect, 1.0/normr, N, backend);                       
-//     normr = PNORM(common.cublasHandle, N, sys.randvect, backend);    
-//     cout<<common.mpiRank<<" "<<normr<<" "<<N<<endl;
-//     error("here");
-    
+    ArrayMultiplyScalar(common.cublasHandle, sys.randvect, 1.0/normr, N, backend);                           
     sys.szrandvect = N;
 
     if (common.ppdegree > 1) {

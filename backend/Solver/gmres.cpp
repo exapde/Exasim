@@ -96,8 +96,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
                 sys.lam[i-1] = lmin + (lmax-lmin)*(0.5 - 0.5*cos((2*i-1)*M_PI/(2*m))/cos(M_PI/(2*m)));            
             LejaSort(&sys.lam[2*m], &sys.lam[3*m], sys.lam, &sys.lam[3*m], &sys.lam[4*m], m);
         }        
-//         for (int i=0; i<disc.common.ppdegree; i++)
-//             if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
     }    
     
     // compute b
@@ -333,7 +331,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.x, backend);
     //   scalar = sqrt(scalar*scalar - 0.5*nrm*nrm);
     // }                
-    //cout<<"||x|| = "<<scalar<<endl;
 
     dstype alpha = spatialScheme == 0 ? minusone : one;
 
@@ -378,9 +375,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     //   nrmb = sqrt(nrmb*nrmb - 0.5*nrm*nrm);
     // }                
     nrmr = nrmb;
-
-    //cout<<"||P*r|| = "<<nrmb<<endl; 
-    // error("here");
             
     j = 0;
     while (j < maxit) {
@@ -392,7 +386,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.v, backend);          
         //   nrmv = sqrt(nrmv*nrmv - 0.5*nrm*nrm);
         // }                
-        //cout<<"||v|| = "<<nrmv<<endl; 
 
         // initialize s
         s[0] = nrmr;
@@ -415,8 +408,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, &sys.v[m*N], backend);
             //   nrmv = sqrt(nrmv*nrmv - 0.5*nrm*nrm);
             // }                
-            //cout<<"||v|| = "<<nrmv<<endl;                         
-            //error("here");
 
             begin = chrono::high_resolution_clock::now();   
             
@@ -431,10 +422,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             
             end = chrono::high_resolution_clock::now();   
             tm[1] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
-
-            // nrmv = PNORM(disc.common.cublasHandle, N, &sys.v[m*N], backend);
-            // cout<<"||v|| = "<<nrmv<<endl;         
-            // error("here");                                                    
                         
             // orthogonalize Krylov vectors
             begin = chrono::high_resolution_clock::now();   

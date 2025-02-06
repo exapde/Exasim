@@ -1,14 +1,6 @@
 #ifndef __URESIDUAL
 #define __URESIDUAL
 
-// #include "../AppDriver/fluxDriver.cpp"
-// #include "../AppDriver/sourceDriver.cpp"
-// #include "../AppDriver/tdfuncDriver.cpp"
-// #include "../AppDriver/fhatDriver.cpp"
-// #include "../AppDriver/fbouDriver.cpp"
-// #include "../AppDriver/avfieldDriver.cpp"
-// #include "../AppDriver/outputDriver.cpp"
-
 void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int e1, Int e2, Int backend)

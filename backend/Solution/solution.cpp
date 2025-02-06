@@ -3,12 +3,10 @@
 
 #include "solution.h"
 #include "previoussolutions.cpp"
-//#include "savesolutions.cpp"
 #include "updatesolution.cpp"
 #include "updatesource.cpp"
 #include "timestepcoeff.cpp"
 #include "avsolution.cpp"
-//#include "subproblem.cpp"
 
 #ifdef TIMESTEP  
 #include <sys/time.h>
