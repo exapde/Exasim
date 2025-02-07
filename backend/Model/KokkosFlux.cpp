@@ -2,11 +2,10 @@ void KokkosFlux(dstype* f, const dstype* xdg, const dstype* udg, const dstype* o
 {
 	Kokkos::parallel_for("Flux", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype param1 = param[0];
-		dstype xdg2 = xdg[1*ng+i];
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
-		f[0*ng+i] = param1*udg2*xdg2;
-		f[1*ng+i] = param1*udg3*xdg2;
+		f[0*ng+i] = param1*udg2;
+		f[1*ng+i] = param1*udg3;
 	});
 }
 

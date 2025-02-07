@@ -16,6 +16,7 @@ facenode2 = facenode1(permind);
 
 elemcon = zeros(npf, nfe, ne);
 facecon = zeros(npf,2,nf);
+
 if dim<=2
     for i = 1:nf
         e1 = f2t(1,i);

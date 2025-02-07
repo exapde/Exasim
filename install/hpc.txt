@@ -50,7 +50,7 @@ Below are the steps to deploy, compile, build and run Exasim on a HPC system
       	cmake ..  -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DKokkos_ARCH_VEGA90A=ON -DCMAKE_INSTALL_PREFIX=../buildhip 
       	make install   
 
-      You should modify the flag -DKokkos_ARCH_VEGA90A=ON to suit your AMD GPU. 		
+      You should modify the flag -DKokkos_ARCH_VEGA90A=ON to suit your AMD GPU. Please see https://kokkos.org/kokkos-core-wiki/API/core/Macros.html to use the right flag for different architectures.		
 
 
 5. Run an pdeapp script on your local machine to generate backend/Model, datain, and dataout folders

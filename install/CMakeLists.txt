@@ -64,7 +64,14 @@ if(EXASIM_CUDA)
       endif()
     endif()
 elseif(EXASIM_HIP)
-    set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildhip)
+    if(EXASIM_TUOLUMNE)
+      set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildtuolumne)
+    else()
+      set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildhip)
+    endif()
+
+    message(${Kokkos_DIR})
+
     find_package(Kokkos REQUIRED)
 
     enable_language(HIP)

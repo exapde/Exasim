@@ -154,8 +154,13 @@ int main(int argc, char** argv)
     size_t available, total;
     cudaMemGetInfo(&available, &total);
     
-    std::cout << "MPI Rank: " << mpirank << ", CUDA Device: " << device 
-              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);
+    cudaDeviceProp deviceProp;
+    CHECK(cudaGetDeviceProperties(&deviceProp, device));    
+    
+    std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", CUDA Device: " << device 
+              << ", Device Name: "<<deviceProp.name << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
 #endif                           
@@ -172,9 +177,14 @@ int main(int argc, char** argv)
     size_t available, total;
     CHECK(hipMemGetInfo(&available, &total));
 
+    int deviceCount = 0;
+    hipGetDeviceCount(&deviceCount);
+    hipDeviceProp deviceProp;
+    CHECK(hipGetDeviceProperties(&deviceProp, device));    
+    
     // Print memory information
-    std::cout << "MPI Rank: " << mpirank << ", HIP Device: " << device 
-              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+    std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", HIP Device: " << device 
+              << ", Device Name: "<<deviceProp.name << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
 #endif

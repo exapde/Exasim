@@ -9,7 +9,7 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     Int npe = common.npe; // number of nodes on master element
     Int nge = common.nge; // number of gauss points on master element        
     Int ne = common.ne; // number of elements in this subdomain
-    Int nbe = common.nbe; // number of blocks for elements   
+    Int nbe = common.nbe1; // number of blocks for elements   
     Int neb = common.neb; // maximum number of elements per block
 
     TemplateMalloc(&res.Mass2, npe*npe*ne, backend);
@@ -273,7 +273,7 @@ void qEquationElemFace(solstruct &sol, resstruct &res, appstruct &app, masterstr
     Int npe = common.npe; // number of nodes on master element
     Int npf = common.npf; // number of nodes on master face           
     Int ngf = common.ngf; // number of gauss poInts on master face
-    Int nbe = common.nbe; // number of blocks for elements 
+    Int nbe = common.nbe1; // number of blocks for elements 
     Int nfe = common.nfe; // number of faces per element
     Int ne = common.ne; // number of elements in this subdomain
 
@@ -316,7 +316,7 @@ void hdgGetQ(dstype *udg, dstype *uhat, solstruct &sol, resstruct &res, meshstru
     Int npe = common.npe; // number of nodes on master element
     Int npf = common.npf; // number of nodes on master face           
     //Int ngf = common.ngf; // number of gauss poInts on master face
-    Int nbe = common.nbe; // number of blocks for elements 
+    Int nbe = common.nbe1; // number of blocks for elements 
     Int nfe = common.nfe; // number of faces per element
     Int ne = common.ne; // number of elements in this subdomain
     Int ndf = npf*nfe; // number of dofs on a face
