@@ -6,7 +6,7 @@
 #include <string.h>
 //#include <stdlib.h>
 //#include <chrono>
-#include <sys/unistd.h>
+//#include <sys/unistd.h>
 
 
 #ifdef _OPENMP
@@ -156,11 +156,9 @@ int main(int argc, char** argv)
     
     int deviceCount = 0;
     cudaGetDeviceCount(&deviceCount);
-    cudaDeviceProp deviceProp;
-    CHECK(cudaGetDeviceProperties(&deviceProp, device));    
     
     std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", CUDA Device: " << device 
-              << ", Device Name: "<<deviceProp.name << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
 #endif                           
@@ -179,12 +177,10 @@ int main(int argc, char** argv)
 
     int deviceCount = 0;
     hipGetDeviceCount(&deviceCount);
-    hipDeviceProp deviceProp;
-    CHECK(hipGetDeviceProperties(&deviceProp, device));    
     
     // Print memory information
     std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", HIP Device: " << device 
-              << ", Device Name: "<<deviceProp.name << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
 #endif

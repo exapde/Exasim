@@ -40,7 +40,7 @@ pde.RBdim = 0;
 % mesh.boundarycondition = [1, 3, 2];
 
 %[mesh, ~] = mkmesh_orion(pde.porder, 0.12);
-mesh = mkmesh_orion3(pde.porder);
+mesh = mkmesh_orion6(pde.porder);
 mesh.boundarycondition = [1, 4, 3, 2];
 
 % call exasim to generate and run C++ code to solve the PDE model
