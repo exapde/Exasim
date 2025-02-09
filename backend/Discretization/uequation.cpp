@@ -833,7 +833,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 {            
     Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncu = common.ncu;// number of compoments of (u)
-    Int ncq = common.ncq;// number of compoments of (q)
+    //Int ncq = common.ncq;// number of compoments of (q)
     Int nco = common.nco;// number of compoments of (o)
     Int ncx = common.ncx;// number of compoments of (xdg)        
     Int ncw = common.ncw;
@@ -924,7 +924,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         dstype *nlb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu];
         dstype *wsb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd];
         dstype *fhb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw];
-        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
+        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu];
 
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
@@ -936,12 +936,12 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
         if ((ncw>0) & (common.wave==0)) {
           // copy ugb to tmp.tempn
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], ugb, ngb*nc);
+          ArrayCopy(Rb, ugb, ngb*nc);
         
           // replace u with uhat 
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], uhb, ngb*ncu);
+          ArrayCopy(Rb, uhb, ngb*ncu);
           
-          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, Rb, app, common, ngb, backend);          
+          wEquation(wgb, xgb, Rb, ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
           //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
@@ -986,7 +986,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         dstype *nlb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu];
         dstype *wsb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd];
         dstype *fhb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw];
-        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
+        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu];
 
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
@@ -998,12 +998,12 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
         if ((ncw>0) & (common.wave==0)) {
           // copy ugb to tmp.tempn
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], ugb, ngb*nc);
+          ArrayCopy(Rb, ugb, ngb*nc);
         
           // replace u with uhat 
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], uhb, ngb*ncu);
+          ArrayCopy(Rb, uhb, ngb*ncu);
           
-          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, Rb, app, common, ngb, backend);          
+          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
           //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
@@ -1016,15 +1016,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
         Gauss2Node(handle, Rb, fhb, master.shapfgw, ngf, npf, nfaces*ncu12, backend);                
         ArrayAXPB(res.Ri, Rb, minusone, zero, npf*nfaces*ncu12);       
-        
-//         if (common.mpiRank==1) {
-//           print3darray(xgb, ngf, ne, ncx);    
-//           print2darray(ugb, ngf, common.nintfaces);    
-//           print2darray(uhb, ngf, common.nintfaces);    
-//           print2darray(fhb, ncu12*ngf, common.nintfaces);    
-//           print2darray(res.Ri, ncu12*npf, common.nintfaces);    
-//         }
-        
+                
       }
     }            
 }

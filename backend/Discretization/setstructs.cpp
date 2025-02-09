@@ -321,8 +321,8 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     n3 = 2*max(n3, ndofucg);
     
     if (spatialScheme > 0) {
-      Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
-      //Int k1 = max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
+      //Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
+      Int k1 = max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
       Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + npf*npf*nfe*neb*ncu*ncu;
       Int k3 = npf*ncu*npf*ncu*nf; // fix bug here 
       n0 = max(n0, k1);
