@@ -517,7 +517,7 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 //     cudaDeviceSynchronize();
 // #endif
 
-#ifdef HAVE_CUDA
+#ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
     
@@ -562,6 +562,120 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 //         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 
 }
+
+
+void CDiscretization::evalMonitor(dstype* output,  dstype* udg, Int nc, Int backend)
+{
+#ifdef  HAVE_MPI    
+    Int bsz = common.npe*common.nc;
+    Int nudg = common.npe*common.nc;
+    Int n;
+    
+    /* copy some portion of u to buffsend */
+    GetArrayAtIndex(tmp.buffsend, udg, mesh.elemsendudg, bsz*common.nelemsend);
+
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
+
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
+    /* non-blocking send */
+    Int neighbor, nsend, psend = 0, request_counter = 0;
+    for (n=0; n<common.nnbsd; n++) {
+        neighbor = common.nbsd[n];
+        nsend = common.elemsendpts[n]*bsz;
+        if (nsend>0) {
+            MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
+                   MPI_COMM_WORLD, &common.requests[request_counter]);
+            psend += nsend;
+            request_counter += 1;
+        }
+    }
+
+    /* non-blocking receive */
+    Int nrecv, precv = 0;
+    for (n=0; n<common.nnbsd; n++) {
+        neighbor = common.nbsd[n];
+        nrecv = common.elemrecvpts[n]*bsz;
+        if (nrecv>0) {
+            MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
+                   MPI_COMM_WORLD, &common.requests[request_counter]);
+            precv += nrecv;
+            request_counter += 1;
+        }
+    }
+
+    // non-blocking receive solutions on exterior and outer elements from neighbors
+    /* wait until all send and receive operations are completely done */
+    MPI_Waitall(request_counter, common.requests, common.statuses);
+        
+    /* copy buffrecv to udg */
+    PutArrayAtIndex(udg, tmp.buffrecv, mesh.elemrecvudg, bsz*common.nelemrecv);
+#endif
+            
+    // compute the output field
+    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+}
+
+void CDiscretization::evalMonitor(dstype* output,  dstype* udg, Int backend)
+{
+#ifdef  HAVE_MPI    
+    Int bsz = common.npe*common.nc;
+    Int nudg = common.npe*common.nc;
+    Int n;
+    
+    /* copy some portion of u to buffsend */
+    GetArrayAtIndex(tmp.buffsend, udg, mesh.elemsendudg, bsz*common.nelemsend);
+
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
+
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+    
+    /* non-blocking send */
+    Int neighbor, nsend, psend = 0, request_counter = 0;
+    for (n=0; n<common.nnbsd; n++) {
+        neighbor = common.nbsd[n];
+        nsend = common.elemsendpts[n]*bsz;
+        if (nsend>0) {
+            MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
+                   MPI_COMM_WORLD, &common.requests[request_counter]);
+            psend += nsend;
+            request_counter += 1;
+        }
+    }
+
+    /* non-blocking receive */
+    Int nrecv, precv = 0;
+    for (n=0; n<common.nnbsd; n++) {
+        neighbor = common.nbsd[n];
+        nrecv = common.elemrecvpts[n]*bsz;
+        if (nrecv>0) {
+            MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
+                   MPI_COMM_WORLD, &common.requests[request_counter]);
+            precv += nrecv;
+            request_counter += 1;
+        }
+    }
+
+    // non-blocking receive solutions on exterior and outer elements from neighbors
+    /* wait until all send and receive operations are completely done */
+    MPI_Waitall(request_counter, common.requests, common.statuses);
+        
+    /* copy buffrecv to udg */
+    PutArrayAtIndex(udg, tmp.buffrecv, mesh.elemrecvudg, bsz*common.nelemrecv);
+#endif
+            
+    // compute the output field
+    MonitorDriver(output, sol.xdg, udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+}
+
 
 void CDiscretization::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
 {
