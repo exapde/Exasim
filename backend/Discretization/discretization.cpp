@@ -564,10 +564,10 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 }
 
 
-void CDiscretization::evalMonitor(dstype* output,  dstype* udg, Int nc, Int backend)
+void CDiscretization::evalMonitor(dstype* output,  dstype* udg, dstype* wdg, Int nc, Int backend)
 {
     // compute the output field
-    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
 void CDiscretization::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
