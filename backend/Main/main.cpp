@@ -418,7 +418,7 @@ int main(int argc, char** argv)
                     UpdateSolution(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.app, pdemodel[i]->disc.res, pdemodel[i]->disc.tmp, pdemodel[i]->disc.common, backend);
                     
                     // TODO: input wprev
-                    pdemodel[i]->disc.evalMonitor(pdemodel[i]->disc.tmp.tempn,  pdemodel[i]->disc.sol.udg, backend);
+                    pdemodel[i]->disc.evalMonitor(pdemodel[i]->disc.tmp.tempn,  pdemodel[i]->disc.sol.udg, pdemodel[i]->disc.common.nc, backend);
                     pdemodel[i]->disc.evalMonitor(pdemodel[i]->disc.tmp.tempg,  pdemodel[i]->solv.sys.udgprev, pdemodel[i]->disc.common.ncu, backend);
                     
                     ArrayAXPBY(pdemodel[i]->disc.tmp.tempn, pdemodel[i]->disc.tmp.tempn, pdemodel[i]->disc.tmp.tempg, 1.0, -1.0, pdemodel[i]->disc.common.npe*pdemodel[i]->disc.common.ncm*pdemodel[i]->disc.common.ne);            
