@@ -1123,6 +1123,8 @@ struct sysstruct {
     Int szrandvect=0, sztempmem=0, szlam=0, szPTCmatrix=0, szutmp=0, szwtmp=0;    
     Int szudgprev = 0, szudgprev1 = 0, szudgprev2 = 0, szudgprev3 = 0;
     Int szwprev = 0, szwprev1 = 0, szwprev2 = 0, szwprev3 = 0;
+
+    dstype alpha=1.0; // linesearch alpha
     
     int sizeofint() { return szipiv; }
     int sizeoffloat() {
@@ -1254,6 +1256,7 @@ struct commonstruct {
     Int ncx;// number of compoments of (xdg)
     Int ncs;// number of compoments of (sdg)
     Int nce;// number of compoments of (edg)
+    Int ncm;// number of compoments of PTC monitor function
     
     Int nd; // spatial dimension    
     Int elemtype;
