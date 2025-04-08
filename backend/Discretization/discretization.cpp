@@ -517,7 +517,7 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 //     cudaDeviceSynchronize();
 // #endif
 
-#ifdef HAVE_HIP
+#ifdef HAVE_CUDA
     hipDeviceSynchronize();
 #endif
     
@@ -561,13 +561,6 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 //         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
 //         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 
-}
-
-
-void CDiscretization::evalMonitor(dstype* output,  dstype* udg, dstype* wdg, Int nc, Int backend)
-{
-    // compute the output field
-    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
 void CDiscretization::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)

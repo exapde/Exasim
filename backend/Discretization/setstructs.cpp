@@ -24,8 +24,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.nch = app.ndims[10];// number of compoments of (uhat)
     common.ncx = app.ndims[11];// number of compoments of (xdg)        
     common.nce = app.ndims[12];// number of compoments of (output)        
-    common.ncw = app.ndims[13];//number of compoments of (w)
-    common.ncm = 1;//number of components of monitor function    
+    common.ncw = app.ndims[13];//number of compoments of (w)    
     if (app.flag[1]==1)
         common.ncs = common.nc;  // wave problem
     else if (app.flag[0]==1)
