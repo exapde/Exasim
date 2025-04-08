@@ -112,10 +112,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_null.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_off_t.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_pid_t.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_posix_vdisable.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_rsize_t.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_rune_t.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_seek_set.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_sigaltstack.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_sigset_t.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_size_t.h \
@@ -147,7 +145,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/stdio.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/syslimits.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/types.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/unistd.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/wait.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/time.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/wchar.h \
@@ -267,6 +264,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgEoS.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbou.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbouonly.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFint.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFintonly.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFlux.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSource.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcew.cpp \
@@ -317,8 +316,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/preconditioner.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/preconditioner.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/setprecondstruct.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/avsolution.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/previoussolutions.cpp \
-  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/savesolutions.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/solution.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/solution.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/timestepcoeff.cpp \
@@ -606,6 +605,10 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_TaskScheduler_fwd.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/tuple:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_TaskScheduler.hpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/common.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Swap.hpp:
@@ -664,6 +667,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Atomics_Desul_Volatile_Wrapper.hpp:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Assert.hpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_AcquireUniqueTokenImpl.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Abort.hpp:
@@ -696,14 +701,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/buildserial/KokkosCore_Config_SetupBackend.hpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TeamMDPolicy.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/libkern/_OSByteOrder.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/cpuimpl.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Solver/solver.cpp:
-
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solver/getpoly.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/updatesolution.cpp:
@@ -711,12 +708,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Serial/Kokkos_Serial.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/solution.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Assert.hpp:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/wequation.cpp:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/savesolutions.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/previoussolutions.cpp:
 
@@ -782,6 +773,16 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcewonly.cpp:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TeamMDPolicy.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/libkern/_OSByteOrder.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/cpuimpl.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Solver/solver.cpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFint.cpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgEoS.cpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Common/kokkosimpl.h:
@@ -795,8 +796,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/stdbool.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/stdarg.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_seek_set.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/12.0.0/include/inttypes.h:
 
@@ -846,6 +845,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/stdexcept:
 
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/stddef.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_sigset_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/stdbool.h:
@@ -884,6 +885,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/vector:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/wequation.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/mutex:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cassert:
@@ -910,6 +913,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/initializer_list:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/avsolution.cpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/solution.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/fstream:
@@ -917,6 +922,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Atomics_Desul_Config.hpp:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Crs.hpp:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFintonly.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/float.h:
 
@@ -930,9 +937,11 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cwchar:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__threading_support:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_int16_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/ctype.h:
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TaskTeamMember.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cstring:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_ClockTic.hpp:
 
@@ -1046,10 +1055,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/time.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/stddef.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/unistd.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_rsize_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/stdio.h:
@@ -1134,14 +1139,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/uequation.cpp:
 
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_ViewDataAnalysis.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_mbstate_t.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Printf.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_posix_vdisable.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_pid_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_off_t.h:
@@ -1187,12 +1184,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_int64_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_int32_t.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_TaskTeamMember.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/cstring:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_int16_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/cpuInitu.cpp:
 
@@ -1334,6 +1325,10 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/preconditioner.h:
 
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/ctype.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__threading_support:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/backend/Discretization/setstructs.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/mach/i386/_structs.h:
@@ -1368,6 +1363,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/_types/_nl_item.h:
 
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Printf.hpp:
+
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_HostSharedPtr.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_fsblkcnt_t.h:
@@ -1375,10 +1372,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/locale:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/float.h:
-
-/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_TaskScheduler.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/tuple:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__tree:
 
@@ -1399,6 +1392,10 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/istream:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_u_int.h:
+
+/Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/impl/Kokkos_ViewDataAnalysis.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_mbstate_t.h:
 
 /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/buildserial/KokkosCore_Config_DeclareBackend.hpp:
 

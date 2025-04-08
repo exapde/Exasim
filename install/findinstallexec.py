@@ -54,7 +54,7 @@ def findinstallexec(filename, appname, brew, searchopt):
         if platform == "darwin":
             print("Installing " +  appname +  " via brew.\n");
             if searchopt==1:
-                os.systemn(brew +  " cask install " +  appname);
+                os.systemn(brew +  "install --cask " +  appname);
             else:
                 os.system(brew +  " install " +  appname);
 

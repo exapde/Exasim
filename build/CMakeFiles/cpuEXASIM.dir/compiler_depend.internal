@@ -113,10 +113,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_null.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_off_t.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_pid_t.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_posix_vdisable.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_rsize_t.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_rune_t.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_seek_set.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_sigaltstack.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_sigset_t.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_size_t.h
@@ -148,7 +146,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/stdio.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/syslimits.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/types.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/unistd.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/wait.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/time.h
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/wchar.h
@@ -268,6 +265,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgEoS.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbou.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFbouonly.cpp
+ /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFint.cpp
+ /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFintonly.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgFlux.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSource.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Model/HdgSourcew.cpp
@@ -318,8 +317,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/preconditioner.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/preconditioner.h
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Preconditioning/setprecondstruct.cpp
+ /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/avsolution.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/previoussolutions.cpp
- /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/savesolutions.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/solution.cpp
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/solution.h
  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Solution/timestepcoeff.cpp
