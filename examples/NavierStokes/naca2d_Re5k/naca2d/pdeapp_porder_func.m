@@ -46,6 +46,11 @@ function [UDG1, mesh] = pdeapp_porder_func(pde, mesh, porder, UDG, project_flag)
 
     % call exasim to generate and run C++ code to solve the PDE model
     [pde,mesh,master,dmd] = preprocessing(pde,mesh);
+    if pde.gencode==1
+        %gencode(pde);
+        kkgencode(pde);
+        compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
+    end
     runcode(pde, 1);
     %% plot solution
     % Output is saved as a steady solution (out_np0.bin) since we do not know how many timesteps are taken. 

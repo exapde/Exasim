@@ -76,13 +76,6 @@ mesh.vdg(:,1,:) = hh;
 UDG = initu(mesh,{ui(1),ui(2),ui(3),ui(4),0,0,0,0,0,0,0,0});
 pde.gencode=1;
 
-if pde.gencode==1
-    %gencode(pde);
-    kkgencode(pde);
-    compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
-end
-      
-
 disp("~~~~~~~~~~~~~~~~~~~~")
 disp("~~~~~~~~~~P1~~~~~~~~~")
 disp("~~~~~~~~~~~~~~~~~~~~")
