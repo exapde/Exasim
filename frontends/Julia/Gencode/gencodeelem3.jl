@@ -29,20 +29,20 @@ n = length(f);
 ts, fs = sympy.cse(f);
 m = length(ts);
 for i = 1:m
-    str1 = sympy.ccode(ts[i][1]);
-    str2 = sympy.ccode(ts[i][2]);
+    str1 = string(sympy.ccode(ts[i][1]));
+    str2 = string(sympy.ccode(ts[i][2]));
     str = str * "\t\tT " * str1 * " = " * str2 * ";\n";
 end
 if length(fs)==1
     for i = 1:n
         str1 = "\t\tf[j+npe*" * string(i-1) * "+npe*nce*k" * "]";
-        str2 = sympy.ccode(fs[1][i]);
+        str2 = string(sympy.ccode(fs[1][i]));
         str = str * str1 * " = " * str2 * ";\n";
     end
 elseif length(fs)>1
     for i = 1:n
         str1 = "\t\tf[j+npe*" * string(i-1) * "+npe*nce*k" * "]";
-        str2 = sympy.ccode(fs[i]);
+        str2 = string(sympy.ccode(fs[i]));
         str = str * str1 * " = " * str2 * ";\n";
     end
 else
