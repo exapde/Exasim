@@ -12,19 +12,6 @@
 #include <sys/time.h>
 #endif
 
-/// Q: why DG2CG2 and all of the communication twice?
-////A: sometimes needed, write a loop
-/// Q: there are two seperate GetQ and GetW, for interior and edges...where should this go in between here?
-///   after all getQ's or is there a more intelligent way it can be done? 
-/// A: do it in parts for interior and interface
-/// Q: communication is actually slightly different; we send (u, q) while in residual appears to be only (u)
-///    should we just send u and calculate q as needed? or resend information...
-/// A: dont need to send q, q is recalculated. DO need to send/receive odg
-/// Q: can avfield and odg be used at the same time? Can ODG be put in to residual evaluation? 
-/// A: not now
-/// Q: about general MPI residual: need to send udg and dudg; repeat communication or append on to end of buffsend? 
-/// A: load in same buffsend, if careful about it
-
 void CSolution::SteadyProblem(ofstream &out, Int backend) 
 {   
     INIT_TIMING;        
@@ -305,6 +292,143 @@ void CSolution::DIRK(ofstream &out, Int backend)
         // update time
         time = time + disc.common.dt[istep];                    
     }           
+}
+
+void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
+
+    // initial time
+    double time = disc.common.time;           
+    double monitor_diff, monitor_scale, delta_monitor;
+    int N = disc.common.ndofuhat;
+    int NLiters = disc.common.nonlinearSolverMaxIter;
+    double nrmr = 0;
+    int conv_flag = 0;
+
+    // time stepping with DIRK schemes
+    for (Int istep=0; istep<disc.common.tsteps-1; istep++)            
+    {            
+        disc.common.nonlinearSolverMaxIter = 1;
+
+        // current timestep        
+        disc.common.currentstep = istep;
+
+        // store previous solutions to calculate the source term        
+        PreviousSolutions(disc.sol, solv.sys, disc.common, backend);
+                            
+        // compute the solution at the next step
+        for (int j=0; j<disc.common.tstages; j++) {     
+            
+            if (disc.common.mpiRank==0)
+                printf("\nTimestep :  %d,  Timestage :  %d,   Time : %g\n",istep+1,j+1,time + disc.common.dt[istep]*disc.common.DIRKcoeff_t[j]);                                
+                            
+            // current timestage
+            disc.common.currentstage = j;
+
+            // current time
+            disc.common.time = time + disc.common.dt[istep]*disc.common.DIRKcoeff_t[j];
+
+            // update source term             
+            UpdateSource(disc.sol, solv.sys, disc.app, disc.res, disc.common, backend);
+            
+            // solve the problem 
+            this->SteadyProblem(out, backend);                             
+
+            // update solution 
+            UpdateSolution(disc.sol, solv.sys, disc.app, disc.res, disc.tmp, disc.common, backend);
+            
+            // TODO: input wprev
+            disc.evalMonitor(disc.tmp.tempn,  disc.sol.udg, disc.sol.wdg, disc.common.nc, backend);
+            disc.evalMonitor(disc.tmp.tempg,  solv.sys.udgprev, solv.sys.wprev, disc.common.ncu, backend);
+            
+            ArrayAXPBY(disc.tmp.tempn, disc.tmp.tempn, disc.tmp.tempg, 1.0, -1.0, disc.common.npe*disc.common.ncm*disc.common.ne);            
+            
+            monitor_diff  = PNORM(disc.common.cublasHandle,  disc.common.npe*disc.common.ncm*disc.common.ne,disc.tmp.tempn, backend);
+            monitor_scale = PNORM(disc.common.cublasHandle,  disc.common.npe*disc.common.ncm*disc.common.ne, disc.tmp.tempg, backend);
+
+            delta_monitor = monitor_diff / monitor_scale;
+            std::cout << "delta_monitor: " << delta_monitor << std::endl;
+
+            if ((delta_monitor > 1.0 || solv.sys.alpha < 0.1))
+            {
+                std::cout << "Linesearch failed or large change in solution: reducing timestep" << std::endl;
+                
+                // Revert time step
+                disc.common.time = disc.common.time - disc.common.dt[istep]*disc.common.DIRKcoeff_t[j];
+
+                // Copy udg old to udg
+                ArrayCopy(disc.sol.udg, solv.sys.udgprev, disc.common.npe*disc.common.ncu*disc.common.ne2);
+
+                // Compute a new UH
+                GetFaceNodes(disc.sol.uh, disc.sol.udg, disc.mesh.f2e, disc.mesh.perm, disc.common.npf, disc.common.ncu, disc.common.npe, disc.common.nc, disc.common.nf);
+
+                // Recompute gradient from udg old
+                hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);
+
+                // decrease timestep by 10
+                disc.common.dt[istep+1] = disc.common.dt[istep] / 10;
+                std::cout << "next time step: " << disc.common.dt[istep+1] << std::endl;
+                if (disc.common.dt[istep+1] < 1e-8){
+                    std::cout << "WARNING: PTC stalled" << std::endl;
+                    istep = disc.common.tsteps+1;
+                }
+            }
+            else if (delta_monitor < 0.1)
+            {
+                if (disc.common.linearSolverIter < disc.common.linearSolverMaxIter){
+                    // increase timestep by 2
+                    disc.common.dt[istep+1] = disc.common.dt[istep]*2;
+                }
+                else{
+                    std::cout << "Too many GMRES iterations, not increasing timestep" << std::endl;
+                    disc.common.dt[istep+1] = disc.common.dt[istep]*1;
+                }
+                
+
+                if (delta_monitor < 1e-4 && disc.common.dt[istep] > 1e-3) {
+                    if (disc.common.runmode == 10) {
+                        std::cout << "Evaluate steady residual..." << std::endl;
+                        disc.common.tdep=0;
+    
+                        if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+            
+                        // compute the residual vector R = [Ru; Rh]
+                        disc.hdgAssembleResidual(solv.sys.b, backend);
+                                
+                        nrmr = PNORM(disc.common.cublasHandle, N, solv.sys.b, backend);       
+                        nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend); 
+                        std::cout << " Steady residual = " << nrmr << std::endl;
+    
+                        // SaveSolutions(backend); 
+                        if (nrmr < disc.common.nonlinearSolverTol) {
+                            conv_flag = 1;
+                            istep = disc.common.tsteps+10;
+                            this->SaveSolutions(backend); 
+                            this->SaveSolutionsOnBoundary(backend); 
+                        }
+                        // istep = disc.common.tsteps+1;
+                        disc.common.tdep=1;
+                    }
+                    if (disc.common.runmode == 11) { // Compute steady solve
+                        std::cout << "Steady solve..." << std::endl;
+                        disc.common.tdep=0;
+                        disc.common.nonlinearSolverMaxIter = NLiters;
+                        this->SolveProblem(out, backend);
+                        istep = disc.common.tsteps+10;
+                    }
+                    
+                }    
+            }
+        }
+        // update time
+        time = time + disc.common.dt[istep];                    
+    }   
+    if (conv_flag == 0) {                
+        std::cout << "Warning: PTC reached max iterations without converging." << std::endl;
+        // Save steady solution anyways
+        disc.common.tdep=0;
+        this->SaveSolutions(backend); 
+        this->SaveSolutionsOnBoundary(backend); 
+    }
 }
 
 void CSolution::SolveProblem(ofstream &out, Int backend) 
