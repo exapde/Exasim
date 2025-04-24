@@ -33,7 +33,7 @@ dstype rand_normal(dstype mean, dstype stddev)
 
 void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstruct mesh, tempstruct tmp, Int backend)
 {
-    int N = common.npe*common.ncu*common.ne;          
+    int N = common.npe*common.ncu*common.ne1;          
     
     dstype *rvec = (dstype *) malloc((N)*sizeof(dstype));
     for (int i=0; i<N; i++) rvec[i] = rand_normal(0.0, 1.0);   
@@ -158,23 +158,16 @@ void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruc
     TemplateMalloc(&sys.x, ndof, backend); 
     TemplateMalloc(&sys.b, ndof, backend); 
     TemplateMalloc(&sys.r, ndof, backend); 
-    //TemplateMalloc(&sys.v, ndof*M, backend);      
     
-    if (common.spatialScheme==0) {
-      TemplateMalloc(&sys.v, ndof*M, backend);      
-      sys.szv = ndof * M;
-    }
-    else {
-      sys.v = &res.K[ncu*common.npf*ncu*common.npf*common.nf];
-      sys.szv = 0;
-    }
+    //TemplateMalloc(&sys.v, ndof*M, backend);         
+    sys.v = &res.K[ncu*common.npf*ncu*common.npf*common.nf];
     
     sys.backend = backend;  
     sys.szu = ndof;
     sys.szx = ndof;
     sys.szb = ndof;
     sys.szr = ndof;
-    //sys.szv = ndof * M;
+    sys.szv = ndof * M;
 
     ArraySetValue(sys.u, 0.0, ndof);
     ArraySetValue(sys.x, 0.0, ndof);
@@ -276,13 +269,13 @@ void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruc
     sys.szipiv = max(common.ppdegree, M*M);
     sys.sztempmem = (5*M + M*M);
         
-    TemplateMalloc(&sys.randvect, common.npe*common.ncu*common.ne, backend);        
+    TemplateMalloc(&sys.randvect, ndof, backend);        
     if (common.spatialScheme==0) {
       randomfield(sys.randvect, common, res, mesh, tmp, backend);
     }
     else {
       dstype *randvectu;
-      TemplateMalloc(&randvectu, common.npe*common.ncu*common.ne, backend);    
+      TemplateMalloc(&randvectu, common.npe*common.ncu*common.ne1, backend);    
       randomfield(randvectu, common, res, mesh, tmp, backend);      
       GetFaceNodes(sys.randvect, randvectu, mesh.f2e, mesh.perm, common.npf, ncu, npe, ncu, common.nf);
     }    

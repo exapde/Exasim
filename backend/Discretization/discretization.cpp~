@@ -140,7 +140,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         res.szH = npf*nfe*ncu*npf*nfe*ncu*common.neb;
       }             
       res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;    
-      res.szK = max(res.szK, ncu*npf*ncu*npf*nf + ncu*npf*nf*(common.gmresRestart+1));              
+      res.szK = max(res.szK, ncu*npf*ncu*npf*nf + ncu*);              
       res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
       res.szipiv = max(npe*ncu*neb, ncu*npf*nf);
       

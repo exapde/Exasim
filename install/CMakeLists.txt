@@ -1,7 +1,7 @@
 ################################################################################                   
 #                                     EXASIM
 # 
-# Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
+# Contributing authors: Ngoc Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
 ################################################################################
 
 cmake_minimum_required(VERSION 3.20)

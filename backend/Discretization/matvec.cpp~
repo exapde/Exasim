@@ -90,93 +90,93 @@ void hdgBlockJacobi(dstype *BE, dstype *AE, dstype *BEtmp, int *ipiv, meshstruct
 
      // ncf * nfe * ncf * nfe * ne -> ncf * ncf * nf
     BlockJacobi(BE, AE, mesh.f2e, npf, nfe, ncu, nf);
-    BlockJacobi(BE, AE, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);        
+    BlockJacobi(BE, AE, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
     Inverse(handle, BE, BEtmp, ipiv, ncf, nf, backend); 
     
-//     ArraySetValue(BEtmp, 0.0, ncf*ncf*(2*nfe-1)*nf);
-//     AssembleJacobian(BEtmp, AE, mesh.e2f, mesh.f2f, mesh.elemcon, npf, nfe, ncu, 2);       
-//     print3darray(AE, ncf*nfe, ncf*nfe, 2);
-//     print3darray(BEtmp, ncf, ncf, 14);
+    ArraySetValue(BEtmp, 0.0, ncf*ncf*(2*nfe-1)*nf);
+    BlockJacobian(BEtmp, AE, mesh.e2f, mesh.f2f, mesh.elemcon, npf, nfe, ncu, 2);       
+    print3darray(AE, ncf, ncf, 4);
+    print3darray(BEtmp, ncf, ncf, 4);
     
     if (common.debugMode == 1) {
       writearray2file(common.fileout + "hdgBlockJacobi.bin", BE, ncf * ncf * nf, backend);
     }
 }
 
-// void hdgBlockJacobian(dstype *H0, dstype *H1, dstype *H2, dstype *H0inv, dstype *AE, dstype *tmp, int *ipiv, meshstruct &mesh, commonstruct &common, cublasHandle_t handle, Int backend)
-// {   
-//     Int nf = common.nf; // number of faces in this subdomain
-//     Int ncu = common.ncu;// number of compoments of (u)
-//     Int npf = common.npf; // number of nodes on master face           
-//     Int nfe = common.nfe; // number of faces in each element
-//     Int ncf = ncu*npf;
-// 
-//     // AE: ncf * nfe * ncf * nfe * ne 
-//     // H0: ncf * ncf * nf
-//     // H1: ncf * ncf * (ne-1) * nf
-//     // H2: ncf * ncf * (ne-1) * nf
-//     // B:  ncf * ncf * nf
-//     
-//     // Assemble the diagonal block of the global matrix       
-//     BlockJacobi(H0, AE, mesh.f2e, npf, nfe, ncu, nf);
-//     BlockJacobi(H0, AE, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
-//             
-//     // Assemble the off-diagonal block of the global matrix    
-//     BlockJacobian1(H1, AE, mesh.f2e, mesh.f2f, mesh.f2l, mesh.elemcon, npf, nfe, ncu, nf);
-//     BlockJacobian2(H2, AE, mesh.f2e, mesh.f2f, mesh.f2l, mesh.elemcon, npf, nfe, ncu, common.nf0);
-//     //print3darray(H1, ncu*npf, ncu*npf, (nfe-1));
-//     
-//     // (e, k, l) -> (f, m)
-//     // (e, k) -> f = e2f(e, k)
-//     // if (l==k) -> m = 0
-//     // if (l!=k) -> m = m + 1;
-//     
-//     // for  (int k=0; k<nfe; k++)
-//     
-//     
-//     ArrayCopy(H0inv, H0, ncf*ncf*nf);        
-//     for (Int j=0; j<common.nbf; j++) {     
-//       Int f1 = common.fblks[3*j]-1;
-//       Int f2 = common.fblks[3*j+1];                  
-//       Int nfj = f2-f1;
-//       Inverse(handle, &H0inv[ncf*ncf*f1], AE, ipiv, ncf, nfj, backend); 
-//     }
-//         
-//     if (common.debugMode == 1) {
-//       writearray2file(common.fileout + "hdgBlockJacobianH0.bin", H0, ncf * ncf * nf, backend);
-//       writearray2file(common.fileout + "hdgBlockJacobianH1.bin", H1, ncf * ncf * (nfe-1) * nf, backend);
-//       writearray2file(common.fileout + "hdgBlockJacobianH2.bin", H2, ncf * ncf * (nfe-1) * nf, backend);
-//       writearray2file(common.fileout + "hdgBlockJacobianBH0inv.bin", H0inv, ncf * ncf * nf, backend);      
-//     }
-// }
-// 
-// void hdgMatVec(dstype *w, dstype *H0, dstype *H1, dstype *H2, dstype *v, dstype *tmp, meshstruct &mesh, commonstruct &common, cublasHandle_t handle, Int backend)
-// {   
-//     Int nf = common.nf; // number of faces in this subdomain
-//     Int ncu = common.ncu;// number of compoments of (u)
-//     Int npf = common.npf; // number of nodes on master face           
-//     Int nfe = common.nfe; // number of faces in each element
-//     Int ncf = ncu*npf;  
-// 
-//     // (ncf)  * (ncf) * nf x (ncf) * nf -> (ncf) * nf
-//     PGEMNMStridedBached(handle, ncf, 1, ncf, one, H0, ncf, v, ncf, zero, w, ncf, nf, backend); 
-// 
-//     // ncf * nf -> ncf * (nfe-1) * nf
-//     ApplyFace2Face(tmp, v, mesh.f2f, npf, nfe, ncu, nf, 0);
-//     
-//     // [(ncf)  * (ncf) * (nfe-1) * nf] x [(ncf) * (nfe-1) * nf] -> (ncf) * nf
-//     PGEMNMStridedBached(handle, ncf, 1, ncf*(nfe-1), one, H1, ncf, tmp, ncf, one, w, ncf, nf, backend); 
-//         
-//     // ncf * nf -> ncf * (nfe-1) * nf0
-//     ApplyFace2Face(tmp, v, mesh.f2f, npf, nfe, ncu, common.nf0, nfe-1);
-//     
-//     // [(ncf)  * (ncf) * (nfe-1) * nf0] x [(ncf) * (nfe-1) * nf0] -> (ncf) * nf0
-//     PGEMNMStridedBached(handle, ncf, 1, ncf*(nfe-1), one, H2, ncf, tmp, ncf, one, w, ncf, common.nf0, backend); 
-//         
-//     if (common.debugMode == 1) {
-//       writearray2file(common.fileout + "hdgMatVec.bin", w, ncf * nf, backend);
-//     }
-// }
+void hdgBlockJacobian(dstype *H0, dstype *H1, dstype *H2, dstype *H0inv, dstype *AE, dstype *tmp, int *ipiv, meshstruct &mesh, commonstruct &common, cublasHandle_t handle, Int backend)
+{   
+    Int nf = common.nf; // number of faces in this subdomain
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int npf = common.npf; // number of nodes on master face           
+    Int nfe = common.nfe; // number of faces in each element
+    Int ncf = ncu*npf;
+
+    // AE: ncf * nfe * ncf * nfe * ne 
+    // H0: ncf * ncf * nf
+    // H1: ncf * ncf * (ne-1) * nf
+    // H2: ncf * ncf * (ne-1) * nf
+    // B:  ncf * ncf * nf
+    
+    // Assemble the diagonal block of the global matrix       
+    BlockJacobi(H0, AE, mesh.f2e, npf, nfe, ncu, nf);
+    BlockJacobi(H0, AE, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
+            
+    // Assemble the off-diagonal block of the global matrix    
+    BlockJacobian1(H1, AE, mesh.f2e, mesh.f2f, mesh.f2l, mesh.elemcon, npf, nfe, ncu, nf);
+    BlockJacobian2(H2, AE, mesh.f2e, mesh.f2f, mesh.f2l, mesh.elemcon, npf, nfe, ncu, common.nf0);
+    //print3darray(H1, ncu*npf, ncu*npf, (nfe-1));
+    
+    // (e, k, l) -> (f, m)
+    // (e, k) -> f = e2f(e, k)
+    // if (l==k) -> m = 0
+    // if (l!=k) -> m = m + 1;
+    
+    // for  (int k=0; k<nfe; k++)
+    
+    
+    ArrayCopy(H0inv, H0, ncf*ncf*nf);        
+    for (Int j=0; j<common.nbf; j++) {     
+      Int f1 = common.fblks[3*j]-1;
+      Int f2 = common.fblks[3*j+1];                  
+      Int nfj = f2-f1;
+      Inverse(handle, &H0inv[ncf*ncf*f1], AE, ipiv, ncf, nfj, backend); 
+    }
+        
+    if (common.debugMode == 1) {
+      writearray2file(common.fileout + "hdgBlockJacobianH0.bin", H0, ncf * ncf * nf, backend);
+      writearray2file(common.fileout + "hdgBlockJacobianH1.bin", H1, ncf * ncf * (nfe-1) * nf, backend);
+      writearray2file(common.fileout + "hdgBlockJacobianH2.bin", H2, ncf * ncf * (nfe-1) * nf, backend);
+      writearray2file(common.fileout + "hdgBlockJacobianBH0inv.bin", H0inv, ncf * ncf * nf, backend);      
+    }
+}
+
+void hdgMatVec(dstype *w, dstype *H0, dstype *H1, dstype *H2, dstype *v, dstype *tmp, meshstruct &mesh, commonstruct &common, cublasHandle_t handle, Int backend)
+{   
+    Int nf = common.nf; // number of faces in this subdomain
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int npf = common.npf; // number of nodes on master face           
+    Int nfe = common.nfe; // number of faces in each element
+    Int ncf = ncu*npf;  
+
+    // (ncf)  * (ncf) * nf x (ncf) * nf -> (ncf) * nf
+    PGEMNMStridedBached(handle, ncf, 1, ncf, one, H0, ncf, v, ncf, zero, w, ncf, nf, backend); 
+
+    // ncf * nf -> ncf * (nfe-1) * nf
+    ApplyFace2Face(tmp, v, mesh.f2f, npf, nfe, ncu, nf, 0);
+    
+    // [(ncf)  * (ncf) * (nfe-1) * nf] x [(ncf) * (nfe-1) * nf] -> (ncf) * nf
+    PGEMNMStridedBached(handle, ncf, 1, ncf*(nfe-1), one, H1, ncf, tmp, ncf, one, w, ncf, nf, backend); 
+        
+    // ncf * nf -> ncf * (nfe-1) * nf0
+    ApplyFace2Face(tmp, v, mesh.f2f, npf, nfe, ncu, common.nf0, nfe-1);
+    
+    // [(ncf)  * (ncf) * (nfe-1) * nf0] x [(ncf) * (nfe-1) * nf0] -> (ncf) * nf0
+    PGEMNMStridedBached(handle, ncf, 1, ncf*(nfe-1), one, H2, ncf, tmp, ncf, one, w, ncf, common.nf0, backend); 
+        
+    if (common.debugMode == 1) {
+      writearray2file(common.fileout + "hdgMatVec.bin", w, ncf * nf, backend);
+    }
+}
 
 void hdgApplyBlockJacobi(dstype *w, dstype *BE, dstype *v, commonstruct &common, cublasHandle_t handle, Int backend)
 {   
@@ -501,13 +501,13 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
 
     // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
-    BlockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
+    blockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
 
     // assemble block Jacobi matrix from res.H using the SECOND elements in mesh.f2e
-    BlockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
+    blockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
 
     // inverse block Jacobi matrix
-    Inverse(handle, res.K, tmp.tempn, res.ipiv, ncf, common.nf, backend); // fix bug here
+    Inverse(handle, res.K, tmp.tempg, res.ipiv, ncf, common.nf, backend); 
 }
 
 void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 

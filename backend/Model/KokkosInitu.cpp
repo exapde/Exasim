@@ -3,11 +3,7 @@ void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype*
 	Kokkos::parallel_for("Initu", ng, KOKKOS_LAMBDA(const size_t i) {
 		int j = i%npe;
 		int k = i/npe;
-		dstype param2 = param[1];
-		dstype param3 = param[2];
-		dstype xdg1 = xdg[j+npe*0+npe*ncx*k];
-		f[j+npe*0+npe*nce*k] = param2/param3;
-		f[j+npe*1+npe*nce*k] = exp((xdg1*xdg1)*-1.0E+4);
+		f[j+npe*0+npe*nce*k] = 0.0;
 	});
 }
 

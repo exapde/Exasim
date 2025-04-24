@@ -284,6 +284,15 @@ static dstype PNORM(cublasHandle_t handle, Int m, dstype* x, Int backend)
     return sqrt(nrm);    
 }
 
+static dstype PNORM(cublasHandle_t handle, Int m, Int n, dstype* x, Int backend) 
+{            
+    dstype nrm1=0.0, nrm;        
+    if (n>0) PDOT(handle, n, x, inc1, x, inc1, &nrm1, backend); 
+    PDOT(handle, m-n, &x[n], inc1, &x[n], inc1, &nrm, backend); 
+    nrm = nrm + 0.5*nrm1;
+    return sqrt(nrm);    
+}
+
 static void DOT(cublasHandle_t handle, Int m, dstype* x, Int incx, dstype* y, Int incy, dstype *dot, Int backend) 
 {               
 #ifdef USE_FLOAT    

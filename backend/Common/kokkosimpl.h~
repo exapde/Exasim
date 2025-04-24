@@ -978,27 +978,7 @@ void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon,
     });
 }
 
-void AssembleResidual(dstype* R, const dstype* Rh, const int* e2f, const int* elcon, const int npf, const int nfe, const int ncu, const int ne) 
-{
-    int nfe2 = 2*(nfe-1);
-    int ncf = ncu*npf;
-    int M = ncf*nfe;
-    int N = M*ne;
-    Kokkos::parallel_for("BlockJacobian1", N, KOKKOS_LAMBDA(const size_t idx) {
-        int m = idx%ncf; // [0, ncf] 
-        int q = idx/ncf; // [0, nfe*ne)
-        int k = q%nfe;   // [0, nfe)
-        int e = q/nfe;   // [0, ne)                
-        int fk = e2f[k + nfe*e];
-        int am = m%ncu;    // [0, ncu)
-        int bm = m/ncu;    // [0, npf)
-        int cm = elcon[bm + npf*k + npf*nfe*e] - npf*fk;    
-        int dm = am + ncu*cm; // [0, ncf)            
-        Kokkos::atomic_add(&R[m + ncf*fk], Rh[dm + ncf*k + M*e]);
-    });
-}
-
-void AssembleJacobian(dstype* BE, const dstype* AE, const int* e2f, const int* f2f, const int* elcon, const int npf, const int nfe, const int ncu, const int ne) 
+void BlockJacobian(dstype* BE, const dstype* AE, const int* e2f, const int* f2f, const int* elcon, const int npf, const int nfe, const int ncu, const int ne) 
 {
     int nfe2 = 2*(nfe-1);
     int ncf = ncu*npf;
@@ -1035,7 +1015,7 @@ void AssembleJacobian(dstype* BE, const dstype* AE, const int* e2f, const int* f
         if (j==0) 
           Kokkos::atomic_add(&BE[m + ncf*n + R*(j + (2*nfe-1)*fk)], AE[dm + ncf*k + M*dn + P*l + Q*e]);
         else
-          BE[m + ncf*n + R*(j + (2*nfe-1)*fk)] = AE[dm + ncf*k + M*dn + P*l + Q*e];                
+          BE[m + ncf*n + R*(j + (2*nfe-1)*fk)] = AE[dm + ncf*k + M*dn + P*l + Q*e1];                
     });
 }
 

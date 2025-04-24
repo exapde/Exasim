@@ -230,10 +230,8 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
 #ifdef  HAVE_MPI
         common.requests = (MPI_Request *) malloc( 2*(common.nnbsd + common.nnbintf) * sizeof(MPI_Request) );
         common.statuses = (MPI_Status *) malloc( 2*(common.nnbsd + common.nnbintf) * sizeof(MPI_Status) );     
-        if (common.spatialScheme==1) {
-          //common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
-          //common.ndofuhatinterface = common.ncu*common.npf*common.ninterfacefaces;
-        }
+        if (common.spatialScheme==1)
+          common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
 #endif        
     }
     else {
@@ -456,17 +454,13 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       
       Int nf = common.nf;
       Int ne = common.ne;
-      Int nfe = common.nfe;
-      mesh.e2f = (Int*) malloc (sizeof (Int)*nfe*ne);
+      Int nfe = commmon.nfe;
+      e2f = (Int*) malloc (sizeof (Int)*n*ne);
       mesh.f2f = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
       mesh.f2l = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
-      mke2f(mesh.e2f, mesh.f2e, nf, nfe, ne);
-      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, mesh.e2f, nf, nfe, ne);             
-//       print2iarray(mesh.f2e, 4, nf);
-//       print2iarray(e2f, nfe, ne);
-//       print2iarray(mesh.f2f, 2*(nfe-1), nf);
-//       print2iarray(mesh.f2l, 2*(nfe-1), nf);
-//      CPUFREE(e2f);      
+      mke2f(e2f, mesh.f2e, nf, nfe, ne);
+      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, e2f, nf, nfe, ne);       
+            
     }
 
     if (common.ncs>0) {
@@ -934,15 +928,7 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 
       M = common.npf*common.npf*common.ngf*(common.nd);
       TemplateMalloc(&master.shapfgwdotshapfg, M, common.backend);       
-      TemplateCopytoDevice(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M, common.backend);        
-      
-      M = 2*(common.nfe-1)*common.nf;
-      TemplateMalloc(&mesh.f2f, M, common.backend);       
-      TemplateMalloc(&mesh.f2l, M, common.backend);       
-      TemplateCopytoDevice(mesh.f2f, hmesh.f2f, M, common.backend);
-      TemplateCopytoDevice(mesh.f2l, hmesh.f2l, M, common.backend);
-      TemplateMalloc(&mesh.e2f, common.nfe*common.ne, common.backend);
-      TemplateCopytoDevice(mesh.e2f, hmesh.e2f, common.nfe*common.ne, common.backend);
+      TemplateCopytoDevice(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M, common.backend);            
     }
 
 #ifdef HAVE_CUDA    

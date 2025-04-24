@@ -168,6 +168,68 @@ void cpuBackSolve(dstype *y, dstype *H, dstype *s, int i, int n)
     }
 }
 
+void mke2f(int* e2f, const int* f2e, int nf, int nfe, int ne) 
+{
+    for (int i = 0; i < nfe * ne; ++i) {
+        e2f[i] = 0;
+    }
+
+    for (int i = 0; i < nf; ++i) {
+        int e1 = f2e[i * 4 + 0];  // f2e(:, i) → column i
+        int l1 = f2e[i * 4 + 1];
+        int e2 = f2e[i * 4 + 2];
+        int l2 = f2e[i * 4 + 3];
+
+        e2f[l1 + e1 * nfe] = i;  // e2f(l1, e1) = i
+
+        if (e2 >= 0) {
+            e2f[l2 + e2 * nfe] = i;  // e2f(l2, e2) = i
+        }
+    }
+}
+
+void mkf2f(int* f2f, int* f2l, const int* f2e, const int* e2f, int nf, int nfe, int ne) 
+{
+    int nbf = 2 * (nfe - 1);  // number of neighboring faces per face
+
+    // Initialize f2f and f2l
+    for (int i = 0; i < nbf * nf; ++i) {
+        f2f[i] = 0;
+        f2l[i] = 0;
+    }
+
+    for (int i = 0; i < nf; ++i) {
+        int e1 = f2e[0 + 4 * i];  // element 1
+        int l1 = f2e[1 + 4 * i];  // local face id on e1
+        int e2 = f2e[2 + 4 * i];  // element 2 (neighbor)
+        int l2 = f2e[3 + 4 * i];  // local face id on e2
+
+        int k = 0;
+
+        // Loop over all local faces on e1 except l1
+        for (int l = 0; l < nfe; ++l) {
+            if (l != l1) {
+                int j = e2f[l + e1 * nfe];   // e2f(l, e1)
+                f2f[k + i * nbf] = j;
+                f2l[k + i * nbf] = l;
+                ++k;
+            }
+        }
+
+        // If interior face (e2 >= 0), repeat for second element
+        if (e2 >= 0) {
+            for (int l = 0; l < nfe; ++l) {
+                if (l != l2) {
+                    int j = e2f[l + e2 * nfe];   // e2f(l, e2)
+                    f2f[k + i * nbf] = j;
+                    f2l[k + i * nbf] = l;
+                    ++k;
+                }
+            }
+        }
+    }
+}
+
 void faceindex(int *in1, int *in2, int *facecon, int npf, int ncu, int npe, int nc, int f1, int f2)
 {    
     int nf = f2-f1;

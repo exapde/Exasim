@@ -12,6 +12,28 @@ void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int backend)
     ArrayMultiplyScalar(handle, &V[m*N], one/H[m], N, backend);
 }
 
+void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int L, Int backend)
+{
+    if (L==0) {
+      MGS(handle, V, H, N, m, backend);
+      return;
+    }
+      
+    double h1, h2;
+    Int M = N-L;
+    for (Int k = 0; k < m; k++) {
+        PDOT(handle, L, &V[m*N], inc1, &V[k*N], inc1, &h1, backend);
+        PDOT(handle, M, &V[m*N+L], inc1, &V[k*N+L], inc1, &h2, backend);
+        H[k] = h2 + 0.5*h1;
+        ArrayAXPY(handle, &V[m*N], &V[k*N], -H[k], N, backend);
+    }
+    PDOT(handle, L, &V[m*N], inc1, &V[m*N], inc1, &h1, backend);
+    PDOT(handle, M, &V[m*N+L], inc1, &V[m*N+L], inc1, &h2, backend);
+    H[m] = h2 + 0.5*h1;
+    H[m] = sqrt(H[m]);    
+    ArrayMultiplyScalar(handle, &V[m*N], one/H[m], N, backend);
+}
+
 void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
         dstype *H, dstype *r, Int N, Int m, Int backend)
 {
@@ -153,12 +175,12 @@ void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     for(int i=0; i<m*m1; i++)
         H[i] = 0.0;
     
-    dstype normr = PNORM(disc.common.cublasHandle, N, r, backend);        
+    dstype normr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, r, backend);        
     ArrayAX(disc.common.cublasHandle, sys.v, r, 1.0/normr, N, backend);    
     for (int j=0; j<m; j++) {                    
         disc.evalMatVec(&sys.v[(j+1)*N], &sys.v[j*N], sys.u, sys.b, spatialScheme, backend);      
         prec.ApplyPreconditioner(&sys.v[(j+1)*N], sys, disc, spatialScheme, backend);            
-        MGS(disc.common.cublasHandle, sys.v, &H[m1*j], N, j+1, backend);
+        MGS(disc.common.cublasHandle, sys.v, &H[m1*j], N, j+1, disc.common.ndofuhatinterface, backend);
     }
 }
 
@@ -182,8 +204,8 @@ void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
         em[i] = 0.0;
     em[m-1] = 1.0;                   
         
-    makeH(disc, prec, sys, Hm, r, N, m, spatialScheme, backend);
-    eigH(Ht, Hm, em, work, ipiv, m);            
+    makeH(disc, prec, sys, Hm, r, N, m, spatialScheme, backend);        
+    eigH(Ht, Hm, em, work, ipiv, m);                
     DGEEV(&chv, &chv, &m, Ht, &m, wr, wi, work, &m, work, &m, work, &lwork, &info );            
     LejaSort(lamr, lami, wr, wi, work, m);    
 }

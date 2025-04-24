@@ -524,7 +524,7 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     Int m = npf*nfe*ncu;
     dstype *DinvF = &res.F[n*m*e1];    
     dstype *Ru = &res.Ru[n*e1];
-    dstype *DinvH =&res.H[m*m*e1];
+    dstype *DinvH = &res.H[m*m*e1];
     dstype *Rh = &res.Rh[m*e1];
 
 //     dstype *D = tmp.tempn;

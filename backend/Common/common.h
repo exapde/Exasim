@@ -648,7 +648,10 @@ struct meshstruct {
     Int *ndims=nullptr;  // dimensions
         
     Int *facecon=nullptr;    // face-to-element connectivities 
+    Int *e2f=nullptr;        // element-to-face connectivities
     Int *f2e=nullptr;        // face-to-element connectivities
+    Int *f2f=nullptr;        // face-to-face connectivities
+    Int *f2l=nullptr;        // face-to-local connectivities
     Int *elemcon=nullptr;    // element-to-face connectivities
     Int *perm=nullptr;       // indices of element nodes on faces
     Int *bf=nullptr;         // boundary faces  
@@ -697,8 +700,8 @@ struct meshstruct {
     Int *elemrecvudg=nullptr;
     //Int *index=nullptr; 
     
-    Int szfacecon=0, szf2e=0, szelemcon=0, szperm=0, szbf=0, szboufaces=0, szintfaces=0; 
-    Int szeblks=0, szfblks=0, sznbsd=0, szelemsend=0;
+    Int szfacecon=0, szf2e=0, szf2f=0, szf2l=0, szelemcon=0, szperm=0, szbf=0, szboufaces=0, szintfaces=0; 
+    Int szeblks=0, sze2f=0, szfblks=0, sznbsd=0, szelemsend=0;
     Int szelemrecv=0, szelemsendpts=0, szelemrecvpts=0, szelempart=0;
     Int szelempartpts=0, szcgelcon=0, szrowent2elem=0, szcgent2dgent=0;
     Int szcolent2elem=0, szrowe2f1=0, szcole2f1=0, szent2ind1=0, szrowe2f2=0;
@@ -718,7 +721,7 @@ struct meshstruct {
                szfindudgp + szeindudg1 + szeindudgp + szelemsendind + szelemrecvind + 
                szelemsendodg + szelemrecvodg + szelemsendudg + szelemrecvudg + szfaceperm +
                sznbintf + szfacesend + szfacerecv + szfacesendpts + szfacerecvpts +
-               szfacecon + szf2e + szelemcon + szperm + szbf + szboufaces + szintfaces;
+               szfacecon + szf2e + sze2f + szf2f + szf2l + szelemcon + szperm + szbf + szboufaces + szintfaces;
       return sz;        
     }
 
@@ -726,7 +729,10 @@ struct meshstruct {
     {
       printf("--------------- Mesh Struct Information ----------------\n");
       printf("size of facecon: %d\n", szfacecon);
+      printf("size of e2f: %d\n", sze2f);
       printf("size of f2e: %d\n", szf2e);
+      printf("size of f2f: %d\n", szf2f);
+      printf("size of f2l: %d\n", szf2l);
       printf("size of elemcon: %d\n", szelemcon);
       printf("size of perm: %d\n", szperm);
       printf("size of bf: %d\n", szbf);
@@ -782,6 +788,8 @@ struct meshstruct {
         TemplateFree(ndims, backend);    
         TemplateFree(facecon, backend);    // face-to-element connectivities 
         TemplateFree(f2e, backend);    // face-to-element connectivities 
+        TemplateFree(f2f, backend); 
+        TemplateFree(f2l, backend); 
         TemplateFree(elemcon, backend);    // element-to-face connectivities
         TemplateFree(perm, backend);       // indices of element nodes on faces
         TemplateFree(boufaces, backend);   // boundary faces
@@ -884,7 +892,7 @@ struct solstruct {
       printf("size of odg: %d\n", szodg);
       printf("size of wdg: %d\n", szwdg);
       printf("size of uh: %d\n", szuh);
-       printf("size of xdgint: %d\n", szxdgint);
+      printf("size of xdgint: %d\n", szxdgint);
       printf("size of elemg: %d\n", szelemg);
       printf("size of faceg: %d\n", szfaceg);
       printf("size of elemfaceg: %d\n", szelemfaceg);
@@ -1028,10 +1036,7 @@ struct resstruct {
         TemplateFree(Minv2, backend);      
         TemplateFree(C, backend);      
         TemplateFree(E, backend);      
-        TemplateFree(D, backend);
-        TemplateFree(B, backend);
         TemplateFree(F, backend);
-        TemplateFree(G, backend);
         TemplateFree(K, backend);
         TemplateFree(H, backend);
         TemplateFree(Gi, backend);
@@ -1123,6 +1128,8 @@ struct sysstruct {
     Int szrandvect=0, sztempmem=0, szlam=0, szPTCmatrix=0, szutmp=0, szwtmp=0;    
     Int szudgprev = 0, szudgprev1 = 0, szudgprev2 = 0, szudgprev3 = 0;
     Int szwprev = 0, szwprev1 = 0, szwprev2 = 0, szwprev3 = 0;
+
+    dstype alpha=1.0; // linesearch alpha
     
     int sizeofint() { return szipiv; }
     int sizeoffloat() {
@@ -1164,14 +1171,14 @@ struct sysstruct {
 
     void freememory(Int backend)
     {
-       CPUFREE(lam);  
-       CPUFREE(ipiv);  
+        CPUFREE(lam);  
+        CPUFREE(ipiv);  
 
         TemplateFree(x, backend); 
         TemplateFree(u, backend); 
         TemplateFree(r, backend); 
         TemplateFree(b, backend); 
-        TemplateFree(v, backend); 
+        if (szv>0) TemplateFree(v, backend); 
         TemplateFree(q, backend); 
         TemplateFree(p, backend); 
         TemplateFree(randvect, backend);
@@ -1254,6 +1261,7 @@ struct commonstruct {
     Int ncx;// number of compoments of (xdg)
     Int ncs;// number of compoments of (sdg)
     Int nce;// number of compoments of (edg)
+    Int ncm;// number of compoments of PTC monitor function
     
     Int nd; // spatial dimension    
     Int elemtype;
@@ -1338,6 +1346,7 @@ struct commonstruct {
     Int compudgavg=1;     // compute time-averaged solution udg
     Int readudgavg=0;     // flag to read time-averaged solution udg from file
     Int saveResNorm=0;   
+    Int matrixformat=0;
     
     Int spatialScheme;   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */
     Int temporalScheme;  // 0: DIRK; 1: BDF; 2: ERK
@@ -1377,7 +1386,8 @@ struct commonstruct {
     Int precMatrixType; // 0: identity; 1: inverse mass matrix
     Int ptcMatrixType;  // 0: identity; 1: mass matrix
     Int runmode;
-    Int ninterfacefaces; // number of interface faces
+    Int ninterfacefaces=0; // number of interface faces
+    Int ndofuhatinterface=0;
     
     dstype dtfactor; // factor asssociated with udg for temporal discretization
     dstype time; // current simulation time    

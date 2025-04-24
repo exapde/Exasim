@@ -14,7 +14,7 @@ Below are the steps to deploy, compile, build and run Exasim on a HPC system
     
     a. Build Kokkos serial library for CPU platform
 
-	module load cmake/3.20.2
+      	module load cmake/3.20.2
 
         cd Exasim/kokkos
         mkdir buildserial
@@ -28,7 +28,7 @@ Below are the steps to deploy, compile, build and run Exasim on a HPC system
 
         module load cmake/3.20.2
         module load cuda/11.2.0
-	module load clang/ibm-16.0.6-cuda-11.2.0-gcc-8.3.1
+        module load clang/ibm-16.0.6-cuda-11.2.0-gcc-8.3.1
 
         cd Exasim/kokkos
         mkdir buildcuda
