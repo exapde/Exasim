@@ -411,7 +411,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
                                     
           // damped Newton loop to determine alpha
-          while (nrmr>nrm0 && sys.alpha > 0.1) 
+          while ((nrmr>nrm0 && sys.alpha > 0.1) || IS_NAN(nrmr)) 
           {
             if (disc.common.mpiRank==0)
               printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, sys.alpha, nrm0, nrmr);

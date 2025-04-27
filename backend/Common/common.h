@@ -103,6 +103,28 @@ extern "C" {
                 double* vr, int* ldvr, double* work, int* lwork, int* info );    
 }
 
+template <typename T>
+bool is_nan_bitwise(T x);
+
+// Specialization for double
+template <> bool is_nan_bitwise<double>(double x) {
+    uint64_t bits;
+    std::memcpy(&bits, &x, sizeof(bits));
+    return ((bits & 0x7ff0000000000000ULL) == 0x7ff0000000000000ULL) &&  // exponent all 1s
+           ((bits & 0x000fffffffffffffULL) != 0);                         // mantissa nonzero
+}
+
+// Specialization for float
+template <> bool is_nan_bitwise<float>(float x) {
+    uint32_t bits;
+    std::memcpy(&bits, &x, sizeof(bits));
+    return ((bits & 0x7f800000U) == 0x7f800000U) &&                       // exponent all 1s
+           ((bits & 0x007fffffU) != 0);                                   // mantissa nonzero
+}
+
+// Optional macro for quick usage
+#define IS_NAN(x) is_nan_bitwise<decltype(x)>(x)
+
 // global variables for BLAS  
 dstype one = 1.0;
 dstype minusone = -1.0;
