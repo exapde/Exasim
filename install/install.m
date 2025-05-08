@@ -70,9 +70,9 @@ if ismac
     system(brew + " install lapack");                    
 else
     disp("Installing " + "blas" + " via apt.");
-    system("sudo apt install libblas-dev");                
+    system("conda install libblas-dev");                
     disp("Installing " + "lapack" + " via apt.");
-    system("sudo apt install liblapack-dev");                          
+    system("conda install liblapack-dev");                          
 end    
 
 cdir = pwd(); ii = strfind(cdir, "Exasim");

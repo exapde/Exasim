@@ -2,7 +2,7 @@ from sys import platform
 import shutil, os, sys
 import subprocess
 
-version = "src";
+version = "frontends";
 cdir = os.getcwd(); ii = cdir.find("Exasim");
 versiondir = cdir[0:(ii+6)] + "/"  + version + "/Python";
 
@@ -69,9 +69,9 @@ if platform == "darwin":
     os.system(brew +  " install lapack");
 else:
     print("Installing " +  "blas" +  " via apt.");
-    os.system("sudo apt install libblas-dev");
+    os.system("conda install libblas-dev");
     print("Installing " +  "lapack" +  " via apt.");
-    os.system("sudo apt install liblapack-dev");
+    os.system("conda install liblapack-dev");
 
 filem = versiondir +  "/Preprocessing/initializepde.py";
 fid = open(filem, "r");

@@ -3,8 +3,8 @@ from numpy import *
 
 def mkelemblocks(ne,ns):
     epsilon = 1e-3
-    
-    ns = min(ns,ne);
+
+    ns = min([ns,ne]);
     nb = floor(ne/ns);  # number of blocks
     na = round(ne/nb); # number of elements per block
     nk = arange(1,ne+epsilon,na,dtype=int32);
