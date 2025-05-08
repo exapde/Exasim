@@ -1,12 +1,6 @@
 #ifndef __READBINARYFILES
 #define __READBINARYFILES
 
-// #include "../AppDriver/inituDriver.cpp"
-// #include "../AppDriver/initqDriver.cpp"
-// #include "../AppDriver/initudgDriver.cpp"
-// #include "../AppDriver/initwdgDriver.cpp"
-// #include "../AppDriver/initodgDriver.cpp"
-
 #include <string>
 
 #ifdef HAVE_MPP
@@ -41,7 +35,8 @@ void readappstruct(string filename, appstruct &app)
     app.vindx = readiarrayfromdouble(in, app.nsize[12]);
     readarray(in, &app.dae_dt, app.nsize[13]);   
     app.interfacefluxmap = readiarrayfromdouble(in, app.nsize[14]);
-
+    readarray(in, &app.avparam, app.nsize[15]);   
+    
     app.szflag = app.nsize[1];
     app.szproblem = app.nsize[2];
     app.szuinf = app.nsize[3];
@@ -56,6 +51,7 @@ void readappstruct(string filename, appstruct &app)
     app.szvindx = app.nsize[12];
     app.szdae_dt = app.nsize[13];
     app.szinterfacefluxmap = app.nsize[14];
+    app.szavparam = app.nsize[15];
 
     #ifdef HAVE_MPP
         char a[50];
@@ -404,90 +400,9 @@ void readsolstruct(string filename, solstruct &sol)
     readarray(in, &sol.odg, sol.nsize[3]);  
     readarray(in, &sol.wdg, sol.nsize[4]);  
     
-//     sol.ne = sol.ndims[0]; // number of elements in this subdomain 
-//     sol.nf = sol.ndims[1]; // number of faces in this subdomain 
-//     sol.nfe = sol.ndims[2]; // number of faces per element        
-//     sol.npe = sol.ndims[3];  // number of nodes on master element
-//     sol.npf = sol.ndims[4];  // number of nodes on master face       
-//     sol.nc = sol.ndims[5]; // number of compoments of (u, q, p)
-//     sol.ncu = sol.ndims[6];// number of compoments of (u)
-//     sol.ncq = sol.ndims[7];// number of compoments of (q)
-//     sol.ncp = sol.ndims[8];// number of compoments of (p)
-//     sol.nco = sol.ndims[9];// number of compoments of (o)
-//     sol.nch = sol.ndims[10];// number of compoments of (uhat)
-//     sol.ncx = sol.ndims[11];// number of compoments of (xdg)
-    
     // Close file:
     in.close();            
 }
-
-// void readsolstructManaged(string filename, solstruct &sol)
-// {
-//     // Open file to read
-//     ifstream in(filename.c_str(), ios::in | ios::binary);
-// 
-//     if (!in) 
-//         error("Unable to open file " + filename);
-//     
-//     printf("Read sol struct from files...\n");  
-// 
-// #ifndef HAVE_CUDA    
-//     sol.lsize = readiarrayfromdouble(in, 1);
-//     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
-//     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);    
-//     readarray(in, &sol.xdg, sol.nsize[1]);
-//     readarray(in, &sol.udg, sol.nsize[2]);    
-//     readarray(in, &sol.odg, sol.nsize[3]);    
-//     readarray(in, &sol.wdg, sol.nsize[4]);    
-// #endif
-//     
-// #ifdef HAVE_CUDA
-//     sol.lsize = readiarrayfromdoubleManaged(in, 1);
-//     sol.nsize = readiarrayfromdoubleManaged(in, sol.lsize[0]);
-//     sol.ndims = readiarrayfromdoubleManaged(in, sol.nsize[0]);    
-//     readarrayManaged(in, &sol.xdg, sol.nsize[1]);
-//     readarrayManaged(in, &sol.udg, sol.nsize[2]);    
-//     readarrayManaged(in, &sol.odg, sol.nsize[3]);    
-//     readarrayManaged(in, &sol.wdg, sol.nsize[4]);    
-// #endif    
-//         
-//     // Close file:
-//     in.close();            
-// }
-
-// void readsolstructZeroCopy(string filename, solstruct &sol)
-// {
-//     // Open file to read
-//     ifstream in(filename.c_str(), ios::in | ios::binary);
-// 
-//     if (!in) 
-//         error("Unable to open file " + filename);
-//     
-//     printf("Read sol struct from files...\n");  
-// 
-// #ifndef HAVE_CUDA    
-//     sol.lsize = readiarrayfromdouble(in, 1);
-//     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
-//     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);    
-//     readarray(in, &sol.xdg, sol.nsize[1]);
-//     readarray(in, &sol.udg, sol.nsize[2]);    
-//     readarray(in, &sol.odg, sol.nsize[3]);    
-//     readarray(in, &sol.wdg, sol.nsize[4]);    
-// #endif
-//     
-// #ifdef HAVE_CUDA
-//     sol.lsize = readiarrayfromdoubleZeroCopy(in, 1);
-//     sol.nsize = readiarrayfromdoubleZeroCopy(in, sol.lsize[0]);
-//     sol.ndims = readiarrayfromdoubleZeroCopy(in, sol.nsize[0]);    
-//     readarrayZeroCopy(in, &sol.xdg, sol.nsize[1]);
-//     readarrayZeroCopy(in, &sol.udg, sol.nsize[2]);    
-//     readarrayZeroCopy(in, &sol.odg, sol.nsize[3]);   
-//     readarrayZeroCopy(in, &sol.wdg, sol.nsize[4]);   
-// #endif    
-//         
-//     // Close file:
-//     in.close();            
-// }
 
 void writesolstruct(string filename, solstruct &sol)
 {    

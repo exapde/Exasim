@@ -8,6 +8,7 @@
 #include "KokkosSource.cpp"
 #include "KokkosSourcew.cpp"
 #include "KokkosOutput.cpp"
+#include "KokkosMonitor.cpp"
 #include "KokkosInitu.cpp"
 #include "KokkosInitq.cpp"
 #include "KokkosInitwdg.cpp"
@@ -96,6 +97,27 @@ void OutputDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* 
 
   KokkosOutput(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);                
+}
+
+void MonitorDriver(dstype* f, Int nc_sol, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+  masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+  commonstruct &common, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)     
+  Int ncm = common.ncm;// number of compoments of (e)
+  Int nd = common.nd;     // spatial dimension    
+  Int npe = common.npe;
+  Int ne = common.ne;
+  Int numPoints = npe*ne;              
+
+  dstype time = common.time;
+
+  KokkosMonitor(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+          common.modelnumber, numPoints, nc_sol, ncu, nd, ncx, nco, ncw, ncm, npe, ne);                
 }
 
 void AvfieldDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 

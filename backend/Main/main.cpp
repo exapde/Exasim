@@ -6,7 +6,7 @@
 #include <string.h>
 //#include <stdlib.h>
 //#include <chrono>
-#include <sys/unistd.h>
+//#include <sys/unistd.h>
 
 
 #ifdef _OPENMP
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
 
     // Get the number of processes    
     MPI_Comm_size(MPI_COMM_WORLD, &mpiprocs);
@@ -154,7 +154,10 @@ int main(int argc, char** argv)
     size_t available, total;
     cudaMemGetInfo(&available, &total);
     
-    std::cout << "MPI Rank: " << mpirank << ", CUDA Device: " << device 
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);
+    
+    std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", CUDA Device: " << device 
               << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
@@ -172,8 +175,11 @@ int main(int argc, char** argv)
     size_t available, total;
     CHECK(hipMemGetInfo(&available, &total));
 
+    int deviceCount = 0;
+    hipGetDeviceCount(&deviceCount);
+    
     // Print memory information
-    std::cout << "MPI Rank: " << mpirank << ", HIP Device: " << device 
+    std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", HIP Device: " << device 
               << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
@@ -282,8 +288,10 @@ int main(int argc, char** argv)
 //     }
 //     else 
     
-    
-    if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
+    if (pdemodel[0]->disc.common.AVdistfunction==1) {
+      avdistfunc(pdemodel, out, nummodels, backend);
+    }    
+    else if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==0)) {
                         
         // initialize 
         for (int i=0; i<nummodels; i++) {
@@ -351,6 +359,149 @@ int main(int argc, char** argv)
             time = time + pdemodel[0]->disc.common.dt[istep];                    
         }                   
     }
+    
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////// Start Pseudo-time step //////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    else if ((pdemodel[0]->disc.common.tdep==1) && (pdemodel[0]->disc.common.runmode==10)) {
+                        
+        // initialize 
+        for (int i=0; i<nummodels; i++) {
+            if (restart>0) {
+                pdemodel[i]->disc.common.currentstep = -1;
+                pdemodel[i]->ReadSolutions(backend);  
+            }            
+            pdemodel[i]->InitSolution(backend);             
+        }
+        
+        // initial time
+        dstype time = pdemodel[0]->disc.common.time;           
+        dstype monitor_diff, monitor_scale, delta_monitor;
+        int NLiters = pdemodel[0]->disc.common.nonlinearSolverMaxIter;
+
+        // time stepping with DIRK schemes
+        for (Int istep=0; istep<pdemodel[0]->disc.common.tsteps; istep++)            
+        {            
+            for (int i=0; i<nummodels; i++) {
+                pdemodel[i]->disc.common.nonlinearSolverMaxIter = 1;
+
+                // current timestep        
+                pdemodel[i]->disc.common.currentstep = istep;
+
+                // store previous solutions to calculate the source term        
+                PreviousSolutions(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.common, backend);
+            }
+                                
+            // compute the solution at the next step
+            for (Int j=0; j<pdemodel[0]->disc.common.tstages; j++) {     
+                
+                if (pdemodel[0]->disc.common.mpiRank==0)
+                    printf("\nTimestep :  %d,  Timestage :  %d,   Time : %g\n",istep+1,j+1,time + pdemodel[0]->disc.common.dt[istep]*pdemodel[0]->disc.common.DIRKcoeff_t[j]);                                
+                
+                for (int i=0; i<nummodels; i++) {
+                    // auto begin = chrono::high_resolution_clock::now();   
+                    
+                    // current timestage
+                    pdemodel[i]->disc.common.currentstage = j;
+
+                    // current time
+                    pdemodel[i]->disc.common.time = time + pdemodel[i]->disc.common.dt[istep]*pdemodel[i]->disc.common.DIRKcoeff_t[j];
+        
+                    // update source term             
+                    UpdateSource(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.app, pdemodel[i]->disc.res, pdemodel[i]->disc.common, backend);
+                    
+                    // solve the problem 
+                    pdemodel[i]->SteadyProblem(out[i], backend);                             
+
+                    // update solution 
+                    UpdateSolution(pdemodel[i]->disc.sol, pdemodel[i]->solv.sys, pdemodel[i]->disc.app, pdemodel[i]->disc.res, pdemodel[i]->disc.tmp, pdemodel[i]->disc.common, backend);
+                    
+                    // TODO: input wprev
+                    pdemodel[i]->disc.evalMonitor(pdemodel[i]->disc.tmp.tempn,  pdemodel[i]->disc.sol.udg, pdemodel[i]->disc.sol.wdg, pdemodel[i]->disc.common.nc, backend);
+                    pdemodel[i]->disc.evalMonitor(pdemodel[i]->disc.tmp.tempg,  pdemodel[i]->solv.sys.udgprev, pdemodel[i]->solv.sys.wprev, pdemodel[i]->disc.common.ncu, backend);
+                    
+                    ArrayAXPBY(pdemodel[i]->disc.tmp.tempn, pdemodel[i]->disc.tmp.tempn, pdemodel[i]->disc.tmp.tempg, 1.0, -1.0, pdemodel[i]->disc.common.npe*pdemodel[i]->disc.common.ncm*pdemodel[i]->disc.common.ne);            
+                    
+                    monitor_diff  = PNORM(pdemodel[i]->disc.common.cublasHandle,  pdemodel[i]->disc.common.npe*pdemodel[i]->disc.common.ncm*pdemodel[i]->disc.common.ne, pdemodel[i]->disc.tmp.tempn, backend);
+                    monitor_scale = PNORM(pdemodel[i]->disc.common.cublasHandle, pdemodel[i]->disc.common.npe*pdemodel[i]->disc.common.ncm*pdemodel[i]->disc.common.ne,  pdemodel[i]->disc.tmp.tempg, backend);
+
+                    delta_monitor = monitor_diff / monitor_scale;
+                    std::cout << "delta_monitor: " << delta_monitor << std::endl;
+
+                    if ((delta_monitor > 1.0 || pdemodel[i]->solv.sys.alpha < 0.1))
+                    {
+                        std::cout << "Linesearch failed or large change in solution: reducing timestep" << std::endl;
+                        
+                        // Revert time step
+                        pdemodel[i]->disc.common.time = pdemodel[i]->disc.common.time - pdemodel[i]->disc.common.dt[istep]*pdemodel[i]->disc.common.DIRKcoeff_t[j];
+
+                        // Copy udg old to udg
+                        ArrayCopy(pdemodel[i]->disc.sol.udg, pdemodel[i]->solv.sys.udgprev, pdemodel[i]->disc.common.npe*pdemodel[i]->disc.common.ncu*pdemodel[i]->disc.common.ne2);
+
+                        // Compute a new UH
+                        GetFaceNodes(pdemodel[i]->disc.sol.uh, pdemodel[i]->disc.sol.udg, pdemodel[i]->disc.mesh.f2e, pdemodel[i]->disc.mesh.perm, pdemodel[i]->disc.common.npf, pdemodel[i]->disc.common.ncu, pdemodel[i]->disc.common.npe, pdemodel[i]->disc.common.nc, pdemodel[i]->disc.common.nf);
+
+                        // Recompute gradient from udg old
+                        hdgGetQ(pdemodel[i]->disc.sol.udg, pdemodel[i]->disc.sol.uh, pdemodel[i]->disc.sol, pdemodel[i]->disc.res, pdemodel[i]->disc.mesh, pdemodel[i]->disc.tmp, pdemodel[i]->disc.common, backend);
+    
+                        // decrease timestep by 10
+                        pdemodel[i]->disc.common.dt[istep+1] = pdemodel[i]->disc.common.dt[istep] / 10;
+                        std::cout << "next time step: " << pdemodel[i]->disc.common.dt[istep+1] << std::endl;
+                        if (pdemodel[i]->disc.common.dt[istep+1] < 1e-8){
+                            std::cout << "WARNING: PTC stalled" << std::endl;
+                            istep = pdemodel[0]->disc.common.tsteps+1;
+                        }
+                    }
+                    else if (delta_monitor < 0.1)
+                    {
+                        if (pdemodel[i]->disc.common.linearSolverIter < 200){
+                            // increase timestep by 2
+                            pdemodel[i]->disc.common.dt[istep+1] = pdemodel[i]->disc.common.dt[istep]*2;
+                        }
+                        else{
+                            std::cout << "Too many GMRES iterations, not increasing timestep" << std::endl;
+                            pdemodel[i]->disc.common.dt[istep+1] = pdemodel[i]->disc.common.dt[istep]*1;
+                        }
+                        
+
+                        if (delta_monitor < 1e-4 && pdemodel[i]->disc.common.dt[istep] > 1e-3)
+                        {
+                            std::cout << "Steady solve..." << std::endl;
+                            pdemodel[i]->disc.common.tdep=0;
+                            pdemodel[i]->disc.common.nonlinearSolverMaxIter = NLiters;
+                            pdemodel[i]->SolveProblem(out[i], backend);
+                            istep = pdemodel[0]->disc.common.tsteps+1;
+                            // Solve steady and terminate
+                        }    
+                    }
+                }
+            }
+        
+            for (int i=0; i<nummodels; i++) {
+                //compute time-average solution
+                if (pdemodel[i]->disc.common.compudgavg == 1) {
+                    ArrayAXPBY(pdemodel[i]->disc.sol.udgavg, pdemodel[i]->disc.sol.udgavg, pdemodel[i]->disc.sol.udg, one, one, pdemodel[i]->disc.common.ndofudg1);            
+                    ArrayAddScalar(&pdemodel[i]->disc.sol.udgavg[pdemodel[i]->disc.common.ndofudg1], one, 1);
+                }
+
+                // save solutions into binary files                
+                pdemodel[i]->SaveSolutions(backend); 
+                pdemodel[i]->SaveSolutionsOnBoundary(backend); 
+                if (pdemodel[i]->disc.common.nce>0)
+                    pdemodel[i]->SaveOutputCG(backend);                
+            }
+            
+            // update time
+            time = time + pdemodel[0]->disc.common.dt[istep];                    
+        }                   
+    }
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////// End Pseudo-time step //////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
     else {        
         for (int i=0; i<nummodels; i++) {                                
             if (pdemodel[i]->disc.common.runmode==0) {

@@ -1,7 +1,7 @@
 ################################################################################                   
 #                                     EXASIM
 # 
-# Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
+# Contributing authors: Ngoc Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
 ################################################################################
 
 cmake_minimum_required(VERSION 3.20)
@@ -64,7 +64,14 @@ if(EXASIM_CUDA)
       endif()
     endif()
 elseif(EXASIM_HIP)
-    set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildhip)
+    if(EXASIM_TUOLUMNE)
+      set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildtuolumne)
+    else()
+      set(Kokkos_DIR ${EXASIM_DIR}/kokkos/buildhip)
+    endif()
+
+    message(${Kokkos_DIR})
+
     find_package(Kokkos REQUIRED)
 
     enable_language(HIP)

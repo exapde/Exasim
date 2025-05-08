@@ -13,7 +13,19 @@ public:
     CSolution(string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend)   
        : disc(filein, fileout, mpiprocs, mpirank, fileoffset, omprank, backend),
          prec(disc, backend),
-         solv(disc, backend) { };        
+         solv(disc, backend) { 
+       
+//           disc.common.printinfo();
+//           disc.app.printinfo();
+//           disc.res.printinfo();
+//           disc.tmp.printinfo();
+//           disc.sol.printinfo();
+//           disc.mesh.printinfo();
+//           disc.master.printinfo();       
+//           prec.precond.printinfo();
+//           solv.sys.printinfo();
+//           error("here");
+       };        
     
     // destructor        
     ~CSolution(){  }; 

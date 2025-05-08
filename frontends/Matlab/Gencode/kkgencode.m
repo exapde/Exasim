@@ -105,6 +105,12 @@ if isfield(pde, 'output')
 else    
     kknocodeelem2("Output" + strn, kkdir);
 end
+if isfield(pde, 'monitor')
+    f = pde.monitor(u, q, wdg, odg, xdg, time, param, uinf);
+    kkgencodeelem2("Monitor" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);
+else    
+    kknocodeelem2("Monitor" + strn, kkdir);
+end
 if isfield(pde, 'fbou')    
     f = pde.fbou(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
     f = reshape(f,ncu,[]);

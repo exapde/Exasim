@@ -120,9 +120,6 @@ void FaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct
         Int f2 = common.fblks[3*j+1];       
         //Int ib = common.fblks[3*j+2];    
         FaceGeomBlock(sol, master, mesh, tmp, common, handle, f1, f2, backend);                
-        //printf("%i %i %i %i %i %i\n", j, f1, f2, ib, ngf, nd);  
-        //printArray2D(tmp.tempg, ngf*(f2-f1), (ncx+nd+1), backend);
-        //printArray2D(&mesh.facecon[2*f1], 2, f2-f1, backend);
         ArrayCopy(&sol.faceg[ngf*f1*(ncx+nd+1)], tmp.tempg, ngf*(f2-f1)*(ncx+nd+1));  
     }        
 }

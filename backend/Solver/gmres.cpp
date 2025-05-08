@@ -96,8 +96,6 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
                 sys.lam[i-1] = lmin + (lmax-lmin)*(0.5 - 0.5*cos((2*i-1)*M_PI/(2*m))/cos(M_PI/(2*m)));            
             LejaSort(&sys.lam[2*m], &sys.lam[3*m], sys.lam, &sys.lam[3*m], &sys.lam[4*m], m);
         }        
-//         for (int i=0; i<disc.common.ppdegree; i++)
-//             if (disc.common.mpiRank==0) cout<<sys.lam[2*disc.common.ppdegree+i]<<"  "<<sys.lam[3*disc.common.ppdegree+i]<<endl;
     }    
     
     // compute b
@@ -284,7 +282,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     INIT_TIMING;    
     
     Int maxit, nrest, orthogMethod, n1, i, k, j = 0;
-    dstype nrmb, nrmr, tol, scalar;
+    dstype nrm, nrmb, nrmr, tol, scalar;
     maxit = disc.common.linearSolverMaxIter;
     nrest = disc.common.gmresRestart;
     orthogMethod = disc.common.gmresOrthogMethod;
@@ -319,24 +317,14 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         }        
     }    
     
-    nrmb = PNORM(disc.common.cublasHandle, N, sys.b, backend);       
+    nrmb = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.b, backend);       
     if (nrmb < disc.common.nonlinearSolverTol) {
         ArraySetValue(sys.x, zero, N);
         return 0;
     }
-    //cout<<"||b|| = "<<nrmb<<endl;
-
-    scalar = PNORM(disc.common.cublasHandle, N, sys.x, backend);      
-    // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
-    //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.b, backend);
-    //   nrmb = sqrt(nrmb*nrmb - 0.5*nrm*nrm);
-    //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.x, backend);
-    //   scalar = sqrt(scalar*scalar - 0.5*nrm*nrm);
-    // }                
-    //cout<<"||x|| = "<<scalar<<endl;
-
+    scalar = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.x, backend);      
+    
     dstype alpha = spatialScheme == 0 ? minusone : one;
-
     if (scalar>1e-12) {
         // r = A*x
         disc.evalMatVec(sys.r, sys.x, sys.u, sys.b, spatialScheme, backend);
@@ -345,7 +333,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         ArrayAXPBY(sys.r, sys.b, sys.r, alpha, minusone, N);    
         
         // norm of the new RHS vector
-        nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
+        nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.r, backend);
         // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
         //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.b, backend);
         //   nrmr = sqrt(nrmr*nrmr - 0.5*nrm*nrm);
@@ -372,28 +360,16 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     }
     
     // compute ||r||
-    nrmb = PNORM(disc.common.cublasHandle, N, sys.r, backend);    
-    // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
-    //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.r, backend);
-    //   nrmb = sqrt(nrmb*nrmb - 0.5*nrm*nrm);
-    // }                
+    nrmb = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.r, backend);    
     nrmr = nrmb;
-
-    //cout<<"||P*r|| = "<<nrmb<<endl; 
-    // error("here");
-            
+                
+    //printf("%d %d %d %d %g\n", N, disc.common.nf, disc.common.ne, disc.common.ninterfacefaces, nrmr);
+    
     j = 0;
     while (j < maxit) {
         // v = r/||r||
         ArrayAXPB(sys.v, sys.r, one/nrmr, zero, N);
         
-        dstype nrmv = PNORM(disc.common.cublasHandle, N, sys.v, backend);
-        // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
-        //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.v, backend);          
-        //   nrmv = sqrt(nrmv*nrmv - 0.5*nrm*nrm);
-        // }                
-        //cout<<"||v|| = "<<nrmv<<endl; 
-
         // initialize s
         s[0] = nrmr;
         for (k=1; k<n1; k++)
@@ -406,18 +382,10 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
 
             // compute v[m] = A*v[i]
             disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, spatialScheme, backend);                        
-            nrmv = PNORM(disc.common.cublasHandle, N, &sys.v[m*N], backend);
             
             end = chrono::high_resolution_clock::now();   
             tm[0] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
             
-            // if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
-            //   nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, &sys.v[m*N], backend);
-            //   nrmv = sqrt(nrmv*nrmv - 0.5*nrm*nrm);
-            // }                
-            //cout<<"||v|| = "<<nrmv<<endl;                         
-            //error("here");
-
             begin = chrono::high_resolution_clock::now();   
             
             // compute v[m] = P*v[m]
@@ -431,16 +399,12 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             
             end = chrono::high_resolution_clock::now();   
             tm[1] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
-
-            // nrmv = PNORM(disc.common.cublasHandle, N, &sys.v[m*N], backend);
-            // cout<<"||v|| = "<<nrmv<<endl;         
-            // error("here");                                                    
                         
             // orthogonalize Krylov vectors
             begin = chrono::high_resolution_clock::now();   
             //CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             if (orthogMethod == 0)
-                MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, backend);
+                MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, disc.common.ndofuhatinterface, backend);
             else
                 CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             
@@ -490,7 +454,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
         }
         
         // compute relative error
-        nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
+        nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.r, backend);
         disc.common.linearSolverRelError = nrmr/nrmb;
         
         // check convergence

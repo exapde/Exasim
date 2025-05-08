@@ -232,9 +232,6 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iomanip \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/sstream \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iostream \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/unistd.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_posix_vdisable.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/include/sys/_types/_seek_set.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Core.hpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Core_fwd.hpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/kokkos/core/src/Kokkos_Macros.hpp \
@@ -452,6 +449,8 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgFlux.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgFbou.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgFbouonly.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgFint.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgFintonly.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgSource.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgSourcew.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Discretization/../Model/HdgSourcewonly.cpp \
@@ -482,7 +481,7 @@ CMakeFiles/cpuEXASIM.dir/Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/main.c
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/solution.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/solution.h \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/previoussolutions.cpp \
-  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/savesolutions.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/updatesolution.cpp \
   /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/updatesource.cpp \
-  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/timestepcoeff.cpp
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/timestepcoeff.cpp \
+  /Users/ngoccuongnguyen/GitHub/Exasim/backend/Main/../Solution/avsolution.cpp

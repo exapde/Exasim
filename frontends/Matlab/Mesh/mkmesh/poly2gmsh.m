@@ -26,6 +26,7 @@ function poly2gmsh(fname, pv, h)
     fprintf(fid, 'Line Loop(%d) = {%s};\n', npv, str);
     fprintf(fid, 'Plane Surface(1) = {%d};\n', npv);
     fprintf(fid, 'Recombine Surface {1};\n');    
+    %fprintf(fid, 'Mesh.RecombineAll = 1;\n');    
 
     fclose(fid);
 

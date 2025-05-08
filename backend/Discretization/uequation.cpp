@@ -56,10 +56,6 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     dstype *sg_w = &tmp.tempg[n10];    
     dstype *wg_uq = &tmp.tempg[n11];    
 
-//     cout<<"n = "<<n11 + nga*nc*ncw<<", sz = "<<tmp.sztempg<<endl;    
-//     if (n11 + nga*nc*ncw > tmp.sztempg)
-//       error("tempg is out of bound");
-
     // udg = tmp.tempg[n3] at gauss points on element
     GetElemNodes(tmp.tempn, sol.udg, npe, nc, 0, nc, e1, e2);
     //GetArrayAtIndex(tmp.tempn, sol.udg, &mesh.eindudg1[npe*nc*e1], nn*nc); // npe x ne x nc
@@ -123,13 +119,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
         // sg_uq = sg_uq + sg_w * wg_uq -> ng * ncu * nc = ng * ncu * nc + (ng * ncu * ncw) * (ng * ncw * nc)
         ArrayGemmBatch2(sg_uq, sg_w, wg_uq, 1.0, ncu, nc, ncw, nga);
         // fg_uq = fg_uq + fg_w * wg_uq -> ng * ncu*nd * nc = ng * ncu*nd * nc + (ng * ncu*nd * ncw) * (ng * ncw * nc)
-        ArrayGemmBatch2(fg_uq, fg_w, wg_uq, 1.0, ncu*nd, nc, ncw, nga);   
-        
-//         print2darray(sg_w, 1, nga);
-//         print2darray(fg_w, nga, nd);
-//         print2darray(sg_uq, nga, nc);        
-//         print2darray(fg_uq, nga, nd*nc);        
-//         error("here");               
+        ArrayGemmBatch2(fg_uq, fg_w, wg_uq, 1.0, ncu*nd, nc, ncw, nga);           
     }        
     
     // Ru = npe * ne * ncu 
@@ -147,13 +137,6 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
       Gauss2Node(handle, res.B, tmp.tempn, master.shapegwdotshapeg, nge*(nd+1), npe*npe, ncu*ncq*ne, backend);        
       ArrayMultiplyScalar(res.B, minusone, npe * npe * ne * ncu * ncq );         
     }    
-
-    // dstype nrm[10];    
-    // nrm[0] = PNORM(common.cublasHandle, npe*ncu*ne, &res.Ru[npe*ncu*e1], backend);       
-    // nrm[1] = PNORM(common.cublasHandle, npe*npe*ncu*ncq*ne, res.B, backend);            
-    // nrm[2] = PNORM(common.cublasHandle, npe*npe*ncu*ncu*ne, res.D, backend);            
-    // cout<<"npe = "<<npe<<", ncu = "<<ncu<<", ncq = "<<ncq<<", ne = "<<ne<<endl;
-    // cout<<"||Ru|| = "<<nrm[0]<<", ||B|| = "<<nrm[1]<<", ||D|| = "<<nrm[2]<<endl; 
 
     if (common.debugMode==1) {      
       string filename;
@@ -266,12 +249,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
             
     FhatDriver(fh, fh_uq, fh_w, fh_uh, xg, udg, odg, wdg, uhg, nlg, 
         mesh, master, app, sol, tmp, common, nga, backend);      
-    
-//     print2darray(udg, ngf*nfe, nc, nga, nc);
-//     print2darray(wdg, ngf*nfe, ncw, nga, ncw);
-//     print2darray(uhg, ngf*nfe, ncu, nga, ncu);
-//     print2darray(fh, ngf*nfe, ncu, nga, ncu);
-    
+        
     if ((ncw>0) & (common.wave==0)) {
       ArrayGemmBatch2(fh_uh, fh_w, wdg_uq, one, ncu, ncu, ncw, nga); // fix bug here       
       
@@ -342,13 +320,8 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         dstype *fhb_w = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc];
         dstype *fhb_uh = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw];
         dstype *wgb_uq = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu];
-        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
-        
-//         int nn1 = n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu + ngb*ncw*nc;
-//         cout<<"n = "<<nn1<<", sz = "<<tmp.sztempg<<endl;
-//         if (n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu + ngb*ncw*nc > tmp.sztempg)
-//           error("tempg is out of bound");
-
+        //dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
+                
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
         GetBoundaryNodes(ogb, odg, &mesh.boufaces[start], ngf, nfe, ne, nco, nfaces);
@@ -364,7 +337,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
           // replace u with uhat 
           ArrayCopy(res.K, uhb, ngb*ncu);
         
-          wEquation(wgb, wgb_uq, xgb, res.K, ogb, wsb, Rb, app, common, ngb, backend);          
+          wEquation(wgb, wgb_uq, xgb, res.K, ogb, wsb, &res.K[ngb*nc], app, common, ngb, backend);          
           
           // wEquation(wgb, wgb_uq, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
@@ -377,12 +350,6 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         FbouDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
 
-        //print2darray(xgb, ngb, ncx);     
-        // print2darray(nlb, ngb, nd);     
-        // print2darray(ugb, ngb, nc);     
-        // print2darray(uhb, ngb, ncu);     
-        // print2darray(fhb_uq, ngb*ncu, nc);     
-
         if ((ncw>0) & (common.wave==0)) {      
           // void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype alpha, const int I, const int J, const int K, const int S)
           // C[S*I*J] = A[S*I*K] x B[S*K*J] + C[S*I*J]
@@ -390,15 +357,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
           //ArraySetValue(wgb_uq, 0.0, ngb*ncu*ncu);          
           ArraySetValue(wgb_uq, 0.0, ngb*ncw*ncu);          
           ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu, nc, ncw, ngb);  // fix bug here            
-          //ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu, nc, ncw, ngb);  // fix bug here   
-          
-//           print2darray(xgb, ngb, ncx);     
-//           print2darray(nlb, ngb, nd);     
-//           print2darray(ugb, ngb, nc);    
-//           print2darray(uhb, ngb, ncu);     
-//           print2darray(wgb_uq, ngb*ncw, nc);     
-//           print2darray(fhb_w, ngb*ncu, ncu);     
-//           print2darray(fhb_uq, ngb*ncu, nc);     
+          //ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu, nc, ncw, ngb);  // fix bug here                 
         }
 
         dstype *jacb = &tmp.tempg[n8];
@@ -407,6 +366,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         columnwiseMultiply(fhb_uq, fhb_uq, jacb, ngb, ncu*nc);
         columnwiseMultiply(fhb_uh, fhb_uh, jacb, ngb, ncu*ncu);
 
+        dstype *Rb =  res.K;
         Gauss2Node(handle, Rb, fhb, master.shapfgw, ngf, npf, nfaces*ncu, backend);                
         PutBoundaryNodes(Rutmp, Rb, &mesh.boufaces[start], npf, nfe, ne, ncu, nfaces);        
 
@@ -438,107 +398,6 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
 
     // npf*npf*nfe*ne*ncu*ncu -> npf*nfe*npf*nfe*ne*ncu*ncu
     assembleMatrixH(&res.H[npf*nfe*npf*nfe*ncu*ncu*e1], Ftmp, mesh.perm, npe, npf, nfe, ne*ncu*ncu);
-
-//     // impose interface conditions
-//     for (int ibc=0; ibc<common.maxnbc; ibc++)
-//     {
-//       int n = ibc + common.maxnbc*jth;
-//       int start = common.nboufaces[n];
-//       int nfaces = common.nboufaces[n + 1] - start;
-//       if ((nfaces>0) && (common.eblks[3*jth+2]==-1) && (common.coupledboundarycondition == ibc+1) && (common.coupledcondition>0)) {        
-//         int ncu12 = common.szinterfacefluxmap;
-//         
-//         printf("%d %d %d %d %d %d %d %d %d %d %d\n", common.mpiRank, common.eblks[3*jth], common.eblks[3*jth+1], common.eblks[3*jth+2], ibc, common.coupledinterface, common.coupledcondition, common.coupledboundarycondition, common.ncie, ne, ncu12);
-//                         
-//         int ngb = nfaces*ngf;
-//         dstype *xgb = &tmp.tempg[n8];
-//         dstype *ugb = &tmp.tempg[n8 + ngb*ncx];
-//         dstype *ogb = &tmp.tempg[n8 + ngb*ncx + ngb*nc];
-//         dstype *wgb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco]; 
-//         dstype *uhb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw];
-//         dstype *nlb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu];
-//         dstype *wsb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd];
-//         dstype *fhb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw];
-//         dstype *fhb_uq = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu];
-//         dstype *fhb_w = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc];
-//         dstype *fhb_uh = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw];
-//         dstype *wgb_uq = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw + ngb*ncu + ngb*ncu*nc + ngb*ncu*ncw + ngb*ncu*ncu];               
-//         
-//         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
-//         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
-//         GetBoundaryNodes(ogb, odg, &mesh.boufaces[start], ngf, nfe, ne, nco, nfaces);
-//         GetBoundaryNodes(wgb, wdg, &mesh.boufaces[start], ngf, nfe, ne, ncw, nfaces);
-//         GetBoundaryNodes(wsb, wsrc, &mesh.boufaces[start], ngf, nfe, ne, ncw, nfaces);
-//         GetBoundaryNodes(uhb, uhg, &mesh.boufaces[start], ngf, nfe, ne, ncu, nfaces);
-//         GetBoundaryNodes(nlb, nlg, &mesh.boufaces[start], ngf, nfe, ne, nd, nfaces);
-// 
-//         if ((ncw>0) & (common.wave==0)) {
-//           dstype *temp1 =  &tmp.tempn[0];
-//           dstype *temp2 =  &tmp.tempn[ngb*nc];
-//           
-//           // copy (u, q) to temp1
-//           ArrayCopy(temp1, ugb, ngb*nc);
-//         
-//           // replace u with uhat 
-//           ArrayCopy(temp1, uhb, ngb*ncu);
-//         
-//           wEquation(wgb, wgb_uq, xgb, temp1, ogb, wsb, temp2, app, common, ngb, backend);                    
-//         }                
-//                 
-//         // intialize fhb, fhb_uq, fhb_w, fhb_uh to zero 
-//         ArraySetValue(fhb, 0.0, ngb*ncu12);
-//         ArraySetValue(fhb_uq, 0.0, ngb*ncu12*nc);
-//         ArraySetValue(fhb_uh, 0.0, ngb*ncu12*ncu);
-//         if (ncw > 0) ArraySetValue(fhb_w, 0.0, ngb*ncu12*ncw);        
-//         FintDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
-//              mesh, master, app, sol, tmp, common, ngb, common.coupledcondition, backend);    
-// 
-//         if ((ncw>0) & (common.wave==0)) {          
-//           ArrayGemmBatch2(fhb_uh, fhb_w, wgb_uq, one, ncu12, ncu, ncw, ngb);  // fix bug here             
-//           ArraySetValue(wgb_uq, 0.0, ngb*ncw*ncu);          
-//           ArrayGemmBatch2(fhb_uq, fhb_w, wgb_uq, one, ncu12, nc, ncw, ngb);  // fix bug here                      
-//         }
-// 
-//         dstype *jacb = &tmp.tempg[n8];
-//         GetBoundaryNodes(jacb, jac, &mesh.boufaces[start], ngf, nfe, ne, 1, nfaces);
-//         columnwiseMultiply(fhb, fhb, jacb, ngb, ncu12);
-//         columnwiseMultiply(fhb_uq, fhb_uq, jacb, ngb, ncu12*nc);
-//         columnwiseMultiply(fhb_uh, fhb_uh, jacb, ngb, ncu12*ncu);
-// 
-//         dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
-//         
-//         ArraySetValue(Rutmp, 0.0, npf*nfe*ne*ncu12);        
-//         Gauss2Node(handle, Rb, fhb, master.shapfgw, ngf, npf, nfaces*ncu12, backend);                
-//         PutBoundaryNodes(Rutmp, Rb, &mesh.boufaces[start], npf, nfe, ne, ncu12, nfaces);        
-//         // npf*nfe*ne*ncu -> npf*nfe*ne*ncu
-//         ArrayAXPB(res.Ri, Rutmp, minusone, zero, npf*nfe*ne*ncu12);        
-//         //ArrayAXPB(res.Ri, Rb, minusone, zero, npf*nfaces*ncu12);
-//         
-//         ArraySetValue(Dtmp, 0.0, npf*nfe*npe*ne*ncu12*ncu);  
-//         ArraySetValue(res.Ki, zero, npf*nfe*npe*ne*ncu12*ncu);
-//         Gauss2Node(handle, Rb, fhb_uq, master.shapfgwdotshapfg, ngf, npf*npf, nfaces*ncu12*ncu, backend);
-//         PutBoundaryNodes(Dtmp, Rb, &mesh.boufaces[start], npf*npf, nfe, ne, ncu12*ncu, nfaces);
-//         // npf*npf*nfe*ne*ncu*ncu -> npf*nfe*npe*ne*ncu*ncu        
-//         assembleMatrixGK(res.Ki, Dtmp, mesh.perm, npe, npf, nfe, ne*ncu12*ncu);
-//         
-//         if (ncq > 0) {
-//           ArraySetValue(Btmp, 0.0, npf*nfe*npe*ne*ncu12*ncq);
-//           ArraySetValue(res.Gi, zero, npf*nfe*npe*ne*ncu12*ncq);
-//           Gauss2Node(handle, Rb, &fhb_uq[ngb*ncu12*ncu], master.shapfgwdotshapfg, ngf, npf*npf, nfaces*ncu12*ncq, backend);          
-//           PutBoundaryNodes(Btmp, Rb, &mesh.boufaces[start], npf*npf, nfe, ne, ncu12*ncq, nfaces);
-//           // npf*npf*nfe*ne*ncu*ncq -> npf*nfe*npe*ne*ncu*ncq          
-//           assembleMatrixGK(res.Gi, Btmp, mesh.perm, npe, npf, nfe, ne*ncu12*ncq);
-//         }
-//         
-//         ArraySetValue(Ftmp, 0.0, npf*npf*nfe*ne*ncu12*ncu);
-//         ArraySetValue(res.Hi, zero, npf*nfe*npf*nfe*ne*ncu12*ncu);
-//         Gauss2Node(handle, Rb, fhb_uh, master.shapfgwdotshapfg, ngf, npf*npf, nfaces*ncu12*ncu, backend);
-//         PutBoundaryNodes(Ftmp, Rb, &mesh.boufaces[start], npf*npf, nfe, ne, ncu12*ncu, nfaces);        
-//         // npf*npf*nfe*ne*ncu12*ncu -> npf*nfe*npf*nfe*ne*ncu12*ncu       
-//         assembleMatrixH(res.Hi, Ftmp, mesh.perm, npe, npf, nfe, ne*ncu12*ncu);                              
-//         
-//       }      
-//     }
 
     // impose interface conditions
     for (int ibc=0; ibc<common.maxnbc; ibc++)
@@ -631,22 +490,6 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
       }      
     }
     
-    // dstype nrm[10];    
-    // nrm[0] = PNORM(common.cublasHandle, npe*ncu*ne, &res.Ru[npe*ncu*e1], backend);       
-    // nrm[1] = PNORM(common.cublasHandle, npe*npe*ncu*ncq*ne, res.B, backend);            
-    // nrm[2] = PNORM(common.cublasHandle, npe*npe*ncu*ncu*ne, res.D, backend);            
-    // nrm[3] = PNORM(common.cublasHandle, npf*nfe*ne*ncu, &res.Rh[npf*nfe*ncu*e1], backend);       
-    // nrm[4] = PNORM(common.cublasHandle,  npe*npf*nfe*ncu*ncu*ne, &res.F[npe*npf*nfe*ncu*ncu*e1], backend);            
-    // nrm[5] = PNORM(common.cublasHandle,  npf*nfe*npe*ne*ncu*ncu, res.K, backend);            
-    // nrm[6] = PNORM(common.cublasHandle,  npf*nfe*npe*ne*ncu*ncq, res.G, backend);            
-    // nrm[7] = PNORM(common.cublasHandle,  npf*nfe*npf*nfe*ne*ncu*ncu, &res.H[npf*nfe*npf*nfe*ncu*ncu*e1], backend);            
-
-    // cout<<"e1 = "<<e1<<", e2 = "<<e2<<endl;
-    // cout<<"npe = "<<npe<<", npf = "<<npf<<", nfe = "<<nfe<<", ncu = "<<ncu<<", ncq = "<<ncq<<", ne = "<<ne<<endl;
-    // cout<<"||Ru|| = "<<nrm[0]<<", ||B|| = "<<nrm[1]<<", ||D|| = "<<nrm[2]<<endl; 
-    // cout<<"||Rh|| = "<<nrm[3]<<", ||F|| = "<<nrm[4]<<", ||K|| = "<<nrm[5]<<endl; 
-    // cout<<"||G|| = "<<nrm[6]<<", ||H|| = "<<nrm[7]<<endl; 
-
   if (common.debugMode==1) {    
     string filename;
     if (common.mpiProcs==1)
@@ -681,38 +524,44 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     Int m = npf*nfe*ncu;
     dstype *DinvF = &res.F[n*m*e1];    
     dstype *Ru = &res.Ru[n*e1];
-    dstype *DinvH =&res.H[m*m*e1];
+    dstype *DinvH = &res.H[m*m*e1];
     dstype *Rh = &res.Rh[m*e1];
 
-    dstype *D = tmp.tempn;
-    dstype *F = &tmp.tempn[npe*ncu*npe*ncu*ne];
-    dstype *K = &tmp.tempn[npe*ncu*npe*ncu*ne + npe*npf*nfe*ncu*ncu*ne];
-    dstype *H = &tmp.tempn[npe*ncu*npe*ncu*ne + npe*npf*nfe*ncu*ncu*ne + npe*npf*nfe*ncu*ncu*ne];
+//     dstype *D = tmp.tempn;
+//     dstype *F = &tmp.tempn[npe*ncu*npe*ncu*ne];
+//     dstype *K = &tmp.tempn[npe*ncu*npe*ncu*ne + npe*npf*nfe*ncu*ncu*ne];
+//     dstype *H = &tmp.tempn[npe*ncu*npe*ncu*ne + npe*npf*nfe*ncu*ncu*ne + npe*npf*nfe*ncu*ncu*ne];
+// 
+//     // npe * npe * ne * ncu * ncu -> npe * ncu * npe * ncu * ne
+//     schurMatrixD(D, res.D, npe, ncu, ne);
+//     // npe * npf * nfe * ne * ncu * ncu -> npe * ncu * ncu * npf * nfe * ne
+//     schurMatrixF(F, &res.F[n*m*e1], npe, ncu, npf, nfe, ne);
+//     // npf * nfe * npe * ne * ncu * ncu -> ncu * npf * nfe * npe * ncu * ne
+//     schurMatrixK(K, res.K, npe, ncu, ncu, npf, nfe, ne);    
+//     // npf * nfe * npf * nfe * ne * ncu * ncu -> ncu * npf * nfe * ncu * npf * nfe * ne
+//     schurMatrixH(H, &res.H[m*m*e1], ncu, ncu, npf, nfe, ne);
+
+    dstype *D = res.D;
+    dstype *K = res.K;
+    dstype *F = &res.F[n*m*e1];
+    dstype *H = &res.H[m*m*e1];
 
     // npe * npe * ne * ncu * ncu -> npe * ncu * npe * ncu * ne
-    schurMatrixD(D, res.D, npe, ncu, ne);
-    // npe * npf * nfe * ne * ncu * ncu -> npe * ncu * ncu * npf * nfe * ne
-    schurMatrixF(F, &res.F[n*m*e1], npe, ncu, npf, nfe, ne);
+    schurMatrixD(tmp.tempn, res.D, npe, ncu, ne);
+    ArrayCopy(D, tmp.tempn, n * n * ne);
+            
     // npf * nfe * npe * ne * ncu * ncu -> ncu * npf * nfe * npe * ncu * ne
-    schurMatrixK(K, res.K, npe, ncu, ncu, npf, nfe, ne);    
+    schurMatrixK(tmp.tempn, res.K, npe, ncu, ncu, npf, nfe, ne);    
+    ArrayCopy(K, tmp.tempn, n * m * ne);
+    
     // npf * nfe * npf * nfe * ne * ncu * ncu -> ncu * npf * nfe * ncu * npf * nfe * ne
-    schurMatrixH(H, &res.H[m*m*e1], ncu, ncu, npf, nfe, ne);
-
-    // dstype nrm[10];    
-    // nrm[0] = PNORM(common.cublasHandle, npe*npe*ncu*ncu*ne, D, backend);       
-    // nrm[1] = PNORM(common.cublasHandle, npe*npf*nfe*ncu*ncu*ne, F, backend);       
-    // nrm[2] = PNORM(common.cublasHandle,  npe*npf*nfe*ne*ncu*ncu, K, backend);            
-    // nrm[3] = PNORM(common.cublasHandle,  npf*nfe*npf*nfe*ne*ncu*ncu, H, backend);            
-
-    // cout<<"||D|| = "<<nrm[0]<<", ||F|| = "<<nrm[1]<<", ||K|| = "<<nrm[2]<<", ||H|| = "<<nrm[3]<<endl;     
-
-    // nrm[0] = PNORM(common.cublasHandle, npe*npe*common.ne, res.C, backend);       
-    // nrm[1] = PNORM(common.cublasHandle, npe*npe*common.ne, &res.C[npe*npe*common.ne], backend);       
-    // nrm[2] = PNORM(common.cublasHandle,  npe*npf*nfe*common.ne, res.E, backend);            
-    // nrm[3] = PNORM(common.cublasHandle,  npe*npf*nfe*common.ne, &res.E[npe*npf*nfe*common.ne], backend);            
-
-    // cout<<"||Cx|| = "<<nrm[0]<<", ||Cy|| = "<<nrm[1]<<", ||Ex|| = "<<nrm[2]<<", ||Ey|| = "<<nrm[3]<<endl;     
-
+    schurMatrixH(tmp.tempn, &res.H[m*m*e1], ncu, ncu, npf, nfe, ne);
+    ArrayCopy(H, tmp.tempn, m * m * ne);
+    
+    // npe * npf * nfe * ne * ncu * ncu -> npe * ncu * ncu * npf * nfe * ne
+    schurMatrixF(tmp.tempn, &res.F[n*m*e1], npe, ncu, npf, nfe, ne);
+    ArrayCopy(F, tmp.tempn, n * m * ne);
+        
     dstype scalar = 1.0;
     if (common.wave==1)
         scalar = 1.0/common.dtfactor;    
@@ -737,13 +586,6 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         dstype *By = &res.B[npe*npe*ncu*ncu*ne]; // npe * npe * ne * ncu * ncu
         dstype *Gx = res.G; // npf*nfe*npe*ne*ncu*ncu
         dstype *Gy = &res.G[npf*nfe*npe*ncu*ncu*ne]; // npf*nfe*npe*ne*ncu*ncu
-
-        // nrm[0] = PNORM(common.cublasHandle, npe*npe*ne, Cx, backend);       
-        // nrm[1] = PNORM(common.cublasHandle, npe*npe*ne, Cy, backend);       
-        // nrm[2] = PNORM(common.cublasHandle,  npe*npf*nfe*ne, Ex, backend);            
-        // nrm[3] = PNORM(common.cublasHandle,  npe*npf*nfe*ne, Ey, backend);            
-
-        // cout<<"||Cx|| = "<<nrm[0]<<", ||Cy|| = "<<nrm[1]<<", ||Ex|| = "<<nrm[2]<<", ||Ey|| = "<<nrm[3]<<endl;     
 
         schurMatrixBMinvC(D, Bx, Cx, scalar, npe, ncu, ne);
         schurMatrixBMinvC(D, By, Cy, scalar, npe, ncu, ne);
@@ -789,13 +631,6 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
       }
     }
 
-    // nrm[0] = PNORM(common.cublasHandle, npe*npe*ncu*ncu*ne, D, backend);       
-    // nrm[1] = PNORM(common.cublasHandle, npe*npf*nfe*ncu*ncu*ne, F, backend);       
-    // nrm[2] = PNORM(common.cublasHandle,  npe*npf*nfe*ne*ncu*ncu, K, backend);            
-    // nrm[3] = PNORM(common.cublasHandle,  npf*nfe*npf*nfe*ne*ncu*ncu, H, backend);            
-
-    // cout<<"||D|| = "<<nrm[0]<<", ||F|| = "<<nrm[1]<<", ||K|| = "<<nrm[2]<<", ||H|| = "<<nrm[3]<<endl;     
-
     if (common.debugMode==1) {    
       string filename;
       if (common.mpiProcs==1)
@@ -809,87 +644,24 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     } 
 
     // compute the inverse of D 
-    Inverse(handle, D, res.D, res.ipiv, n, ne, backend);    
-
+    Inverse(handle, D, tmp.tempn, res.ipiv, n, ne, backend);    
+    
     // DinvF = -Dinv * F
-    PGEMNMStridedBached(handle, n, m, n, minusone, D, n, F, n, zero, DinvF, n, ne, backend); // fixed bug here
+    ArrayCopy(tmp.tempn, F, n * m * ne);
+    PGEMNMStridedBached(handle, n, m, n, minusone, D, n, tmp.tempn, n, zero, DinvF, n, ne, backend); // fixed bug here
 
     // Ru = Dinv * Ru    
-    schurVectorRu(F, Ru, npe, ncu, ne); // permute Ru from npe*ne*ncu to npe*ncu*ne
-    PGEMNMStridedBached(handle, n, 1, n, one, D, n, F, n, zero, Ru, n, ne, backend);    
+    schurVectorRu(tmp.tempn, Ru, npe, ncu, ne); // permute Ru from npe*ne*ncu to npe*ncu*ne
+    PGEMNMStridedBached(handle, n, 1, n, one, D, n, tmp.tempn, n, zero, Ru, n, ne, backend);    
 
     // H = H + K * DinvF
-    ArrayCopy(DinvH, H, m*m*ne);
+    //ArrayCopy(DinvH, H, m*m*ne);
     PGEMNMStridedBached(handle, m, m, n, one, K, m, DinvF, n, one, DinvH, m, ne, backend);
 
     // Rh = Rh - K * Dinv * Ru
-    schurVectorRh(F, Rh, npf*nfe, ncu, ne); // permute Rh from npf*nfe*ne*ncu to ncu*npf*nfe*ne
-    ArrayCopy(Rh, F, m*ne);
+    schurVectorRh(tmp.tempn, Rh, npf*nfe, ncu, ne); // permute Rh from npf*nfe*ne*ncu to ncu*npf*nfe*ne
+    ArrayCopy(Rh, tmp.tempn, m*ne);
     PGEMNMStridedBached(handle, m, 1, n, minusone, K, m, Ru, n, one, Rh, m, ne, backend);     
-
-    // nrm[0] = PNORM(common.cublasHandle, npe*ncu*ne, Ru, backend);       
-    // nrm[1] = PNORM(common.cublasHandle, npf*nfe*ne*ncu, Rh, backend);       
-    // nrm[2] = PNORM(common.cublasHandle,  npe*npf*nfe*ncu*ncu*ne, DinvF, backend);            
-    // nrm[3] = PNORM(common.cublasHandle,  npf*nfe*npf*nfe*ne*ncu*ncu, DinvH, backend);            
-    // cout<<"||Ru|| = "<<nrm[0]<<", ||Rh|| = "<<nrm[1]<<", ||F|| = "<<nrm[2]<<", ||H|| = "<<nrm[3]<<endl;     
-
-//     if ((common.eblks[3*jth+2]==-1) && (common.coupledcondition>0) && (common.coupledinterface>0)) {      
-//       int ncu12 = common.szinterfacefluxmap;
-//       
-//       schurMatrixK(K, res.Ki, npe, ncu12, ncu, npf, nfe, ne);    
-//       schurMatrixH(H, res.Hi, ncu12, ncu, npf, nfe, ne);
-//       
-//       if (common.ncq > 0) {      
-//         if (nd == 1) {
-//           schurMatrixGMinvC(K, res.Gi, &res.C[npe*npe*e1], scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvE(H, res.Gi, &res.E[npe*npf*nfe*e1], scalar, npe, ncu12, ncu, npf, nfe, ne);
-//         } 
-//         else if (nd == 2) {
-//           dstype *Cx = &res.C[npe*npe*e1]; // fix bug here
-//           dstype *Cy = &res.C[npe*npe*common.ne + npe*npe*e1]; // fix bug here
-//           dstype *Ex = &res.E[npe*npf*nfe*e1]; // fix bug here
-//           dstype *Ey = &res.E[npe*npf*nfe*common.ne + npe*npf*nfe*e1]; // fix bug here
-//           dstype *Gx = res.Gi; 
-//           dstype *Gy = &res.Gi[npf*nfe*npe*ncu12*ncu*ne]; 
-//           
-//           schurMatrixGMinvC(K, Gx, Cx, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvC(K, Gy, Cy, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvE(H, Gx, Ex, scalar, npe, ncu12, ncu, npf, nfe, ne); 
-//           schurMatrixGMinvE(H, Gy, Ey, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//         }
-//         else if (nd == 3) {
-//           dstype *Cx = &res.C[npe*npe*e1]; // fixed bug here
-//           dstype *Cy = &res.C[npe*npe*common.ne + npe*npe*e1]; // fixed bug here
-//           dstype *Cz = &res.C[npe*npe*common.ne*2 + npe*npe*e1]; // fixed bug here
-//           dstype *Ex = &res.E[npe*npf*nfe*e1]; // fixed bug here
-//           dstype *Ey = &res.E[npe*npf*nfe*common.ne + npe*npf*nfe*e1]; // fixed bug here
-//           dstype *Ez = &res.E[npe*npf*nfe*common.ne*2 + npe*npf*nfe*e1]; // fixed bug here
-//           dstype *Gx = res.Gi;
-//           dstype *Gy = &res.Gi[npf*nfe*npe*ncu12*ncu*ne];
-//           dstype *Gz = &res.Gi[npf*nfe*npe*ncu12*ncu*ne*2];
-// 
-//           schurMatrixGMinvC(K, Gx, Cx, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvC(K, Gy, Cy, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvC(K, Gz, Cz, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvE(H, Gx, Ex, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvE(H, Gy, Ey, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//           schurMatrixGMinvE(H, Gz, Ez, scalar, npe, ncu12, ncu, npf, nfe, ne);
-//         }
-//       }
-//       
-//       Int m12 = npf*nfe*ncu12;
-//       ArrayCopy(res.Hi, H, m12*m*ne);
-//       PGEMNMStridedBached(handle, m12, m, n, one, K, m12, DinvF, n, one, res.Hi, m12, ne, backend);
-// 
-//       schurVectorRh(F, res.Ri, npf*nfe, ncu12, ne); 
-//       ArrayCopy(res.Ri, F, m12*ne);
-//       PGEMNMStridedBached(handle, m12, 1, n, minusone, K, m12, Ru, n, one, res.Ri, m12, ne, backend);           
-//       
-//       if (common.mpiRank==0) {
-//         print2darray(res.Ri, m12, ne);
-//         print3darray(res.Hi, m12, m, ne);
-//       }
-//     }
     
     if ((common.eblks[3*jth+2]==-1) && (common.coupledcondition>0) && (common.coupledinterface>0)) {      
       int ncu12 = common.szinterfacefluxmap;
@@ -935,16 +707,9 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
                   
       PGEMNMStridedBached(handle, m12, m, n, one, res.Ki, m12, DinvF, n, one, res.Hi, m12, ne, backend);
 
-      schurVectorRh(F, res.Ri, npf, ncu12, ne); 
-      ArrayCopy(res.Ri, F, m12*ne);
-      PGEMNMStridedBached(handle, m12, 1, n, minusone, res.Ki, m12, Ru, n, one, res.Ri, m12, ne, backend);           
-      
-//       if (common.mpiRank==1) {
-//         print2darray(Ru, n, ne);
-//         print3darray(res.Ki, m12, n, ne);
-//         print2darray(res.Ri, m12, ne);
-//         print3darray(res.Hi, m12, m, ne);
-//       }
+      schurVectorRh(tmp.tempn, res.Ri, npf, ncu12, ne); 
+      ArrayCopy(res.Ri, tmp.tempn, m12*ne);
+      PGEMNMStridedBached(handle, m12, 1, n, minusone, res.Ki, m12, Ru, n, one, res.Ri, m12, ne, backend);                 
     }
     
     if (common.debugMode==1) {    
@@ -1068,7 +833,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 {            
     Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncu = common.ncu;// number of compoments of (u)
-    Int ncq = common.ncq;// number of compoments of (q)
+    //Int ncq = common.ncq;// number of compoments of (q)
     Int nco = common.nco;// number of compoments of (o)
     Int ncx = common.ncx;// number of compoments of (xdg)        
     Int ncw = common.ncw;
@@ -1159,7 +924,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         dstype *nlb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu];
         dstype *wsb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd];
         dstype *fhb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw];
-        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
+        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu];
 
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
@@ -1171,12 +936,12 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
         if ((ncw>0) & (common.wave==0)) {
           // copy ugb to tmp.tempn
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], ugb, ngb*nc);
+          ArrayCopy(Rb, ugb, ngb*nc);
         
           // replace u with uhat 
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], uhb, ngb*ncu);
+          ArrayCopy(Rb, uhb, ngb*ncu);
           
-          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, Rb, app, common, ngb, backend);          
+          wEquation(wgb, xgb, Rb, ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
           //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
@@ -1221,7 +986,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         dstype *nlb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu];
         dstype *wsb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd];
         dstype *fhb = &tmp.tempg[n8 + ngb*ncx + ngb*nc + ngb*nco + ngb*ncw + ngb*ncu + ngb*nd + ngb*ncw];
-        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu + npf*npf*nfe*ne*ncu*ncu + npf*npf*nfe*ne*ncu*ncq + npf*npf*nfe*ne*ncu*ncu];
+        dstype *Rb =  &tmp.tempn[npf*nfe*ne*ncu];
 
         GetBoundaryNodes(xgb, xg, &mesh.boufaces[start], ngf, nfe, ne, ncx, nfaces);
         GetBoundaryNodes(ugb, udg, &mesh.boufaces[start], ngf, nfe, ne, nc, nfaces);
@@ -1233,12 +998,12 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
         if ((ncw>0) & (common.wave==0)) {
           // copy ugb to tmp.tempn
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], ugb, ngb*nc);
+          ArrayCopy(Rb, ugb, ngb*nc);
         
           // replace u with uhat 
-          ArrayCopy(&tmp.tempn[npf*nfe*ne*ncu], uhb, ngb*ncu);
+          ArrayCopy(Rb, uhb, ngb*ncu);
           
-          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, Rb, app, common, ngb, backend);          
+          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
           //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
@@ -1251,15 +1016,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
 
         Gauss2Node(handle, Rb, fhb, master.shapfgw, ngf, npf, nfaces*ncu12, backend);                
         ArrayAXPB(res.Ri, Rb, minusone, zero, npf*nfaces*ncu12);       
-        
-//         if (common.mpiRank==1) {
-//           print3darray(xgb, ngf, ne, ncx);    
-//           print2darray(ugb, ngf, common.nintfaces);    
-//           print2darray(uhb, ngf, common.nintfaces);    
-//           print2darray(fhb, ncu12*ngf, common.nintfaces);    
-//           print2darray(res.Ri, ncu12*npf, common.nintfaces);    
-//         }
-        
+                
       }
     }            
 }

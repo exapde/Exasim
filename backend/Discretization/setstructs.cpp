@@ -24,7 +24,8 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.nch = app.ndims[10];// number of compoments of (uhat)
     common.ncx = app.ndims[11];// number of compoments of (xdg)        
     common.nce = app.ndims[12];// number of compoments of (output)        
-    common.ncw = app.ndims[13];//number of compoments of (w)    
+    common.ncw = app.ndims[13];//number of compoments of (w)
+    common.ncm = 1;//number of components of monitor function    
     if (app.flag[1]==1)
         common.ncs = common.nc;  // wave problem
     else if (app.flag[0]==1)
@@ -126,6 +127,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.coupledinterface = app.problem[28]; 
     common.coupledcondition = app.problem[29]; 
     common.coupledboundarycondition = app.problem[30];
+    common.AVdistfunction = app.problem[31];
     
     common.RBcurrentdim = 0; // current dimension of the reduced basis space
     common.RBremovedind = 0; // the vector to be removed from the RB space and replaced with new vector
@@ -228,8 +230,10 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
 #ifdef  HAVE_MPI
         common.requests = (MPI_Request *) malloc( 2*(common.nnbsd + common.nnbintf) * sizeof(MPI_Request) );
         common.statuses = (MPI_Status *) malloc( 2*(common.nnbsd + common.nnbintf) * sizeof(MPI_Status) );     
-        if (common.spatialScheme==1)
-          common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
+        if (common.spatialScheme==1) {
+          //common.ninterfacefaces = getinterfacefaces(mesh.f2e, common.ne1, common.nf);
+          //common.ndofuhatinterface = common.ncu*common.npf*common.ninterfacefaces;
+        }
 #endif        
     }
     else {
@@ -320,8 +324,9 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     n3 = 2*max(n3, ndofucg);
     
     if (spatialScheme > 0) {
-      Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
-      Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + 2*npf*npf*nfe*neb*ncu*ncu;
+      //Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
+      Int k1 = max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
+      Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + npf*npf*nfe*neb*ncu*ncu;
       Int k3 = npf*ncu*npf*ncu*nf; // fix bug here 
       n0 = max(n0, k1);
       n0 = max(n0, k2);      
@@ -448,6 +453,20 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       //     int n = getinterfacefaces(mesh.interfacefaces, mesh.f2e, common.ne1, common.nf);
       //     if (n != common.nelemsend) error("Number of interfaces mismatch");
       // }
+      
+      Int nf = common.nf;
+      Int ne = common.ne;
+      Int nfe = common.nfe;
+      mesh.e2f = (Int*) malloc (sizeof (Int)*nfe*ne);
+      mesh.f2f = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
+      mesh.f2l = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
+      mke2f(mesh.e2f, mesh.f2e, nf, nfe, ne);
+      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, mesh.e2f, nf, nfe, ne);             
+//       print2iarray(mesh.f2e, 4, nf);
+//       print2iarray(e2f, nfe, ne);
+//       print2iarray(mesh.f2f, 2*(nfe-1), nf);
+//       print2iarray(mesh.f2l, 2*(nfe-1), nf);
+//      CPUFREE(e2f);      
     }
 
     if (common.ncs>0) {
@@ -613,6 +632,7 @@ void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
     TemplateMalloc(&dapp.vindx, app.nsize[12], common.backend);  
     TemplateMalloc(&dapp.dae_dt, app.nsize[13], common.backend);  
     TemplateMalloc(&dapp.interfacefluxmap, app.nsize[14], common.backend);  
+    TemplateMalloc(&dapp.avparam, app.nsize[15], common.backend);  
     
     TemplateCopytoDevice( dapp.nsize, app.nsize, app.lsize[0], common.backend );      
     TemplateCopytoDevice( dapp.ndims, app.ndims, app.nsize[0], common.backend );      
@@ -630,6 +650,23 @@ void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
     TemplateCopytoDevice( dapp.vindx, app.vindx, app.nsize[12], common.backend );   
     TemplateCopytoDevice( dapp.dae_dt, app.dae_dt, app.nsize[13], common.backend );   
     TemplateCopytoDevice( dapp.interfacefluxmap, app.interfacefluxmap, app.nsize[14], common.backend );   
+    TemplateCopytoDevice( dapp.avparam, app.avparam, app.nsize[15], common.backend );   
+    
+    dapp.szflag = app.nsize[1];
+    dapp.szproblem = app.nsize[2];
+    dapp.szuinf = app.nsize[3];
+    dapp.szdt = app.nsize[4];
+    dapp.szfactor = app.nsize[5];
+    dapp.szphysicsparam = app.nsize[6];
+    dapp.szsolversparam = app.nsize[7];
+    dapp.sztau = app.nsize[8];
+    dapp.szstgdata = app.nsize[9];
+    dapp.szstgparam = app.nsize[10];
+    dapp.szstgib = app.nsize[11];
+    dapp.szvindx = app.nsize[12];
+    dapp.szdae_dt = app.nsize[13];
+    dapp.szinterfacefluxmap = app.nsize[14];
+    dapp.szavparam = app.nsize[15];
     
     Int ncu, ncq, ncw;
     ncu = app.ndims[6];// number of compoments of (u)
@@ -897,7 +934,15 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 
       M = common.npf*common.npf*common.ngf*(common.nd);
       TemplateMalloc(&master.shapfgwdotshapfg, M, common.backend);       
-      TemplateCopytoDevice(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M, common.backend);
+      TemplateCopytoDevice(master.shapfgwdotshapfg, hmaster.shapfgwdotshapfg, M, common.backend);        
+      
+      M = 2*(common.nfe-1)*common.nf;
+      TemplateMalloc(&mesh.f2f, M, common.backend);       
+      TemplateMalloc(&mesh.f2l, M, common.backend);       
+      TemplateCopytoDevice(mesh.f2f, hmesh.f2f, M, common.backend);
+      TemplateCopytoDevice(mesh.f2l, hmesh.f2l, M, common.backend);
+      TemplateMalloc(&mesh.e2f, common.nfe*common.ne, common.backend);
+      TemplateCopytoDevice(mesh.e2f, hmesh.e2f, common.nfe*common.ne, common.backend);
     }
 
 #ifdef HAVE_CUDA    

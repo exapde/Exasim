@@ -90,7 +90,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       
       if (common.mpiRank==0) 
         printf("Init HDG Discretization ... \n");        
-
+      
       int nboufaces = 0; // number of boundary faces
       int maxbc = 0; // maximum number of boundary conditions
       for (int i=0; i<nfe*ne; i++) {
@@ -130,26 +130,30 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateCopytoDevice(mesh.boufaces, boufaces, nboufaces, common.backend);                       
       mesh.szboufaces = nboufaces;
 
-//       if (common.mpiRank==0) 
-//         printf("Number of boundary faces = %d \n", nboufaces);        
-
-      // print1iarray(common.nboufaces, 1 + maxbc*nbe);
-      // print1iarray(mesh.boufaces, nboufaces);      
       CPUFREE(boufaces);
-      CPUFREE(mesh.bf);
+      CPUFREE(mesh.bf);            
 
-      TemplateMalloc(&res.D, npe*ncu*npe*ncu*neb, backend);
-      TemplateMalloc(&res.F, npe*ncu*npf*nfe*ncu*common.ne, backend);
-      TemplateMalloc(&res.K, max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf), backend);
-      TemplateMalloc(&res.H, npf*nfe*ncu*npf*nfe*ncu*common.ne, backend);
-      TemplateMalloc(&res.ipiv, npe * ncu * neb * sizeof(Int), backend);      
-                    
-      res.szD = npe*ncu*npe*ncu*neb;
-      res.szF = npe*ncu*npf*nfe*ncu*common.ne;
-      res.szK = max(npf*nfe*ncu*npe*ncu*neb, ncu*npf*ncu*npf*nf);
-      res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne;
-      res.szipiv = npe * ncu * neb;
-
+      if (common.matrixformat==0) {        
+        res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne;
+      }
+      else {                
+        res.szH = npf*nfe*ncu*npf*nfe*ncu*common.neb;
+      }             
+      res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;    
+      res.szK = max(res.szK, ncu*npf*ncu*npf*nf + ncu*npf*nf*(common.gmresRestart+1));              
+      res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
+      res.szipiv = max(npe*ncu*neb, ncu*npf*nf);
+      
+      TemplateMalloc(&res.K, res.szK, backend);
+      TemplateMalloc(&res.H, res.szH, backend);
+      TemplateMalloc(&res.F, res.szF, backend);
+      TemplateMalloc(&res.ipiv, res.szipiv, backend); // fix big here     
+            
+      // B, D, G, K share the same memmory block
+      res.D = &res.K[npf*nfe*ncu*npe*ncu*neb];
+      res.B = &res.K[npf*nfe*ncu*npe*ncu*neb + npe*ncu*npe*ncu*neb];
+      res.G = &res.K[npf*nfe*ncu*npe*ncu*neb + npe*ncu*npe*ncu*neb + npe*ncu*npe*ncq*neb];        
+      
       if (common.coupledinterface>0) {
         res.szRi = npf*ncu12*common.ncie;
         res.szKi = npf*ncu12*npe*ncu*common.ncie;
@@ -208,11 +212,6 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       // print3darray(tmp.tempg, common.nd, common.npf, common.nf);
 
       if (common.ncq > 0) {        
-        TemplateMalloc(&res.B, npe*ncu*npe*ncq*neb, backend);
-        TemplateMalloc(&res.G, npf*nfe*ncu*npe*ncq*neb, backend);
-        res.szB = npe*ncu*npe*ncq*neb;
-        res.szG = npf*nfe*ncu*npe*ncq*neb;
-
         if (common.coupledinterface>0) {
           res.szGi = npf*ncu12*npe*ncq*common.ncie;          
           TemplateMalloc(&res.Gi, res.szGi, backend);
@@ -517,7 +516,7 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 //     cudaDeviceSynchronize();
 // #endif
 
-#ifdef HAVE_CUDA
+#ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
     
@@ -561,6 +560,13 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 //         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
 //         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 
+}
+
+
+void CDiscretization::evalMonitor(dstype* output,  dstype* udg, dstype* wdg, Int nc, Int backend)
+{
+    // compute the output field
+    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
 void CDiscretization::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)

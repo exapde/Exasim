@@ -10,7 +10,7 @@ app.problem  = [app.hybrid appname app.temporalscheme app.torder app.nstage app.
                app.linearsolver app.NLiter app.linearsolveriter app.GMRESrestart app.RBdim ...
                app.saveSolFreq app.saveSolOpt app.timestepOffset app.stgNmode app.saveSolBouFreq app.ibs ...
                app.dae_steps app.saveResNorm app.AVsmoothingIter app.frozenAVflag app.ppdegree ...
-               app.coupledinterface app.coupledcondition app.coupledboundarycondition app.problem];
+               app.coupledinterface app.coupledcondition app.coupledboundarycondition app.AVdistfunction app.problem];
 app.factor = [app.time app.dae_alpha app.dae_beta app.dae_gamma app.dae_epsilon app.factor];           
 app.solversparam = [app.NLtol app.linearsolvertol app.matvectol app.NLparam app.solversparam];        
 
@@ -36,7 +36,10 @@ ndims(14) = app.ncw;
 %     error("app.nco mus be equal to size(app.vindx,1)");
 % end
 
-nsize = zeros(20,1);
+avparam = [app.avparam1(:) app.avparam2(:)]';
+avparam = avparam(:);
+
+nsize = zeros(30,1);
 nsize(1) = length(ndims(:));
 nsize(2) = length(app.flag(:));  % length of flag
 nsize(3) = length(app.problem(:)); % length of physics
@@ -52,6 +55,7 @@ nsize(12) = length(app.stgib(:));
 nsize(13) = length(app.vindx(:));
 nsize(14) = length(app.dae_dt(:));
 nsize(15) = length(app.interfacefluxmap(:));
+nsize(16) = length(avparam(:));
 
 app.nsize = nsize;
 app.ndims = ndims;
@@ -78,7 +82,9 @@ fwrite(fileID,app.dae_dt(:),'double',endian);
 if (~isempty(app.interfacefluxmap(:)))    
     fwrite(fileID,app.interfacefluxmap(:)-1,'double',endian);
 end
-
+if (~isempty(avparam(:)))    
+  fwrite(fileID,avparam(:),'double',endian);
+end
 fclose(fileID);
 
 

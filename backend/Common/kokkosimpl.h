@@ -376,6 +376,16 @@ void ArrayEosInverseMatrix11(dstype* A, const int npe, const int ncw, const int 
     });
 }
 
+// void AVdistfunc(dstype* A, const dstype* param, const int npe, const int ncu, const int ne)
+// {        
+//     int N = npe*ne;
+//     Kokkos::parallel_for("AVdistfunc", N, KOKKOS_LAMBDA(const size_t i) {
+//         int j = i%npe; // [1, npe]
+//         int k = i/npe; // [1, ne]
+//         A[j + npe*ncu*k] = param[0] * tanh(param[1] * A[j + npe + npe*ncu*k]);
+//     });
+// }
+
 void ArrayEosInverseMatrix22(dstype* A, const int npe, const int ncw, const int ne)
 {        
     int N = npe*ne;
@@ -922,14 +932,14 @@ void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, const i
     });
 }
 
-void blockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int npf, const int nfe, const int ncu, const int nf) 
+void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int ncf = ncu*npf;
     int M = ncf*nfe;
     int P = M*ncf;
     int Q = M*M;
     int N = ncf*ncf*nf;
-    Kokkos::parallel_for("PutElementFaceNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+    Kokkos::parallel_for("BlockJacobi", N, KOKKOS_LAMBDA(const size_t idx) {
         int m = idx%ncf; // [0, ncf] 
         int k = idx/ncf; // [0, ncf*nf)
         int n = k%ncf;    // [0, ncf)
@@ -940,14 +950,14 @@ void blockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int npf, co
     });
 }
 
-void blockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int ncf = ncu*npf;
     int M = ncf*nfe;
     int P = M*ncf;
     int Q = M*M;
     int N = ncf*ncf*nf;
-    Kokkos::parallel_for("PutElementFaceNodes", N, KOKKOS_LAMBDA(const size_t idx) {
+    Kokkos::parallel_for("BlockJacobi", N, KOKKOS_LAMBDA(const size_t idx) {
         int m = idx%ncf; // [0, ncf] 
         int k = idx/ncf; // [0, ncf*nf)
         int n = k%ncf;    // [0, ncf)
@@ -965,6 +975,146 @@ void blockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon,
           int dn = an + ncu*cn; // [0, ncf)
           BE[idx] += AE[dm + ncf*l2 + M*dn + P*l2 + Q*e2];
         }        
+    });
+}
+
+void AssembleResidual(dstype* R, const dstype* Rh, const int* e2f, const int* elcon, const int npf, const int nfe, const int ncu, const int ne) 
+{
+    int nfe2 = 2*(nfe-1);
+    int ncf = ncu*npf;
+    int M = ncf*nfe;
+    int N = M*ne;
+    Kokkos::parallel_for("BlockJacobian1", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncf; // [0, ncf] 
+        int q = idx/ncf; // [0, nfe*ne)
+        int k = q%nfe;   // [0, nfe)
+        int e = q/nfe;   // [0, ne)                
+        int fk = e2f[k + nfe*e];
+        int am = m%ncu;    // [0, ncu)
+        int bm = m/ncu;    // [0, npf)
+        int cm = elcon[bm + npf*k + npf*nfe*e] - npf*fk;    
+        int dm = am + ncu*cm; // [0, ncf)            
+        Kokkos::atomic_add(&R[m + ncf*fk], Rh[dm + ncf*k + M*e]);
+    });
+}
+
+void AssembleJacobian(dstype* BE, const dstype* AE, const int* e2f, const int* f2f, const int* elcon, const int npf, const int nfe, const int ncu, const int ne) 
+{
+    int nfe2 = 2*(nfe-1);
+    int ncf = ncu*npf;
+    int M = ncf*nfe;
+    int P = M*ncf;
+    int Q = M*M;
+    int R = ncf*ncf;
+    int N = Q*ne;
+    Kokkos::parallel_for("BlockJacobian1", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncf; // [0, ncf] 
+        int q = idx/ncf; // [0, nfe*ncf*nfe*ne)
+        int k = q%nfe;   // [0, nfe)
+        int s = q/nfe;   // [0, ncf*nfe*ne)                
+        int n = s%ncf;   // [0, ncf)
+        int t = s/ncf;   // [0, nfe*ne)        
+        int l = t%nfe;   // [0, nfe)        
+        int e = t/nfe;   // [0, ne)                
+        int fk = e2f[k + nfe*e];
+        int fl = e2f[l + nfe*e];
+        int j = 0;                
+        if (k != l) {
+          for (int i=0; i<nfe2; i++)
+            if (f2f[i + nfe2*fk] == fl)
+              j = i + 1;
+        }       
+        int am = m%ncu;    // [0, ncu)
+        int bm = m/ncu;    // [0, npf)
+        int cm = elcon[bm + npf*k + npf*nfe*e] - npf*fk;    
+        int dm = am + ncu*cm; // [0, ncf)            
+        int an = n%ncu;    // [0, ncu)          
+        int bn = n/ncu;    // [0, npf)
+        int cn = elcon[bn + npf*l + npf*nfe*e] - npf*fl;      
+        int dn = an + ncu*cn; // [0, ncf)       
+        if (j==0) 
+          Kokkos::atomic_add(&BE[m + ncf*n + R*(j + (2*nfe-1)*fk)], AE[dm + ncf*k + M*dn + P*l + Q*e]);
+        else
+          BE[m + ncf*n + R*(j + (2*nfe-1)*fk)] = AE[dm + ncf*k + M*dn + P*l + Q*e];                
+    });
+}
+
+void BlockJacobian1(dstype* BE, const dstype* AE, const int* f2e, const int* f2f, const int* f2l, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+{
+    int nfe2 = 2*(nfe-1);
+    int ncf = ncu*npf;
+    int M = ncf*nfe;
+    int P = M*ncf;
+    int Q = M*M;
+    int R = ncf*ncf;
+    int N = R*nf;
+    Kokkos::parallel_for("BlockJacobian1", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncf; // [0, ncf] 
+        int k = idx/ncf; // [0, ncf*nf)
+        int n = k%ncf;    // [0, ncf)
+        int f = k/ncf;    // [0, nf)        
+        int e1 = f2e[0 + 4*f];
+        int l1 = f2e[1 + 4*f];
+        for (int j=0; j<nfe-1; j++) {
+          int lj = f2l[j + nfe2*f];          
+          int fj = f2f[j + nfe2*f];          
+          int an = n%ncu;    // [0, ncu)          
+          int bn = n/ncu;   // [0, npf)
+          int cn = elcon[bn + npf*lj + npf*nfe*e1] - npf*fj;      
+          int dn = an + ncu*cn; // [0, ncf)
+          BE[m + ncf*n + R*(j + (nfe-1)*f)] = AE[m + ncf*l1 + M*dn + P*lj + Q*e1];
+        }
+    });
+}
+
+void BlockJacobian2(dstype* BE, const dstype* AE, const int* f2e, const int* f2f, const int* f2l, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+{
+    int nfe2 = 2*(nfe-1);
+    int ncf = ncu*npf;
+    int M = ncf*nfe;
+    int P = M*ncf;
+    int Q = M*M;
+    int R = ncf*ncf;
+    int N = R*nf;
+    Kokkos::parallel_for("BlockJacobian1", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncf; // [0, ncf] 
+        int k = idx/ncf; // [0, ncf*nf)
+        int n = k%ncf;    // [0, ncf)
+        int f = k/ncf;    // [0, nf)        
+        int e2 = f2e[2 + 4*f];
+        int l2 = f2e[3 + 4*f];
+        if (e2 >= 0) {  
+          for (int j=0; j<nfe-1; j++) {
+            int am = m%ncu;    // [0, ncu)
+            int bm = m/ncu;   // [0, npf)
+            int cm = elcon[bm + npf*l2 + npf*nfe*e2] - npf*f;    
+            int dm = am + ncu*cm; // [0, ncf)
+            int lj = f2l[nfe-1 + j + nfe2*f];
+            int fj = f2f[nfe-1 + j + nfe2*f];
+            int an = n%ncu;    // [0, ncu)          
+            int bn = n/ncu;   // [0, npf)
+            int cn = elcon[bn + npf*lj + npf*nfe*e2] - npf*fj;      
+            int dn = an + ncu*cn; // [0, ncf)
+            BE[m + ncf*n + R*(j + (nfe-1)*f)] = AE[dm + ncf*l2 + M*dn + P*lj + Q*e2];
+            //printf("%d %d %d %d %d %d %d %g\n", dm, l2, dn, cn, fj, lj, e2, AE[dm + ncf*l2 + M*dn + P*lj + Q*e2]);
+          }
+        }
+    });
+}
+
+void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const int npf, const int nfe, const int ncu, const int nf, const int offset) 
+{
+    int nfe1 = nfe-1;
+    int nfe2 = 2*(nfe-1);
+    int ncf = ncu*npf;    
+    int N = ncf*(nfe-1)*nf;     
+    Kokkos::parallel_for("ApplyFace2Face", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncf; // [0, ncf] 
+        int k = idx/ncf; // [0, (nfe-1)*nf)
+        int j = k%nfe1;    // [0, nfe-1)
+        int f = k/nfe1;    // [0, nf)       
+        int fj = f2f[offset + j + nfe2*f];       
+        Rf[idx] = Rh[m + ncf*fj];                
     });
 }
 

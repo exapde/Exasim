@@ -66,6 +66,7 @@ pde.viscosityModel = 0;
 pde.SGSmodel = 0;
 pde.ALE = 0;
 pde.AV = 0;
+pde.AVdistfunction = 0;
 pde.AVsmoothingIter = 2;
 pde.frozenAVflag = 1;
 pde.nonlinearsolver = 0;
@@ -106,6 +107,8 @@ pde.boundaryconditions = [0 0];
 pde.stgib = [0 0];
 pde.vindx = [];
 pde.interfacefluxmap = [];
+pde.avparam1 = [];
+pde.avparam2 = [];
 
 pde.tau = 1.0; 
 pde.externalparam = [0.0 0.0]; 
