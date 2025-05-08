@@ -3,5 +3,5 @@
 lib/Linux/*
 lib/Mac/*
 **/dataout
-build/datain/
-build/CMakeFiles/
+/build/datain/
+/build/CMakeFiles/
