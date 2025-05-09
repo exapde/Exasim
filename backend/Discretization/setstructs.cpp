@@ -312,7 +312,7 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
     Int neb = mesh.ndims[6]; // maximum number of elements per block
     Int nfb = mesh.ndims[8]; // maximum number of faces per block   
     Int ne = mesh.ndims[1]; // number of elements in this subdomain 
-    Int nf = mesh.ndims[2]; // number of faces in this subdomain 
+    //Int nf = mesh.ndims[2]; // number of faces in this subdomain 
     Int ndofucg = mesh.nsize[12]-1;; //total DOFs for CG field
     Int spatialScheme = app.problem[0];   /* 0: LDG; 1: HDG */
 
@@ -327,21 +327,24 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
       //Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
       Int k1 = max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
       Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + npf*npf*nfe*neb*ncu*ncu;
-      Int k3 = npf*ncu*npf*ncu*nf; // fix bug here 
+      Int k3 = npf*ncu*npf*ncu*nfb;
+      Int k4 = nge*(nd+1)*ncu*max(ncu,ncq)*neb;       
       n0 = max(n0, k1);
       n0 = max(n0, k2);      
-      n0 = max(n0, k3);  // fix bug here
+      n0 = max(n0, k3);  
+      n0 = max(n0, k4);  
 
       int nga = nge*neb;
-      k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc; // fix bug here      
-      nga = ngf*neb*nfe; // fix bug here 
-      k2 = nga*(ncu + nc + nco + ncw + ncw + ncu*nd + ncu*nd*nc + ncu*nd*ncu + ncu*nd*ncw + ncw*nc); // fix bug here            
+      k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc; 
+      nga = ngf*neb*nfe; 
+      k2 = nga*(ncu + nc + nco + ncw + ncw + ncu*nd + ncu*nd*nc + ncu*nd*ncu + ncu*nd*ncw + ncw*nc); 
       n3 = max(n3, k1);
       n3 = max(n3, k2);
     }
-    
-    TemplateMalloc(&tmp.tempn, n0, backend); // fix bug here            
-    TemplateMalloc(&tmp.tempg, n3, backend); // fix bug here     
+        
+    TemplateMalloc(&tmp.tempn, n0+n3, backend); 
+    tmp.tempg = &tmp.tempn[n0];
+    //TemplateMalloc(&tmp.tempg, n3, backend); 
     tmp.sztempn = n0;
     tmp.sztempg = n3;       
 #ifdef HAVE_MPI     

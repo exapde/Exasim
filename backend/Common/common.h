@@ -1001,7 +1001,7 @@ struct resstruct {
     
     Int *ipiv=nullptr;    
     
-    Int szRi=0, szHi=0, szKi=0, szGi=0;
+    Int szRi=0, szHi=0, szKi=0, szGi=0, szP=0, szV=0;
     Int szipiv=0, szH=0, szK=0, szG=0, szF=0, szB=0, szD=0, szE=0, szC=0, szMass=0, szMinv=0, szMass2=0, szMinv2=0;
     Int szRq=0, szRu=0, szRh=0, szRuf=0, szRue=0, szRqf=0, szRqe=0;  
 
@@ -1102,7 +1102,7 @@ struct tempstruct {
     void freememory(Int backend)
     {
         TemplateFree(tempn, backend); 
-        TemplateFree(tempg, backend); 
+        //TemplateFree(tempg, backend); 
         TemplateFree(buffrecv, backend); 
         TemplateFree(buffsend, backend); 
         TemplateFree(bufffacerecv, backend); 

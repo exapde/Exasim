@@ -133,15 +133,21 @@ void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretiza
       ApplyMatrix(disc.common.cublasHandle, x, disc.res.Minv, disc.res.Ru, disc.common.npe, disc.common.ncu, 
           disc.common.ne1, disc.common.precMatrixType, disc.common.curvedMesh, backend);                
     }
-    else if (spatialScheme==1) {
-      Int nf = disc.common.nf; // number of faces in this subdomain
-      Int ncu = disc.common.ncu;// number of compoments of (u)
-      Int npf = disc.common.npf; // number of nodes on master face           
-      Int ncf = ncu*npf;  
+    else if (spatialScheme==1) {      
+      if (disc.common.preconditioner==0) { // Block Jacobi preconditioner
+        Int nf = disc.common.nf; // number of faces in this subdomain
+        Int ncu = disc.common.ncu;// number of compoments of (u)
+        Int npf = disc.common.npf; // number of nodes on master face           
+        Int ncf = ncu*npf;  
 
-      ArrayCopy(disc.common.cublasHandle, disc.res.Rh, x, ncf*nf, backend);
-      // (ncf)  * (ncf) * nf x (ncf) * nf -> (ncf) * nf
-      PGEMNMStridedBached(disc.common.cublasHandle, ncf, 1, ncf, one, disc.res.K, ncf, disc.res.Rh, ncf, zero, x, ncf, nf, backend); 
+        ArrayCopy(disc.common.cublasHandle, disc.res.Rh, x, ncf*nf, backend);
+
+        // (ncf)  * (ncf) * nf x (ncf) * nf -> (ncf) * nf
+        PGEMNMStridedBached(disc.common.cublasHandle, ncf, 1, ncf, one, disc.res.K, ncf, disc.res.Rh, ncf, zero, x, ncf, nf, backend);         
+      }
+      else if (disc.common.preconditioner==1) { // Elemental additive Schwarz preconditioner        
+        hdgMatVec(x, disc.res.K, x, disc.res.Rh, disc.res.Rq, disc.res, disc.app, disc.mesh, disc.common, disc.tmp, disc.common.cublasHandle, backend);
+      }
     }
 }
 

@@ -340,6 +340,26 @@ void ArrayDG2CG2(dstype* ucg, const dstype* udg, const int* colent2elem, const i
     });
 }
 
+void computeQTv(dstype* p, const dstype* Q, const dstype* v, const int M, const int N)
+{
+    // Compute p = Q^T v
+    Kokkos::parallel_for("ComputeQTv", Kokkos::TeamPolicy<>(N, Kokkos::AUTO),
+        KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team) {
+        int col = team.league_rank();
+        double sum = 0.0;
+
+        Kokkos::parallel_reduce(
+            Kokkos::TeamThreadRange(team, M),
+            [&](const int i, double& local_sum) {
+                local_sum += Q[i + M * col] * v[i];
+            }, sum);
+
+        if (team.team_rank() == 0) {
+            p[col] = sum;
+        }
+    });
+}
+
 void ArrayMatrixMultiplication(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K)
 {        
     // C[I*J] = A[I*K] x B[K*J]
@@ -978,9 +998,41 @@ void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon,
     });
 }
 
+void ElementalAdditiveSchwarz(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+{
+    int ncf = ncu*npf;
+    int M = ncf*nfe;
+    int P = M*ncf;
+    int Q = M*M;
+    int N = ncf*ncf*nf;
+    Kokkos::parallel_for("ElementalAdditiveSchwarz", N, KOKKOS_LAMBDA(const size_t idx) {
+        int m = idx%ncf; // [0, ncf] 
+        int k = idx/ncf; // [0, ncf*nf)
+        int n = k%ncf;    // [0, ncf)
+        int f = k/ncf;    // [0, nf)       
+        int e2 = f2e[2 + 4*f];
+        if (e2 >= 0) {        
+          int e1 = f2e[0 + 4*f];
+          int l1 = f2e[1 + 4*f];
+          int l2 = f2e[3 + 4*f];          
+          int am = m%ncu;    // [0, ncu)
+          int bm = m/ncu;   // [0, npf)
+          int cm = elcon[bm + npf*l2 + npf*nfe*e2] - npf*f;    
+          int dm = am + ncu*cm; // [0, ncf)
+          int an = n%ncu;    // [0, ncu)          
+          int bn = n/ncu;   // [0, npf)
+          int cn = elcon[bn + npf*l2 + npf*nfe*e2] - npf*f;              
+          int dn = an + ncu*cn; // [0, ncf)
+          dstype tm = AE[m + ncf*l1 + M*n + P*l1 + Q*e1] + AE[dm + ncf*l2 + M*dn + P*l2 + Q*e2];
+          BE[m + ncf*l1 + M*n + P*l1 + Q*e1] = tm;
+          BE[dm + ncf*l2 + M*dn + P*l2 + Q*e2] = tm;          
+        }        
+    });
+}
+
 void AssembleResidual(dstype* R, const dstype* Rh, const int* e2f, const int* elcon, const int npf, const int nfe, const int ncu, const int ne) 
 {
-    int nfe2 = 2*(nfe-1);
+    //int nfe2 = 2*(nfe-1);
     int ncf = ncu*npf;
     int M = ncf*nfe;
     int N = M*ne;

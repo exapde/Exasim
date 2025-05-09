@@ -132,24 +132,25 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 
       CPUFREE(boufaces);
       CPUFREE(mesh.bf);            
-
-      if (common.matrixformat==0) {        
-        res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne;
-      }
-      else {                
-        res.szH = npf*nfe*ncu*npf*nfe*ncu*common.neb;
-      }             
-      res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;    
-      res.szK = max(res.szK, ncu*npf*ncu*npf*nf + ncu*npf*nf*(common.gmresRestart+1));              
-      res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
-      res.szipiv = max(npe*ncu*neb, ncu*npf*nf);
       
-      TemplateMalloc(&res.K, res.szK, backend);
+      res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne; // HDG elemental matrices     
+      res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;          
+      if (common.preconditioner==0)      // Block Jacobition preconditioner
+        res.szP = ncu*npf*ncu*npf*nf;
+      else if (common.preconditioner==1) // Elemental additive Schwarz preconditioner
+        res.szP = npf*nfe*ncu*npf*nfe*ncu*common.ne;        
+      res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES
+      res.szK = max(res.szK, res.szP + res.szV);              
+      res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
+      res.szipiv = max(max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
+      
       TemplateMalloc(&res.H, res.szH, backend);
+      TemplateMalloc(&res.K, res.szK, backend);      
       TemplateMalloc(&res.F, res.szF, backend);
       TemplateMalloc(&res.ipiv, res.szipiv, backend); // fix big here     
             
-      // B, D, G, K share the same memmory block
+      // B, D, G, K share the same memmory block 
+      // It is also used for storing both the preconditioner matrix and sys.v
       res.D = &res.K[npf*nfe*ncu*npe*ncu*neb];
       res.B = &res.K[npf*nfe*ncu*npe*ncu*neb + npe*ncu*npe*ncu*neb];
       res.G = &res.K[npf*nfe*ncu*npe*ncu*neb + npe*ncu*npe*ncu*neb + npe*ncu*npe*ncq*neb];        
@@ -313,8 +314,13 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
 #else    
     uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
     hdgAssembleRHS(b, res.Rh, mesh, common);
-    // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
-    hdgBlockJacobi(res.K, res.H, tmp.tempn, res.ipiv, mesh, common, common.cublasHandle, backend);      
+    if (common.preconditioner==0) {
+      // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
+      hdgBlockJacobi(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
+    }
+    else if (common.preconditioner==1) {
+      hdgElementalAdditiveSchwarz(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
+    }
 #endif
 
     // dstype nrmUDG = PNORM(common.cublasHandle, common.npe*common.nc*common.ne1, sol.udg, backend);  
