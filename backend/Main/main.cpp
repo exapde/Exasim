@@ -83,7 +83,7 @@ using namespace std;
 int main(int argc, char** argv) 
 {   
   
-    Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
+    Int nummodels, restart, mpiprocs, mpirank, shmrank, backend;    
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment

@@ -179,7 +179,7 @@ function initializepde(version)
     pde.ncw = 0;
     pde.nce = 0;
     pde.neb = 512*8;
-    pde.nfb = 512*32;
+    pde.nfb = 512*16;
     pde.elemtype = 1;
     pde.nodetype = 1;
     pde.model="ModelD";

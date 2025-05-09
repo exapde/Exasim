@@ -103,7 +103,7 @@ void MonitorDriver(dstype* f, Int nc_sol, const dstype* xg, const dstype* udg, c
   masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
   commonstruct &common, Int backend)
 { 
-  Int nc = common.nc; // number of compoments of (u, q)
+  //Int nc = common.nc; // number of compoments of (u, q)
   Int ncu = common.ncu;// number of compoments of (u)
   Int ncw = common.ncw;// number of compoments of (w)
   Int nco = common.nco;// number of compoments of (o)

@@ -4,16 +4,38 @@ elemtype = 1;
 nd = 2;
 porder = 2;
 
-[mesh.p,mesh.t] = squaremesh(4,4,1,elemtype);
+[mesh.p,mesh.t] = squaremesh(5,5,1,elemtype);
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(2,:)-1)<1e-8, @(p) abs(p(1,:))<1e-8};
 mesh.boundarycondition = [1;2;3;4]; 
 
 [mesh.f, mesh.tprd, t2t, fprd] = facenumbering(mesh.p,mesh.t,elemtype,mesh.boundaryexpr,mesh.periodicexpr);
 f2t = mkf2e(mesh.t,elemtype,nd);
 t2f = mke2f(f2t);
-dmd = meshpartitionhdg(mesh.tprd,mesh.f,t2t,mesh.boundarycondition,nd,elemtype,porder,mpiprocs,"mpmetis");
+dmd = meshpartitionhdg(mesh.tprd,mesh.f,t2t,mesh.boundarycondition,nd,elemtype,porder,0,mpiprocs,"mpmetis");
 
-plotpartition(mesh.p',mesh.t',mesh.f',dmd);
+% get local faces of an element
+localface = getelemface(nd,elemtype);
+e = mesh.t(:,f2t(1,:));
+l = localface(:,f2t(2,:));
+nf = size(f2t,2);
+f = zeros(2,nf);
+for i = 1:nf
+  f(:,i) = e(l(:,i),i);
+end
+mesh.f = f';
+figure(1);clf;meshplot(mesh, [0 0 0 0 1]);
+
+[f2f, f2l] = mkf2f(f2t, t2f);
+[ind, nfl, l] = faceordering(f2f);
+
+%function dmd = meshpartitionhdg(t,f,t2t,bcm,dim,elemtype,porder,coupledinterface,nproc,metis)
+
+% plotpartition(mesh.p',mesh.t',mesh.f',dmd);
+% 
+% [f2f, f2l] = mkf2f(f2t, t2f);
+% 
+% nf = size(f2f,2);
+% f2f = [(1:1:nf); f2f];
 
 return;
 

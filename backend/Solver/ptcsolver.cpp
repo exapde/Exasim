@@ -403,6 +403,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
           }          
                     
           if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+          if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
                               
           nrm0 = nrmr; // original norm          
           // compute the updated residual norm |[Ru; Rh]|
@@ -420,6 +421,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             ArrayCopy(disc.sol.uh, sys.u, N);
             UpdateUDG(disc.sol.udg, sys.v, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
             if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+            if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
             disc.hdgAssembleResidual(sys.b, backend);
             nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.b, backend); 
             nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);                       

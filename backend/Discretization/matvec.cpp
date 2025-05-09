@@ -80,7 +80,29 @@ void hdgAssembleRHS(dstype *R, dstype *Rh, meshstruct &mesh, commonstruct &commo
     }
 }
 
-void hdgBlockJacobi(dstype *BE, dstype *AE, dstype *BEtmp, int *ipiv, meshstruct &mesh, commonstruct &common, cublasHandle_t handle, Int backend)
+void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+{   
+    Int nf = common.nf; // number of faces in this subdomain
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int npf = common.npf; // number of nodes on master face           
+    Int nfe = common.nfe; // number of faces in each element
+    Int ncf = ncu*npf;
+
+    ArrayCopy(BE, AE, ncf*nfe*ncf*nfe*common.ne); 
+    ElementalAdditiveSchwarz(BE, AE, mesh.f2e, mesh.elemcon, npf, nfe, ncu, nf);       
+    
+    for (Int j=0; j<common.nbe; j++) {              
+      Int e1 = common.eblks[3*j]-1;
+      Int e2 = common.eblks[3*j+1];          
+      Inverse(handle, &BE[ncf*nfe*ncf*nfe*e1], tmp.tempn, res.ipiv, ncf*nfe, e2-e1, backend); 
+    }
+    
+    if (common.debugMode == 1) {
+      writearray2file(common.fileout + "hdgElementalAdditiveSchwarz.bin", BE, ncf*nfe*ncf*nfe*nf, backend);
+    }
+}
+
+void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {   
     Int nf = common.nf; // number of faces in this subdomain
     Int ncu = common.ncu;// number of compoments of (u)
@@ -91,7 +113,13 @@ void hdgBlockJacobi(dstype *BE, dstype *AE, dstype *BEtmp, int *ipiv, meshstruct
      // ncf * nfe * ncf * nfe * ne -> ncf * ncf * nf
     BlockJacobi(BE, AE, mesh.f2e, npf, nfe, ncu, nf);
     BlockJacobi(BE, AE, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);        
-    Inverse(handle, BE, BEtmp, ipiv, ncf, nf, backend); 
+    
+    //Inverse(handle, BE, res.tempn, res.ipiv, ncf, nf, backend);         
+    for (Int j=0; j<common.nbf; j++) {              
+      Int f1 = common.fblks[3*j]-1;
+      Int f2 = common.fblks[3*j+1];          
+      Inverse(handle, &BE[ncf*ncf*f1], tmp.tempn, res.ipiv, ncf, f2-f1, backend); 
+    }
     
 //     ArraySetValue(BEtmp, 0.0, ncf*ncf*(2*nfe-1)*nf);
 //     AssembleJacobian(BEtmp, AE, mesh.e2f, mesh.f2f, mesh.elemcon, npf, nfe, ncu, 2);       
@@ -178,20 +206,20 @@ void hdgBlockJacobi(dstype *BE, dstype *AE, dstype *BEtmp, int *ipiv, meshstruct
 //     }
 // }
 
-void hdgApplyBlockJacobi(dstype *w, dstype *BE, dstype *v, commonstruct &common, cublasHandle_t handle, Int backend)
-{   
-    Int nf = common.nf; // number of faces in this subdomain
-    Int ncu = common.ncu;// number of compoments of (u)
-    Int npf = common.npf; // number of nodes on master face           
-    Int ncf = ncu*npf;  
-
-    // (ncf)  * (ncf) * nf x (ncf) * nf -> (ncf) * nf
-    PGEMNMStridedBached(handle, ncf, 1, ncf, one, BE, ncf, v, ncf, zero, w, ncf, nf, backend); 
-
-    if (common.debugMode == 1) {
-      writearray2file(common.fileout + "hdgApplyBlockJacobi.bin", w, ncf * nf, backend);
-    }
-}
+// void hdgApplyBlockJacobi(dstype *w, dstype *BE, dstype *v, commonstruct &common, cublasHandle_t handle, Int backend)
+// {   
+//     Int nf = common.nf; // number of faces in this subdomain
+//     Int ncu = common.ncu;// number of compoments of (u)
+//     Int npf = common.npf; // number of nodes on master face           
+//     Int ncf = ncu*npf;  
+// 
+//     // (ncf)  * (ncf) * nf x (ncf) * nf -> (ncf) * nf
+//     PGEMNMStridedBached(handle, ncf, 1, ncf, one, BE, ncf, v, ncf, zero, w, ncf, nf, backend); 
+// 
+//     if (common.debugMode == 1) {
+//       writearray2file(common.fileout + "hdgApplyBlockJacobi.bin", w, ncf * nf, backend);
+//     }
+// }
 
 void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct &mesh, 
         commonstruct &common,  Int backend)
@@ -337,6 +365,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
       PutBoudaryNodes(we, res.Ri, mesh.intfaces, mesh.faceperm, app.interfacefluxmap, nfe, npf, ncu12, ncu, common.nintfaces); 
     }
     
+    // ncu * npf * nfe * ne -> ncu * npf * nf
     // assemble vector w from we using the FIRST elements in mesh.f2e
     PutElementFaceNodes(w, we, mesh.f2e, npf, nfe, ncu, nf);
 
@@ -500,14 +529,31 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     // assemble RHS vector b from res.Rh using the SECOND elements in mesh.f2e
     PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
 
-    // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
-    BlockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
+    if (common.preconditioner==0) {
+      // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
+      BlockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
 
-    // assemble block Jacobi matrix from res.H using the SECOND elements in mesh.f2e
-    BlockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
+      // assemble block Jacobi matrix from res.H using the SECOND elements in mesh.f2e
+      BlockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
 
-    // inverse block Jacobi matrix
-    Inverse(handle, res.K, tmp.tempn, res.ipiv, ncf, common.nf, backend); // fix bug here
+      // inverse block Jacobi matrix
+      //Inverse(handle, res.K, tmp.tempn, res.ipiv, ncf, common.nf, backend); // fix bug here
+      for (Int j=0; j<common.nbf; j++) {      
+        Int f1 = common.fblks[3*j]-1;
+        Int f2 = common.fblks[3*j+1];                  
+        Inverse(handle, &res.K[ncf*ncf*f1], tmp.tempn, res.ipiv, ncf, f2-f1, backend); 
+      }          
+    }
+    else if (common.preconditioner==1) {
+      ArrayCopy(res.K, res.H, ncf*nfe*ncf*nfe*common.ne); 
+      ElementalAdditiveSchwarz(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf);       
+
+      for (Int j=0; j<common.nbe; j++) {              
+        Int e1 = common.eblks[3*j]-1;
+        Int e2 = common.eblks[3*j+1];          
+        Inverse(handle, &res.K[ncf*nfe*ncf*nfe*e1], tmp.tempn, res.ipiv, ncf*nfe, e2-e1, backend); 
+      }          
+    }
 }
 
 void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 

@@ -165,7 +165,7 @@ void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruc
       sys.szv = ndof * M;
     }
     else {
-      sys.v = &res.K[ncu*common.npf*ncu*common.npf*common.nf];
+      sys.v = &res.K[res.szP];
       sys.szv = 0;
     }
     
