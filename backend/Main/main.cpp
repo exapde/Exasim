@@ -107,15 +107,15 @@ int main(int argc, char** argv)
     shmrank = 0;
 #endif                
   
-#ifdef HAVE_OPENMP    
-    // set OpenMP threads
-    ncores = omp_get_num_procs();
-    nthreads = omp_get_max_threads();
-    omp_set_num_threads(nthreads);            
-#else
-    ncores = 1; 
-    nthreads = 1;    
-#endif
+// #ifdef HAVE_OPENMP    
+//     // set OpenMP threads
+//     ncores = omp_get_num_procs();
+//     nthreads = omp_get_max_threads();
+//     omp_set_num_threads(nthreads);            
+// #else
+//     ncores = 1; 
+//     nthreads = 1;    
+// #endif
     
 #ifdef HAVE_OPENMP
     backend=1; // multi-thread
