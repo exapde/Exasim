@@ -34,7 +34,8 @@ pde.pgauss = 2*porder;
 pde.physicsparam = [gam Re Pr Minf rinf ruinf rvinf rEinf];
 pde.tau = tau;              % DG stabilization parameter
 pde.GMRESrestart = 400;
-pde.linearsolvertol = 1e-6; % GMRES tolerance
+pde.linearsolvertol = 1e-3; % GMRES tolerance
+pde.NLtol = 1e-8;
 pde.linearsolveriter = 400;
 pde.ppdegree = 30;
 pde.RBdim = 0;
@@ -43,9 +44,10 @@ pde.neb = 512;
 % naca mesh
 % mesh = mkmesh_naca0012(porder,1,10);
 mesh = mkmesh_naca0012(porder,1,10);
-pde.gencode=1;
-pde.runmode=10;
-pde.dt = 1e-4*ones(1,100);   % time step sizes
+pde.runmode=10; % runmode 10: timesteps until steady residual is below NLtol
+% pde.runmode=11; % runmode 11: timesteps until small change in monitor function, then steady solve
+
+pde.dt = 1e-2*ones(1,500);   % time step sizes
 pde.soltime = [1]; % steps at which solution are collected
 pde.torder = 1;          % time-stepping order of accuracy
 pde.nstage = 1;          % time-stepping number of stages
@@ -79,11 +81,11 @@ disp("~~~~~~~~~~P1~~~~~~~~~")
 disp("~~~~~~~~~~~~~~~~~~~~")
 UDG1 = pdeapp_porder_func(pde, mesh, porder, UDG);
 %%
-pde.dt = [0];
-pde.runmode = 0;
+% pde.dt = [0];
+% pde.runmode = 0;
 pde.gencode=0;
-% pde.dt = pde.dt*100;
-for porder = 2:4
+pde.dt = 100*pde.dt;
+for porder = 2:5
     disp("~~~~~~~~~~~~~~~~~~~~")
     disp("~~~~~~~~~~P"+string(porder)+"~~~~~~~~~")
     disp("~~~~~~~~~~~~~~~~~~~~")
