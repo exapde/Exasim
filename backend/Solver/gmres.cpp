@@ -282,7 +282,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     INIT_TIMING;    
     
     Int maxit, nrest, orthogMethod, n1, i, k, j = 0;
-    dstype nrm, nrmb, nrmr, tol, scalar;
+    dstype nrmb, nrmr, tol, scalar;
     maxit = disc.common.linearSolverMaxIter;
     nrest = disc.common.gmresRestart;
     orthogMethod = disc.common.gmresOrthogMethod;
@@ -471,6 +471,10 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     
     if (disc.common.linearSolverRelError > tol) {
         if (disc.common.mpiRank==0) {
+            printf("Matrix-vector product time: %g miliseconds\n", tm[0]);
+            printf("Applying preconditioner time: %g miliseconds\n", tm[1]);
+            printf("Orthgonalization time: %g miliseconds\n", tm[2]);    
+            printf("Solution update time: %g miliseconds\n", tm[3]);          
             printf("Warning: GMRES(%d) does not converge to the tolerance %g within % d iterations\n",nrest,tol,maxit);
             printf("Warning: The current relative error is %g \n",disc.common.linearSolverRelError);
         }

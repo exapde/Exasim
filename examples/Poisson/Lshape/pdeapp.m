@@ -1,6 +1,6 @@
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
-run(cdir(1:(ii+5)) + "/Install/setpath.m");
+run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 % initialize pde structure and mesh structure
 [pde,mesh] = initializeexasim();  

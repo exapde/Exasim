@@ -103,6 +103,28 @@ extern "C" {
                 double* vr, int* ldvr, double* work, int* lwork, int* info );    
 }
 
+template <typename T>
+bool is_nan_bitwise(T x);
+
+// Specialization for double
+template <> bool is_nan_bitwise<double>(double x) {
+    uint64_t bits;
+    std::memcpy(&bits, &x, sizeof(bits));
+    return ((bits & 0x7ff0000000000000ULL) == 0x7ff0000000000000ULL) &&  // exponent all 1s
+           ((bits & 0x000fffffffffffffULL) != 0);                         // mantissa nonzero
+}
+
+// Specialization for float
+template <> bool is_nan_bitwise<float>(float x) {
+    uint32_t bits;
+    std::memcpy(&bits, &x, sizeof(bits));
+    return ((bits & 0x7f800000U) == 0x7f800000U) &&                       // exponent all 1s
+           ((bits & 0x007fffffU) != 0);                                   // mantissa nonzero
+}
+
+// Optional macro for quick usage
+#define IS_NAN(x) is_nan_bitwise<decltype(x)>(x)
+
 // global variables for BLAS  
 dstype one = 1.0;
 dstype minusone = -1.0;
@@ -979,7 +1001,7 @@ struct resstruct {
     
     Int *ipiv=nullptr;    
     
-    Int szRi=0, szHi=0, szKi=0, szGi=0;
+    Int szRi=0, szHi=0, szKi=0, szGi=0, szP=0, szV=0;
     Int szipiv=0, szH=0, szK=0, szG=0, szF=0, szB=0, szD=0, szE=0, szC=0, szMass=0, szMinv=0, szMass2=0, szMinv2=0;
     Int szRq=0, szRu=0, szRh=0, szRuf=0, szRue=0, szRqf=0, szRqe=0;  
 
@@ -1080,7 +1102,7 @@ struct tempstruct {
     void freememory(Int backend)
     {
         TemplateFree(tempn, backend); 
-        TemplateFree(tempg, backend); 
+        //TemplateFree(tempg, backend); 
         TemplateFree(buffrecv, backend); 
         TemplateFree(buffsend, backend); 
         TemplateFree(bufffacerecv, backend); 

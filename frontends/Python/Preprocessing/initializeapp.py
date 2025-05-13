@@ -36,7 +36,7 @@ def initializeapp(version):
     app['ncw'] = 0;
     app['nce'] = 0;
     app['neb'] = 512*8;
-    app['nfb'] = 512*32;
+    app['nfb'] = 512*16;
     app['elemtype'] = 1;
     app['nodetype'] = 1;
     app['pdemodel'] = "ModelD";

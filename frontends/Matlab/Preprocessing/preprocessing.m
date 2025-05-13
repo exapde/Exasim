@@ -255,8 +255,7 @@ for i = 1:mpiprocs
         [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);        
         neb = max(eblks(2,:)-eblks(1,:))+1;
         nfb = max(fblks(2,:)-fblks(1,:))+1;        
-    end        
-
+    end            
     npe = master.npe;
     nfe = size(master.perm,2);
     facecon1 = reshape(dmd{i}.facecon(:,1,:),[size(dmd{i}.facecon,1) size(dmd{i}.facecon,3)]);

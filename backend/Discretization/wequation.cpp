@@ -177,5 +177,31 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
     }            
 }
 
+void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
+{
+  for (Int j=0; j<common.nbe; j++) {         
+      Int e1 = common.eblks[3*j]-1;
+      Int e2 = common.eblks[3*j+1];
+      Int ns = e2-e1;        
+      Int ng = common.npe*ns;
+      Int ncw = common.ncw;
+      Int ncx = common.ncx;
+      Int nc = common.nc;
+      Int nco = common.nco;
+      dstype* wdg = &tmp.tempn[0];
+      dstype* xdg = &tmp.tempn[ng*ncw];
+      dstype* udg = &tmp.tempn[ng*(ncw+ncx)];
+      dstype* odg = &tmp.tempn[ng*(ncw+ncx+nc)];
+      dstype* sdg = &tmp.tempn[ng*(ncw+ncx+nc+nco)];
+      GetElemNodes(wdg, w, common.npe, ncw, 0, ncw, e1, e2);
+      GetElemNodes(xdg, sol.xdg, common.npe, ncx, 0, ncx, e1, e2);
+      GetElemNodes(udg, sol.udg, common.npe, nc, 0, nc, e1, e2);
+      GetElemNodes(odg, sol.odg, common.npe, nco, 0, nco, e1, e2);
+      GetElemNodes(sdg, sol.wsrc, common.npe, ncw, 0, ncw, e1, e2);
+      wEquation(wdg, xdg, udg, odg, sdg, tmp.tempg, app, common, ng, common.backend);
+      PutElemNodes(w, wdg, common.npe, ncw, 0, ncw, e1, e2);
+  }   
+}
+
 #endif
 
