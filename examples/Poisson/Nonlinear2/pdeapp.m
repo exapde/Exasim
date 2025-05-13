@@ -13,7 +13,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;                % 0 -> LDG, 1 -> HDG
-pde.debugmode = 1;
+pde.debugmode = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;          % polynomial degree
@@ -41,16 +41,16 @@ mesh.porder = pde.porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
 figure(1); clf; scaplot(mesh,sol(:,1,:),[],2,1); axis on; axis equal; axis tight;
         
-pde.elemtype = 1;
-master1 = Master(pde);
-mesh1 = hdgmesh(mesh, pde.porder);
-UDG0 = 0*mesh1.dgnodes;
-UDG0(:,1,:) = 1;
-UDG0(:,3,:) = 0;
-UH0 = inituhat(master1,mesh1.elcon,UDG0,1);
-pde.bcm = [2; 1; 2; 2];
-pde.bcs = [1; 1; 1; 1];
-[UDG,UH]= hdgsolve(master1,mesh1,pde,UDG0,UH0,[]);
+% pde.elemtype = 1;
+% master1 = Master(pde);
+% mesh1 = hdgmesh(mesh, pde.porder);
+% UDG0 = 0*mesh1.dgnodes;
+% UDG0(:,1,:) = 1;
+% UDG0(:,3,:) = 0;
+% UH0 = inituhat(master1,mesh1.elcon,UDG0,1);
+% pde.bcm = [2; 1; 2; 2];
+% pde.bcs = [1; 1; 1; 1];
+% [UDG,UH]= hdgsolve(master1,mesh1,pde,UDG0,UH0,[]);
 %compareexasim(master1, mesh1, pde);
 
 
