@@ -18,7 +18,9 @@ def vis(visfields,app,mesh):
         app['viselem'] = range(0,ne);
 
     if app['porder']>1:
-        visorder = min(2*app['porder'],8);
+        visorder = 2*app['porder'];
+        if (visorder>8):
+            visorder = 8;
     else:
         visorder = app['porder'];
 

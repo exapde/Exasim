@@ -5,6 +5,9 @@ void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		f[1*ng+i] = 0.0;
 		f[2*ng+i] = 0.0;
 		f[3*ng+i] = 0.0;
+		f[4*ng+i] = 0.0;
+		f[5*ng+i] = 0.0;
+		f[6*ng+i] = 0.0;
 	});
 }
 
