@@ -13,7 +13,7 @@ Exasim is an open-source software for generating high-order discontinuous Galerk
    - Implement monolithic multi-physics solvers for the HDG discretization    
    - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
    - Provide auto-gen tools to calculate thermodynamic, transport, chemistry, and energy transfer properties for chemically-reacting flows 
-   - Provide application programming interfaces to Julia, Python, and Matlab. 
+   - Provide application interfaces to Julia, Python, and Matlab. 
    
 After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. Please make sure that the directory containing the folder Exasim does not have any white space, because Kokkos libraries can not be compiled properly in such case. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
 
