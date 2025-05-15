@@ -17,8 +17,13 @@ pde['modelfile'] = "pdemodel"; # name of a file defining the PDE model
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['porder'] = 3;         # polynomial degree
+pde['pgauss'] = 2*pde['porder'] # number of Gauss points for quadrature
 pde['physicsparam'] = numpy.array([1.0, 0.0]);   # unit thermal conductivity
 pde['tau'] = numpy.array([1.0]);            # DG stabilization parameter
+pde['linearsolvertol'] = 1e-6; # linear solver tolerance
+pde['ppdegree'] = 1; # degree of polynomial precontiditoning
+pde['RBdim'] = 0; # reduced basis dimension for preconditioner
+pde['GMRESrestart'] = 202; # GMRES restart parameter
 
 # Choose computing platform and set number of processors
 #pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available

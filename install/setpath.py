@@ -3,12 +3,12 @@ import sys, os
 # Add Exasim to Python search path
 src = "frontends"; 
 srcdir = cdir[0:(ii+6)] + "/"  + src + "/Python";
-sys.path.append(cdir[0:(ii+6)] + '/Installation');
+sys.path.append(cdir[0:(ii+6)] + '/install');
 sys.path.append(srcdir + '/Gencode');
 sys.path.append(srcdir + '/Mesh');
 sys.path.append(srcdir + '/Preprocessing');
 sys.path.append(srcdir + '/Postprocessing');
-sys.path.append(srcdir + '/Utilities');
+# sys.path.append(srcdir + '/Utilities');
 sys.path.append(cdir);
 
 # Set Python's PATH enviroment variable so that Exasim can call external programs

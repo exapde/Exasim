@@ -4,7 +4,6 @@ lib/Linux/*
 lib/Mac/*
 **/dataout
 *.m~
-**/datain
-**/CMakeFiles
-/build/datain/
-/build/CMakeFiles/
+build/*
+backend/Model/*
+*/__pycache__/

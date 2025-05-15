@@ -11,10 +11,11 @@ def  facenumbering(p,t,elemtype,bndexpr,prdexpr):
     ne = t.shape[1]
     face = getelemface(dim,elemtype);
     nvf,nfe = shape(face);
+    ind2 = min([1,nvf])
 
     t2fl = reshape(t[face.flatten(order='F'),:], (nvf, nfe*ne), order='F');
-    pf = reshape(p[:,t2fl.flatten(order='F')], (dim, nvf, nfe*ne), order='F');
-    pf = reshape(sum(pf,axis=1)/nvf,(dim,nfe,ne), order='F');
+    pf = reshape(p[:,t2fl.flatten(order='F')], (dim, nvf, nfe, ne), order='F');
+    # pf = reshape(sum(pf,axis=1)/nvf,(dim,nfe,ne), order='F');
 
     # interior faces are zero
     f = zeros((nfe,ne),dtype=int,order='F');
@@ -30,8 +31,10 @@ def  facenumbering(p,t,elemtype,bndexpr,prdexpr):
         e = f2t[0,ind[i]]-1; # element e
         l = f2t[1,ind[i]]-1; # local face index
         for k in range(0,len(bndexpr)): # for each boundary expression
-            a = bndexpr[k](reshape(pf[:,l,e],(dim,1))); # evaluate the boundary expression
-            if a: # check if element e belong to this boundary
+            a = bndexpr[k](reshape(pf[:,0,l,e],(dim,1))); # evaluate the boundary expression
+            b = bndexpr[k](reshape(pf[:,ind2,l,e],(dim,1))); # evaluate the boundary expression
+            c = bndexpr[k](reshape(pf[:,nvf-1,l,e],(dim,1))); # evaluate the boundary expression
+            if a and b and c: # check if element e belong to this boundary
                 f[l,e] = k+1; # then set f(l,e) to k
                 break
 
