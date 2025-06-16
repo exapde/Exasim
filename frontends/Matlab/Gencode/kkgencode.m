@@ -2,6 +2,12 @@ function kkgencode(app)
 
 disp("generate code...");
 
+if app.codegenerator == "text2code"
+  runstr = "!" + app.exasimpath + "/text2code/text2code/text2code " + app.modelfile + ".txt";
+  eval(char(runstr));
+  return;
+end
+
 %kkdir = app.buildpath + "/model";
 %kkdir = app.exasimpath + "/build/model";
 

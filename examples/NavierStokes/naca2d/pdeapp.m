@@ -35,9 +35,12 @@ pde.tau = tau;              % DG stabilization parameter
 pde.GMRESrestart = 400;
 pde.linearsolvertol = 1e-7; % GMRES tolerance
 pde.linearsolveriter = 400;
+pde.preconditioner = 1;
 pde.ppdegree = 0;
 pde.RBdim = 0;
 pde.neb = 512;
+pde.gencode = 1;
+pde.codegenerator = "text2code";
 
 % naca mesh
 mesh = mkmesh_naca0012(porder,1,1);

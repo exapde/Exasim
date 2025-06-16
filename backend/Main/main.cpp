@@ -2,12 +2,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <string.h>
 //#include <stdlib.h>
 //#include <chrono>
 //#include <sys/unistd.h>
-
 
 #ifdef _OPENMP
 #define HAVE_OPENMP

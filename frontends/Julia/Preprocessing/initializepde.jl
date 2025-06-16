@@ -113,6 +113,7 @@ mutable struct PDEStruct
     gmsh::String;
     metis::String;
     paraview::String;
+    codegenerator::String;
     enzyme::String;
     visfilename::String;
     visscalars;
@@ -148,6 +149,7 @@ function initializepde(version)
     pde.metis = "mpmetis";
     pde.paraview = "/Applications/ParaView-5.8.1.app/Contents/MacOS/paraview";
     pde.enzyme = "";
+    pde.codegenerator = "";
 
     pde.codename = "Exasim";
     cdir = pwd(); ii = findlast("Exasim", cdir);

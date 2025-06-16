@@ -1,4 +1,4 @@
-function mesh=mkmesh_circleinsquare(porder,mul1,mul2)
+function [mesh,p1,t1]=mkmesh_circleinsquare(porder,mul1,mul2)
 
 if nargin<2, mul1=1; end
 if nargin<3, mul2=1; end
@@ -31,4 +31,7 @@ bndexpr={s1,s2,s3,s4,'all(sum(p.^2,2)<2^2)'};
 
 fd=@(p) sqrt(sum(p.^2,2))-1;
 mesh = mkmesh(p,t,porder,bndexpr,0,0,5,fd);
+
+[p1,t1]=polymesh({pv2},[1],[0,1],[8/m,1.3]);
+
 

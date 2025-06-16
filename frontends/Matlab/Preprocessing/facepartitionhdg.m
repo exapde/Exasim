@@ -63,22 +63,14 @@ for i = 1:nproc
         end
         dmd{i}.facepartpts = [dmd{i}.facepartpts n];
         dmd{i}.facepartbnd = [dmd{i}.facepartbnd bcn(j)];
-    end
-    
-%     bcm
-%     bcn
-%      fb
-%      ind
+    end    
     
     % [interface faces, interior faces, boundary faces]
     f2t = f2t(:,[ina inb(ind)]);
     dmd{i}.f2t = f2t;    
-
-%     f2t
-%     pause
     
     % fix f2t to ensure DOF consistency across interior faces
-    % the global ID of the FIRST face must be smaller than that of the SECOND face        
+    % the global ID of the FIRST element must be smaller than that of the SECOND element        
     N = size(dmd{i}.f2t,2);
     for face = 1:N % loop over each face
       e1 = dmd{i}.f2t(1,face);

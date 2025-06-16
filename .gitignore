@@ -1,8 +1,17 @@
 *.pyc
 *.vtu
+text2code/include/*
+text2code/lib/*
 lib/Linux/*
 lib/Mac/*
+build/CMakeFiles/*
+build/datain/*
+build/dataout/*
+kokkos/buildserial/*
+backend/Model/build/*
 **/dataout
 *.m~
 *.cpp~
 *.hpp~
+.gitignore~
+text2code/text2code/text2code

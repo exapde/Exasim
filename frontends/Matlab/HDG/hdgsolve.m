@@ -1,4 +1,4 @@
-function [UDG,UH]= hdgsolve(master,mesh,pde,UDG,UH,SH)
+function [UDG,UH,AE,FE,K,F]= hdgsolve(master,mesh,pde,UDG,UH,SH)
 % Solve PDEs using the HDG method and Newton iteration
 
 nsiz = max(mesh.elcon(:));
@@ -59,7 +59,60 @@ else
   if isfield(mesh, "f2t")==0
     mesh.f2t = mkf2t(mesh.f, mesh.t2f);
   end
-  BE = blockjacobi(AE, mesh.f2t, reshape(mesh.elcon, [npf nfe ne]));  
+  if pde.denseblock==1
+    BE = blockjacobi(AE, mesh.f2t, reshape(mesh.elcon, [npf nfe ne]));  
+  elseif pde.denseblock==2
+    BE = elementaladditiveschwarz(AE, mesh.f2t, reshape(mesh.elcon, [npf nfe ne]));  
+  elseif pde.denseblock==3   
+    [mesh.fpath, mesh.lpath, mesh.fintf, mesh.lintf] = pathreordering(mesh.epath, mesh.nelems, mesh.t2f);
+    [BE.A, BE.B, BE.C, BE.D] = pathcompute(AE, mesh.epath, mesh.fpath, mesh.lpath, mesh.fintf, mesh.lintf, mesh.nelems, mesh.f2t, mesh.t2f, reshape(mesh.elcon, [npf nfe ne]));
+    BE.nelems = mesh.nelems;
+    BE.fpath = mesh.fpath;
+    BE.fintf = mesh.fintf;
+  elseif pde.denseblock==4   
+    [mesh.fpath, mesh.lpath, mesh.fintf, mesh.lintf] = pathreordering2(mesh.epath, mesh.t2f);
+    [BE.A, BE.B1, BE.B2, BE.C1, BE.C2, BE.D1, BE.D2, BE.DL, BE.DU] = pathcompute2(AE, mesh.epath, mesh.fpath, mesh.lpath, mesh.fintf, mesh.lintf, mesh.f2t, mesh.t2f, reshape(mesh.elcon, [npf nfe ne]));
+    BE.fpath = mesh.fpath;
+    BE.fintf = mesh.fintf;
+    BE.nep = size(mesh.epath,2);
+  elseif pde.denseblock==5
+    [mesh.row_ptr, mesh.col_ind, mesh.face] = facereordering(mesh.elem, mesh.t, mesh.t2f, mesh.elemtype, size(mesh.p,1));    
+    %[mesh.row_ptr, mesh.col_ind, mesh.face] = crs_faceordering(mesh.elem, mesh.f2t);    
+    [neb, nfeb] = size(mesh.face);
+    BE.A = zeros(ncu*npf*nfeb, ncu*npf*nfeb, neb);
+    for i = 1:neb
+      [~, BE.A(:,:,i)] = crs_assembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, mesh.face(i,:), mesh.row_ptr, mesh.col_ind, ncu, npf, nfe);
+    end
+    BE.face = mesh.face;
+  elseif pde.denseblock==6
+    %[BE.row_ptr, BE.col_ind, BE.face] = facereordering(mesh.elem, mesh.t, mesh.t2f, mesh.elemtype, size(mesh.p,1));    
+    [BE.row_ptr, BE.col_ind, BE.face] = crs_faceordering(mesh.elem, mesh.f2t);    
+    [ind_ii, ind_ji, ind_jl, ind_il, num_ji, num_jl, BE.Lind_ji, BE.Uind_ji, BE.Lnum_ji, BE.Unum_ji] = crs_indexingilu0(BE.row_ptr, BE.col_ind, nfe);
+%     max(abs(BE.face(:)-face(:)))
+%     max(abs(BE.row_ptr(:)-row_ptr(:)))
+%     max(abs(BE.col_ind(:)-col_ind(:)))
+%     BE.A = zeros(ncu*npf, ncu*npf, BE.row_ptr(end), neb);
+%     for i = 1:neb
+%       val = crs_assembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face(i,:), BE.row_ptr, BE.col_ind, ncu, npf, nfe);      
+%       BE.A(:,:,:,i) = block_ilu0(BE.row_ptr, BE.col_ind, val);       
+%     end
+    BE.A = crs_fullassembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face, BE.row_ptr, BE.col_ind, ncu, npf, nfe);      
+    %BE.A = crs_blockilu0(BE.row_ptr, BE.col_ind, BE.A);       
+    BE.A = crs_parblockilu0(ind_ii, ind_ji, ind_jl, ind_il, num_ji, num_jl, BE.A);
+  elseif pde.denseblock==7
+    [BE.row_ptr, BE.col_ind, BE.face, ~, BE.row_ptr2, BE.col_ind2, ~, BE.color, BE.idr1, BE.idr2, BE.idr3, BE.idx1, BE.idx2, BE.idx3] = facereordering(mesh.elem, mesh.t, mesh.t2f, mesh.elemtype, size(mesh.p,1));    
+    count1 = size(BE.idr1,2);
+    count2 = size(BE.idr2,2);
+    count3 = size(BE.idr3,2);
+    count4 = BE.row_ptr2(end);
+    [BE.A1, BE.A2, BE.A3, BE.B1, BE.B2, BE.B3, BE.C1, BE.C2, BE.C3, BE.D] = matrix_assembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face, BE.row_ptr, BE.col_ind, BE.color, count1, count2, count3, count4, ncu, npf, nfe);
+    [BE.A1, BE.A2, BE.A3, BE.C1, BE.C2, BE.C3, BE.D] = matrix_compute(BE.A1, BE.A2, BE.A3, BE.B1, BE.B2, BE.B3, BE.C1, BE.C2, BE.C3, BE.D, BE.idx1, BE.idx2, BE.idx3);
+    [neb, ~] = size(BE.face);
+    for i = 1:neb
+       BD = block_ilu0(BE.row_ptr2, BE.col_ind2, squeeze(BE.D(:,:,i,:)));   
+       BE.D(:,:,i,:) = reshape(BD, [npf*ncu npf*ncu 1 size(BD,3)]);
+    end
+  end
 end
 
 it   = 0;
@@ -128,8 +181,36 @@ while duh > NewtonTol && it < 10
         if pde.denseblock==0
           [K, F] = assemblelinearsystem(AE, FE, mesh.elcon);
         else
-          F = assembleRHS(FE, mesh.elcon);
-          BE = blockjacobi(AE, mesh.f2t, reshape(mesh.elcon, [npf nfe ne]));  
+          F = assembleRHS(FE, mesh.elcon);         
+          if pde.denseblock==1
+            BE = blockjacobi(AE, mesh.f2t, reshape(mesh.elcon, [npf nfe ne]));  
+          elseif pde.denseblock==2
+            BE = elementaladditiveschwarz(AE, mesh.f2t, reshape(mesh.elcon, [npf nfe ne]));  
+          elseif pde.denseblock==3          
+            [BE.A, BE.B, BE.C, BE.D] = pathcompute(AE, mesh.epath, mesh.fpath, mesh.lpath, mesh.fintf, mesh.lintf, mesh.nelems, mesh.f2t, mesh.t2f, reshape(mesh.elcon, [npf nfe ne]));  
+          elseif pde.denseblock==4          
+            [BE.A, BE.B1, BE.B2, BE.C1, BE.C2, BE.D1, BE.D2, BE.DL, BE.DU] = pathcompute2(AE, mesh.epath, mesh.fpath, mesh.lpath, mesh.fintf, mesh.lintf, mesh.f2t, mesh.t2f, reshape(mesh.elcon, [npf nfe ne]));
+          elseif pde.denseblock==5
+            for i = 1:neb
+              [~, BE.A(:,:,i)] = crs_assembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, mesh.face(i,:), mesh.row_ptr, mesh.col_ind, ncu, npf, nfe);
+            end  
+          elseif pde.denseblock==6
+%             for i = 1:neb
+%               val = crs_assembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face(i,:), BE.row_ptr, BE.col_ind, ncu, npf, nfe);      
+%               BE.A(:,:,:,i) = block_ilu0(BE.row_ptr, BE.col_ind, val);       
+%             end
+            BE.A = crs_fullassembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face, BE.row_ptr, BE.col_ind, ncu, npf, nfe);      
+            %BE.A = crs_blockilu0(BE.row_ptr, BE.col_ind, BE.A);       
+            BE.A = crs_parblockilu0(ind_ii, ind_ji, ind_jl, ind_il, num_ji, num_jl, BE.A);
+          elseif pde.denseblock==7
+            [BE.A1, BE.A2, BE.A3, BE.B1, BE.B2, BE.B3, BE.C1, BE.C2, BE.C3, BE.D] = matrix_assembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face, BE.row_ptr, BE.col_ind, BE.color, count1, count2, count3, count4, ncu, npf, nfe);
+            [BE.A1, BE.A2, BE.A3, BE.C1, BE.C2, BE.C3, BE.D] = matrix_compute(BE.A1, BE.A2, BE.A3, BE.B1, BE.B2, BE.B3, BE.C1, BE.C2, BE.C3, BE.D, BE.idx1, BE.idx2, BE.idx3);
+            [neb, ~] = size(BE.face);
+            for i = 1:neb
+               BD = block_ilu0(BE.row_ptr2, BE.col_ind2, squeeze(BE.D(:,:,i,:)));   
+               BE.D(:,:,i,:) = reshape(BD, [npf*ncu npf*ncu 1 size(BD,3)]);
+            end          
+          end
         end
 
         duh  = norm(F(:));                         

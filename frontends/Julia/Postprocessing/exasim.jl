@@ -20,7 +20,8 @@ if nmodels==1
     # generate source codes and store them in app folder
     Gencode.gencode(pde);
 
-    compilerstr = Main.cmakecompile(pde); # use cmake to compile source codes 
+    #compilerstr = Main.cmakecompile(pde); # use cmake to compile source codes 
+    compilerstr = Main.compilepdemodel(pde); # use cmake to compile source codes 
 
     runstr = Gencode.runcode(pde, 1);
 
@@ -46,8 +47,10 @@ else
     gencodeall(nmodels);
 
     if pde.usecmake==1    
-        runstr = Main.cmakecompile(pde[1], nmodels); # use cmake to compile source codes 
-        compilerstr = "";    
+        #runstr = Main.cmakecompile(pde[1], nmodels); # use cmake to compile source codes 
+        #compilerstr = "";    
+        compilerstr = Main.compilepdemodel(pde[1]); # use cmake to compile source codes 
+        runstr = runcode(pde[1],nmodels);
     else
         # # compile source codes to build an executable file and store it in app folder
         compilerstr = compilecode(pde[1]);

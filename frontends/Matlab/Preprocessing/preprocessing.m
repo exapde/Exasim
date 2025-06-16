@@ -256,6 +256,8 @@ for i = 1:mpiprocs
         neb = max(eblks(2,:)-eblks(1,:))+1;
         nfb = max(fblks(2,:)-fblks(1,:))+1;        
     end            
+    dmd{i}.eblks = eblks;
+    dmd{i}.fblks = fblks;
     npe = master.npe;
     nfe = size(master.perm,2);
     facecon1 = reshape(dmd{i}.facecon(:,1,:),[size(dmd{i}.facecon,1) size(dmd{i}.facecon,3)]);

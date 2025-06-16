@@ -1,54 +1,58 @@
-void KokkosFlux(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+void KokkosFlux(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)
 {
-	Kokkos::parallel_for("Flux", ng, KOKKOS_LAMBDA(const size_t i) {
-		dstype param1 = param[0];
-		dstype udg1 = udg[0*ng+i];
-		dstype udg2 = udg[1*ng+i];
-		dstype udg3 = udg[2*ng+i];
-		dstype udg4 = udg[3*ng+i];
-		dstype udg5 = udg[4*ng+i];
-		dstype udg6 = udg[5*ng+i];
-		dstype udg7 = udg[6*ng+i];
-		dstype t2 = udg2*udg2;
-		dstype t3 = 1.0/(udg1*udg1);
-		dstype t4 = udg5*udg5;
-		dstype t5 = t4*(1.0/2.0);
-		dstype t6 = udg6*udg6;
-		dstype t7 = t6*(1.0/2.0);
-		dstype t8 = 1.0/udg1;
-		dstype t9 = param1-1.0;
-		dstype t10 = t2*t3*(1.0/2.0);
-		dstype t11 = udg3*udg3;
-		dstype t12 = t3*t11*(1.0/2.0);
-		dstype t13 = t10+t12;
-		dstype t14 = t13*udg1;
-		dstype t15 = udg7*udg7;
-		dstype t16 = t15*(1.0/2.0);
-		dstype t17 = t5+t7+t14+t16-udg4;
-		dstype t18 = t8*udg2*udg3;
-		dstype t19 = t18-udg5*udg6;
-		dstype t20 = t8*udg2*udg5;
-		dstype t21 = t8*udg3*udg6;
-		dstype t22 = t20+t21;
-		dstype t23 = t8*udg4;
-		dstype t24 = t5+t7;
-		dstype t25 = t8*t24;
-		dstype t26 = t23+t25-t8*t9*t17;
-		dstype t27 = t8*udg2*udg6;
-		f[0*ng+i] = udg2;
-		f[1*ng+i] = -t5+t7+t2*t8-t9*t17;
-		f[2*ng+i] = t19;
-		f[3*ng+i] = -t22*udg5+t26*udg2+udg5*udg7;
-		f[4*ng+i] = udg7;
-		f[5*ng+i] = t27-t8*udg3*udg5;
-		f[6*ng+i] = udg5;
-		f[7*ng+i] = udg3;
-		f[8*ng+i] = t19;
-		f[9*ng+i] = t5-t7+t8*t11-t9*t17;
-		f[10*ng+i] = -t22*udg6+t26*udg3+udg6*udg7;
-		f[11*ng+i] = -t27+t8*udg3*udg5;
-		f[12*ng+i] = udg7;
-		f[13*ng+i] = udg6;
-	});
+
+  Kokkos::parallel_for("Flux", N, KOKKOS_LAMBDA(const size_t i) {
+    dstype uq0 = uq[0*N+i];
+    dstype uq1 = uq[1*N+i];
+    dstype uq2 = uq[2*N+i];
+    dstype uq3 = uq[3*N+i];
+    dstype uq4 = uq[4*N+i];
+    dstype uq5 = uq[5*N+i];
+    dstype uq6 = uq[6*N+i];
+    dstype uq7 = uq[7*N+i];
+    dstype uq8 = uq[8*N+i];
+    dstype uq9 = uq[9*N+i];
+    dstype uq10 = uq[10*N+i];
+    dstype uq11 = uq[11*N+i];
+    dstype mu0 = mu[0];
+    dstype mu1 = mu[1];
+    dstype mu2 = mu[2];
+
+    dstype x0 = -1.0 + mu0;
+    dstype x1 = pow(uq2, 2);
+    dstype x2 = pow(uq0, -2);
+    dstype x3 = pow(uq1, 2);
+    dstype x4 = 0.5*(x2*x1 + x2*x3);
+    dstype x5 = x0*(uq3 - x4*uq0);
+    dstype x6 = pow(uq0, -1);
+    dstype x7 = x6*uq2;
+    dstype x8 = uq10 - x7*uq8;
+    dstype x9 = x6*x8;
+    dstype x10 = x6*uq1;
+    dstype x11 = uq5 - uq4*x10;
+    dstype x12 = x6*x11;
+    dstype x13 = pow(mu1, -1);
+    dstype x14 = 0.666666666666667*x13;
+    dstype x15 = x14*(2*x12 - x9);
+    dstype x16 = uq6 - x7*uq4;
+    dstype x17 = uq9 - uq8*x10;
+    dstype x18 = (x6*x16 + x6*x17)*x13;
+    dstype x19 = x18 + x7*uq1;
+    dstype x20 = x2*uq2;
+    dstype x21 = x2*uq1;
+    dstype x22 = x0*uq0;
+    dstype x23 = x2*x13*mu0/(x0*mu2);
+    dstype x24 = x6*uq3 + x6*x5;
+    dstype x25 = x14*(-x12 + 2*x9);
+
+    f[0 * N + i] = uq1;
+    f[1 * N + i] = x15 + x5 + x3*x6;
+    f[2 * N + i] = x19;
+    f[3 * N + i] = uq1*x24 + x15*x10 + x23*(x22*(uq7 - x4*uq4 - (x20*x16 + x21*x11)*uq0) - x5*uq4) + x7*x18;
+    f[4 * N + i] = uq2;
+    f[5 * N + i] = x19;
+    f[6 * N + i] = x25 + x5 + x1*x6;
+    f[7 * N + i] = uq2*x24 + x10*x18 + x23*(x22*(uq11 - uq0*(x21*x17 + x8*x20) - x4*uq8) - x5*uq8) + x7*x25;
+  });
 }
 

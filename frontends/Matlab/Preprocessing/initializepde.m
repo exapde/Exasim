@@ -13,6 +13,7 @@ pde.metis = "mpmetis";
 pde.gmsh = "gmsh";
 pde.paraview = "paraview";
 pde.enzyme = [];
+pde.codegenerator = "";
 
 pde.codename = "Exasim";
 cdir = pwd(); ii = strfind(cdir, pde.codename);

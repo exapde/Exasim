@@ -453,7 +453,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       }              
       // if (common.nelemsend>0) {
       //     mesh.interfacefaces = (Int*) malloc (sizeof (Int)*common.nelemsend);          
-      //     int n = getinterfacefaces(mesh.interfacefaces, mesh.f2e, common.ne1, common.nf);
+      //     int n = getsubdomaininterfaces(mesh.interfacefaces, mesh.f2e, common.ne1, common.nf);
       //     if (n != common.nelemsend) error("Number of interfaces mismatch");
       // }
       
@@ -464,9 +464,34 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       mesh.f2f = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
       mesh.f2l = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
       mke2f(mesh.e2f, mesh.f2e, nf, nfe, ne);
-      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, mesh.e2f, nf, nfe, ne);             
+      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, mesh.e2f, nf, nfe, ne);       
+      
+//       for (int i = 0; i < common.nelemsend; i++) {
+//         int esend = common.elemsend[i];
+//         int erecv = common.elemrecv[i];
+//         for (int j = 0; j < nfe; j++) 
+//           for (int k = 0; k < nfe; k++) {
+//             if (mesh.e2f[j + nfe*esend] == mesh.e2f[k + nfe*erecv]) {
+//               int f = mesh.e2f[j + nfe*esend];
+//               printf("%d %d %d %d %d %d %d %d %d %d %d ", common.mpiRank, i, esend, j, erecv, k, f, mesh.f2e[0 + 4*f], mesh.f2e[1 + 4*f], mesh.f2e[2 + 4*f], mesh.f2e[3 + 4*f]);
+//               for (int l = 0; l< 2*(nfe-1); l++)
+//                 printf("%d ", mesh.f2f[l + 2*(nfe-1)*f]);
+//               printf("\n");
+//             }
+//         }
+//       }
+      
+//       int n = getsubdomaininterfaces(mesh.f2e, common.ne1, common.nf);
+//       int *interfacefaces = (Int*) malloc (sizeof (Int)*n);          
+//       getsubdomaininterfaces(interfacefaces, mesh.f2e, common.ne1, common.nf);
+//       print2iarray(interfacefaces, 1, n);
+//       print2iarray(mesh.f2e, 4, n);
+//       print2iarray(mesh.f2f, 2*(nfe-1), n);
+//       print2iarray(mesh.f2l, 2*(nfe-1), n);
+//       CPUFREE(interfacefaces);      
+      
 //       print2iarray(mesh.f2e, 4, nf);
-//       print2iarray(e2f, nfe, ne);
+//       print2iarray(mesh.e2f, nfe, ne);
 //       print2iarray(mesh.f2f, 2*(nfe-1), nf);
 //       print2iarray(mesh.f2l, 2*(nfe-1), nf);
 //      CPUFREE(e2f);      

@@ -49,6 +49,12 @@ function gencode(app)
 
 print("generate code...\n");
 
+if app.codegenerator == "text2code"
+    runstr = app.exasimpath * "/text2code/text2code/text2code " * app.modelfile * ".txt"
+    run(`$runstr`)
+    return
+end
+
 # foldername = app.exasimpath * "/build/model";
 
 foldername = app.backendpath * "/Model";
