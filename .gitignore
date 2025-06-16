@@ -8,10 +8,12 @@ build/CMakeFiles/*
 build/datain/*
 build/dataout/*
 kokkos/buildserial/*
-backend/Model/build/*
+backend/Model/build/CMakeFiles/*
 **/dataout
 *.m~
 *.cpp~
 *.hpp~
 .gitignore~
 text2code/text2code/text2code
+build/cpuEXASIM
+backend/Model/build/CMakeCache.txt
