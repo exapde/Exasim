@@ -17,3 +17,4 @@ backend/Model/build/CMakeFiles/*
 text2code/text2code/text2code
 build/cpuEXASIM
 backend/Model/build/CMakeCache.txt
+build/CMakeCache.txt
