@@ -21,8 +21,8 @@ def exasim(pde,mesh):
         Gencode.gencode(pde);
 
         # compile source codes to build an executable file and store it in build folder
-        # compilerstr = Gencode.cmakecompile(pde);
-        compilerstr = Gencode.compilepdemodel(pde);
+        compilerstr = Gencode.cmakecompile(pde);
+        # compilerstr = Gencode.compilepdemodel(pde);
 
         runstr = Gencode.runcode(pde, 1);
 
@@ -50,8 +50,8 @@ def exasim(pde,mesh):
         Gencode.gencodeall(nmodels);
 
         # compile source codes to build an executable file and store it in app folder
-        # compilerstr = Gencode.compilecode(pde[0]);
-        compilerstr = Gencode.compilepdemodel(pde[0]);
+        compilerstr = Gencode.compilecode(pde[0]);
+        # compilerstr = Gencode.compilepdemodel(pde[0]);
 
         # run executable file to compute solution and store it in dataout folder
         runstr = Gencode.runcode(pde[0],nmodels);

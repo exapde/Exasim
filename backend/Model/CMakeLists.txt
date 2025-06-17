@@ -16,34 +16,53 @@ endif()
 # Path to Exasim root (update this or make it configurable)
 set(EXASIM_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../..)  # Adjust as needed
 
-# Kokkos backend build paths
-set(KOKKOS_SERIAL_PATH ${EXASIM_PATH}/kokkos/buildserial)
-set(KOKKOS_CUDA_PATH   ${EXASIM_PATH}/kokkos/buildcuda)
-set(KOKKOS_HIP_PATH    ${EXASIM_PATH}/kokkos/buildhip)
-
 # Shared source
 set(PDEMODEL_SRC ${EXASIM_PATH}/backend/Model/libpdemodel.cpp)
 
-# Helper macro to create shared library
-macro(add_backend_library backend path)
-    if(EXISTS ${path})
-        add_library(libpdemodel${backend} SHARED ${PDEMODEL_SRC})
-        target_include_directories(libpdemodel${backend} PRIVATE ${path}/include)
-        target_link_libraries(libpdemodel${backend} 
-            PRIVATE 
-            ${path}/lib/libkokkoscore.a 
-            ${path}/lib/libkokkoscontainers.a
-        )
-        if(EXISTS ${path}/lib/libkokkossimd.a)
-            target_link_libraries(libpdemodel${backend} PRIVATE ${path}/lib/libkokkossimd.a)
-        endif()
-        set_target_properties(libpdemodel${backend} PROPERTIES
-            OUTPUT_NAME pdemodel${backend}
-            LIBRARY_OUTPUT_DIRECTORY ${EXASIM_PATH}/backend/Model
-        )
-    endif()
-endmacro()
+if(EXASIM_CUDA)
+    set(Kokkos_DIR ${EXASIM_PATH}/kokkos/buildcuda)
+    find_package(Kokkos REQUIRED)
 
-add_backend_library(serial ${KOKKOS_SERIAL_PATH})
-add_backend_library(cuda   ${KOKKOS_CUDA_PATH})
-add_backend_library(hip    ${KOKKOS_HIP_PATH})
+    enable_language(CUDA)
+    find_package(CUDA REQUIRED)
+
+    # Specify the include directories
+    include_directories(${CUDA_INCLUDE_DIRS})
+    
+    add_library(libpdemodelcuda SHARED ${PDEMODEL_SRC})
+    target_link_libraries(libpdemodelcuda PRIVATE Kokkos::kokkos)
+    set_target_properties(libpdemodelcuda PROPERTIES
+        OUTPUT_NAME pdemodelcuda
+        LIBRARY_OUTPUT_DIRECTORY ${EXASIM_PATH}/backend/Model
+    )
+elseif(EXASIM_HIP)
+    if(EXASIM_TUOLUMNE)
+      set(Kokkos_DIR ${EXASIM_PATH}/kokkos/buildtuolumne)
+    else()
+      set(Kokkos_DIR ${EXASIM_PATH}/kokkos/buildhip)
+    endif()
+
+    find_package(Kokkos REQUIRED)
+
+    enable_language(HIP)
+    find_package(HIP REQUIRED)
+
+    include_directories(${HIP_INCLUDE_DIRS})
+
+    add_library(libpdemodelhip SHARED ${PDEMODEL_SRC})
+    target_link_libraries(libpdemodelhip PRIVATE Kokkos::kokkos)
+    set_target_properties(libpdemodelhip PROPERTIES
+        OUTPUT_NAME pdemodelhip
+        LIBRARY_OUTPUT_DIRECTORY ${EXASIM_PATH}/backend/Model
+    )
+else()
+    set(Kokkos_DIR ${EXASIM_PATH}/kokkos/buildserial)
+    find_package(Kokkos REQUIRED)
+    
+    add_library(libpdemodelserial SHARED ${PDEMODEL_SRC})
+    target_link_libraries(libpdemodelserial PRIVATE Kokkos::kokkos)
+    set_target_properties(libpdemodelserial PROPERTIES
+        OUTPUT_NAME pdemodelserial
+        LIBRARY_OUTPUT_DIRECTORY ${EXASIM_PATH}/backend/Model
+    )
+endif()

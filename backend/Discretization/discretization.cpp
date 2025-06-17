@@ -8,13 +8,12 @@
 #include "discretization.h"
 #include "errormsg.cpp"
 #include "ioutilities.cpp"
-//#include "../Model/KokkosDrivers.cpp"
-#include "../Model/ModelDrivers.cpp"
+#include "../Model/KokkosDrivers.cpp"
+//#include "../Model/ModelDrivers.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"
 #include "matvec.cpp"
-
       
 void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int nese)
 {            
@@ -201,15 +200,15 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       CPUFREE(boufaces);
       CPUFREE(mesh.bf);            
             
-      int Nx = 64;
-      int Ny = 16;
-      int Mx = 4;
-      int My = 4;
-      int *elem = NULL;
-      int nse  = gridpartition2d(&elem, Nx, Ny, Mx, My, 1);       
-      int nese = Mx*My;      
-      crs_init(common, mesh, elem, nse, nese);
-      CPUFREE(elem);
+//       int Nx = 64;
+//       int Ny = 16;
+//       int Mx = 4;
+//       int My = 4;
+//       int *elem = NULL;
+//       int nse  = gridpartition2d(&elem, Nx, Ny, Mx, My, 1);       
+//       int nese = Mx*My;      
+//       crs_init(common, mesh, elem, nse, nese);
+//       CPUFREE(elem);
             
       res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne; // HDG elemental matrices     
       res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;          
