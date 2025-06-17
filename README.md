@@ -49,26 +49,7 @@ To build Kokkos HIP library for AMD GPU platform, please follow the below steps
   $ make install   
 ```
 
-Once Kokkos libraries are successfully built, you can start building Exasim as follows. To build Exasim for CPU platform, please follow the below steps
-```
-  $ cd Exasim/build
-  $ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF ../install
-  $ cmake --build .     
-```
-To build Exasim for Nvidia GPU  platform, please follow the below steps
-```
-  $ cd Exasim/build
-  $ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D EXASIM_HIP=OFF ../install
-  $ cmake --build .     
-```
-To build Exasim for AMD GPU  platform, please follow the below steps
-```
-  $ cd Exasim/build
-  $ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=ON ../install
-  $ cmake --build .     
-```
-
-To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
+Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
 # Examples
 
