@@ -240,9 +240,13 @@ void CodeGenerator::generateFunctionSource(std::ostream& os, const FunctionDef& 
     std::regex ones_no_size_pattern(R"(^\s*ones\((\w+)\)\s*;?\s*$)");
     std::regex fill_no_size_pattern(R"(^\s*fill\((\w+),\s*([-+]?[0-9]*\.?[0-9]+)\)\s*;?\s*$)");
 
+    std::regex vec_decl_pattern(R"(^\s*vector\s+(\w+)\((\d+)\)\s*$)");
+    
     std::regex mat_decl_pattern(R"(^\s*matrix\s+(\w+)\((\d+),(\d+)\)\s*$)");
     std::regex matset_pattern(R"((\w+)\[(\d+)\]\[(\d+)\]\s*=\s*(.+))");
+    std::regex matset_pattern_ext(R"((\w+)\[([^\]]+)\]\[([^\]]+)\]\s*=\s*(.+))");
     std::regex matget_pattern(R"(^\s*(\w+)\s*=\s*(\w+)\[(\d+)\]\[(\d+)\]\s*$)");
+    std::regex matget_pattern_ext(R"(^\s*(.+)\s*=\s*(\w+)\[([^\]]+)\]\[([^\]]+)\]\s*$)");
     std::regex det_pattern(R"(^\s*(\w+)\[(\d+)\]\s*=\s*det\((\w+)\)\s*$)");
     std::regex trace_pattern(R"(^\s*(\w+)\[(\d+)\]\s*=\s*trace\((\w+)\)\s*$)");
     std::regex inv_pattern(R"(^\s*(\w+)\s*=\s*inv\((\w+)\)\s*$)");
@@ -267,6 +271,10 @@ void CodeGenerator::generateFunctionSource(std::ostream& os, const FunctionDef& 
         } else if (std::regex_match(line, match, for_loop_end)) {
             os << "    }\n";
             in_loop = false;
+        } else if (std::regex_match(line, match, vec_decl_pattern)) {
+            std::string vec = match[1];
+            std::string size = match[2];
+            os << "    std::vector<Expression> " << vec << "(" << size << ");\n";    
         } else if (std::regex_match(line, match, mat_decl_pattern)) {
             std::string mat = match[1];
             std::string rows = match[2];
@@ -278,12 +286,24 @@ void CodeGenerator::generateFunctionSource(std::ostream& os, const FunctionDef& 
             std::string j = match[3];
             std::string rhs = match[4];
             os << "    " << mat << ".set(" << i << ", " << j << ", Expression(" << rhs << "));\n";
+        } else if (std::regex_match(line, match, matset_pattern_ext)) {
+            std::string mat = match[1];
+            std::string i = match[2];
+            std::string j = match[3];
+            std::string rhs = match[4];
+            os << "    " << mat << ".set(" << i << ", " << j << ", Expression(" << rhs << "));\n";            
         } else if (std::regex_match(line, match, matget_pattern)) {
             std::string lhs = match[1];
             std::string mat = match[2];
             std::string i = match[3];
             std::string j = match[4];
-            os << "    Expression " << lhs << " = " << mat << ".get(" << i << ", " << j << ");\n";
+            os << "    Expression " << lhs << " = " << mat << ".get(" << i << ", " << j << ");\n";    
+        } else if (std::regex_match(line, match, matget_pattern_ext)) {
+            std::string lhs = match[1];
+            std::string mat = match[2];
+            std::string i = match[3];
+            std::string j = match[4];
+            os << "    " << lhs << " = " << mat << ".get(" << i << ", " << j << ");\n";    
         } else if (std::regex_match(line, match, det_pattern)) {
             std::string vec = match[1];
             std::string index = match[2];

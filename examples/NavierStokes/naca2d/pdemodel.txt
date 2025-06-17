@@ -207,23 +207,22 @@ function FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t)
   An = Tmp * R;
 
   matrix bn(4,1);
-  bn[0][0] = uq[0] - mu[4];
-  bn[1][0] = uq[1] - mu[5];
-  bn[2][0] = uq[2] - mu[6];
-  bn[3][0] = uq[3] - mu[7];
+  for i in 0:3
+    bn[i][0] = uq[i] - mu[4+i];
+  endfor
 
   matrix cn(4,1);
   cn = An * bn;
 
-  cn0 = cn[0][0];
-  cn1 = cn[1][0];
-  cn2 = cn[2][0];
-  cn3 = cn[3][0];
+  vector dn(4);
+  for i in 0:3
+    dn[i] = cn[i][0];
+  endfor
   
-  fb[4] = 0.5*(uq[0] + mu[4] + cn0) - uhat[0]; 
-  fb[5] = 0.5*(uq[1] + mu[5] + cn1) - uhat[1]; 
-  fb[6] = 0.5*(uq[2] + mu[6] + cn2) - uhat[2]; 
-  fb[7] = 0.5*(uq[3] + mu[7] + cn3) - uhat[3]; 
+  fb[4] = 0.5*(uq[0] + mu[4] + dn[0]) - uhat[0]; 
+  fb[5] = 0.5*(uq[1] + mu[5] + dn[1]) - uhat[1]; 
+  fb[6] = 0.5*(uq[2] + mu[6] + dn[2]) - uhat[2]; 
+  fb[7] = 0.5*(uq[3] + mu[7] + dn[3]) - uhat[3]; 
 end
 
 function Initu(x, eta, mu)

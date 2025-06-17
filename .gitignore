@@ -11,8 +11,13 @@ kokkos/buildserial/*
 backend/Model/build/CMakeFiles/*
 **/dataout
 *.m~
+*.py~
+*.jl~
+*.h~
+*.c~
 *.cpp~
 *.hpp~
+*.txt~
 .gitignore~
 text2code/text2code/text2code
 build/cpuEXASIM

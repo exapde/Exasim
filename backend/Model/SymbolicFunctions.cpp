@@ -188,20 +188,19 @@ std::vector<Expression> FbouHdg(const std::vector<Expression>& x, const std::vec
     SymEngine::DenseMatrix An(4, 4);
     Tmp.mul_matrix(R, An);
     SymEngine::DenseMatrix bn(4, 1);
-    bn.set(0, 0, Expression(uq[0] - mu[4]));
-    bn.set(1, 0, Expression(uq[1] - mu[5]));
-    bn.set(2, 0, Expression(uq[2] - mu[6]));
-    bn.set(3, 0, Expression(uq[3] - mu[7]));
+    for (int i = 0; i <= 3; ++i) {
+    bn.set(i, 0, Expression(uq[i] - mu[4+i]));
+    }
     SymEngine::DenseMatrix cn(4, 1);
     An.mul_matrix(bn, cn);
-    Expression cn0 = cn.get(0, 0);
-    Expression cn1 = cn.get(1, 0);
-    Expression cn2 = cn.get(2, 0);
-    Expression cn3 = cn.get(3, 0);
-    fb[4]  =  0.5*(uq[0] + mu[4] + cn0) - uhat[0];
-    fb[5]  =  0.5*(uq[1] + mu[5] + cn1) - uhat[1];
-    fb[6]  =  0.5*(uq[2] + mu[6] + cn2) - uhat[2];
-    fb[7]  =  0.5*(uq[3] + mu[7] + cn3) - uhat[3];
+    std::vector<Expression> dn(4);
+    for (int i = 0; i <= 3; ++i) {
+    dn[i]  = cn.get(i, 0);
+    }
+    fb[4]  =  0.5*(uq[0] + mu[4] + dn[0]) - uhat[0];
+    fb[5]  =  0.5*(uq[1] + mu[5] + dn[1]) - uhat[1];
+    fb[6]  =  0.5*(uq[2] + mu[6] + dn[2]) - uhat[2];
+    fb[7]  =  0.5*(uq[3] + mu[7] + dn[3]) - uhat[3];
     return fb;
 }
 
