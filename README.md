@@ -51,6 +51,12 @@ To build Kokkos HIP library for AMD GPU platform, please follow the below steps
 
 Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
+ To use text2code as a code generator in Exasim, please follow the below steps
+```
+  $ cd Exasim/text2code/text2code
+  $ g++ -O2 -std=c++17 Text2Code.cpp -o text2code 
+``` 
+
 # Examples
 
 Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. See [the Bickley Jet example](https://github.com/exapde/Exasim/blob/master/examples/ShallowWater/BickleyJet/BickleyJet.pdf) for simulation results.
