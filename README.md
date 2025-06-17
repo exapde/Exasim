@@ -75,7 +75,7 @@ To use Text2Code as a code generator in Exasim, please follow the below steps
    g++ -O2 -std=c++17 Text2Code.cpp -o text2code 
 ``` 
 
-Text2Code generates faster and better codes than Exsasim's existing code generators.
+Text2Code generates faster and better codes than Exsasim's existing code generators. If you use Text2Code, you don't need to install a symbolic math package such as SymPy or Matlab Symbolic Toolbox. 
 
 # Examples
 
