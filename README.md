@@ -25,50 +25,57 @@ Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (re
 
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform, please follow the below steps
 ```
-  $ cd Exasim/kokkos   
-  $ mkdir buildserial
-  $ cd buildserial
-  $ cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
-  $ make install   
+  cd Exasim/kokkos   
+  mkdir buildserial
+  cd buildserial
+  cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+  make install   
 ```
 
 To build Kokkos CUDA library for Nvidia GPU platform, please follow the below steps
 ```
-  $ cd Exasim/kokkos
-  $ mkdir buildcuda
-  $ cd buildcuda
-  $ cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
-  $ make install   
+  cd Exasim/kokkos
+  mkdir buildcuda
+  cd buildcuda
+  cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+  make install   
 ```
 To build Kokkos HIP library for AMD GPU platform, please follow the below steps
 ```
-  $ cd Exasim/kokkos
-  $ mkdir buildhip
-  $ cd buildhip
-  $ cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
-  $ make install   
+  cd Exasim/kokkos
+  mkdir buildhip
+  cd buildhip
+  cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
+  make install   
 ```
 
-Once Kokkos libraries are successfully built, you can start building Exasim as follows. To build Exasim for CPU platform, please follow the below steps
-```
-  $ cd Exasim/build
-  $ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF ../install
-  $ cmake --build .     
-```
-To build Exasim for Nvidia GPU  platform, please follow the below steps
-```
-  $ cd Exasim/build
-  $ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D EXASIM_HIP=OFF ../install
-  $ cmake --build .     
-```
-To build Exasim for AMD GPU  platform, please follow the below steps
-```
-  $ cd Exasim/build
-  $ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=ON ../install
-  $ cmake --build .     
-```
+Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
-To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
+To use Text2Code as a code generator in Exasim, please follow the below steps
+```
+   cd Exasim/text2code 
+   mkdir build
+   cd build
+
+   cmake .. \
+     -DCMAKE_INSTALL_PREFIX=$HOME/Exasim/text2code \
+     -DCMAKE_BUILD_TYPE=Release \
+     -DBUILD_SHARED_LIBS=OFF \
+     -DWITH_GMP=OFF \
+     -DWITH_MPFR=OFF \
+     -DWITH_LLVM=OFF \
+     -DWITH_SYMENGINE_THREAD_SAFE=ON \
+     -DINTEGER_CLASS=boostmp
+   
+   make -j4
+
+   make install 
+
+   cd ../text2code
+   g++ -O2 -std=c++17 Text2Code.cpp -o text2code 
+``` 
+
+Text2Code generates faster and better codes than Exasim's existing code generators. If you use Text2Code, you don't need to install a symbolic math package such as SymPy or Matlab Symbolic Toolbox. 
 
 # Examples
 
