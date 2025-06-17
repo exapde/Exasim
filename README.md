@@ -51,11 +51,31 @@ To build Kokkos HIP library for AMD GPU platform, please follow the below steps
 
 Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
- To use text2code as a code generator in Exasim, please follow the below steps
+To use Text2Code as a code generator in Exasim, please follow the below steps
 ```
-  $ cd Exasim/text2code/text2code
-  $ g++ -O2 -std=c++17 Text2Code.cpp -o text2code 
+   $ cd Exasim/text2code 
+   $ mkdir build
+   $ cd build
+
+   $ cmake .. \
+     -DCMAKE_INSTALL_PREFIX=$HOME/Exasim/text2code \
+     -DCMAKE_BUILD_TYPE=Release \
+     -DBUILD_SHARED_LIBS=OFF \
+     -DWITH_GMP=OFF \
+     -DWITH_MPFR=OFF \
+     -DWITH_LLVM=OFF \
+     -DWITH_SYMENGINE_THREAD_SAFE=ON \
+     -DINTEGER_CLASS=boostmp
+   
+   $ make -j4
+
+   $ make install 
+
+   $ cd ../text2code
+   $ g++ -O2 -std=c++17 Text2Code.cpp -o text2code 
 ``` 
+
+Text2Code generates faster and better codes than Exsasim's existing code generators.
 
 # Examples
 
