@@ -20,7 +20,7 @@ if nmodels==1
     % generate source codes and store them in app folder
     if pde.gencode==1
       %gencode(pde);
-      kkgencode(pde);
+      %kkgencode(pde);
       compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
       %compilerstr = compilepdemodel(pde);
     end

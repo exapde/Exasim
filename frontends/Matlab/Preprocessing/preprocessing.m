@@ -317,7 +317,11 @@ for i = 1:mpiprocs
       nsize(22) = length(dmd{i}.f2t(:));  
       nsize(23) = length(dmd{i}.elemcon(:));  
       nsize(24) = length(master.perm(:));  
-      nsize(25) = length(dmd{i}.bf(:));           
+      nsize(25) = length(dmd{i}.bf(:));   
+      
+      if isfield(app, 'cartgridpart')    
+       nsize(26) = length(app.cartgridpart);        
+      end      
 %       if coupledinterface>0
 %         nsize(26) = length(dmd{i}.intepartpts(:));    
 %       end
@@ -350,6 +354,9 @@ for i = 1:mpiprocs
       fwrite(fileID2,dmd{i}.elemcon(:)-1,'double',endian);        
       fwrite(fileID2,master.perm(:)-1,'double',endian);        
       fwrite(fileID2,dmd{i}.bf(:),'double',endian);      
+      if isfield(app, 'cartgridpart')            
+        fwrite(fileID2,app.cartgridpart(:),'double',endian);             
+      end            
 %       if coupledinterface>0
 %         fwrite(fileID2,dmd{i}.intepartpts(:),'double',endian);      
 %       end

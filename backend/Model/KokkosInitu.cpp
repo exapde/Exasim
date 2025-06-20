@@ -1,16 +1,19 @@
-void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)
+void KokkosInitu(dstype* f, const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int ncx, const int nce, const int npe, const int ne)
 {
-	Kokkos::parallel_for("Initu", ng, KOKKOS_LAMBDA(const size_t i) {
-		int j = i%npe;
-		int k = i/npe;
-		dstype param5 = param[4];
-		dstype param6 = param[5];
-		dstype param7 = param[6];
-		dstype param8 = param[7];
-		f[j+npe*0+npe*nce*k] = param5;
-		f[j+npe*1+npe*nce*k] = param6;
-		f[j+npe*2+npe*nce*k] = param7;
-		f[j+npe*3+npe*nce*k] = param8;
-	});
+
+  Kokkos::parallel_for("Initu", N, KOKKOS_LAMBDA(const size_t i) {
+    int j = i%npe; 
+    int k = i/npe; 
+    dstype mu4 = mu[4];
+    dstype mu5 = mu[5];
+    dstype mu6 = mu[6];
+    dstype mu7 = mu[7];
+
+
+    f[j+npe*0 +npe*nce*k] = mu4;
+    f[j+npe*1 +npe*nce*k] = mu5;
+    f[j+npe*2 +npe*nce*k] = mu6;
+    f[j+npe*3 +npe*nce*k] = mu7;
+  });
 }
 

@@ -159,6 +159,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.dae_dt = copyarray(app.dae_dt,app.nsize[13]); // dual timestep sizes           
     common.szinterfacefluxmap = app.nsize[14];
     common.interfacefluxmap = copyarray(app.interfacefluxmap,app.nsize[14]); 
+    common.cartgridpart = copyarray(mesh.cartgridpart,mesh.nsize[25]); 
     
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
@@ -217,7 +218,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.elemrecv = copyarray(mesh.elemrecv,mesh.nsize[6]); 
         common.elemsendpts = copyarray(mesh.elemsendpts,mesh.nsize[7]); 
         common.elemrecvpts = copyarray(mesh.elemrecvpts,mesh.nsize[8]); 
-            
+                                
         common.nnbintf = mesh.sznbintf;
         common.nfacesend = mesh.szfacesend;
         common.nfacerecv = mesh.szfacerecv;            

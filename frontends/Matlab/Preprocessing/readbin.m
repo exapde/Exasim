@@ -1,6 +1,12 @@
-function tmp = readbin(filename)
+function tmp = readbin(filename, type)
 
-fileID = fopen(filename,'r');
-tmp = fread(fileID,'double');
-fclose(fileID);
+if nargin < 2
+  fileID = fopen(filename,'r');
+  tmp = fread(fileID,'double');
+  fclose(fileID);
+else
+  fileID = fopen(filename,'r');
+  tmp = fread(fileID,type);
+  fclose(fileID);
+end
 

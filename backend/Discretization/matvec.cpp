@@ -90,35 +90,43 @@ void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, temp
   Int ncf = ncu*npf;
   Int N = nse*ncf*ncf;  
   
+//  cout<<"AssembleBlockILU0\n";
   AssembleBlockILU0(BE, AE, mesh.f2e, mesh.elemcon, mesh.face, mesh.row_ptr, mesh.col_ind, npf, nfe, ncu, nfse, nse);
-
-  for (int i = 0; i < nfse; ++i) {
+  
+//   writearray2file(common.fileout + "AE.bin", AE, npf*npf*nfe*nfe*ncu*ncu*common.ne1, backend);  
+//   writearray2file(common.fileout + "BE.bin", BE, ncf*ncf*nse*common.nnz, backend);  
+  
+  int nn = 2*(common.nfe-1);
+  for (int i = 0; i < nfse; ++i) {      
       int diag_idx = common.ind_ii[i];
-
+      
       // Invert all diagonal blocks at diag_idx, in-place (batched)
       double *diag_blocks = &BE[diag_idx * N];
       Inverse(handle, diag_blocks, tmp.tempn, res.ipiv, ncf, nse, backend); 
-
+            
       int nj = common.num_ji[i];
-      for (int j = 0; j < nj; ++j) {
-          int idx_ji = common.ind_ji[j + i * nj];
-
+      for (int j = 0; j < nj; ++j) {          
+          int idx_ji = common.ind_ji[j + i * nn];          
+          
           // Multiply all nse blocks: block_ji = block_ji * block_diag, in-place
           double *block_ji = &BE[idx_ji * N];
-          PGEMNMStridedBached(handle, ncf, 1, ncf, one, block_ji, ncf, diag_blocks, ncf, zero, tmp.tempn, ncf, nse, backend);             
+          PGEMNMStridedBached(handle, ncf, ncf, ncf, one, block_ji, ncf, diag_blocks, ncf, zero, tmp.tempn, ncf, nse, backend);             
           ArrayCopy(block_ji, tmp.tempn, N);
 
-          int nl = common.num_jl[j + i * nj];
+          int nl = common.num_jl[j + i * nn];
           for (int l = 0; l < nl; ++l) {
-              int idx_jl = common.ind_jl[l + j * nl + i * nj * nl];
-              int idx_il = common.ind_il[l + j * nl + i * nj * nl];
+              int idx_jl = common.ind_jl[l + j * nn + i * nn * nn];
+              int idx_il = common.ind_il[l + j * nn + i * nn * nn];
 
               double *block_jl = &BE[idx_jl * N];
               double *block_il = &BE[idx_il * N];
-              PGEMNMStridedBached(handle, ncf, 1, ncf, minusone, block_ji, ncf, block_il, ncf, one, block_jl, ncf, nse, backend);                             
+              PGEMNMStridedBached(handle, ncf, ncf, ncf, minusone, block_ji, ncf, block_il, ncf, one, block_jl, ncf, nse, backend);                             
           }
       }
   }
+  
+//   writearray2file(common.fileout + "BE1.bin", BE, ncf*ncf*nse*common.nnz, backend);  
+//   error("here");
 }
 
 void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)

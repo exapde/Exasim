@@ -74,7 +74,25 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
     TemplateCopytoDevice(mesh.row_ptr, row_ptr, nfelem+1, common.backend);                       
     TemplateCopytoDevice(mesh.col_ind, col_ind, row_ptr[nfelem], common.backend);    
     TemplateCopytoDevice(mesh.face, face, nse*nfelem, common.backend);      
-        
+    
+//     writearray2file(common.fileout + "elem.bin", elem, nse*nese, 0);
+//     writearray2file(common.fileout + "f2e.bin", mesh.f2e, 4*common.nf, 0);
+//     
+//     writearray2file(common.fileout + "ind_ii.bin", common.ind_ii, nfelem, 0);
+//     writearray2file(common.fileout + "ind_ji.bin", common.ind_ji, n*nfelem, 0);
+//     writearray2file(common.fileout + "ind_jl.bin", common.ind_jl, n*n*nfelem, 0);
+//     writearray2file(common.fileout + "ind_il.bin", common.ind_il, n*n*nfelem, 0);
+//     writearray2file(common.fileout + "num_ji.bin", common.num_ji, nfelem, 0);
+//     writearray2file(common.fileout + "num_jl.bin", common.num_jl, n*nfelem, 0);
+//     writearray2file(common.fileout + "Lind_ji.bin", common.Lind_ji, 2*n*nfelem, 0);
+//     writearray2file(common.fileout + "Uind_ji.bin", common.Uind_ji, 2*n*nfelem, 0);
+//     writearray2file(common.fileout + "Lnum_ji.bin", common.Lnum_ji, 2*nfelem, 0);
+//     writearray2file(common.fileout + "Unum_ji.bin", common.Unum_ji, 3*nfelem, 0);
+//     
+//     writearray2file(common.fileout + "row_ptr.bin", mesh.row_ptr, nfelem+1, common.backend);
+//     writearray2file(common.fileout + "col_ind.bin", mesh.col_ind, row_ptr[nfelem], common.backend);
+//     writearray2file(common.fileout + "face.bin", mesh.face, nse*nfelem, common.backend);
+    
     CPUFREE(row_ptr);
     CPUFREE(col_ind);
     CPUFREE(face);
@@ -199,17 +217,24 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 
       CPUFREE(boufaces);
       CPUFREE(mesh.bf);            
-            
-//       int Nx = 64;
-//       int Ny = 16;
-//       int Mx = 4;
-//       int My = 4;
-//       int *elem = NULL;
-//       int nse  = gridpartition2d(&elem, Nx, Ny, Mx, My, 1);       
-//       int nese = Mx*My;      
-//       crs_init(common, mesh, elem, nse, nese);
-//       CPUFREE(elem);
-            
+                          
+      if ((common.preconditioner==2) && (mesh.szcartgridpart > 0)) {              
+        if (common.cartgridpart[0]==2) {          
+          int *elem = NULL;                
+          int nse  = gridpartition2d(&elem, common.cartgridpart[1], common.cartgridpart[2], common.cartgridpart[3], common.cartgridpart[4], common.cartgridpart[5]);       
+          int nese = common.cartgridpart[3]*common.cartgridpart[4];    
+          crs_init(common, mesh, elem, nse, nese);
+          CPUFREE(elem);
+        }
+        else if (common.cartgridpart[0]==3) {
+          int *elem = NULL;   
+          int nse  = gridpartition3d(&elem, common.cartgridpart[1], common.cartgridpart[2], common.cartgridpart[3], common.cartgridpart[4], common.cartgridpart[5], common.cartgridpart[6], common.cartgridpart[7]);       
+          int nese = common.cartgridpart[4]*common.cartgridpart[5]*common.cartgridpart[6];      
+          crs_init(common, mesh, elem, nse, nese);
+          CPUFREE(elem);
+        }                               
+      }
+      
       res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne; // HDG elemental matrices     
       res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;          
       if (common.preconditioner==0)      // Block Jacobition preconditioner
@@ -405,7 +430,7 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
     else if (common.preconditioner==2) {
       hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
     }
-    
+        
 //     if (common.preconditioner==0) {
 //       // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
 //       BlockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);

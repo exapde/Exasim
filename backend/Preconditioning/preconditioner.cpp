@@ -139,9 +139,15 @@ void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commo
     
     // Forward solve: L*y = b (unit diagonal)
     for (int i = 0; i < nfse; ++i) {
-        double *yi = &b[Q*i];
-        //ArrayCopy(yi, &b[Q*i], Q);
-                
+//         double *yi = &b[Q*i];
+//         int k = common.Lnum_ji[0 + i*2];
+//         for (int l = 0; l < k; ++l) {
+//             int ptr = common.Lind_ji[l + 0*M + i*2*M];
+//             int j   = common.Lind_ji[l + 1*M + i*2*M];                
+//             PGEMNMStridedBached(common.cublasHandle, ncf, 1, ncf, minusone, &A[ptr*N], ncf, &b[Q*j], ncf, one, yi, ncf, nse, common.backend);         
+//         }
+      
+        double *yi = &b[Q*i];                        
         int k = common.Lnum_ji[0 + i*2];
         int flag_seq = common.Lnum_ji[1 + i*2];
         
@@ -168,8 +174,16 @@ void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commo
 
     // Backward solve: U*x = y
     for (int i = nfse-1; i >= 0; --i) {
+//         double *yi = &b[Q*i];
+//         int k = common.Unum_ji[0 + i*3];
+//         int rstart = common.Unum_ji[1 + i*3];
+//         for (int l = 0; l < k; ++l) {
+//             int ptr = common.Uind_ji[l + 0*M + i*2*M];
+//             int j   = common.Uind_ji[l + 1*M + i*2*M];                                
+//             PGEMNMStridedBached(common.cublasHandle, ncf, 1, ncf, minusone, &A[ptr*N], ncf, &x[Q*j], ncf, one, yi, ncf, nse, common.backend);         
+//         }
+      
         double *yi = &b[Q*i];
-
         int k = common.Unum_ji[0 + i*3];
         int rstart = common.Unum_ji[1 + i*3];
         int flag_seq = common.Unum_ji[2 + i*3];
@@ -230,12 +244,25 @@ void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretiza
         Int nse = disc.common.nse;
         Int nfse = disc.common.nfse;
         
+        //writearray2file(disc.common.fileout + "b.bin", x, ncf*nf, backend);  
+        
         GetCollumnAtIndex(disc.res.Rq, x, disc.mesh.face, ncf, nse*nfse);
         
-        ApplyBlockILU0(disc.res.Rq, disc.res.K, disc.res.Rq, disc.tmp.tempg, disc.tmp.tempn, disc.common); 
+//         writearray2file(disc.common.fileout + "b1.bin", disc.res.Rq, ncf*nse*nfse, backend);  
+//         
+//         writearray2file(disc.common.fileout + "K.bin", disc.res.K, ncf*ncf*nse*disc.common.nnz, backend);  
+//         
+        ApplyBlockILU0(disc.tmp.tempn, disc.res.K, disc.res.Rq, disc.tmp.tempg, &disc.tmp.tempn[ncf*nse*nfse], disc.common); 
+        
+//        writearray2file(disc.common.fileout + "b2.bin", disc.tmp.tempn, ncf*nse*nfse, backend);  
         
         ArraySetValue(x, zero, ncf*nf);
-        PutCollumnAtIndexAtomicAdd(x, disc.res.Rq, disc.mesh.face, ncf, nse*nfse);
+        PutCollumnAtIndexAtomicAdd(x, disc.tmp.tempn, disc.mesh.face, ncf, nse*nfse);
+        
+//         writearray2file(disc.common.fileout + "x.bin", x, ncf*nf, backend);  
+//         
+//         error("here");
+        
       }
     }
 }

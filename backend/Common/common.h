@@ -701,6 +701,7 @@ struct meshstruct {
     Int *row_ptr=nullptr;
     Int *col_ind=nullptr;
     Int *face=nullptr;
+    Int *cartgridpart=nullptr;
     
     Int *faceperm=nullptr;
     Int *nbintf=nullptr;
@@ -733,7 +734,7 @@ struct meshstruct {
     Int szcole2f2=0, szent2ind2=0, szfindxdg1=0, szfindxdg2=0, szfindxdgp=0; 
     Int szfindudg1=0, szfindudg2=0, szfindudgp=0, szeindudg1=0, szeindudgp=0;
     Int szelemsendind=0, szelemrecvind=0, szelemsendodg=0, szelemrecvodg=0;
-    Int szelemsendudg=0, szelemrecvudg=0, szindex=0;    
+    Int szelemsendudg=0, szelemrecvudg=0, szindex=0, szcartgridpart=0;    
     Int szfaceperm=0, sznbintf=0, szfacesend=0, szfacerecv=0, szfacesendpts=0, szfacerecvpts=0;
     
     int sizeoffloat() {return 0;}
@@ -1453,6 +1454,7 @@ struct commonstruct {
     Int* stgib=nullptr;
     Int *vindx=nullptr;
     Int *interfacefluxmap=nullptr;
+    Int *cartgridpart=nullptr;
     
     Int nnbintf;
     Int nfacesend;
