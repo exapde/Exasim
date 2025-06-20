@@ -1446,6 +1446,7 @@ struct commonstruct {
     Int nelemrecv;
     Int nvindx;
     Int szinterfacefluxmap;
+    Int szcartgridpart;
     Int* nbsd=nullptr; // neighboring subdomains
     Int* elemsend=nullptr;
     Int* elemrecv=nullptr;       

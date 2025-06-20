@@ -24,7 +24,11 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
     int *col_ind = NULL; 
     int *face = NULL; 
     int *f2eelem = NULL; 
-    int nfelem = crs_faceordering(&row_ptr, &col_ind, &face, &f2eelem, elem, mesh.f2e, common.nse, common.nese, common.nfe, common.nf);
+    int *f2e = NULL; 
+    TemplateMalloc(&f2e, 4*common.nf, 0);
+    TemplateCopytoHost(f2e, mesh.f2e, 4*common.nf, common.backend); 
+    
+    int nfelem = crs_faceordering(&row_ptr, &col_ind, &face, &f2eelem, elem, f2e, common.nse, common.nese, common.nfe, common.nf);
 
     common.nfse = nfelem;
     common.nnz = row_ptr[common.nfse];      
@@ -76,7 +80,7 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
     TemplateCopytoDevice(mesh.face, face, nse*nfelem, common.backend);      
     
 //     writearray2file(common.fileout + "elem.bin", elem, nse*nese, 0);
-//     writearray2file(common.fileout + "f2e.bin", mesh.f2e, 4*common.nf, 0);
+//     writearray2file(common.fileout + "f2e.bin", f2e, 4*common.nf, 0);
 //     
 //     writearray2file(common.fileout + "ind_ii.bin", common.ind_ii, nfelem, 0);
 //     writearray2file(common.fileout + "ind_ji.bin", common.ind_ji, n*nfelem, 0);
@@ -97,6 +101,7 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
     CPUFREE(col_ind);
     CPUFREE(face);
     CPUFREE(f2eelem);
+    CPUFREE(f2e);
 }
       
 // Both CPU and GPU constructor
@@ -218,7 +223,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       CPUFREE(boufaces);
       CPUFREE(mesh.bf);            
                           
-      if ((common.preconditioner==2) && (mesh.szcartgridpart > 0)) {              
+      if ((common.preconditioner==2) && (common.szcartgridpart > 0)) {              
         if (common.cartgridpart[0]==2) {          
           int *elem = NULL;                
           int nse  = gridpartition2d(&elem, common.cartgridpart[1], common.cartgridpart[2], common.cartgridpart[3], common.cartgridpart[4], common.cartgridpart[5]);       

@@ -160,6 +160,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.szinterfacefluxmap = app.nsize[14];
     common.interfacefluxmap = copyarray(app.interfacefluxmap,app.nsize[14]); 
     common.cartgridpart = copyarray(mesh.cartgridpart,mesh.nsize[25]); 
+    common.szcartgridpart = mesh.nsize[25];
     
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
