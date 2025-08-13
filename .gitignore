@@ -15,6 +15,8 @@ dataout/
 build/*
 backend/Model/*
 kokkos/buildserial/*
+kokkos/buildcuda/*
+kokkos/buildhip/*
 text2code/superbuild/*
 text2code/METIS/build/*
 text2code/GKlib/build/*
