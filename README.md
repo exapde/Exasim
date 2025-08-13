@@ -56,16 +56,14 @@ cmake -S . -B superbuild
 cmake --build superbuild -j4
 ``` 
 
-Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
-
-After installing Text2Code successfully, please procceed installing Exasim as follows
+Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
 cd Exasim/build
 cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=ON ../install 
 cmake --build .
 ``` 
 
-This will produce Exasim's executable programs in Exasim/build.
+This will produce Exasim's executable programs in Exasim/build. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
 
 # Examples
 
