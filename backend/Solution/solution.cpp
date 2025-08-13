@@ -304,6 +304,15 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
     double nrmr = 0;
     int conv_flag = 0;
 
+    Int nc = disc.common.nc; // number of compoments of (u, q, p)
+    Int ncu = disc.common.ncu;// number of compoments of (u)    
+    Int ncs = disc.common.ncs;// number of compoments of (s)        
+    Int npe = disc.common.npe; // number of nodes on master element    
+    //Int ne = common.ne1; // number of elements in this subdomain         
+    Int ne2 = disc.common.ne2; // number of elements in this subdomain       
+    //Int N = common.ndof1;
+    Int N2 = npe*disc.common.ncw*ne2;  
+
     // time stepping with DIRK schemes
     for (Int istep=0; istep<disc.common.tsteps-1; istep++)            
     {            
@@ -351,12 +360,11 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
             if ((delta_monitor > 1.0 || solv.sys.alpha < 0.1))
             {
                 std::cout << "Linesearch failed or large change in solution: reducing timestep" << std::endl;
-                
                 // Revert time step
                 disc.common.time = disc.common.time - disc.common.dt[istep]*disc.common.DIRKcoeff_t[j];
 
                 // Copy udg old to udg
-                ArrayCopy(disc.sol.udg, solv.sys.udgprev, disc.common.npe*disc.common.ncu*disc.common.ne2);
+                ArrayExtract(disc.sol.udg, solv.sys.udgprev, npe, ncu, ne2, 0, npe, 0, nc, 0, ne2);     
 
                 // Compute a new UH
                 GetFaceNodes(disc.sol.uh, disc.sol.udg, disc.mesh.f2e, disc.mesh.perm, disc.common.npf, disc.common.ncu, disc.common.npe, disc.common.nc, disc.common.nf);
@@ -365,6 +373,7 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
                 hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);
 
                 // decrease timestep by 10
+                std::cout << "Current time step: " << disc.common.dt[istep] << std::endl;
                 disc.common.dt[istep+1] = disc.common.dt[istep] / 10;
                 std::cout << "next time step: " << disc.common.dt[istep+1] << std::endl;
                 if (disc.common.dt[istep+1] < 1e-8){
@@ -372,19 +381,20 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
                     istep = disc.common.tsteps+1;
                 }
             }
-            else if (delta_monitor < 0.1)
+            else if (delta_monitor < 0.1 && solv.sys.alpha == 1.0)
             {
                 if (disc.common.linearSolverIter < disc.common.linearSolverMaxIter){
                     // increase timestep by 2
                     disc.common.dt[istep+1] = disc.common.dt[istep]*2;
+                    // std::cout << "Doubling timestep: " << disc.common.dt[istep+1] << std::endl;
                 }
-                else{
-                    std::cout << "Too many GMRES iterations, not increasing timestep" << std::endl;
+                else{ //TODO: Probably overly conservative, consider turning off 
                     disc.common.dt[istep+1] = disc.common.dt[istep]*1;
+                    std::cout << "Too many GMRES iterations, not increasing timestep: " << disc.common.dt[istep+1] << std::endl;
                 }
                 
 
-                if (delta_monitor < 1e-4 && disc.common.dt[istep] > 1e-3) {
+                if (delta_monitor < 1e-3 && disc.common.dt[istep] > 1e-4) {
                     if (disc.common.runmode == 10) {
                         std::cout << "Evaluate steady residual..." << std::endl;
                         disc.common.tdep=0;
@@ -417,6 +427,11 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
                     }
                     
                 }    
+            }
+            else
+            {
+                // Do not change  timestep
+                disc.common.dt[istep+1] = disc.common.dt[istep];
             }
         }
         // update time
