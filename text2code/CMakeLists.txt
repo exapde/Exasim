@@ -82,7 +82,7 @@ ExternalProject_Add(SymEngine_ep
     -DWITH_LLVM=OFF
     -DWITH_SYMENGINE_THREAD_SAFE=ON
     -DINTEGER_CLASS=boostmp
-    -DCMAKE_CXX_FLAGS=-std=gnu++17 -fPIC 
+    "-DCMAKE_CXX_FLAGS=-std=gnu++17 -fPIC" 
   BUILD_COMMAND     ${CMAKE_COMMAND} --build .
   INSTALL_COMMAND   ${CMAKE_COMMAND} --build . --target install
   LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
