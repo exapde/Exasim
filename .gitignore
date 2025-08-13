@@ -7,8 +7,13 @@
 *.c~
 *.cpp~
 *.hpp~
+*.cmake~
 *.txt~
 .gitignore~
+build/
+superbuild/
+datain/
+dataout/
 build/*
 backend/Model/*
 kokkos/buildserial/*
