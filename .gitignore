@@ -13,7 +13,6 @@
 datain/
 dataout/
 build/*
-backend/Model/*
 kokkos/buildserial/*
 kokkos/buildcuda/*
 kokkos/buildhip/*
@@ -27,3 +26,4 @@ text2code/symengine/build/*
 text2code/symengine/lib/*
 text2code/symengine/include/*
 
+backend/Model/libpdemodelserial.dylib
