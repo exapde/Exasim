@@ -66,6 +66,7 @@ cd Exasim/build
 cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=ON ../install 
 cmake --build .
 ``` 
+
 This will produce Exasim's executable programs in Exasim/build.
 
 # Examples
