@@ -82,9 +82,7 @@ ExternalProject_Add(SymEngine_ep
     -DWITH_LLVM=OFF
     -DWITH_SYMENGINE_THREAD_SAFE=ON
     -DINTEGER_CLASS=boostmp
-    $<$<BOOL:${APPLE}>:-DCMAKE_OSX_SYSROOT=${MACOS_SDK}>
-    # Your original CXX flags (macOS specific setup)
-    -DCMAKE_CXX_FLAGS=-std=gnu++17\ -fPIC\ $<$<BOOL:${APPLE}>:-isysroot\ ${MACOS_SDK}\ -nostdinc++\ -isystem\ ${MACOS_SDK}/usr/include/c++/v1\ -stdlib=libc++>
+    -DCMAKE_CXX_FLAGS=-std=gnu++17 -fPIC 
   BUILD_COMMAND     ${CMAKE_COMMAND} --build .
   INSTALL_COMMAND   ${CMAKE_COMMAND} --build . --target install
   LOG_CONFIGURE 1 LOG_BUILD 1 LOG_INSTALL 1
