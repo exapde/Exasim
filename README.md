@@ -70,7 +70,20 @@ This will produce Exasim's executable programs in Exasim/build.
 
 # Examples
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. See [the Bickley Jet example](https://github.com/exapde/Exasim/blob/master/examples/ShallowWater/BickleyJet/BickleyJet.pdf) for simulation results.
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. 
+
+To run an example using Text2Code, open a terminal and type the following command lines
+
+```
+cd /path/to/example
+/path/to/Exasim/build/text2code pdeapp.txt
+/path/to/Exasim/build/cput2cEXASIM 1 datain/ dataout/out     (if run with one CPU core)
+/path/to/Exasim/build/gput2cEXASIM 1 datain/ dataout/out     (if run with one GPU card)
+mpirun -np $N /path/to/Exasim/build/cpumpit2cEXASIM 1 datain/ dataout/out  (if run with many CPU cores)
+mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM 1 datain/ dataout/out  (if run with many GPUs)
+```
+
+where N is the number of processors you specify in pdeapp.txt. Please set MPI directives properly when running Exasim on GPUs.
 
 To run any example with Julia, type the following line and hit return
 
