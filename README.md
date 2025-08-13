@@ -21,7 +21,7 @@ To deploy, compile, and run Exasim on **HPC systems**, please follow the intruct
 
 # Installation 
 
-Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. These external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab.
+Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
 
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform, please follow the below steps
 ```
@@ -48,7 +48,6 @@ cd buildhip
 cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
 make install   
 ```
-Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
 To use Text2Code as a code generator and preprocessor in Exasim, please follow the below steps
 ```
@@ -57,7 +56,7 @@ cmake -S . -B superbuild
 cmake --build superbuild -j4
 ``` 
 
-Text2Code generates faster and better codes than Exasim's existing code generators. If you use Text2Code, you don't need Matlab, Julia, or Python to run Exasim's cases. See the installation intructions in [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt) if you encounter any installation issues.
+Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
 
 After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
