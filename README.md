@@ -80,7 +80,7 @@ mpirun -np $N /path/to/Exasim/build/cpumpit2cEXASIM 1 datain/ dataout/out  (if r
 mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM 1 datain/ dataout/out  (if run with many GPUs)
 ```
 
-where N is the number of processors you specify in pdeapp.txt. Please set MPI directives properly when running Exasim on GPUs.
+where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system.
 
 To run any example with Julia, type the following line and hit return
 
