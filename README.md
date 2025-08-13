@@ -25,28 +25,28 @@ Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (re
 
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform, please follow the below steps
 ```
-  cd Exasim/kokkos   
-  mkdir buildserial
-  cd buildserial
-  cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
-  make install   
+cd Exasim/kokkos   
+mkdir buildserial
+cd buildserial
+cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+make install   
 ```
 
 To build Kokkos CUDA library for Nvidia GPU platform, please follow the below steps
 ```
-  cd Exasim/kokkos
-  mkdir buildcuda
-  cd buildcuda
-  cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
-  make install   
+cd Exasim/kokkos
+mkdir buildcuda
+cd buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+make install   
 ```
 To build Kokkos HIP library for AMD GPU platform, please follow the below steps
 ```
-  cd Exasim/kokkos
-  mkdir buildhip
-  cd buildhip
-  cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
-  make install   
+cd Exasim/kokkos
+mkdir buildhip
+cd buildhip
+cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
+make install   
 ```
 
 Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
