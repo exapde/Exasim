@@ -1,23 +1,33 @@
-cd text2code 
-mkdir build
-cd build
+# Install GKlib
+cd GKlib 
+make config prefix=$(pwd)
+make install
 
-cmake .. \
-  -DCMAKE_INSTALL_PREFIX=$HOME/Exasim/text2code \
+# Install METIS
+cd ../METIS 
+make config prefix=$(pwd) gklib_path="$(pwd)/../GKlib"
+make install
+
+# Install SYMENGINE
+cd ../symengine
+SDK="$(xcrun --show-sdk-path)"
+cmake -S . -B build \
+  -DCMAKE_INSTALL_PREFIX=$(pwd) \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_SHARED_LIBS=OFF \
   -DWITH_GMP=OFF \
   -DWITH_MPFR=OFF \
   -DWITH_LLVM=OFF \
   -DWITH_SYMENGINE_THREAD_SAFE=ON \
-  -DINTEGER_CLASS=boostmp
+  -DINTEGER_CLASS=boostmp \
+  -DCMAKE_OSX_SYSROOT="$SDK" \
+  -DCMAKE_CXX_FLAGS="-std=gnu++17 -fPIC -isysroot $SDK -nostdinc++ -isystem $SDK/usr/include/c++/v1 -stdlib=libc++"
 
-make -j4
-
+cmake --build build -j4
 make install 
 
+# Install TEXT2CODE
 cd ../text2code
-
-g++ -O2 -std=c++17 Text2Code.cpp -o text2code
-
+cmake -S . -B build -DWITH_METIS=ON
+cmake --build build -j4
 

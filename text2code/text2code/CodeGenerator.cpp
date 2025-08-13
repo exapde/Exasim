@@ -46,15 +46,15 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "              g[m] = f[m + n * szuhat];\n";
     os << "            }\n";
     os << "            if (n==0) {\n";
-    os << "               ssv.func2cppfiles(g, fname, fname + std::to_string(n+1), i, false);\n";
-    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, jname, jname + std::to_string(n+1), i, false);\n";
+    os << "               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, false);\n";
+    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, false);\n";
     os << "            } else {\n";
-    os << "               ssv.func2cppfiles(g, fname, fname + std::to_string(n+1), i, append);\n";
-    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, jname, jname + std::to_string(n+1), i, append);\n";
+    os << "               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, append);\n";
+    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, append);\n";
     os << "            }\n";
     os << "            if (n==nbc-1) {\n";
-    os << "               ssv.appendUbouFbou(fname, fname, nbc);\n";
-    os << "               if (funcname == \"FbouHdg\") ssv.appendFbouHdg(jname, jname, nbc);\n";
+    os << "               ssv.appendUbouFbou(ssv.modelpath + fname, fname, nbc);\n";
+    os << "               if (funcname == \"FbouHdg\") ssv.appendFbouHdg(ssv.modelpath + jname, jname, nbc);\n";
     os << "            }\n";
     os << "          }\n";    
     os << "        } else if ((funcname == \"Initu\") || (funcname == \"Initq\") || (funcname == \"Inituq\") || (funcname == \"Initv\") || (funcname == \"Initw\")) { \n";
@@ -62,11 +62,11 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "          if (funcname == \"Inituq\") kname = \"Initudg\";\n"; 
     os << "          if (funcname == \"Initv\") kname = \"Initvdg\";\n"; 
     os << "          if (funcname == \"Initw\") kname = \"Initwdg\";\n"; 
-    os << "          ssv.initfunc2cppfiles(f, \"cpu\" + kname, \"cpu\" + kname, i, false, 0);\n";
-    os << "          ssv.initfunc2cppfiles(f, \"Kokkos\" + kname, \"Kokkos\" + kname, i, false, 1);\n";
+    os << "          ssv.initfunc2cppfiles(f, ssv.modelpath + \"cpu\" + kname, \"cpu\" + kname, i, false, 0);\n";
+    os << "          ssv.initfunc2cppfiles(f, ssv.modelpath + \"Kokkos\" + kname, \"Kokkos\" + kname, i, false, 1);\n";
     os << "        } else {\n";
-    os << "          ssv.func2cppfiles(f, fname, fname, i, false);\n";
-    os << "          if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(f, jname, jname, i, false);\n";
+    os << "          ssv.func2cppfiles(f, ssv.modelpath + fname, fname, i, false);\n";
+    os << "          if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(f, ssv.modelpath + jname, jname, i, false);\n";
     os << "        }\n";
     os << "      } else {\n";
     os << "        ssv.func2cppfiles(f, funcname, funcname, i, false);\n";
@@ -481,7 +481,10 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     
     os << "class SymbolicScalarsVectors {\n\n";
     os << "public:\n\n";
-      
+    
+    os << "    // path to model folder \n";
+    os << "    std::string modelpath = \"" << spec.modelpath << "\";\n\n";
+    
     // Scalars
     os << "    // input symbolic scalars\n";
     for (const auto& s : spec.scalars) {
@@ -1516,9 +1519,9 @@ void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filenam
     os.close();  
 }
 
-void CodeGenerator::generateEmptySourcewCpp() const {  
+void CodeGenerator::generateEmptySourcewCpp(std::string modelpath) const {  
   {
-    std::ofstream os("KokkosSourcew.cpp");
+    std::ofstream os(make_path(modelpath,  "KokkosSourcew.cpp"));
     os << "void KokkosSourcew(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
     os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne)\n";
@@ -1527,7 +1530,7 @@ void CodeGenerator::generateEmptySourcewCpp() const {
     os.close();
   }
   {
-    std::ofstream os("HdgSourcewonly.cpp");
+    std::ofstream os(make_path(modelpath,  "HdgSourcewonly.cpp"));
     os << "void HdgSourcewonly(dstype* f, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
     os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
@@ -1536,7 +1539,7 @@ void CodeGenerator::generateEmptySourcewCpp() const {
     os.close();    
   }
   
-    std::ofstream os2("HdgSourcew.cpp");
+    std::ofstream os2(make_path(modelpath,  "HdgSourcew.cpp"));
     os2 << "void HdgSourcew(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os2 << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
     os2 << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
@@ -1545,8 +1548,8 @@ void CodeGenerator::generateEmptySourcewCpp() const {
     os2.close();       
 }
 
-void CodeGenerator::generateEmptyOutputCpp() const {  
-    std::ofstream os("KokkosOutput.cpp");
+void CodeGenerator::generateEmptyOutputCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosOutput.cpp"));
     os << "void KokkosOutput(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
     os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne)\n";
@@ -1555,8 +1558,8 @@ void CodeGenerator::generateEmptyOutputCpp() const {
     os.close();        
 }
 
-void CodeGenerator::generateEmptyMonitorCpp() const {  
-    std::ofstream os("KokkosMonitor.cpp");
+void CodeGenerator::generateEmptyMonitorCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosMonitor.cpp"));
     os << "void KokkosMonitor(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
     os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne)\n";
@@ -1565,8 +1568,8 @@ void CodeGenerator::generateEmptyMonitorCpp() const {
     os.close();        
 }
 
-void CodeGenerator::generateEmptyAvfieldCpp() const {  
-    std::ofstream os("KokkosAvfield.cpp");
+void CodeGenerator::generateEmptyAvfieldCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosAvfield.cpp"));
     os << "void KokkosAvfield(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
     os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne)\n";
@@ -1575,79 +1578,79 @@ void CodeGenerator::generateEmptyAvfieldCpp() const {
     os.close();        
 }
 
-void CodeGenerator::generateEmptyInituCpp() const {  
-    std::ofstream os("KokkosInitu.cpp");
+void CodeGenerator::generateEmptyInituCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosInitu.cpp"));
     os << "void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
     
-    std::ofstream os2("cpuInitu.cpp");
+    std::ofstream os2(make_path(modelpath,  "cpuInitu.cpp"));
     os2 << "void cpuInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os2 << "{\n";
     os2 << "}\n";
     os2.close();        
 }
 
-void CodeGenerator::generateEmptyInitqCpp() const {  
-    std::ofstream os("KokkosInitq.cpp");
+void CodeGenerator::generateEmptyInitqCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosInitq.cpp"));
     os << "void KokkosInitq(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
     
-    std::ofstream os2("cpuInitq.cpp");
+    std::ofstream os2(make_path(modelpath,  "cpuInitq.cpp"));
     os2 << "void cpuInitq(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os2 << "{\n";
     os2 << "}\n";
     os2.close();        
 }
 
-void CodeGenerator::generateEmptyInitudgCpp() const {  
-    std::ofstream os("KokkosInitudg.cpp");
+void CodeGenerator::generateEmptyInitudgCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosInitudg.cpp"));
     os << "void KokkosInitudg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
     
-    std::ofstream os2("cpuInitudg.cpp");
+    std::ofstream os2(make_path(modelpath,  "cpuInitudg.cpp"));
     os2 << "void cpuInitudg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os2 << "{\n";
     os2 << "}\n";
     os2.close();        
 }
 
-void CodeGenerator::generateEmptyInitodgCpp() const {  
-    std::ofstream os("KokkosInitodg.cpp");
+void CodeGenerator::generateEmptyInitodgCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosInitodg.cpp"));
     os << "void KokkosInitodg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
     
-    std::ofstream os2("cpuInitodg.cpp");
+    std::ofstream os2(make_path(modelpath,  "cpuInitodg.cpp"));
     os2 << "void cpuInitodg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os2 << "{\n";
     os2 << "}\n";
     os2.close();        
 }
 
-void CodeGenerator::generateEmptyInitwdgCpp() const {  
-    std::ofstream os("KokkosInitwdg.cpp");
+void CodeGenerator::generateEmptyInitwdgCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosInitwdg.cpp"));
     os << "void KokkosInitwdg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
     
-    std::ofstream os2("cpuInitwdg.cpp");
+    std::ofstream os2(make_path(modelpath,  "cpuInitwdg.cpp"));
     os2 << "void cpuInitwdg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)\n";
     os2 << "{\n";
     os2 << "}\n";
     os2.close();        
 }
 
-void CodeGenerator::generateEmptyFintCpp() const {  
+void CodeGenerator::generateEmptyFintCpp(std::string modelpath) const {  
   {
-    std::ofstream os("KokkosFint.cpp");
+    std::ofstream os(make_path(modelpath,  "KokkosFint.cpp"));
     os << "void KokkosFint(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "             const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
     os << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
@@ -1658,7 +1661,7 @@ void CodeGenerator::generateEmptyFintCpp() const {
   }
     
   {
-    std::ofstream os("HdgFintonly.cpp");
+    std::ofstream os(make_path(modelpath,  "HdgFintonly.cpp"));
     os << "void HdgFintonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os << "             const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
     os << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
@@ -1668,7 +1671,7 @@ void CodeGenerator::generateEmptyFintCpp() const {
     os.close();        
   }
   
-    std::ofstream os2("HdgFint.cpp");
+    std::ofstream os2(make_path(modelpath,  "HdgFint.cpp"));
     os2 << "void HdgFint(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os2 << "             const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
     os2 << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
@@ -1678,34 +1681,34 @@ void CodeGenerator::generateEmptyFintCpp() const {
     os2.close();        
 }
 
-void CodeGenerator::generateEmptyFhatCpp() const {  
-    std::ofstream os("KokkosFhat.cpp");
+void CodeGenerator::generateEmptyFhatCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosFhat.cpp"));
     os << "void KokkosFhat(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
 }
 
-void CodeGenerator::generateEmptyUhatCpp() const {  
-    std::ofstream os("KokkosUhat.cpp");
+void CodeGenerator::generateEmptyUhatCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosUhat.cpp"));
     os << "void KokkosUhat(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
 }
 
-void CodeGenerator::generateEmptyStabCpp() const {  
-    std::ofstream os("KokkosStab.cpp");
+void CodeGenerator::generateEmptyStabCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosStab.cpp"));
     os << "void KokkosStab(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
 }
 
-void CodeGenerator::generateEmptyEoSCpp() const {  
+void CodeGenerator::generateEmptyEoSCpp(std::string modelpath) const {  
     // KokkosEoS.cpp
     {
-        std::ofstream os("KokkosEoS.cpp");
+        std::ofstream os(make_path(modelpath,  "KokkosEoS.cpp"));
         os << "void KokkosEoS(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, "
            << "const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, "
            << "const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, "
@@ -1716,7 +1719,7 @@ void CodeGenerator::generateEmptyEoSCpp() const {
 
     // KokkosEoSdu.cpp
     {
-        std::ofstream os("KokkosEoSdu.cpp");
+        std::ofstream os(make_path(modelpath,  "KokkosEoSdu.cpp"));
         os << "void KokkosEoSdu(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, "
            << "const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, "
            << "const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, "
@@ -1727,7 +1730,7 @@ void CodeGenerator::generateEmptyEoSCpp() const {
 
     // KokkosEoSdw.cpp
     {
-        std::ofstream os("KokkosEoSdw.cpp");
+        std::ofstream os(make_path(modelpath,  "KokkosEoSdw.cpp"));
         os << "void KokkosEoSdw(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, "
            << "const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, "
            << "const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, "
@@ -1738,7 +1741,7 @@ void CodeGenerator::generateEmptyEoSCpp() const {
 
     // HdgEoS.cpp
     {
-        std::ofstream os("HdgEoS.cpp");
+        std::ofstream os(make_path(modelpath,  "HdgEoS.cpp"));
         os << "void HdgEoS(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, "
            << "const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, "
            << "const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, "
@@ -1748,8 +1751,8 @@ void CodeGenerator::generateEmptyEoSCpp() const {
     }
 }
 
-void CodeGenerator::generateLibPDEModelHpp() const {  
-    std::ofstream os("libpdemodel.hpp");
+void CodeGenerator::generateLibPDEModelHpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath, "libpdemodel.hpp"));
 
     os << "#pragma once\n\n";
 
@@ -1795,8 +1798,8 @@ void CodeGenerator::generateLibPDEModelHpp() const {
     os.close(); 
 }
 
-void CodeGenerator::generateLibPDEModelCpp() const {  
-    std::ofstream os("libpdemodel.cpp");
+void CodeGenerator::generateLibPDEModelCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "libpdemodel.cpp"));
 
     os << "#include <cmath>\n";
     os << "#include <Kokkos_Core.hpp>\n\n";

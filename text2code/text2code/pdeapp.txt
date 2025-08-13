@@ -1,0 +1,51 @@
+model = "ModelD";
+modelfile = "pdemodel.txt";
+meshfile = "grid.bin";
+partitionfile = "partition.bin";
+discretization = "hdg";
+platform = "cpu";
+
+mpiprocs = 4;
+debugmode = 0;
+runmode = 0;
+modelnumber = 0;
+
+porder = 4;
+pgauss = 8;
+torder = 1;
+nstage = 1;
+
+ncu = 4;
+ncw = 0;
+neb = 512;
+nfb = 8192;
+
+NewtonIter = 20;
+NewtonTol = 1e-06;
+GMRESiter = 400;
+GMRESrestart = 400;
+GMREStol = 0.001;
+GMRESortho = 0;
+ppdegree = 0;
+RBdim = 0;
+matvecorder = 1;
+matvectol = 0.001;
+precMatrixType = 0;
+preconditioner = 1;
+
+time = 0;
+tau = [3];
+dt = [0];
+physicsparam = [1.4, 1000, 0.72, 0.2, 1, 1, 0, 45.142857142857146];
+externalparam = [0, 0];
+cartgridpart = [2, 64, 16, 4, 4, 1];
+
+boundaryconditions = [1, 2];
+boundaryexpressions = ["sqrt((x-0.5)*(x-0.5)+y*y)<3", "abs(x)<20"];
+curvedboundaries = [1, 0];
+curvedboundaryexprs = ["y^2-(5*0.01*12*(0.29690*sqrt(abs(x))-0.12600*x-0.35160*x^2+0.28430*x^3-0.10150*x^4))^2", "0"];
+periodicboundaries1 = [];
+periodicexprs1 = [];
+periodicboundaries2 = [];
+periodicexprs2 = [];
+interfaceconditions = [];

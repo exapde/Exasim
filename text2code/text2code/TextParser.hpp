@@ -30,9 +30,12 @@ struct ParsedSpec {
         "Sourcew", "Output", "Monitor", "Initu", "Initq", "Inituq",
         "Initw", "Initv", "Avfield", "Fint", "EoS"};
     std::vector<bool> isoutput;     
-    std::string datatype;
-    std::string framework;
-    std::string codeformat;    
+    std::string datatype = "dstype";
+    std::string framework = "kokkos";
+    std::string codeformat = "exasim";    
+    std::string exasimpath = "";
+    std::string modelpath = "";
+    std::string symenginepath = "";
     bool exasim;
     std::vector<FunctionDef> functions;
 };
