@@ -72,7 +72,7 @@ This will produce Exasim's executable programs in Exasim/build.
 
 Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. 
 
-To run an example using Text2Code, open a terminal and type the following command lines
+To run an example using Text2Code, open a terminal and perform the following commands
 
 ```
 cd /path/to/example
