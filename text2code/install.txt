@@ -1,5 +1,14 @@
+##### Install GKlib, METIS, symengine, text2code in one shot #####
+cd text2code
+cmake -S . -B superbuild 
+cmake --build superbuild -j4
+
+
+
+##### If the above installation fails, then install them inviddually #####
+
 # Install GKlib
-cd GKlib 
+cd text2code/GKlib 
 make config prefix=$(pwd)
 make install
 
