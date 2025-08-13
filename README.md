@@ -60,6 +60,14 @@ cmake --build superbuild -j4
 
 Text2Code generates faster and better codes than Exasim's existing code generators. If you use Text2Code, you don't need Matlab, Julia, or Python to run Exasim's cases. See the installation intructions in [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt) if you encounter any installation issues.
 
+After installing Text2Code successfully, please procceed installing Exasim as follows
+```
+cd Exasim/build
+cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=ON ../install 
+cmake --build .
+``` 
+This will produce Exasim's executable programs in Exasim/build.
+
 # Examples
 
 Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. See [the Bickley Jet example](https://github.com/exapde/Exasim/blob/master/examples/ShallowWater/BickleyJet/BickleyJet.pdf) for simulation results.
