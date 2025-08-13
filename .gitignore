@@ -10,8 +10,6 @@
 *.cmake~
 *.txt~
 .gitignore~
-build/
-superbuild/
 datain/
 dataout/
 build/*
