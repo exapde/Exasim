@@ -72,7 +72,7 @@ ts=[repmat(int32(1:nt),1,npv); kron(int32(1:npv),ones(1,nt,'int32'))]';
 
 faces=sort(faces,2);
 %[faces(1:10,:); faces(end-10:end,:)]
-[foa,fob,jx]=unique(faces,'rows');
+[~,~,jx]=unique(faces,'rows');
 [jx,ix]=sort(jx);
 ts=ts(ix,:);
 ix=find(diff(jx)==0);

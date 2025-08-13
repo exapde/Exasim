@@ -6,20 +6,20 @@
 
 // Written by: C. Nguyen & P. Fernandez
 
-void mkshape(vector<double> *shap_p, double *plocal, double *pts, Int npoints, Int elemtype, Int porder, Int nd, Int numNodes)
+void mkshape(vector<double> *shap_p, double *plocal, double *pts, int npoints, int elemtype, int porder, int nd, int numNodes)
 {
     // porder: Polynomial order
     // plocal: Node positions. numNodes / nd
     // pts: Points to evaluate shape fucntions and derivatives. npoints / nd
     // shap: shape function and derivatives. numNodes / npoints / nd+1
     
-    Int i, j, k, info, inc = 1;
-    Int nd1 = nd + 1;
-    Int lwork = numNodes;
+    int i, j, k, info, inc = 1;
+    int nd1 = nd + 1;
+    int lwork = numNodes;
     char chn = 'N';
     double one = 1.0, zero = 0.0;
     
-    Int *ipiv = new Int[numNodes];
+    int *ipiv = new int[numNodes];
     double *work = new double[lwork];
     double *A = new double[numNodes*numNodes];
     double *nf = new double[npoints*numNodes*nd1];

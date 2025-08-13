@@ -7,8 +7,11 @@
 
 using namespace std;
 
-#include "mkmaster.h"
 typedef int Int;
+
+#include "mkmaster.h"
+#include "errormsg.cpp"
+#include "mkmaster.cpp"
 
 int main(int argc, char** argv) 
 {

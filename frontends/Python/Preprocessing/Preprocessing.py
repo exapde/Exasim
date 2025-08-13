@@ -185,12 +185,12 @@ def preprocessing(app,mesh):
         rowe2f1,cole2f1,ent2ind1 = mkdge2dgf(facecon1,master['npe']*size(dmd[i]['elempart']))[0:3];
         rowe2f2,cole2f2,ent2ind2 = mkdge2dgf(facecon2,master['npe']*size(dmd[i]['elempart']))[0:3];
 
-        dmd[i]['elempart'] = dmd[i]['elempart'] + 1;
-        dmd[i]['facecon'] = dmd[i]['facecon'] + 1;
-        if mpiprocs>1:
-            dmd[i]['nbsd'] = dmd[i]['nbsd'] + 1;
-            dmd[i]['elemrecv'] = dmd[i]['elemrecv'] + 1;
-            dmd[i]['elemsend'] = dmd[i]['elemsend'] + 1;
+        #dmd[i]['elempart'] = dmd[i]['elempart'] + 1;
+        #dmd[i]['facecon'] = dmd[i]['facecon'] + 1;
+        #if mpiprocs>1:
+        #    dmd[i]['nbsd'] = dmd[i]['nbsd'] + 1;
+        #    dmd[i]['elemrecv'] = dmd[i]['elemrecv'] + 1;
+        #    dmd[i]['elemsend'] = dmd[i]['elemsend'] + 1;
 
         ndims = zeros(20);
         ndims[1-1] = mesh['p'].shape[0];

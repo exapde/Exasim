@@ -392,22 +392,22 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 //     }
          
     // offset facecon
-    for (Int i=0; i<mesh.nsize[1]; i++)
-        mesh.facecon[i] = mesh.facecon[i] - 1;
+//     for (Int i=0; i<mesh.nsize[1]; i++)
+//         mesh.facecon[i] = mesh.facecon[i] - 1;
                 
-    if (mpiprocs > 1) {
-        // offset nbsd
-        for (Int i=0; i<mesh.nsize[4]; i++)
-            mesh.nbsd[i] = mesh.nbsd[i] - 1;
-
-        // offset elemsend
-        for (Int i=0; i<mesh.nsize[5]; i++)
-            mesh.elemsend[i] = mesh.elemsend[i] - 1;
-
-        // offset elemrecv
-        for (Int i=0; i<mesh.nsize[6]; i++)
-            mesh.elemrecv[i] = mesh.elemrecv[i] - 1;
-    }
+//     if (mpiprocs > 1) {
+//         // offset nbsd
+//         for (Int i=0; i<mesh.nsize[4]; i++)
+//             mesh.nbsd[i] = mesh.nbsd[i] - 1;
+// 
+//         // offset elemsend
+//         for (Int i=0; i<mesh.nsize[5]; i++)
+//             mesh.elemsend[i] = mesh.elemsend[i] - 1;
+// 
+//         // offset elemrecv
+//         for (Int i=0; i<mesh.nsize[6]; i++)
+//             mesh.elemrecv[i] = mesh.elemrecv[i] - 1;
+//     }
             
     if (mpirank==0) printf("Set res struct... \n");    
     setresstruct(res, app, master, mesh, 0);

@@ -26,6 +26,16 @@ for i = 1:nproc
     inc = sub2ind(size(fi), f2t(2,inb), f2t(1,inb));
     fb = fi(inc); % list of boundary indices
         
+    % for i = 1:length(inb)
+    %   b = inb(i);
+    %   e1 = f2t(1,b);
+    %   l1 = f2t(2,b);
+    %   fb(i) = fi(l1, e1);
+    % end
+    % bcn = bcm(fb);
+    % [b,ind]=sort(bcn);
+    % f2t = f2t(:,[ina inb(ind)]);
+    
     fa = unique(fb); % boundary indices    
     bcn = unique(bcm(fa)); % a list of boundary conditions
     nbc = length(bcn);

@@ -67,9 +67,9 @@ void CSolution::SteadyProblem(ofstream &out, Int backend)
             //    ArrayCopy(&disc.tmp.buffsend[bsz*n], &disc.sol.odg[nudg*disc.common.elemsend[n]], bsz, backend);
             GetArrayAtIndex(disc.tmp.buffsend, disc.sol.odg, disc.mesh.elemsendodg, bsz*disc.common.nelemsend);
 
-// #ifdef HAVE_CUDA
-//             cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+            cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
             hipDeviceSynchronize();

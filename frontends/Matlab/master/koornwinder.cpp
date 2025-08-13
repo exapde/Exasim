@@ -3,9 +3,9 @@
 
 // Written by: C. Nguyen & P. Fernandez
 
-void pascalindex2d(Int *pq, Int numPoly)
+void pascalindex2d(int *pq, int numPoly)
 {
-    Int i, j, counter = 0, done = 0;
+    int i, j, counter = 0, done = 0;
     
     for (i = 0; i <= numPoly; i++) {
         for (j = 0; j <= i; j++) {
@@ -22,9 +22,9 @@ void pascalindex2d(Int *pq, Int numPoly)
     }
 }
 
-void pascalindex3d(Int *pq, Int numPoly)
+void pascalindex3d(int *pq, int numPoly)
 {
-    Int i, j, k, counter = 0, done = 0;
+    int i, j, k, counter = 0, done = 0;
     
     for (i = 0; i <= numPoly; i++) {
         for (j = 0; j <= i; j++) {
@@ -46,9 +46,9 @@ void pascalindex3d(Int *pq, Int numPoly)
     }
 }
 
-void legendre(double *coeff, Int porder)
+void legendre(double *coeff, int porder)
 {
-    Int i;
+    int i;
     
     if (porder == 0)        // P_0 = 1.0
         coeff[0] = 1.0;
@@ -79,11 +79,11 @@ void legendre(double *coeff, Int porder)
 //     }
 }
 
-void jacobi(double *coeff, Int porder, double alpha, double beta)
+void jacobi(double *coeff, int porder, double alpha, double beta)
 {
     //error("jacobi not validated yet.\n");
     
-    Int i;
+    int i;
     double C1, C2, C3, C4, porder_d = (double) porder;
     
     C1 =  2.0 * porder_d * (porder_d+alpha+beta) * (2.0*porder_d+alpha+beta-2.0);
@@ -117,24 +117,24 @@ void jacobi(double *coeff, Int porder, double alpha, double beta)
     }
 }
 
-void polyder(double *Dcoeff, double *coeff, Int porder)
+void polyder(double *Dcoeff, double *coeff, int porder)
 {
-    for (Int i = 0; i < porder; i++)
+    for (int i = 0; i < porder; i++)
         Dcoeff[i] = ((double) (porder - i) ) * coeff[i];
 }
 
-void polyval(double *pval, double *coeff, double *x, Int porder, Int numPoints)
+void polyval(double *pval, double *coeff, double *x, int porder, int numPoints)
 {
-    for (Int i = 0; i < numPoints; i++) {
+    for (int i = 0; i < numPoints; i++) {
         pval[i] = 0.0;
-        for (Int j = 0; j < porder+1; j++)
+        for (int j = 0; j < porder+1; j++)
             pval[i] += coeff[j] * pow(x[i], (double) (porder-j));
     }
 }
 
-void conv(double *output, double *input1, Int lenInput1, double *input2, Int lenInput2)
+void conv(double *output, double *input1, int lenInput1, double *input2, int lenInput2)
 {
-    Int i, j, lenOutput;
+    int i, j, lenOutput;
     
     if (lenInput1 < 1 || lenInput2 < 1)
         error("Inputs of conv function must be length >= 1.\n");
@@ -148,12 +148,12 @@ void conv(double *output, double *input1, Int lenInput1, double *input2, Int len
             output[i+j+1+lenOutput-lenInput1-lenInput2] += input1[i]*input2[j];
 }
 
-void koornwinder1d(double *f,double *x, Int numPoints, Int porder, Int derivativesFlag)
+void koornwinder1d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
 {
     // f: numPoints / (porder+1) / 2
     // x: numPoints
     
-    Int i, j;
+    int i, j;
     
     double *coeff = new double[porder+1];
     double *Dcoeff = new double[porder];
@@ -191,12 +191,12 @@ void koornwinder1d(double *f,double *x, Int numPoints, Int porder, Int derivativ
     delete[] pval; delete[] dpval;
 }
 
-void koornwinder2d(double *f,double *x, Int numPoints, Int porder, Int derivativesFlag)
+void koornwinder2d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
 {
     // f: numPoints / numPoly / nd+1
     // x: numPoints / nd
     
-    Int i, j, k, nd = 2, numPoly = ((porder+1)*(porder+2)) / 2;
+    int i, j, k, nd = 2, numPoly = ((porder+1)*(porder+2)) / 2;
     double fc;
     
     double *xc = new double[numPoints*nd];
@@ -211,7 +211,7 @@ void koornwinder2d(double *f,double *x, Int numPoints, Int porder, Int derivativ
     double *qval = new double[numPoints];
     double *dpval = new double[numPoints];
     double *dqval = new double[numPoints];
-    Int *pq = new Int[numPoly*nd];
+    int *pq = new int[numPoly*nd];
     
     double convVector[] = {-0.5,0.5};
     
@@ -311,12 +311,12 @@ void koornwinder2d(double *f,double *x, Int numPoints, Int porder, Int derivativ
     delete[] pq;
 }
 
-void koornwinder3d(double *f,double *x, Int numPoints, Int porder, Int derivativesFlag)
+void koornwinder3d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
 {
     // f: numPoints / numPoly / nd+1
     // x: numPoints / nd
     
-    Int i, j, k, nd = 3, numPoly = ((porder+1)*(porder+2)*(porder+3)) / 6;
+    int i, j, k, nd = 3, numPoly = ((porder+1)*(porder+2)*(porder+3)) / 6;
     double fc;
     
     double *xc = new double[numPoints*nd];
@@ -337,7 +337,7 @@ void koornwinder3d(double *f,double *x, Int numPoints, Int porder, Int derivativ
     double *dpval = new double[numPoints];
     double *dqval = new double[numPoints];
     double *drval = new double[numPoints];
-    Int *pq = new Int[numPoly*nd];
+    int *pq = new int[numPoly*nd];
     
     double convVector[2];
     convVector[0] = -0.5; convVector[1] = 0.5;
@@ -468,7 +468,7 @@ void koornwinder3d(double *f,double *x, Int numPoints, Int porder, Int derivativ
     delete[] pq;
 }
 
-void koornwinder(double *f, double *x, Int numPoints, Int porder, Int nd, Int derivativesFlag)
+void koornwinder(double *f, double *x, int numPoints, int porder, int nd, int derivativesFlag)
 {
     if (nd == 1)
         koornwinder1d(&f[0], &x[0], numPoints, porder, derivativesFlag);

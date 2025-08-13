@@ -227,6 +227,10 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
 //     }
     GetCollumnAtIndex(tmp.buffsend, we, mesh.elemsend, bsz, common.nelemsend);   
 
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
@@ -271,6 +275,10 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
 //       }
       GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);   
        
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+      
 #ifdef HAVE_HIP
       hipDeviceSynchronize();
 #endif
@@ -374,6 +382,10 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     GetCollumnAtIndex(tmp.buffsend, res.H, mesh.elemsend, 0, bsz, szH, common.nelemsend);
     GetCollumnAtIndex(tmp.buffsend, res.Rh, mesh.elemsend, szH, bsz, szR, common.nelemsend);
     
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
@@ -417,6 +429,10 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
       GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);   
 
       //printf("hdgAssembleLinearSystemMPI: %d %d %d %d %d %d %d %d %d %d %d\n", common.mpiRank, common.nnbintf, common.nbintf[0], common.facesendpts[0], common.facerecvpts[0], common.nfacesend, common.nelemsend, szRi, common.coupledcondition, common.coupledboundarycondition, app.interfacefluxmap[0]);
+      
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
       
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
@@ -541,6 +557,10 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 //     }
     GetCollumnAtIndex(tmp.buffsend, res.Rh, mesh.elemsend, szR, common.nelemsend);   
     
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
@@ -578,7 +598,11 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 //       for (int n=0; n<common.nfacesend; n++)  {       
 //         ArrayCopy(&tmp.bufffacesend[szRi*n], &res.Ri[szRi*common.facesend[n]], szRi);     
 //       }            
-      GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);   
+      GetCollumnAtIndex(tmp.bufffacesend, res.Ri, mesh.facesend, szRi, common.nfacesend);         
+
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
       
 #ifdef HAVE_HIP
     hipDeviceSynchronize();

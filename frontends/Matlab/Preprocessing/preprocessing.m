@@ -133,6 +133,11 @@ end
 disp('run facenumbering...');  
 [mesh.f, mesh.tprd, t2t] = facenumbering(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
 
+[f2, tprd2, t2t2] = setboundaryperiodicfaces(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
+if max([max(abs(f2(:)-mesh.f(:))) max(abs(tprd2(:)-mesh.tprd(:))) max(abs(t2t2(:)-t2t(:)))]) > 1e-12
+  error("setboundaryperiodicfaces is incorrect.");
+end
+
 mpiprocs = app.mpiprocs;
 %dmd = meshpartition(mesh.p,mesh.t,mesh.f,t2t,mesh.tprd,app.elemtype,app.boundaryconditions,mesh.boundaryexpr,mesh.periodicexpr,app.porder,mpiprocs,app.metis);
 if (app.hybrid ==1)
@@ -268,12 +273,13 @@ for i = 1:mpiprocs
             ind = [ind fblks(1,ii):fblks(2,ii)];
         end
     end            
+
     facecon2(:,ind)=[];        
     [rowe2f1,cole2f1,ent2ind1] = mkdge2dgf(facecon1,npe*length(dmd{i}.elempart));                
     [rowe2f2,cole2f2,ent2ind2] = mkdge2dgf(facecon2,npe*length(dmd{i}.elempart));      
-    
-    %writebin("facecon" + num2str(i) + ".bin",facecon2(:));
         
+    %save tmp.mat dmd eblks fblks rowe2f1 cole2f1 ent2ind1 rowe2f2 cole2f2 ent2ind2 cgelcon rowent2elem colent2elem cgent2dgent
+            
     disp(['Writing mesh into file ' num2str(i) '...']); 
     if (mpiprocs>1) || (coupledinterface>0)
         fileID2 = fopen(filename + "mesh" + string(i) + ".bin",'w');
@@ -329,15 +335,21 @@ for i = 1:mpiprocs
     fwrite(fileID2,length(nsize(:)),'double',endian);
     fwrite(fileID2,nsize(:),'double',endian);
     fwrite(fileID2,ndims(:),'double',endian);
-    fwrite(fileID2,reshape(permute(dmd{i}.facecon,[2 1 3]),[2*master.npf(1)*ndims(3) 1]),'double',endian);
+    fwrite(fileID2,reshape(permute(dmd{i}.facecon-1,[2 1 3]),[2*master.npf(1)*ndims(3) 1]),'double',endian);
     fwrite(fileID2,eblks(:),'double',endian);
     fwrite(fileID2,fblks(:),'double',endian);
-    fwrite(fileID2,dmd{i}.nbsd(:),'double',endian);
-    fwrite(fileID2,dmd{i}.elemsend(:),'double',endian);
-    fwrite(fileID2,dmd{i}.elemrecv(:),'double',endian);
+    if (~isempty(dmd{i}.nbsd(:))) 
+      fwrite(fileID2,dmd{i}.nbsd(:)-1,'double',endian);
+    end    
+    if (~isempty(dmd{i}.elemsend(:))) 
+      fwrite(fileID2,dmd{i}.elemsend(:)-1,'double',endian);
+    end
+    if (~isempty(dmd{i}.elemrecv(:))) 
+      fwrite(fileID2,dmd{i}.elemrecv(:)-1,'double',endian);
+    end
     fwrite(fileID2,dmd{i}.elemsendpts(:),'double',endian);
     fwrite(fileID2,dmd{i}.elemrecvpts(:),'double',endian);
-    fwrite(fileID2,dmd{i}.elempart(:),'double',endian);
+    fwrite(fileID2,dmd{i}.elempart(:)-1,'double',endian);
     fwrite(fileID2,dmd{i}.elempartpts(:),'double',endian);
     fwrite(fileID2,cgelcon(:)-1,'double',endian);
     fwrite(fileID2,rowent2elem(:),'double',endian);

@@ -290,15 +290,17 @@ for i = 1:mpiprocs
     write(fileID,Float64(length(nsize[:])));
     write(fileID,Float64.(nsize[:]));
     write(fileID,Float64.(ndims[:]));
-    write(fileID,Float64.(reshape(permutedims(dmd[i].facecon,[2,1,3]),length(dmd[i].facecon),1)));
+    write(fileID,Float64.(reshape(permutedims(dmd[i].facecon.-1,[2,1,3]),length(dmd[i].facecon),1)));
     write(fileID,Float64.(eblks[:]));
     write(fileID,Float64.(fblks[:]));
-    write(fileID,Float64.(dmd[i].nbsd[:]));
-    write(fileID,Float64.(dmd[i].elemsend[:]));
-    write(fileID,Float64.(dmd[i].elemrecv[:]));
+    if (mpiprocs>1)
+      write(fileID,Float64.(dmd[i].nbsd[:].-1));
+      write(fileID,Float64.(dmd[i].elemsend[:].-1));
+      write(fileID,Float64.(dmd[i].elemrecv[:].-1));
+    end
     write(fileID,Float64.(dmd[i].elemsendpts[:]));
     write(fileID,Float64.(dmd[i].elemrecvpts[:]));
-    write(fileID,Float64.(dmd[i].elempart[:]));
+    write(fileID,Float64.(dmd[i].elempart[:].-1));
     write(fileID,Float64.(dmd[i].elempartpts[:]));
     write(fileID,Float64.(cgelcon[:].-1));
     write(fileID,Float64.(rowent2elem[:]));

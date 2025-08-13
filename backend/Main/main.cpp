@@ -24,6 +24,10 @@
 #define HAVE_HIP
 #endif
 
+#ifdef _TEXT2CODE
+#define HAVE_TEXT2CODE
+#endif
+
 #ifdef _ENZYME
 #define HAVE_ENZYME
 #endif
@@ -106,6 +110,10 @@ int main(int argc, char** argv)
     shmrank = 0;
 #endif                
   
+#ifdef HAVE_TEXT2CODE
+    if (mpirank==0) printf("TEXT2CODE ENABLED...\n");    
+#endif
+    
 // #ifdef HAVE_OPENMP    
 //     // set OpenMP threads
 //     ncores = omp_get_num_procs();
@@ -129,15 +137,15 @@ int main(int argc, char** argv)
 #endif
             
     if (backend==2) {
-        //if (mpirank==0) 
+        if (mpirank==0) 
             printf("Using %d processors with %d rank and %d shmrank to solve the problem on CUDA platform...\n", mpiprocs, mpirank, shmrank);
     }
     else if (backend==3) {
-        //if (mpirank==0) 
+        if (mpirank==0) 
             printf("Using %d processors with %d rank and %d shmrank to solve the problem on HIP platform...\n", mpiprocs, mpirank, shmrank);
     }
     else {
-        //if (mpirank==0) 
+        if (mpirank==0) 
             printf("Using %d processors with %d rank and %d shmrank to solve the problem on CPU platform...\n", mpiprocs, mpirank, shmrank);
     }
     

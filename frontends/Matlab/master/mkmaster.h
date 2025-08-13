@@ -6,6 +6,7 @@
 struct masterstruct {
     Int nd;
     Int porder;
+    Int proj_porder;
     Int pgauss;
     Int npv;
     Int npf;

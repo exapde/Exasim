@@ -15,6 +15,7 @@ if nproc==1
     dmd{i}.elemsendpts = [];
     if coupledinterface>0
       [~, inte] = find(f == coupledinterface);
+      inte = unique(inte);
       dmd{i}.elempart = [setdiff((1:ne)', inte); inte];
       dmd{i}.elempartpts = [ne-length(inte) length(inte) 0];
       dmd{i}.intepartpts = [ne-length(inte) length(inte) 0 0];
@@ -26,6 +27,7 @@ elem2cpu = partition(t',ne,nproc,metis);
 
 if coupledinterface>0
   [~, inte] = find(f == coupledinterface);
+  inte = unique(inte);
 end    
 
 for i = 1:nproc
@@ -87,6 +89,9 @@ for i = 1:nproc
     dmd{i}.elemsend = dmd{i}.elemsend(:,2);
     dmd{i}.elemrecv = dmd{i}.elemrecv(:,2);        
 end
+
+save dmdelem.mat dmd t2t elem2cpu;
+
 
 % for i = 1:nproc  
 %   [length(dmd{i}.elemsend) length(dmd{i}.elemrecv)]

@@ -33,7 +33,7 @@ elseif dim==3
         plocfc2(:,1) = plocfc(:,2);
         plocfc2(:,2) = plocfc(:,1);
         ind(:,1) = xiny(round(plocfc,8),round(plocfc2,8));
-
+        
         % [2 1 4 3]
         plocfc2 = plocfc; 
         plocfc2(:,2) = 1-plocfc(:,2);

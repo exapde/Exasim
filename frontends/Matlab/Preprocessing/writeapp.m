@@ -87,4 +87,4 @@ if (~isempty(avparam(:)))
 end
 fclose(fileID);
 
-
+% [1 30 40 17 32 2 1 5 4 1]

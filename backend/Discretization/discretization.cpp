@@ -8,8 +8,15 @@
 #include "discretization.h"
 #include "errormsg.cpp"
 #include "ioutilities.cpp"
+
+#ifdef HAVE_TEXT2CODE
+#include "../Model/ModelDrivers.cpp"
+#else
 #include "../Model/KokkosDrivers.cpp"
+#endif
+//#include "../Model/KokkosDrivers.cpp"
 //#include "../Model/ModelDrivers.cpp"
+
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"
@@ -628,9 +635,9 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
     //    ArrayCopy(&tmp.buffsend[bsz*n], &sol.udg[nudg*common.elemsend[n]], bsz, backend);           
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendudg, bsz*common.nelemsend);
 
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
@@ -686,9 +693,9 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
     /* copy some portion of u to buffsend */
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendudg, bsz*common.nelemsend);
 
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();

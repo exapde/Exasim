@@ -1685,16 +1685,4 @@ struct commonstruct {
     }                         
 };
 
-struct dmdstruct {
-    std::vector<int> nbsd;                  // neighbors
-    std::vector<std::vector<int>> elemrecv; // each row: [sender, recv_local_idx, sender_global_idx]
-    std::vector<std::vector<int>> elemsend; // each row: [receiver, send_local_idx, recv_global_idx]
-    std::vector<int> elempart;              // local element IDs in the partition
-    std::vector<int> elemsendpts;           // number of elements sent to each neighbor
-    std::vector<int> elemrecvpts;           // number of elements received from each neighbor
-    std::vector<int> elempartpts;           // partition sizes: [interior, interface, exterior]
-    std::vector<int> intepartpts;           // optional: [interior, interface1, interface2, exterior]
-    std::vector<int> elem2cpu;              // processor ID for each element in the partition
-};
-
 #endif  
