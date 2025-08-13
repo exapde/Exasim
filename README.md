@@ -63,7 +63,7 @@ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -
 cmake --build .
 ``` 
 
-This will produce Exasim's executable programs in Exasim/build. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
+This will produce Exasim's executable programs in Exasim/build. EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
 
 # Examples
 
@@ -72,7 +72,7 @@ Exasim produces C++ Code to solve a wide variety of parametrized partial differe
 To run an example using Text2Code, open a terminal and perform the following commands
 
 ```
-cd /path/to/example
+cd /path/to/Exasim/examples/<example>
 /path/to/Exasim/build/text2code pdeapp.txt
 /path/to/Exasim/build/cput2cEXASIM 1 datain/ dataout/out     (if run with one CPU core)
 /path/to/Exasim/build/gput2cEXASIM 1 datain/ dataout/out     (if run with one GPU card)
