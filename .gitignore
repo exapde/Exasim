@@ -27,3 +27,4 @@ text2code/symengine/lib/*
 text2code/symengine/include/*
 
 backend/Model/libpdemodelserial.dylib
+backend/Model/code2cpp
