@@ -57,13 +57,13 @@ function gencodeelem2(filename::String, f, xdg, udg, odg, wdg, uinf, param, time
   ts, fs = sympy.cse(f);
   m = length(ts);
   for i = 1:m
-      str1 = sympy.ccode(ts[i][1]);
-      str2 = sympy.ccode(ts[i][2]);
+      str1 = string(sympy.ccode(ts[i][1]));
+      str2 = string(sympy.ccode(ts[i][2]));
       str = str * "\t\tT " * str1 * " = " * str2 * ";\n";
   end
   for i = 1:n
       str1 = "\t\tf[j+npe*" * string(i-1) * "+npe*nce*k" * "]";
-      str2 = sympy.ccode(fs[1][i]);
+      str2 = string(sympy.ccode(fs[1][i]));
       str = str * str1 * " = " * str2 * ";\n";
   end
   

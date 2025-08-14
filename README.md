@@ -21,7 +21,7 @@ To deploy, compile, and run Exasim on **HPC systems**, please follow the intruct
 
 # Installation 
 
-Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. These external packages can be installed by running install.jl in Julia, install.py in Python, or install.m in Matlab.
+Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
 
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform, please follow the below steps
 ```
@@ -48,7 +48,6 @@ cd buildhip
 cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
 make install   
 ```
-Once Kokkos libraries are successfully built, you can start using Exasim. To try out any of the provided examples, please go to any folder in the directory  Exasim/examples and run pdeapp.jl in Julia, pdeapp.py in Python, or pdeapp.m in Matlab. 
 
 To use Text2Code as a code generator and preprocessor in Exasim, please follow the below steps
 ```
@@ -57,16 +56,14 @@ cmake -S . -B superbuild
 cmake --build superbuild -j4
 ``` 
 
-Text2Code generates faster and better codes than Exasim's existing code generators. If you use Text2Code, you don't need Matlab, Julia, or Python to run Exasim's cases. See the installation intructions in [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt) if you encounter any installation issues.
-
-After installing Text2Code successfully, please procceed installing Exasim as follows
+Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
 cd Exasim/build
-cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=ON ../install 
+cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -D WITH_TEXT2CODE=ON ../install 
 cmake --build .
 ``` 
 
-This will produce Exasim's executable programs in Exasim/build.
+This will produce Exasim's executable programs in Exasim/build. EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
 
 # Examples
 
@@ -75,7 +72,7 @@ Exasim produces C++ Code to solve a wide variety of parametrized partial differe
 To run an example using Text2Code, open a terminal and perform the following commands
 
 ```
-cd /path/to/example
+cd /path/to/Exasim/examples/<example>
 /path/to/Exasim/build/text2code pdeapp.txt
 /path/to/Exasim/build/cput2cEXASIM 1 datain/ dataout/out     (if run with one CPU core)
 /path/to/Exasim/build/gput2cEXASIM 1 datain/ dataout/out     (if run with one GPU card)
@@ -83,7 +80,7 @@ mpirun -np $N /path/to/Exasim/build/cpumpit2cEXASIM 1 datain/ dataout/out  (if r
 mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM 1 datain/ dataout/out  (if run with many GPUs)
 ```
 
-where N is the number of processors you specify in pdeapp.txt. Please set MPI directives properly when running Exasim on GPUs.
+where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system.
 
 To run any example with Julia, type the following line and hit return
 
