@@ -613,7 +613,7 @@ void compute_dgnodes(double* dgnodes, const double* p, const int* t,
     }        
 }
 
-void project_dgnodes_onto_curved_boundaries(double* dgnodes, int* f, int* perm, int* curvedboundary,
+void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const int* perm, const int* curvedboundary,
                          char** fd_exprs, int nd, int porder, int npe, int npf, int nfe, int ne) 
 {
     if (porder <= 1) return;

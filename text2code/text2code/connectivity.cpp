@@ -602,7 +602,7 @@ int mkfaceblocks(vector<int>& nm, const vector<int>& mf, const vector<int>& bcm,
     return count; 
 }
 
-void buildConn(Conn& conn, PDE& pde, Mesh& mesh, Master& master, DMD& dmd)
+void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& master, const DMD& dmd)
 {                  
     int ne = mesh.ne;
     int ne1 = mesh.ne;    

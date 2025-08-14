@@ -53,8 +53,7 @@ int main(int argc, char* argv[])
         
     Mesh mesh = initializeMesh(params, pde);        
     Master master = initializeMaster(pde, mesh);                            
-    
-    buildMesh(pde, mesh, master);
+        
     writeBinaryFiles(pde, mesh, master);
 
 #ifdef USE_CMAKE

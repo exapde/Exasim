@@ -10,6 +10,7 @@
 *.cmake~
 *.txt~
 .gitignore~
+backup/
 datain/
 dataout/
 build/*

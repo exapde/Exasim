@@ -225,7 +225,7 @@ void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector
 }
 #endif
 
-void writeBinaryFiles(PDE& pde, Mesh& mesh, Master master) 
+void writeBinaryFiles(const PDE& pde, Mesh& mesh, const Master master) 
 {
     ensure_dir(pde.datainpath);
     ensure_dir(pde.dataoutpath);
@@ -233,6 +233,9 @@ void writeBinaryFiles(PDE& pde, Mesh& mesh, Master master)
     writepde(pde, make_path(pde.datainpath, "app.bin"));
     writemaster(master, make_path(pde.datainpath, "master.bin"));    
 
+    buildMesh(mesh, pde, master);
+    
+    
     if (pde.mpiprocs>1) {
       
       if ((pde.partitionfile == "") || (mesh.elem2cpu.size() == 0)) {

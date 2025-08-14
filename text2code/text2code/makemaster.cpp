@@ -1159,7 +1159,7 @@ void writemaster(const Master& master, const std::string& filename)
     std::cout << "Finished writing master to " << filename << std::endl;
 }
 
-void buildMesh(PDE& pde, Mesh& mesh, Master& master)
+void buildMesh(Mesh& mesh, const PDE& pde, const Master& master)
 {
     mesh.npe = master.npe;
     mesh.npf = master.npf;

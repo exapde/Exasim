@@ -15,7 +15,7 @@ struct DMD {
 //     std::vector<int> intl;                  // processor ID for each element in the partition
 };
 
-DMD initializeDMD(PDE& pde, Mesh& mesh)
+DMD initializeDMD(const PDE& pde, const Mesh& mesh)
 {              
     DMD dmd;
     
@@ -132,7 +132,7 @@ void create_elemsend(std::vector<DMD>& dmd)
     }
 }
 
-void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, int nfe, int ne, PDE& pde) 
+void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, int nfe, int ne, const PDE& pde) 
 {
     int nproc = static_cast<int>(dmd.size());
 
@@ -246,7 +246,7 @@ void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, in
     std::cout << "Finished build_dmdldg.\n";
 }
 
-void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, const int* inte, int nfe, int ne, PDE& pde) 
+void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, const int* inte, int nfe, int ne, const PDE& pde) 
 {
     int coupledinterface = pde.coupledinterface;
     int nproc = static_cast<int>(dmd.size());
