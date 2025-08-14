@@ -222,6 +222,17 @@ if isdefined(pdemodel, Symbol("output"))
 else
     nocodeelem2("Output" * strn, foldername);
 end
+if isdefined(pdemodel, Symbol("monitor"))
+    #f = pdemodel.output(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.monitor(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem2("Monitor" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+else
+    nocodeelem2("Monitor" * strn, foldername);
+end
 if app.hybrid==1
   if isdefined(pdemodel, Symbol("fbouhdg"))
     f = pdemodel.fbouhdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);  

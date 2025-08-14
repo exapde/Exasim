@@ -34,6 +34,8 @@ public:
     void SteadyProblem(Int backend);
     
     void SteadyProblem(ofstream &out, Int backend);    
+
+    void SteadyProblem_PTC(ofstream &out, Int backend);    
             
     void SteadyProblem(CSolution *subprob, Int backend);    
     
