@@ -1,0 +1,237 @@
+scalars t
+
+vectors x(2), uq(12), v(0), w(0), uhat(4), n(2), tau(1), mu(8), eta(0)
+
+jacobian uq, w, uhat 
+
+hessian 
+
+batch x, uq, v, w, uhat, n
+
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu
+
+datatype dstype
+
+framework kokkos
+
+codeformat exasim
+
+function Flux(x, uq, v, w, eta, mu, t)  
+    output_size(f) = 8;
+
+    gam = mu[0];
+    gam1 = gam - 1.0;
+    Re = mu[1];
+    Pr = mu[2];
+    Minf = mu[3];
+    Re1 = 1/Re;
+    M2 = Minf*Minf;
+    c23 = 2.0/3.0;
+    fc = 1/(gam1*M2*Re*Pr);
+
+    r = uq[0];
+    ru = uq[1];
+    rv = uq[2];
+    rE = uq[3];
+    rx = uq[4];
+    rux = uq[5];
+    rvx = uq[6];
+    rEx = uq[7];
+    ry = uq[8];
+    ruy = uq[9];
+    rvy = uq[10];
+    rEy = uq[11];
+
+    r1 = 1/r;
+    uv = ru*r1;
+    vv = rv*r1;
+    E = rE*r1;
+    ke = 0.5*(uv*uv+vv*vv);
+    p = gam1*(rE-r*ke);
+    h = E+p*r1;    
+
+    ux = (rux - rx*uv)*r1;
+    vx = (rvx - rx*vv)*r1;
+    kex = uv*ux + vv*vx;
+    px = gam1*(rEx - rx*ke - r*kex);
+    Tx = gam*M2*(px*r - p*rx)*r1*r1;
+    uy = (ruy - ry*uv)*r1;
+    vy = (rvy - ry*vv)*r1;
+    key = uv*uy + vv*vy;
+    py = gam1*(rEy - ry*ke - r*key);
+    Ty = gam*M2*(py*r - p*ry)*r1*r1;
+    txx = Re1*c23*(2*ux - vy);
+    txy = Re1*(uy + vx);
+    tyy = Re1*c23*(2*vy - ux);
+
+    f[0] = ru;
+    f[1] = ru*uv+p + txx;
+    f[2] = rv*uv + txy;
+    f[3] = ru*h + uv*txx + vv*txy + fc*Tx;
+    f[4] = rv;
+    f[5] = ru*vv + txy;
+    f[6] = rv*vv+p + tyy;
+    f[7] = rv*h + uv*txy + vv*tyy + fc*Ty;
+end
+
+function Source(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 4;  
+  zeros(s);
+end
+
+function Tdfunc(x, uq, v, w, eta, mu, t)  
+  output_size(m) = 4;
+  ones(m);
+end
+
+function Fbou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 8;
+  zeros(fb);
+end
+
+function Ubou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(ub) = 8;
+  zeros(ub);
+end
+
+function FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 8;
+
+  f = Flux(x, uq, v, w, eta, mu, t);  
+  fb[0] = uq[0] - uhat[0]; 
+  fb[1] = 0.0  - uhat[1]; 
+  fb[2] = 0.0  - uhat[2]; 
+  fb[3] = f[3]*n[0] + f[7]*n[1] + tau[0]*(uq[3]-uhat[3]); 
+
+  gam = mu[0];
+  gam1 = gam - 1.0;
+  r = uhat[0];
+  ru = uhat[1];
+  rv = uhat[2];
+  rE = uhat[3];
+  nx = n[0];
+  ny = n[1];
+
+  r1 = 1/r;
+  uv = ru*r1;
+  vv = rv*r1;
+  E = rE*r1;
+  p = gam1*(rE-r*0.5*(uv*uv+vv*vv));
+  h = E+p*r1;
+  a = sqrt(gam*p*r1);
+
+  run = ru*nx + rv*ny;
+  rut = -ru*ny + rv*nx;
+  un = run/r;
+  ut = rut/r;  
+
+  matrix K(4,4);
+  K[0][0] = 1;
+  K[1][0] = un-a;
+  K[2][0] = ut;
+  K[3][0] = h - un*a;   
+
+  K[0][1] = 1;
+  K[1][1] = un;
+  K[2][1] = ut;
+  K[3][1] = 0.5*(un*un + ut*ut);   
+
+  K[0][2] = 0;
+  K[1][2] = 0;
+  K[2][2] = 1;
+  K[3][2] = ut;   
+
+  K[0][3] = 1;
+  K[1][3] = un+a;
+  K[2][3] = ut;
+  K[3][3] = h+un*a;   
+
+  matrix Kinv(4,4);
+  Kinv = inv(K);
+  
+  matrix T(4,4);
+  T[0][0] = 1;
+  T[1][0] = 0;
+  T[2][0] = 0;
+  T[3][0] = 0;   
+
+  T[0][1] = 0;
+  T[1][1] = nx;
+  T[2][1] = -ny;
+  T[3][1] = 0;   
+
+  T[0][2] = 0;
+  T[1][2] = ny;
+  T[2][2] = nx;
+  T[3][2] = 0;   
+
+  T[0][3] = 0;
+  T[1][3] = 0;
+  T[2][3] = 0;
+  T[3][3] = 1;   
+
+  matrix Tinv(4,4);
+  Tinv = inv(T);
+  
+  matrix Lambda(4,4);
+  Lambda[0][0] = tanh(100*(un-a));
+  Lambda[1][0] = 0;
+  Lambda[2][0] = 0;
+  Lambda[3][0] = 0;   
+
+  Lambda[0][1] = 0;
+  Lambda[1][1] = tanh(100*un);
+  Lambda[2][1] = 0;
+  Lambda[3][1] = 0;   
+
+  Lambda[0][2] = 0;
+  Lambda[1][2] = 0;
+  Lambda[2][2] = tanh(100*un);
+  Lambda[3][2] = 0;   
+
+  Lambda[0][3] = 0;
+  Lambda[1][3] = 0;
+  Lambda[2][3] = 0;
+  Lambda[3][3] = tanh(100*(un+a));   
+
+  matrix L(4,4);
+  L = Tinv * K;
+
+  matrix R(4,4);
+  R = Kinv * T;
+
+  matrix Tmp(4,4);
+  Tmp = L * Lambda; 
+
+  matrix An(4,4);
+  An = Tmp * R;
+
+  matrix bn(4,1);
+  for i in 0:3
+    bn[i][0] = uq[i] - mu[4+i];
+  endfor
+
+  matrix cn(4,1);
+  cn = An * bn;
+
+  vector dn(4);
+  for i in 0:3
+    dn[i] = cn[i][0];
+  endfor
+  
+  fb[4] = 0.5*(uq[0] + mu[4] + dn[0]) - uhat[0]; 
+  fb[5] = 0.5*(uq[1] + mu[5] + dn[1]) - uhat[1]; 
+  fb[6] = 0.5*(uq[2] + mu[6] + dn[2]) - uhat[2]; 
+  fb[7] = 0.5*(uq[3] + mu[7] + dn[3]) - uhat[3]; 
+end
+
+function Initu(x, eta, mu)
+  output_size(ui) = 4;
+  ui[0] = mu[4];
+  ui[1] = mu[5];
+  ui[2] = mu[6];
+  ui[3] = mu[7];
+end
+
+
+

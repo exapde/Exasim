@@ -11,6 +11,7 @@ def initializepde(version):
     pde['metis'] = "mpmetis";
     pde['paraview'] = "paraview";
     pde['enzyme'] = [];
+    pde['codegenerator'] = "";
 
     cdir = os.getcwd(); ii = cdir.find("Exasim");
     pde['exasimpath'] = cdir[0:(ii+6)];

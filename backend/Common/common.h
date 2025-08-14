@@ -698,6 +698,10 @@ struct meshstruct {
     Int *rowe2f2=nullptr;
     Int *cole2f2=nullptr;
     Int *ent2ind2=nullptr;
+    Int *row_ptr=nullptr;
+    Int *col_ind=nullptr;
+    Int *face=nullptr;
+    Int *cartgridpart=nullptr;
     
     Int *faceperm=nullptr;
     Int *nbintf=nullptr;
@@ -730,7 +734,7 @@ struct meshstruct {
     Int szcole2f2=0, szent2ind2=0, szfindxdg1=0, szfindxdg2=0, szfindxdgp=0; 
     Int szfindudg1=0, szfindudg2=0, szfindudgp=0, szeindudg1=0, szeindudgp=0;
     Int szelemsendind=0, szelemrecvind=0, szelemsendodg=0, szelemrecvodg=0;
-    Int szelemsendudg=0, szelemrecvudg=0, szindex=0;    
+    Int szelemsendudg=0, szelemrecvudg=0, szindex=0, szcartgridpart=0;    
     Int szfaceperm=0, sznbintf=0, szfacesend=0, szfacerecv=0, szfacesendpts=0, szfacerecvpts=0;
     
     int sizeoffloat() {return 0;}
@@ -1315,6 +1319,10 @@ struct commonstruct {
     Int nbf0; // number of blocks for interior faces
     Int nbf1; // number of blocks for interior+interface faces
     Int ncie; // number of coupled interface elements
+    Int nse=0;  // number of superelements
+    Int nese=0; // number of elements per superelement
+    Int nfse=0; // number of faces per superelement
+    Int nnz=0;
     
     Int ndof; // number of degrees of freedom of u
     Int ndofq; // number of degrees of freedom of q
@@ -1438,6 +1446,7 @@ struct commonstruct {
     Int nelemrecv;
     Int nvindx;
     Int szinterfacefluxmap;
+    Int szcartgridpart;
     Int* nbsd=nullptr; // neighboring subdomains
     Int* elemsend=nullptr;
     Int* elemrecv=nullptr;       
@@ -1446,6 +1455,7 @@ struct commonstruct {
     Int* stgib=nullptr;
     Int *vindx=nullptr;
     Int *interfacefluxmap=nullptr;
+    Int *cartgridpart=nullptr;
     
     Int nnbintf;
     Int nfacesend;
@@ -1456,6 +1466,17 @@ struct commonstruct {
     Int* facesendpts=nullptr;
     Int* facerecvpts=nullptr;        
         
+    Int* ind_ii=nullptr;
+    Int* ind_ji=nullptr;
+    Int* ind_il=nullptr;
+    Int* ind_jl=nullptr;
+    Int* num_ji=nullptr;
+    Int* num_jl=nullptr;
+    Int* Lnum_ji=nullptr;
+    Int* Lind_ji=nullptr;
+    Int* Unum_ji=nullptr;
+    Int* Uind_ji=nullptr;
+    
     dstype timing[128];
     dstype* dt=nullptr;
     dstype* dae_dt=nullptr;

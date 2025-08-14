@@ -62,6 +62,31 @@ run(stringcommand("cmake --build ."));
 cd(cdir);
 return comstr;
 
+end
+
+function compilepdemodel(pde)
+
+# Save current working directory
+cdir = pwd()
+
+# Construct the path to the build directory
+cmp = pde.exasimpath * "/backend/Model/build"
+
+# Change to the build directory
+cd(cmp)
+
+# Run cmake and make
+run(`cmake ..`)
+run(`make`)
+
+# Return to the original working directory
+cd(cdir)
+
+return cmp
+
+end
+
+
 # buildpath = pde.buildpath;
 # DataPath = buildpath;
 # mpirun = pde.mpirun;
@@ -86,6 +111,4 @@ return comstr;
 # cd(cdir);
 
 # return str;
-
-end
 

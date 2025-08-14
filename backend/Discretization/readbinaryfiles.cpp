@@ -299,7 +299,8 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.elemcon = readiarrayfromdouble(in, mesh.nsize[22]);
     mesh.perm = readiarrayfromdouble(in, mesh.nsize[23]);
     mesh.bf = readiarrayfromdouble(in, mesh.nsize[24]);
-            
+    mesh.cartgridpart = readiarrayfromdouble(in, mesh.nsize[25]);
+  
     mesh.szfacecon = mesh.nsize[1];
     mesh.szeblks = mesh.nsize[2];
     mesh.szfblks = mesh.nsize[3];
@@ -324,6 +325,7 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.szelemcon = mesh.nsize[22];
     mesh.szperm = mesh.nsize[23];
     mesh.szbf = mesh.nsize[24];
+    mesh.szcartgridpart = mesh.nsize[25];
         
     mesh.faceperm = readiarrayfromdouble(in, mesh.nsize[39]);
     mesh.nbintf = readiarrayfromdouble(in, mesh.nsize[40]);

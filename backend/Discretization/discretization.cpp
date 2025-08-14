@@ -8,12 +8,109 @@
 #include "discretization.h"
 #include "errormsg.cpp"
 #include "ioutilities.cpp"
+
+#ifdef HAVE_TEXT2CODE
+#include "../Model/ModelDrivers.cpp"
+#else
 #include "../Model/KokkosDrivers.cpp"
+#endif
+//#include "../Model/KokkosDrivers.cpp"
+//#include "../Model/ModelDrivers.cpp"
+
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"
 #include "matvec.cpp"
+      
+void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int nese)
+{            
+    common.nse = nse;
+    common.nese = nese;
+    
+    int *row_ptr = NULL; 
+    int *col_ind = NULL; 
+    int *face = NULL; 
+    int *f2eelem = NULL; 
+    int *f2e = NULL; 
+    TemplateMalloc(&f2e, 4*common.nf, 0);
+    TemplateCopytoHost(f2e, mesh.f2e, 4*common.nf, common.backend); 
+    
+    int nfelem = crs_faceordering(&row_ptr, &col_ind, &face, &f2eelem, elem, f2e, common.nse, common.nese, common.nfe, common.nf);
 
+    common.nfse = nfelem;
+    common.nnz = row_ptr[common.nfse];      
+        
+    int n = 2*(common.nfe-1);
+    TemplateMalloc(&common.ind_ii, nfelem, 0);
+    TemplateMalloc(&common.ind_ji, nfelem*n, 0);
+    TemplateMalloc(&common.ind_jl, nfelem*n*n, 0);
+    TemplateMalloc(&common.ind_il, nfelem*n*n, 0);
+    TemplateMalloc(&common.num_ji, nfelem, 0);
+    TemplateMalloc(&common.num_jl, nfelem*n, 0);
+    TemplateMalloc(&common.Lind_ji, nfelem*n*2, 0);
+    TemplateMalloc(&common.Uind_ji, nfelem*n*2, 0);
+    TemplateMalloc(&common.Lnum_ji, nfelem*2, 0);
+    TemplateMalloc(&common.Unum_ji, nfelem*3, 0);
+    for (int i=0; i<nfelem; i++) common.ind_ii[i] = -1;
+    for (int i=0; i<nfelem*n; i++) common.ind_ji[i] = -1;
+    for (int i=0; i<nfelem*n*n; i++) common.ind_jl[i] = -1;
+    for (int i=0; i<nfelem*n*n; i++) common.ind_il[i] = -1;
+    for (int i=0; i<nfelem; i++) common.num_ji[i] = 0;
+    for (int i=0; i<nfelem*n; i++) common.num_jl[i] = 0;
+    for (int i=0; i<nfelem*n*2; i++) common.Lind_ji[i] = -1;
+    for (int i=0; i<nfelem*n*2; i++) common.Uind_ji[i] = -1;
+    for (int i=0; i<nfelem*2; i++) common.Lnum_ji[i] = 0;
+    for (int i=0; i<nfelem*3; i++) common.Unum_ji[i] = 0;    
+    
+    crs_indexingilu0(common.ind_ii, common.ind_ji, common.ind_jl, common.ind_il, common.num_ji, common.num_jl, 
+            common.Lind_ji, common.Uind_ji, common.Lnum_ji, common.Unum_ji, row_ptr, col_ind, common.nfe, nfelem);
+
+//     print2iarray(f2eelem, common.nfe, nfelem);
+//     print2iarray(row_ptr, 1, nfelem+1);
+//     print2iarray(col_ind, 1, row_ptr[nfelem]);    
+//     print2iarray(common.ind_ii, 1, nfelem);
+//     print2iarray(common.ind_ji, n, nfelem);
+//     print2iarray(common.ind_jl, n*n, nfelem);
+//     print2iarray(common.ind_il, n*n, nfelem);
+//     print2iarray(common.num_ji, 1, nfelem);
+//     print2iarray(common.num_jl, n, nfelem);
+//     print2iarray(common.Lind_ji, n*2, nfelem);
+//     print2iarray(common.Uind_ji, n*2, nfelem);
+//     print2iarray(common.Lnum_ji, 2, nfelem);
+//     print2iarray(common.Unum_ji, 3, nfelem);
+
+    TemplateMalloc(&mesh.row_ptr, nfelem+1, common.backend);
+    TemplateMalloc(&mesh.col_ind, row_ptr[nfelem],common.backend);
+    TemplateMalloc(&mesh.face, nse*nfelem, common.backend);
+    TemplateCopytoDevice(mesh.row_ptr, row_ptr, nfelem+1, common.backend);                       
+    TemplateCopytoDevice(mesh.col_ind, col_ind, row_ptr[nfelem], common.backend);    
+    TemplateCopytoDevice(mesh.face, face, nse*nfelem, common.backend);      
+    
+//     writearray2file(common.fileout + "elem.bin", elem, nse*nese, 0);
+//     writearray2file(common.fileout + "f2e.bin", f2e, 4*common.nf, 0);
+//     
+//     writearray2file(common.fileout + "ind_ii.bin", common.ind_ii, nfelem, 0);
+//     writearray2file(common.fileout + "ind_ji.bin", common.ind_ji, n*nfelem, 0);
+//     writearray2file(common.fileout + "ind_jl.bin", common.ind_jl, n*n*nfelem, 0);
+//     writearray2file(common.fileout + "ind_il.bin", common.ind_il, n*n*nfelem, 0);
+//     writearray2file(common.fileout + "num_ji.bin", common.num_ji, nfelem, 0);
+//     writearray2file(common.fileout + "num_jl.bin", common.num_jl, n*nfelem, 0);
+//     writearray2file(common.fileout + "Lind_ji.bin", common.Lind_ji, 2*n*nfelem, 0);
+//     writearray2file(common.fileout + "Uind_ji.bin", common.Uind_ji, 2*n*nfelem, 0);
+//     writearray2file(common.fileout + "Lnum_ji.bin", common.Lnum_ji, 2*nfelem, 0);
+//     writearray2file(common.fileout + "Unum_ji.bin", common.Unum_ji, 3*nfelem, 0);
+//     
+//     writearray2file(common.fileout + "row_ptr.bin", mesh.row_ptr, nfelem+1, common.backend);
+//     writearray2file(common.fileout + "col_ind.bin", mesh.col_ind, row_ptr[nfelem], common.backend);
+//     writearray2file(common.fileout + "face.bin", mesh.face, nse*nfelem, common.backend);
+    
+    CPUFREE(row_ptr);
+    CPUFREE(col_ind);
+    CPUFREE(face);
+    CPUFREE(f2eelem);
+    CPUFREE(f2e);
+}
+      
 // Both CPU and GPU constructor
 CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, Int mpirank, 
         Int fileoffset, Int omprank, Int backend) 
@@ -132,6 +229,23 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 
       CPUFREE(boufaces);
       CPUFREE(mesh.bf);            
+                          
+      if ((common.preconditioner==2) && (common.szcartgridpart > 0)) {              
+        if (common.cartgridpart[0]==2) {          
+          int *elem = NULL;                
+          int nse  = gridpartition2d(&elem, common.cartgridpart[1], common.cartgridpart[2], common.cartgridpart[3], common.cartgridpart[4], common.cartgridpart[5]);       
+          int nese = common.cartgridpart[3]*common.cartgridpart[4];    
+          crs_init(common, mesh, elem, nse, nese);
+          CPUFREE(elem);
+        }
+        else if (common.cartgridpart[0]==3) {
+          int *elem = NULL;   
+          int nse  = gridpartition3d(&elem, common.cartgridpart[1], common.cartgridpart[2], common.cartgridpart[3], common.cartgridpart[4], common.cartgridpart[5], common.cartgridpart[6], common.cartgridpart[7]);       
+          int nese = common.cartgridpart[4]*common.cartgridpart[5]*common.cartgridpart[6];      
+          crs_init(common, mesh, elem, nse, nese);
+          CPUFREE(elem);
+        }                               
+      }
       
       res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne; // HDG elemental matrices     
       res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;          
@@ -139,11 +253,13 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         res.szP = ncu*npf*ncu*npf*nf;
       else if (common.preconditioner==1) // Elemental additive Schwarz preconditioner
         res.szP = npf*nfe*ncu*npf*nfe*ncu*common.ne;        
+      else if (common.preconditioner==2) // Superelement additive Schwarz preconditioner
+        res.szP = npf*ncu*npf*ncu*common.nse*common.nnz;        
       res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES
       res.szK = max(res.szK, res.szP + res.szV);              
       res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
       res.szipiv = max(max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
-      
+            
       TemplateMalloc(&res.H, res.szH, backend);
       TemplateMalloc(&res.K, res.szK, backend);      
       TemplateMalloc(&res.F, res.szF, backend);
@@ -314,6 +430,8 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
 #else    
     uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
     hdgAssembleRHS(b, res.Rh, mesh, common);
+#endif
+
     if (common.preconditioner==0) {
       // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
       hdgBlockJacobi(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
@@ -321,14 +439,71 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
     else if (common.preconditioner==1) {
       hdgElementalAdditiveSchwarz(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
     }
-#endif
-
-    // dstype nrmUDG = PNORM(common.cublasHandle, common.npe*common.nc*common.ne1, sol.udg, backend);  
-    // dstype nrmUH = PNORM(common.cublasHandle, common.npf*common.ncu*common.nf, sol.uh, backend);
-    // cout<<"ne1 = "<<common.ne1<<", nrmUDG="<<nrmUDG<<", nrmUH="<<nrmUH<<endl;
-    // dstype nrmRh = PNORM(common.cublasHandle, m*common.ne1, res.Rh, backend);    
-    // dstype nrmH = PNORM(common.cublasHandle, m*m*common.ne1, res.H, backend);    
-    // cout<<"ne1 = "<<common.ne1<<", nrmRh="<<nrmRh<<", nrmH="<<nrmH<<endl;
+    else if (common.preconditioner==2) {
+      hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
+    }
+        
+//     if (common.preconditioner==0) {
+//       // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
+//       BlockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
+// 
+//       // assemble block Jacobi matrix from res.H using the SECOND elements in mesh.f2e
+//       BlockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
+// 
+//       // inverse block Jacobi matrix
+//       //Inverse(handle, res.K, tmp.tempn, res.ipiv, ncf, common.nf, backend); // fix bug here
+//       for (Int j=0; j<common.nbf; j++) {      
+//         Int f1 = common.fblks[3*j]-1;
+//         Int f2 = common.fblks[3*j+1];                  
+//         Inverse(common.cublasHandle, &res.K[ncf*ncf*f1], tmp.tempn, res.ipiv, ncf, f2-f1, backend); 
+//       }          
+//     }
+//     else if (common.preconditioner==1) { 
+//       ArrayCopy(res.K, res.H, ncf*nfe*ncf*nfe*common.ne); 
+//       ElementalAdditiveSchwarz(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf);       
+// 
+//       for (Int j=0; j<common.nbe; j++) {              
+//         Int e1 = common.eblks[3*j]-1;
+//         Int e2 = common.eblks[3*j+1];          
+//         Inverse(common.cublasHandle, &res.K[ncf*common.nfe*ncf*common.nfe*e1], tmp.tempn, res.ipiv, ncf*nfe, e2-e1, backend); 
+//       }          
+//     }
+//     else if (common.preconditioner==2) { // Block ILU0
+//       //hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
+//       Int nfse = common.nfse; // number of faces in each superelement
+//       Int nse  = common.nse;  // number of superelements
+//       Int N = nse*ncf*ncf;  
+// 
+//       AssembleBlockILU0(res.K, res.H, mesh.f2e, mesh.elemcon, mesh.face, mesh.row_ptr, mesh.col_ind, npf, nfe, ncu, nfse, nse);
+// 
+//       for (int i = 0; i < nfse; ++i) {
+//           int diag_idx = common.ind_ii[i];
+// 
+//           // Invert all diagonal blocks at diag_idx, in-place (batched)
+//           double *diag_blocks = &res.K[diag_idx * N];
+//           Inverse(common.cublasHandle, diag_blocks, tmp.tempn, res.ipiv, ncf, nse, backend); 
+// 
+//           int nj = common.num_ji[i];
+//           for (int j = 0; j < nj; ++j) {
+//               int idx_ji = common.ind_ji[j + i * nj];
+// 
+//               // Multiply all nse blocks: block_ji = block_ji * block_diag, in-place
+//               double *block_ji = &res.K[idx_ji * N];
+//               PGEMNMStridedBached(common.cublasHandle, ncf, 1, ncf, one, block_ji, ncf, diag_blocks, ncf, zero, tmp.tempn, ncf, nse, backend);             
+//               ArrayCopy(block_ji, tmp.tempn, N);
+// 
+//               int nl = common.num_jl[j + i * nj];
+//               for (int l = 0; l < nl; ++l) {
+//                   int idx_jl = common.ind_jl[l + j * nl + i * nj * nl];
+//                   int idx_il = common.ind_il[l + j * nl + i * nj * nl];
+// 
+//                   double *block_jl = &res.K[idx_jl * N];
+//                   double *block_il = &res.K[idx_il * N];
+//                   PGEMNMStridedBached(common.cublasHandle, ncf, 1, ncf, minusone, block_ji, ncf, block_il, ncf, one, block_jl, ncf, nse, backend);                             
+//               }
+//           }
+//       }      
+//     }    
 }
 
 void CDiscretization::hdgAssembleResidual(dstype *b, Int backend)
@@ -460,9 +635,9 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
     //    ArrayCopy(&tmp.buffsend[bsz*n], &sol.udg[nudg*common.elemsend[n]], bsz, backend);           
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendudg, bsz*common.nelemsend);
 
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
@@ -518,9 +693,9 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
     /* copy some portion of u to buffsend */
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendudg, bsz*common.nelemsend);
 
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();

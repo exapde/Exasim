@@ -138,8 +138,8 @@ if opts(4)
 end
         
 if opts(5)
-    if dim == 2 || surface==1
-        for it=1:size(mesh.f,1)
+    if dim == 2 || surface==1      
+        for it=1:size(mesh.f,1)          
             pmid=mean(p(mesh.f(it,1:2),:),1);
             txtpars={'fontname','times','fontsize',20,'horizontala','center','BackgroundColor',[1,1,1]};
             text(pmid(1),pmid(2),num2str(it),txtpars{:});

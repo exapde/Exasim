@@ -264,10 +264,10 @@ void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     //for (n=0; n<common.nelemsend; n++)         
     //    ArrayCopy(&tmp.buffsend[bsz*n], &sol.udg[nudg*common.elemsend[n]], bsz, backend);            
     
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
-// 
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
@@ -338,9 +338,9 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     
     //for (n=0; n<common.nelemsend; n++)         
     //    ArrayCopy(&tmp.buffsend[bsz*n], &sol.udg[nudg*common.elemsend[n]], bsz, backend);                    
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
@@ -468,9 +468,9 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     /* copy some portion of u to buffsend */
     GetArrayAtIndex(tmp.buffsend, sol.udg, mesh.elemsendind, bsz*common.nelemsend);
     
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
@@ -698,9 +698,9 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     // copy some portion of du to buffsend
     GetArrayAtIndex(tmp.buffsend, sol.dudg, mesh.elemsendind, bsz*common.nelemsend, backend);
 
-// #ifdef HAVE_CUDA
-//     cudaDeviceSynchronize();
-// #endif
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
 
 #ifdef HAVE_HIP
     hipDeviceSynchronize();

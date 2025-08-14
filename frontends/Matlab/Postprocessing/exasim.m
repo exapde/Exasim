@@ -22,8 +22,9 @@ if nmodels==1
       %gencode(pde);
       kkgencode(pde);
       compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
+      %compilerstr = compilepdemodel(pde);
     end
-        
+           
     runstr = runcode(pde, 1); % run C++ code
 
     % get solution from output files in dataout folder
@@ -67,6 +68,7 @@ else
       end      
       kkgencodeall(nmodels, pde{1}.backendpath + "/Model");
       compilerstr = cmakecompile(pde{1}, mpiprocs); % use cmake to compile C++ source codes 
+      %compilerstr = compilepdemodel(pde{1}); % use cmake to compile C++ source codes 
     end
            
     runstr = runcode(pde{1}, nummodels, mpiprocs); % run C++ code

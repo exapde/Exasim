@@ -7,6 +7,7 @@ from checkcompilers import checkcompilers
 from setcompilers import setcompilers
 from compilecode import compilecode
 from cmakecompile import cmakecompile
+from compilepdemodel import compilepdemodel
 from runcode import runcode
 from gencodeall import gencodeall
 from syminit import syminit
@@ -34,6 +35,13 @@ from hdggencodeface2 import hdggencodeface2
 from hdgnocodeface2 import hdgnocodeface2
 
 def gencode(app):
+
+    if app['codegenerator'] == "text2code":
+        runstr = os.path.join(app['exasimpath'], "text2code", "text2code", "text2code")
+        inputfile = app['modelfile'] + ".txt"
+        full_cmd = [runstr, inputfile]
+        subprocess.run(full_cmd, check=True)
+        return
 
     # foldername = os.path.join(app['exasimpath'], "build", "model")
     foldername = os.path.join(app['backendpath'], "Model")
@@ -164,6 +172,11 @@ def gencode(app):
         gencodeelem2("Output" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
     else:
         nocodeelem2("Output" + strn, foldername);
+    if hasattr(pde, 'monitor'):
+        f = pde.monitor(u, q, wdg, odg, xdg, time, param, uinf);
+        gencodeelem2("Monitor" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else:
+        nocodeelem2("Monitor" + strn, foldername);
     if app['hybrid'] == 1:
         if hasattr(pde, 'fbouhdg'):
             f = pde.fbouhdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau)

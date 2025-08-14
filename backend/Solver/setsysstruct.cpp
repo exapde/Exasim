@@ -48,6 +48,10 @@ void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstru
       ArrayCopy(&tmp.tempn[bsz*n], &randvect[bsz*common.elemsend[n]], bsz);     
     }
     
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
 #ifdef HAVE_HIP
     hipDeviceSynchronize();
 #endif
@@ -103,6 +107,10 @@ void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstru
     for (int n=0; n<common.nelemsend; n++)  {       
       ArrayCopy(&tmp.tempn[bsz*n], &randvect[bsz*common.elemsend[n]], bsz);     
     }
+    
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
     
 #ifdef HAVE_HIP
     hipDeviceSynchronize();

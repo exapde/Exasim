@@ -1,5 +1,9 @@
-function v = hdgmatvec(AE, F, f2e, elcon)
+function v = hdgmatvec(AE, F, f2e, elcon, opts)
 
+if nargin<5
+  opts = 0;
+end
+  
 [npf, nfe, ne] = size(elcon);
 ndf = npf*nfe;
 nf = size(f2e,2);
@@ -21,14 +25,18 @@ for i = 1:nf % all faces
   l1 = f2e(2,i);
   v(:,:,i) = w(:,:,l1,e1);
 end
-for i = 1:nf % interior faces only
-  e2 = f2e(3,i);      
-  if (e2 > 0)        
-    l2 = f2e(4,i);
-    ind = elcon(:,l2,e2) - npf*(i-1);    
-    v(:,:,i) = v(:,:,i) + w(:,ind,l2,e2);
-  end
-end 
+
+if opts == 0
+  for i = 1:nf % interior faces only
+    e2 = f2e(3,i);      
+    if (e2 > 0)        
+      l2 = f2e(4,i);
+      ind = elcon(:,l2,e2) - npf*(i-1);    
+      v(:,:,i) = v(:,:,i) + w(:,ind,l2,e2);
+    end
+  end 
+end
+
 v = reshape(v, [ncu, npf*nf]);
 
 % for i = 1:ne  

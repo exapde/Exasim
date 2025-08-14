@@ -1,3 +1,19 @@
-void HdgFlux(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+void HdgFlux(dstype* f, dstype* J1, dstype* J2, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)
 {
+
+  Kokkos::parallel_for("Flux", N, KOKKOS_LAMBDA(const size_t i) {
+    dstype uq1 = uq[1*N+i];
+    dstype uq2 = uq[2*N+i];
+    dstype mu0 = mu[0];
+
+    f[0 * N + i] = uq1*mu0;
+    f[1 * N + i] = uq2*mu0;
+    J1[0 * N + i] = 0;
+    J1[1 * N + i] = 0;
+    J1[2 * N + i] = mu0;
+    J1[3 * N + i] = 0;
+    J1[4 * N + i] = 0;
+    J1[5 * N + i] = mu0;
+  });
 }
+

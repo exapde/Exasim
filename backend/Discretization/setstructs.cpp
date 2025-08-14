@@ -159,6 +159,8 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.dae_dt = copyarray(app.dae_dt,app.nsize[13]); // dual timestep sizes           
     common.szinterfacefluxmap = app.nsize[14];
     common.interfacefluxmap = copyarray(app.interfacefluxmap,app.nsize[14]); 
+    common.cartgridpart = copyarray(mesh.cartgridpart,mesh.nsize[25]); 
+    common.szcartgridpart = mesh.nsize[25];
     
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
@@ -217,7 +219,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.elemrecv = copyarray(mesh.elemrecv,mesh.nsize[6]); 
         common.elemsendpts = copyarray(mesh.elemsendpts,mesh.nsize[7]); 
         common.elemrecvpts = copyarray(mesh.elemrecvpts,mesh.nsize[8]); 
-            
+                                
         common.nnbintf = mesh.sznbintf;
         common.nfacesend = mesh.szfacesend;
         common.nfacerecv = mesh.szfacerecv;            
@@ -390,22 +392,22 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 //     }
          
     // offset facecon
-    for (Int i=0; i<mesh.nsize[1]; i++)
-        mesh.facecon[i] = mesh.facecon[i] - 1;
+//     for (Int i=0; i<mesh.nsize[1]; i++)
+//         mesh.facecon[i] = mesh.facecon[i] - 1;
                 
-    if (mpiprocs > 1) {
-        // offset nbsd
-        for (Int i=0; i<mesh.nsize[4]; i++)
-            mesh.nbsd[i] = mesh.nbsd[i] - 1;
-
-        // offset elemsend
-        for (Int i=0; i<mesh.nsize[5]; i++)
-            mesh.elemsend[i] = mesh.elemsend[i] - 1;
-
-        // offset elemrecv
-        for (Int i=0; i<mesh.nsize[6]; i++)
-            mesh.elemrecv[i] = mesh.elemrecv[i] - 1;
-    }
+//     if (mpiprocs > 1) {
+//         // offset nbsd
+//         for (Int i=0; i<mesh.nsize[4]; i++)
+//             mesh.nbsd[i] = mesh.nbsd[i] - 1;
+// 
+//         // offset elemsend
+//         for (Int i=0; i<mesh.nsize[5]; i++)
+//             mesh.elemsend[i] = mesh.elemsend[i] - 1;
+// 
+//         // offset elemrecv
+//         for (Int i=0; i<mesh.nsize[6]; i++)
+//             mesh.elemrecv[i] = mesh.elemrecv[i] - 1;
+//     }
             
     if (mpirank==0) printf("Set res struct... \n");    
     setresstruct(res, app, master, mesh, 0);
@@ -453,7 +455,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       }              
       // if (common.nelemsend>0) {
       //     mesh.interfacefaces = (Int*) malloc (sizeof (Int)*common.nelemsend);          
-      //     int n = getinterfacefaces(mesh.interfacefaces, mesh.f2e, common.ne1, common.nf);
+      //     int n = getsubdomaininterfaces(mesh.interfacefaces, mesh.f2e, common.ne1, common.nf);
       //     if (n != common.nelemsend) error("Number of interfaces mismatch");
       // }
       
@@ -464,9 +466,34 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
       mesh.f2f = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
       mesh.f2l = (Int*) malloc (sizeof (Int)*2*(nfe-1)*nf);
       mke2f(mesh.e2f, mesh.f2e, nf, nfe, ne);
-      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, mesh.e2f, nf, nfe, ne);             
+      mkf2f(mesh.f2f, mesh.f2l, mesh.f2e, mesh.e2f, nf, nfe, ne);       
+      
+//       for (int i = 0; i < common.nelemsend; i++) {
+//         int esend = common.elemsend[i];
+//         int erecv = common.elemrecv[i];
+//         for (int j = 0; j < nfe; j++) 
+//           for (int k = 0; k < nfe; k++) {
+//             if (mesh.e2f[j + nfe*esend] == mesh.e2f[k + nfe*erecv]) {
+//               int f = mesh.e2f[j + nfe*esend];
+//               printf("%d %d %d %d %d %d %d %d %d %d %d ", common.mpiRank, i, esend, j, erecv, k, f, mesh.f2e[0 + 4*f], mesh.f2e[1 + 4*f], mesh.f2e[2 + 4*f], mesh.f2e[3 + 4*f]);
+//               for (int l = 0; l< 2*(nfe-1); l++)
+//                 printf("%d ", mesh.f2f[l + 2*(nfe-1)*f]);
+//               printf("\n");
+//             }
+//         }
+//       }
+      
+//       int n = getsubdomaininterfaces(mesh.f2e, common.ne1, common.nf);
+//       int *interfacefaces = (Int*) malloc (sizeof (Int)*n);          
+//       getsubdomaininterfaces(interfacefaces, mesh.f2e, common.ne1, common.nf);
+//       print2iarray(interfacefaces, 1, n);
+//       print2iarray(mesh.f2e, 4, n);
+//       print2iarray(mesh.f2f, 2*(nfe-1), n);
+//       print2iarray(mesh.f2l, 2*(nfe-1), n);
+//       CPUFREE(interfacefaces);      
+      
 //       print2iarray(mesh.f2e, 4, nf);
-//       print2iarray(e2f, nfe, ne);
+//       print2iarray(mesh.e2f, nfe, ne);
 //       print2iarray(mesh.f2f, 2*(nfe-1), nf);
 //       print2iarray(mesh.f2l, 2*(nfe-1), nf);
 //      CPUFREE(e2f);      

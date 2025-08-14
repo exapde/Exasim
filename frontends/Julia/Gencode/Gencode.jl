@@ -49,6 +49,12 @@ function gencode(app)
 
 print("generate code...\n");
 
+if app.codegenerator == "text2code"
+    runstr = app.exasimpath * "/text2code/text2code/text2code " * app.modelfile * ".txt"
+    run(`$runstr`)
+    return
+end
+
 # foldername = app.exasimpath * "/build/model";
 
 foldername = app.backendpath * "/Model";
@@ -215,6 +221,17 @@ if isdefined(pdemodel, Symbol("output"))
     gencodeelem2("Output" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
 else
     nocodeelem2("Output" * strn, foldername);
+end
+if isdefined(pdemodel, Symbol("monitor"))
+    #f = pdemodel.output(xdg, udg, odg, wdg, uinf, param, time);
+    f = pdemodel.monitor(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem2("Monitor" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+else
+    nocodeelem2("Monitor" * strn, foldername);
 end
 if app.hybrid==1
   if isdefined(pdemodel, Symbol("fbouhdg"))
