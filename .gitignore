@@ -10,6 +10,7 @@
 *.cmake~
 *.txt~
 .gitignore~
+.DS_Store
 backup/
 datain/
 dataout/
@@ -26,6 +27,11 @@ text2code/text2code/build/*
 text2code/symengine/build/*
 text2code/symengine/lib/*
 text2code/symengine/include/*
-
 backend/Model/libpdemodelserial.dylib
 backend/Model/code2cpp
+backend/.DS_Store
+.DS_Store
+frontends/Julia/.DS_Store
+frontends/Matlab/.DS_Store
+frontends/Python/.DS_Store
+kokkos/.DS_Store
