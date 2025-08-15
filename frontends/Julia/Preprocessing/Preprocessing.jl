@@ -250,7 +250,7 @@ for i = 1:mpiprocs
     ndims[8] = nbf;
     ndims[9] = nfb;
 
-    nsize = zeros(Int,25,1);
+    nsize = zeros(Int,50,1);
     nsize[1] = length(ndims);
     nsize[2] = length(dmd[i].facecon);
     nsize[3] = length(eblks);

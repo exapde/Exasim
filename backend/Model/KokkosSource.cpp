@@ -1,12 +1,9 @@
-void KokkosSource(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)
+void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
 {
-
-  Kokkos::parallel_for("Source", N, KOKKOS_LAMBDA(const size_t i) {
-    dstype x0 = x[0*N+i];
-    dstype x1 = x[1*N+i];
-
-
-    f[0 * N + i] = 2*pow(acos(-1), 2)*sin(acos(-1)*x1)*sin(acos(-1)*x0);
-  });
+	Kokkos::parallel_for("Source", ng, KOKKOS_LAMBDA(const size_t i) {
+		dstype xdg1 = xdg[0*ng+i];
+		dstype xdg2 = xdg[1*ng+i];
+		f[0*ng+i] = 19.739208802178716*sin(M_PI*xdg1)*sin(M_PI*xdg2);
+	});
 }
 

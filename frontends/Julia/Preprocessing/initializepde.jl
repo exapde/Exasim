@@ -147,7 +147,7 @@ function initializepde(version)
     pde.mpirun = "mpirun";
     pde.gmsh = "gmsh";
     pde.metis = "mpmetis";
-    pde.paraview = "/Applications/ParaView-5.8.1.app/Contents/MacOS/paraview";
+    pde.paraview = "paraview";
     pde.enzyme = "";
     pde.codegenerator = "";
 

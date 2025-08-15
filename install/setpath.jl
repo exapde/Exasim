@@ -12,8 +12,8 @@ push!(LOAD_PATH, srcdir * "/Utilities");
 include(cdir[1:ii[end]] * "/install/cmakecompile.jl");
 
 # Set Julia's PATH enviroment variable so that Exasim can call external programs
-ENV["PATH"] = "/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin";
+ENV["PATH"] = "/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin";
 # Add more paths if neccesary
-ENV["PATH"] =  ENV["PATH"] * ":/Applications/ParaView-5.8.1.app/Contents/MacOS";
+ENV["PATH"] =  ENV["PATH"] * ":/Applications/ParaView-6.0.0.app/Contents/MacOS";
 
 print("==> Exasim ...\n");
