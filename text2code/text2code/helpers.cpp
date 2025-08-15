@@ -1,3 +1,50 @@
+/*
+    helpers.cpp
+
+    Utility functions and macros for file I/O, array manipulation, and LAPACK bindings.
+
+    LAPACK Bindings:
+    - DGEMM, DGETRF, DGETRI: For matrix operations via Fortran LAPACK routines.
+
+    Macros:
+    - CPUFREE(x): Safely frees memory and sets pointer to nullptr.
+    - error(errmsg): Prints error message with file and line, then exits.
+
+    File and Path Utilities:
+    - trim_dir(s): Returns parent directory of a given path.
+    - ensure_dir(dir): Ensures a directory exists, creates if needed.
+    - make_path(str1, str2): Joins two paths, normalizes result.
+    - trimToSubstringAtFirstOccurence(fullPath, keyword): Trims string at first occurrence of keyword.
+    - trimToSubstringAtLastOccurence(fullPath, keyword): Trims string at last occurrence of keyword.
+
+    Array Printing:
+    - print2darray(a, m, n): Prints m x n double array in scientific format.
+    - print2iarray(a, m, n): Prints m x n int array.
+
+    Array File I/O:
+    - writearray2file(filename, a, N): Writes array to binary file.
+    - readarray(in, a, N): Reads array from binary stream into vector.
+    - readiarrayfromdouble(in, a, N): Reads N doubles from file, rounds and stores as ints.
+    - readfile(filename, ndims, data, m): Reads dimensions and data from binary file (int/double overloads).
+
+    Array Manipulation:
+    - xiny(out, A, B, m, n, dim, tol): Finds indices of A in B (row-wise, column-major).
+    - xiny2(out, A, B, m, n, dim, tol): Finds indices of A in B (row-wise, alternate layout).
+    - cumsum_int(in, out, n): Computes cumulative sum of int array.
+    - unique_ints(arr, n): Sorts array and removes duplicates, returns new size.
+    - extract_subset(b, a, ind, k): Extracts subset from array a using indices ind.
+    - find(a, b, m, n, k, opts): Counts occurrences or matches in array with options.
+    - find(indices, a, b, m, n, k, opts): Finds indices of matches in array with options.
+    - simple_bubble_sort(b, ind, a, n): Sorts array a, returns sorted array and indices.
+    - unique_count(b, c, a, n): Counts unique values and their occurrences.
+    - select_columns(a_new, a, ind, m, k): Selects columns from array a using indices ind (int/double overloads).
+    - permute_columns(a, ind, m, k): Permutes columns of array a according to ind.
+
+    Notes:
+    - Uses C++ STL (vector, string, filesystem).
+    - Some functions use raw pointers and manual memory management.
+    - Designed for scientific computing and data manipulation tasks.
+*/
 #ifndef __HELPERS
 #define __HELPERS
 

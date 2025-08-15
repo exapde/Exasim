@@ -1,3 +1,39 @@
+/**
+ * @file connectivity.cpp
+ * @brief Mesh connectivity routines for finite element/DG solvers.
+ *
+ * This file provides functions and structures for building and managing mesh connectivity,
+ * including element-to-node, face-to-element, and boundary condition mappings.
+ *
+ * Main components:
+ * - Conn struct: Holds all connectivity arrays and metadata for a mesh partition.
+ * - apply_bcm: Applies boundary condition map to mesh faces.
+ * - fix_f2t_consistency: Ensures face-to-element mapping consistency for parallel partitions.
+ * - build_connectivity: Constructs element and face connectivity arrays for DG/CG methods.
+ * - connectivity: Main routine to partition faces, apply boundary conditions, and build connectivity.
+ * - mkelconcg: Generates unique CG node coordinates and element-to-node mapping.
+ * - mkent2elem: Builds node-to-element connectivity in CRS format.
+ * - map_cgent2dgent: Maps CG nodes to DG nodes using CRS connectivity.
+ * - mkdge2dgf: Constructs CRS mapping from face connectivity to per-entity DOFs.
+ * - removeBoundaryFaces: Removes boundary faces from face connectivity based on block info.
+ * - divide_interval, mkfaceblocks: Utility routines for partitioning elements/faces into blocks.
+ * - buildConn: High-level routine to build all mesh connectivity for a PDE, mesh, and master element.
+ *
+ * Dependencies:
+ * - Requires PDE, Mesh, Master, DMD structures (not defined here).
+ * - Relies on utility functions: select_columns, find, permute_columns, simple_bubble_sort,
+ *   unique_count, unique_ints, print2iarray, print2darray, error, CPUFREE, etc.
+ *
+ * Usage:
+ * - Call buildConn to initialize a Conn object for a given mesh and PDE setup.
+ * - Use connectivity and related routines for custom mesh partitioning and connectivity construction.
+ *
+ * Notes:
+ * - Supports both serial and parallel (MPI) mesh partitions.
+ * - Handles both DG and CG node mappings.
+ * - Designed for high-order finite element/DG solvers.
+ */
+
 #ifndef __CONNECTIVITY
 #define __CONNECTIVITY
 

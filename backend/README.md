@@ -9,4 +9,5 @@ High-performance HDG/DG backend for PDE simulation with CPU/GPU portability via 
 - **Preconditioning/**: preconditioners and apply routines.
 - **Solution/**: state storage, time stepping, output.
 
-See the *Modules* page in the sidebar for subsystem overviews.
+See the docs for subsystem overviews.
+

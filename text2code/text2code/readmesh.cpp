@@ -1,4 +1,55 @@
 
+/*
+ * Mesh File Readers and Utilities
+ * ==============================
+ * 
+ * This file provides functions and data structures for reading mesh data from various file formats
+ * into a unified Mesh structure. Supported formats include binary, text, Gmsh (.msh v2/v4), VTK (.vtk),
+ * and VTU (.vtu). The Mesh structure stores mesh topology, geometry, and auxiliary data in flattened
+ * column-major arrays for efficient processing.
+ * 
+ * Main Components:
+ * ----------------
+ * 
+ * struct Mesh
+ *   - Stores mesh points, connectivity, dimensions, element types, and auxiliary arrays for advanced features.
+ * 
+ * Mesh Readers:
+ *   - void readMeshFromBinaryFile(const std::string& filename, Mesh& mesh)
+ *       Reads mesh data from a custom binary format.
+ *   - void readMeshFromTextFile(const std::string& filename, Mesh& mesh)
+ *       Reads mesh data from a custom text format.
+ *   - void readMeshFromMshV2File(const std::string& filename, Mesh& mesh)
+ *       Reads mesh data from Gmsh v2.x ASCII files.
+ *   - void readMeshFromMshV4File(const std::string& filename, Mesh& mesh)
+ *       Reads mesh data from Gmsh v4.x ASCII files.
+ *   - void readMeshFromGmshFile(const std::string& filename, Mesh& mesh)
+ *       Dispatches to the appropriate Gmsh reader based on file version.
+ *   - void readMeshFromVTKFile(const std::string& filename, Mesh& mesh)
+ *       Reads mesh data from legacy VTK ASCII files.
+ *   - void readMeshFromVTUFile(const std::string& filename, Mesh& mesh)
+ *       Reads mesh data from VTU XML files (ASCII only).
+ *   - void readMeshFromFile(const std::string& filename, Mesh& mesh)
+ *       General mesh reader that dispatches based on file extension.
+ * 
+ * Utilities:
+ * ----------
+ *   - std::string getFileExtension(const std::string& filename)
+ *       Extracts and normalizes the file extension.
+ *   - void readFieldFromBinaryFile(const std::string& filename, vector<double>& xdg, vector<int>& ndims)
+ *       Reads field data from a binary file.
+ *   - void readPartitionFromFile(const std::string& filename, vector<int>& elem2cpu, int ne)
+ *       Reads mesh partition data from binary or text files.
+ * 
+ * Notes:
+ * ------
+ * - All mesh readers assume homogeneous element types within a mesh file.
+ * - Mesh points and connectivity are stored in column-major order for compatibility with downstream processing.
+ * - Error handling is performed via exceptions or program termination for unsupported formats or malformed files.
+ * - Only ASCII mesh files are supported for Gmsh, VTK, and VTU formats.
+ * - The Mesh structure is extensible for advanced mesh features (boundary conditions, curved boundaries, etc.).
+ */
+
 struct Mesh {
     std::vector<double> p; // flattened nd × np array, column-major
     std::vector<int> t;    // flattened nve × ne array, column-major

@@ -1,3 +1,49 @@
+/*
+    writebinaryfiles.cpp
+
+    This file provides functions for writing mesh and solution data to binary files, 
+    as well as mesh partitioning utilities (with METIS support). It is designed for 
+    use in high-performance scientific computing applications involving PDE solvers.
+
+    Functions:
+
+    - writesol: 
+        Writes the solution data for a given mesh partition to a binary file. 
+        Includes mesh coordinates, solution variables, and metadata.
+
+    - writeDouble:
+        Helper function to write a single double value to a binary file.
+
+    - writeVectorAsDoubles:
+        Helper function to write a vector of integers as doubles to a binary file.
+
+    - max_of_vector_or_zero:
+        Returns the maximum value in a vector of integers, or zero if the vector is empty.
+
+    - writemesh:
+        Writes mesh connectivity and partitioning information to a binary file. 
+        Includes support for hybrid meshes and parallel partitioning.
+
+    - partitionMesh (METIS only):
+        Partitions the mesh into subdomains using METIS, filling element and node partition arrays.
+
+    - writeBinaryFiles:
+        Main entry point for writing all binary files required for a PDE simulation. 
+        Handles directory creation, mesh building, partitioning, and file output for both 
+        serial and parallel cases.
+
+    Notes:
+    - Uses C++ STL containers and file streams for binary I/O.
+    - Requires METIS for mesh partitioning in parallel runs.
+    - Relies on external types: PDE, Mesh, Master, DMD, Conn.
+    - Assumes existence of utility functions: error, ensure_dir, make_path, buildMesh, buildConn, 
+      build_dmdhdg, build_dmdldg, initializeDMD, freeCharArray, select_columns, mke2e, writepde, writemaster.
+
+    Compilation:
+    - Define HAVE_METIS to enable METIS-based partitioning.
+    - Include this header in the main application to enable binary file output for mesh and solution data.
+*/
+
 #ifndef __WRITEBINARYFILES
 #define __WRITEBINARYFILES
 

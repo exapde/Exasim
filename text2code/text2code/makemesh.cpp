@@ -1,3 +1,36 @@
+/**
+ * @file makemesh.cpp
+ * @brief Mesh generation and boundary/periodic face assignment utilities for finite element methods.
+ *
+ * This file contains functions for:
+ *   - Determining local node indices for element faces (getelemface)
+ *   - Computing face node coordinates and connectivity (compute_pf)
+ *   - Evaluating expressions at mesh points (eval_expr)
+ *   - Assigning boundary faces based on geometric expressions (assignboundaryfaces)
+ *   - Sorting and comparing face node arrays (sort_face_nodes, equal_face_nodes)
+ *   - Building face-to-element and element-to-element connectivity (mkf2e, mke2e)
+ *   - Identifying and marking boundary faces (setboundaryfaces)
+ *   - Handling periodic boundary conditions and matching periodic faces (setperiodicfaces)
+ *   - Extracting interface elements for coupled interfaces (interface_elements)
+ *   - Converting vector<string> to char** for boundary expressions (assignVectorToCharArray, freeCharArray)
+ *   - Computing DG node coordinates from mesh and shape functions (compute_dgnodes)
+ *   - Projecting DG nodes onto curved boundaries using distance functions (project_dgnodes_onto_curved_boundaries)
+ *   - Initializing mesh structure from input parameters and PDE settings (initializeMesh)
+ *
+ * All arrays are assumed to be column-major and use zero-based indexing.
+ * The code supports simplex and tensor elements in 1D, 2D, and 3D.
+ * Boundary and periodic faces are assigned using user-provided expressions.
+ * Curved boundaries are handled via projection using distance functions.
+ *
+ * Dependencies:
+ *   - TinyExpr or similar expression parser (te_parser)
+ *   - Mesh and PDE data structures
+ *   - Utility functions for reading mesh and field data
+ *
+ * @author Cuong Nguyen
+ * @date 2024
+ */
+
 #ifndef __MAKEMESH
 #define __MAKEMESH
 

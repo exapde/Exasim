@@ -1,3 +1,45 @@
+/*
+ * CodeGenerator.cpp
+ * 
+ * This file implements the CodeGenerator class, which is responsible for generating C++ source and header files
+ * for symbolic PDE models using SymEngine. The generator supports multiple frameworks (C++, CUDA, HIP, Kokkos)
+ * and produces code for model functions, their Jacobians, Hessians, and initialization routines.
+ * 
+ * Key functionalities:
+ * - Symbolic function code generation (headers and sources)
+ * - Automatic differentiation (Jacobian and Hessian code generation)
+ * - Common Subexpression Elimination (CSE) for efficient code
+ * - Support for vector and scalar symbolic inputs
+ * - Generation of empty stubs for model functions (for extensibility)
+ * - Framework-specific parallel loop emission (C++, CUDA, HIP, Kokkos)
+ * - Generation of libpdemodel.hpp/cpp for model interface aggregation
+ * 
+ * Main methods:
+ * - generateCode2Cpp: Generates main driver code for symbolic function evaluation.
+ * - generateCudaHipHpp: Emits GPU backend abstraction header for CUDA/HIP.
+ * - generateSymbolicFunctionsHpp/Cpp: Generates headers and sources for symbolic functions.
+ * - generateSymbolicScalarsVectorsHpp/Cpp: Generates headers and sources for symbolic input management.
+ * - generateEmpty*Cpp: Emits empty stubs for various model functions.
+ * - generateLibPDEModelHpp/Cpp: Aggregates all model function interfaces and sources.
+ * 
+ * Helper methods:
+ * - emitSymbolicScalarsVectors, emitevaluateSymbolicFunctions, emitfunc2cse, emitfuncjac2cse, emitfuncjachess2cse:
+ *   Emit code for symbolic input initialization, function evaluation, and CSE routines.
+ * - emitfunc2cppfiles, emitfuncjac2cppfiles, emitfuncjachess2cppfiles, emitinitfunc2cppfiles:
+ *   Emit code for function, Jacobian, Hessian, and initialization routines.
+ * - appendUbouFbou, appendFbouHdg: Emit code for boundary condition function aggregation.
+ * 
+ * Usage:
+ * 1. Construct CodeGenerator with a ParsedSpec describing the model.
+ * 2. Call the appropriate generate* methods to emit code files for the model.
+ * 
+ * Dependencies:
+ * - SymEngine (symbolic computation)
+ * - Standard C++ libraries (fstream, iostream, regex, etc.)
+ * 
+ * Author: [Your Name]
+ * Date: [Date]
+ */
 #include "CodeGenerator.hpp"
 
 std::string prefixSymEngineFunctions(const std::string& expr) {

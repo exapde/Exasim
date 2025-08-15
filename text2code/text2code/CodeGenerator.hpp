@@ -1,3 +1,20 @@
+/**
+ * @class CodeGenerator
+ * @brief Generates C++ code files based on parsed specifications.
+ *
+ * This class provides methods to generate various C++ source and header files
+ * from a given ParsedSpec object. It supports code generation for symbolic functions,
+ * scalars, vectors, CUDA/HIP headers, and several empty template files for different
+ * model components. The generated files are intended to facilitate the implementation
+ * of PDE models and related computational routines.
+ *
+ * @note All file generation methods take a filename or model path as input and write
+ *       the corresponding code to the specified location.
+ *
+ * @see ParsedSpec
+ * @see FunctionDef
+ */
+
 #pragma once
 #include "TextParser.hpp"
 

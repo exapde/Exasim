@@ -1,3 +1,54 @@
+/*
+ * Domain Decomposition Utilities for Parallel PDE Solvers
+ *
+ * This header provides structures and functions to support domain decomposition
+ * for parallel finite element methods, including LDG and HDG schemes.
+ *
+ * Structures:
+ * -----------
+ * struct DMD
+ *   - nbsd: List of neighboring processor IDs.
+ *   - elemrecv: For each element received, stores [sender, recv_local_idx, sender_global_idx].
+ *   - elemsend: For each element sent, stores [receiver, send_local_idx, recv_global_idx].
+ *   - elempart: Local element IDs in the partition.
+ *   - elem2cpu: Processor ID for each element in the partition.
+ *   - elemsendpts: Number of elements sent to each neighbor.
+ *   - elemrecvpts: Number of elements received from each neighbor.
+ *   - elempartpts: Partition sizes: [interior, interface, exterior].
+ *   - intepartpts: Optional, for HDG: [interior, interface1, interface2, exterior].
+ *
+ * Functions:
+ * ----------
+ * DMD initializeDMD(const PDE& pde, const Mesh& mesh)
+ *   - Initializes a DMD structure for a single-process or coupled interface scenario.
+ *
+ * void xiny(std::vector<int>& indices, const std::vector<int>& x, const std::vector<int>& y)
+ *   - For each element in x, finds its index in y, or -1 if not found.
+ *
+ * std::vector<int> neighboringelements(const int* e2e, const int* elem, int nfe, int ne, int nelem)
+ *   - Returns a sorted, unique list of neighboring elements for a given set of elements.
+ *
+ * void create_elemsend(std::vector<DMD>& dmd)
+ *   - Populates the elemsend field for each DMD partition, based on elemrecv.
+ *   - Also computes elemsendpts and elemrecvpts for communication sizing.
+ *
+ * void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, int nfe, int ne, const PDE& pde)
+ *   - Builds domain decomposition for LDG schemes.
+ *   - Partitions elements into interior, interface, exterior, and outer categories.
+ *   - Populates communication structures for parallel exchange.
+ *
+ * void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, const int* inte, int nfe, int ne, const PDE& pde)
+ *   - Builds domain decomposition for HDG schemes, supporting coupled interfaces.
+ *   - Partitions elements into interior, interface1, interface2, and exterior categories.
+ *   - Populates communication structures for parallel exchange.
+ *
+ * Notes:
+ * ------
+ * - Many functions use STL algorithms for set operations (difference, intersection, union).
+ * - Debug output and file writing are available but commented out.
+ * - The code assumes existence of PDE and Mesh types, and that mesh connectivity is provided via e2e arrays.
+ */
+
 #ifndef __DOMAINDECOMPOSITION
 #define __DOMAINDECOMPOSITION
 

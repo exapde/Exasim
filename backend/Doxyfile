@@ -39,15 +39,16 @@ EXTRACT_LOCAL_CLASSES  = YES
 EXTRACT_ANON_NSPACES   = YES
 
 # ---------- Source browsing ----------
-SOURCE_BROWSER         = YES
+SOURCE_BROWSER         = NO
 INLINE_SOURCES         = NO
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = YES
-VERBATIM_HEADERS       = YES
+VERBATIM_HEADERS       = NO
 STRIP_CODE_COMMENTS    = NO
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = .
 STRIP_FROM_INC_PATH    = .
+
 
 # ---------- Diagrams (Graphviz) ----------
 HAVE_DOT               = YES
@@ -82,7 +83,7 @@ LATEX_OUTPUT           = latex
 USE_PDFLATEX           = YES
 PDF_HYPERLINKS         = YES
 LATEX_BATCHMODE        = NO
-LATEX_SOURCE_CODE      = YES
+LATEX_SOURCE_CODE      = NO
 COMPACT_LATEX          = NO
 # If you ever want to add a custom title page, uncomment and point to a .tex file:
 # LATEX_EXTRA_FILES      = docs/latex/title.tex

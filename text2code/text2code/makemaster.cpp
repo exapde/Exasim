@@ -1,3 +1,68 @@
+/*
+ * makemaster.cpp
+ * 
+ * This file contains functions and structures for initializing and managing the "Master" element in high-order finite element methods,
+ * including shape function generation, nodal and quadrature point management, and mesh construction utilities.
+ * 
+ * Main Components:
+ * 
+ * - struct Master:
+ *     Stores all master element data, including nodal and quadrature points, shape functions, permutation indices, and element metadata.
+ * 
+ * - int index4D(...):
+ *     Computes a column-major index for 4D arrays, used for block extraction from binary files.
+ * 
+ * - void masternodes(...):
+ *     Reads nodal and face data for master elements from a binary file, parses header, and extracts blocks for element/face nodes and permutations.
+ * 
+ * - void gaussnodes(...):
+ *     Reads Gauss quadrature nodes and weights from a binary file for integration over elements/faces.
+ * 
+ * - void pascalindex2d(...), void pascalindex3d(...):
+ *     Generates Pascal triangle/tetrahedron indices for polynomial basis construction in 2D/3D.
+ * 
+ * - void legendre(...), void jacobi(...):
+ *     Computes coefficients for Legendre and Jacobi polynomials, used in orthogonal basis construction.
+ * 
+ * - void polyder(...), void polyval(...), void conv(...):
+ *     Polynomial utilities for differentiation, evaluation, and convolution.
+ * 
+ * - void koornwinder1d/2d/3d(...), void koornwinder(...):
+ *     Constructs Koornwinder orthogonal polynomial basis functions and their derivatives for 1D, 2D, and 3D elements.
+ * 
+ * - void tensorproduct(...):
+ *     Constructs tensor-product basis functions for quadrilateral/hexahedral elements.
+ * 
+ * - void mkshape(...):
+ *     Generates nodal shape functions and their derivatives by inverting the Vandermonde matrix of orthogonal basis functions.
+ * 
+ * - void localbasis(...):
+ *     Computes local basis functions for vertices and faces of standard elements (line, triangle, quadrilateral, tetrahedron, hexahedron).
+ * 
+ * - int permindex(...):
+ *     Computes permutation indices for face nodes under symmetry operations for different element types and dimensions.
+ * 
+ * - Master initializeMaster(...):
+ *     Initializes the Master structure by reading nodal/quadrature data, generating shape functions, and setting up element metadata.
+ * 
+ * - void writemaster(...):
+ *     Writes all master element data to a binary file for later use.
+ * 
+ * - void buildMesh(...):
+ *     Constructs mesh connectivity, boundary/periodic faces, and projects DG nodes onto curved boundaries using master element data.
+ * 
+ * Usage:
+ *   - Used in high-order DG/finite element codes for initializing reference element data, shape functions, and mesh connectivity.
+ *   - Supports both simplex (triangle/tetrahedron) and tensor-product (quadrilateral/hexahedron) elements in 1D, 2D, and 3D.
+ * 
+ * Dependencies:
+ *   - Requires LAPACK routines (DGETRF, DGETRI, DGEMM) for matrix inversion and multiplication.
+ *   - Relies on external binary files for nodal and quadrature data.
+ * 
+ * Author: Exasim Project
+ * License: MIT
+ */
+
 #ifndef __MAKEMASTER
 #define __MAKEMASTER
 

@@ -1,3 +1,61 @@
+/*
+    readpdeapp.cpp
+
+    This file provides functionality for parsing PDE application input files, extracting parameters, and initializing PDE data structures for use in numerical simulations.
+
+    Main Components:
+    ----------------
+
+    1. InputParams Struct:
+        - Holds all parsed input parameters from the PDE application file.
+        - Includes maps for string, double, and integer parameters.
+        - Contains vectors for boundary conditions, physics parameters, and other simulation-specific data.
+
+    2. Helper Functions:
+        - parseList<T>: Parses a list of numbers from a string buffer enclosed in square brackets.
+        - parseStringList: Parses a list of strings from a buffer, extracting quoted strings.
+        - trim: Removes leading and trailing whitespace from a string.
+        - tokenizeBraceList: Tokenizes a comma-separated list, respecting parentheses nesting.
+        - parseExpression: Parses a list of doubles, supporting "repeat(value, count)" syntax for repeated values.
+
+    3. parseInputFile:
+        - Reads and parses the input file, populating an InputParams struct.
+        - Checks for required keys and reports missing parameters.
+        - Supports assignment of various parameter types and lists.
+
+    4. printInputParams:
+        - Utility to print the contents of an InputParams struct for debugging.
+
+    5. PDE Struct:
+        - Represents the main PDE configuration, including file paths, model settings, solver options, and parameter vectors.
+        - Used to store all simulation configuration after parsing.
+
+    6. extractCoupledData:
+        - Extracts coupled interface, condition, and boundary condition data from input vectors.
+
+    7. initializePDE:
+        - Initializes a PDE struct from parsed InputParams.
+        - Sets default values, assigns parameters, and configures file paths.
+        - Handles logic for hybrid discretization, model selection, and coupled interface extraction.
+
+    8. writepde:
+        - Serializes the PDE struct to a binary file for use in downstream simulation components.
+        - Writes parameter vectors and configuration data in a specific order.
+
+    Usage:
+    ------
+    - Use parseInputFile to read and parse a PDE application input file.
+    - Use initializePDE to create a PDE struct from parsed parameters.
+    - Use writepde to serialize the PDE configuration for simulation.
+    - Use printInputParams for debugging and inspection of parsed parameters.
+
+    Notes:
+    ------
+    - The code expects certain required keys to be present in the input file.
+    - Error handling is performed for missing parameters and invalid paths.
+    - The code supports flexible input formats, including repeated values and nested lists.
+
+*/
 #ifndef __READPDEAPP
 #define __READPDEAPP
 

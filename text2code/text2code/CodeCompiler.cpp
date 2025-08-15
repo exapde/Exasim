@@ -1,3 +1,47 @@
+
+/*
+    CodeCompiler.cpp
+
+    This file provides functions for generating, compiling, and building dynamic libraries for C++ code
+    based on a parsed model specification. It is designed to support multiple platforms (Windows, macOS, Linux)
+    and toolchains (GCC, Clang, MSVC), as well as optional CUDA and HIP backends via Kokkos.
+
+    Main Components:
+
+    1. generateCppCode(PDE& pde)
+        - Parses a model file and generates corresponding C++ source files using SymEngine and custom code generators.
+        - Handles framework-specific code generation for CUDA and HIP.
+        - Generates empty source files for optional outputs if not specified.
+        - Outputs generated files to the model directory.
+
+    2. Compiler Detection and Toolchain Utilities
+        - Functions to detect available C++ compilers and their kind (GCC, Clang, MSVC).
+        - Utilities for quoting paths, running commands silently, and checking compiler support for flags.
+        - Toolchain struct encapsulates compiler executable, kind, and relevant flags.
+
+    3. executeCppCode(ParsedSpec& spec)
+        - Compiles the generated C++ source file into an executable using the detected toolchain.
+        - Links against SymEngine library.
+        - Runs the resulting executable to perform code generation tasks.
+
+    4. buildDynamicLibraries(ParsedSpec& spec)
+        - Builds shared libraries for the generated model code using Kokkos backends (serial, CUDA, HIP).
+        - Handles platform-specific shared library extensions and compiler flags.
+        - Compiles and links against Kokkos core and container libraries.
+        - Supports detection and usage of nvcc_wrapper and hipcc_wrapper for CUDA and HIP compilation.
+
+    5. Utility Functions
+        - getSharedLibExtension(): Returns the appropriate shared library extension for the current platform.
+        - with_exe_if_windows(): Appends ".exe" to executable names on Windows.
+        - join(): Joins vector of strings with a separator.
+
+    Notes:
+        - Error handling is performed via error() calls when compilation or execution fails.
+        - The code is designed to be robust across platforms and compilers, with careful quoting and flag selection.
+        - Some legacy code for building dynamic libraries is commented out for reference.
+
+*/
+
 ParsedSpec generateCppCode(PDE& pde)
 {    
     std::cout << "\nGenerating the C++ code for this model file ("<< make_path(pde.datapath, pde.modelfile) << ") ... \n\n";
