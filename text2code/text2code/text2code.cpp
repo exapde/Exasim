@@ -1,3 +1,35 @@
+/*
+ * text2code.cpp
+ *
+ * This program generates input files and dynamic libraries for the EXASIM framework
+ * from a user-provided PDE application specification in a text file.
+ *
+ * Usage:
+ *   ./parseinput <pdeapp.txt>
+ *
+ * Main Steps:
+ *   1. Checks if the input file exists.
+ *   2. Parses the input file to extract PDE and mesh parameters.
+ *   3. Initializes PDE, mesh, and master structures.
+ *   4. Writes binary files required by EXASIM.
+ *   5. Generates C++ code for the PDE specification.
+ *   6. Optionally compiles and builds dynamic libraries for EXASIM.
+ *
+ * Dependencies:
+ *   - C++17 standard library
+ *   - BLAS and LAPACK libraries
+ *   - METIS and GKlib (optional, if HAVE_METIS is defined)
+ *   - Several local source files: tinyexpr.cpp, helpers.cpp, readpdeapp.cpp, readmesh.cpp,
+ *     makemesh.cpp, makemaster.cpp, domaindecomposition.cpp, connectivity.cpp,
+ *     writebinaryfiles.cpp, CodeGenerator.cpp, CodeCompiler.cpp
+ *
+ * Compilation Examples:
+ *   See commented lines at the top of the file for various compilation options.
+ *
+ * Author: [Your Name]
+ * Date: [Date]
+ */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -57,13 +89,16 @@ int main(int argc, char* argv[])
     writeBinaryFiles(pde, mesh, master);
 
 #ifdef USE_CMAKE
-    ParsedSpec spec = generateCppCode(pde);
+    if (pde.gencode==1) ParsedSpec spec = generateCppCode(pde);
 #else    
-    ParsedSpec spec = generateCppCode(pde);
-    executeCppCode(spec); 
-    buildDynamicLibraries(spec);     
-    std::cout << "\n******** Done with generating input files and dynamic libraries for EXASIM ********\n";
+    if (pde.gencode==1) {
+        ParsedSpec spec = generateCppCode(pde);
+        executeCppCode(spec); 
+        buildDynamicLibraries(spec);     
+    }
 #endif        
     
+    std::cout << "\n******** Done with generating input files and dynamic libraries for EXASIM ********\n";
+
     return 0;
 }

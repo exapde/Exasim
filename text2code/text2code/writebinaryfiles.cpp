@@ -279,54 +279,55 @@ void writeBinaryFiles(const PDE& pde, Mesh& mesh, const Master master)
     writepde(pde, make_path(pde.datainpath, "app.bin"));
     writemaster(master, make_path(pde.datainpath, "master.bin"));    
 
-    buildMesh(mesh, pde, master);
-    
-    
-    if (pde.mpiprocs>1) {
-      
-      if ((pde.partitionfile == "") || (mesh.elem2cpu.size() == 0)) {
-#ifdef HAVE_METIS          
-          vector<int> node2cpu;
-          partitionMesh(mesh.elem2cpu, node2cpu, mesh.t, mesh.ne, mesh.np, mesh.nve, mesh.nvf, pde.mpiprocs);
-          node2cpu.resize(0);
-          for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] += 1;        
-#else
-          error("mpiprocs > 1 requires a mesh partition array. \nPlease include the required mesh partition array in a binary file\nand set partitionfile to the name of the file.");      
-#endif                  
-      }
-
-      for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] -= 1;        
-      
-      mesh.t2t.resize(mesh.nfe*mesh.ne);
-      mesh.nf = mke2e(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.ne, mesh.nve, mesh.nvf, mesh.nfe);
-      
-//       if (pde.debugmode==1) {
-//         writearray2file(pde.datapath + "/t2t.bin", mesh.t2t.data(), mesh.t2t.size());
-//         writearray2file(pde.datapath + "/elem2cpu.bin", mesh.elem2cpu.data(), mesh.elem2cpu.size());
-//       }
-      
-      //cout<<mesh.nf<<", "<<pde.coupledinterface<<": here 1"<<endl;
-      vector<DMD> dmd(pde.mpiprocs);            
-      if (pde.hybrid==1)         
-        build_dmdhdg(dmd, mesh.t2t.data(), mesh.elem2cpu.data(), mesh.inte.data(), mesh.nfe, mesh.ne, pde);
-      else build_dmdldg(dmd, mesh.t2t.data(), mesh.elem2cpu.data(), mesh.nfe, mesh.ne, pde);                
-      
-      for (int n=0; n<pde.mpiprocs; n++) {
-        Conn conn;            
-        buildConn(conn, pde, mesh, master, dmd[n]);
+    if (pde.writemeshsol == 1) {
+        buildMesh(mesh, pde, master);
+            
+        if (pde.mpiprocs>1) {
         
-        writesol(pde, mesh, master, dmd[n].elempart, conn.facepartpts, make_path(pde.datainpath, "sol" + std::to_string(n+1) + ".bin"));    
-        writemesh(pde, mesh, master, dmd[n], conn, make_path(pde.datainpath, "mesh" + std::to_string(n+1) + ".bin"));
-      }               
-    } else {
-      Conn conn;    
-      DMD dmd = initializeDMD(pde, mesh);    
-      buildConn(conn, pde, mesh, master, dmd);
+        if ((pde.partitionfile == "") || (mesh.elem2cpu.size() == 0)) {
+#ifdef HAVE_METIS          
+            vector<int> node2cpu;
+            partitionMesh(mesh.elem2cpu, node2cpu, mesh.t, mesh.ne, mesh.np, mesh.nve, mesh.nvf, pde.mpiprocs);
+            node2cpu.resize(0);
+            for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] += 1;        
+#else
+            error("mpiprocs > 1 requires a mesh partition array. \nPlease include the required mesh partition array in a binary file\nand set partitionfile to the name of the file.");      
+#endif                  
+        }
 
-      writesol(pde, mesh, master, dmd.elempart, conn.facepartpts, make_path(pde.datainpath , "sol.bin"));    
-      writemesh(pde, mesh, master, dmd, conn, make_path(pde.datainpath, "mesh.bin"));      
-    }    
-    
+        for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] -= 1;        
+        
+        mesh.t2t.resize(mesh.nfe*mesh.ne);
+        mesh.nf = mke2e(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.ne, mesh.nve, mesh.nvf, mesh.nfe);
+        
+    //       if (pde.debugmode==1) {
+    //         writearray2file(pde.datapath + "/t2t.bin", mesh.t2t.data(), mesh.t2t.size());
+    //         writearray2file(pde.datapath + "/elem2cpu.bin", mesh.elem2cpu.data(), mesh.elem2cpu.size());
+    //       }
+        
+        //cout<<mesh.nf<<", "<<pde.coupledinterface<<": here 1"<<endl;
+        vector<DMD> dmd(pde.mpiprocs);            
+        if (pde.hybrid==1)         
+            build_dmdhdg(dmd, mesh.t2t.data(), mesh.elem2cpu.data(), mesh.inte.data(), mesh.nfe, mesh.ne, pde);
+        else build_dmdldg(dmd, mesh.t2t.data(), mesh.elem2cpu.data(), mesh.nfe, mesh.ne, pde);                
+        
+        for (int n=0; n<pde.mpiprocs; n++) {
+            Conn conn;            
+            buildConn(conn, pde, mesh, master, dmd[n]);
+            
+            writesol(pde, mesh, master, dmd[n].elempart, conn.facepartpts, make_path(pde.datainpath, "sol" + std::to_string(n+1) + ".bin"));    
+            writemesh(pde, mesh, master, dmd[n], conn, make_path(pde.datainpath, "mesh" + std::to_string(n+1) + ".bin"));
+        }               
+        } else {
+        Conn conn;    
+        DMD dmd = initializeDMD(pde, mesh);    
+        buildConn(conn, pde, mesh, master, dmd);
+
+        writesol(pde, mesh, master, dmd.elempart, conn.facepartpts, make_path(pde.datainpath , "sol.bin"));    
+        writemesh(pde, mesh, master, dmd, conn, make_path(pde.datainpath, "mesh.bin"));      
+        }    
+    }
+
     freeCharArray(mesh.boundaryExprs, mesh.nbndexpr);
     freeCharArray(mesh.curvedBoundaryExprs, mesh.nbndexpr);
     freeCharArray(mesh.periodicExprs1, mesh.nprdexpr*mesh.nprdcom);

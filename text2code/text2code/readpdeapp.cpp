@@ -352,6 +352,8 @@ struct PDE {
     std::string uhatfile = "";
     std::string partitionfile = "";
 
+    int gencode = 1; // 1 for code generation, 0 for no code generation
+    int writemeshsol = 1; // 1 for writing mesh solution, 0 for no writing
     int modelnumber = 0;
     int mpiprocs = 1;
     int nd = 1, nc = 1, ncu = 1, ncq = 0, ncp = 0, ncv = 0;
@@ -518,7 +520,13 @@ PDE initializePDE(InputParams& params)
     if (params.stringParams.count("platform")) {
         pde.platform = params.stringParams["platform"];
     }
-        
+
+    if (params.intParams.count("gencode")) {
+        pde.gencode = params.intParams["gencode"];
+    }
+    if (params.intParams.count("writemeshsol")) {
+        pde.writemeshsol = params.intParams["writemeshsol"];
+    }
     if (params.intParams.count("mpiprocs")) {
         pde.mpiprocs = params.intParams["mpiprocs"];
     }
