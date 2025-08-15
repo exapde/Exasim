@@ -712,7 +712,7 @@ void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const
             }
             deps = sqrt(eps) * (pmax - pmin);
 
-            // evaluate distance function d[i] = φ(p_i)
+            // evaluate distance function 
             double* d = (double*) malloc(sizeof(double) * npts);
             for (int i = 0; i < npts; ++i) {
                 x = (nd > 0) ? p[i + npts * 0] : 0;
