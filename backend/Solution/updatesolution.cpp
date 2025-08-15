@@ -1,3 +1,47 @@
+/*
+    updatesolution.cpp
+
+    This file contains functions for updating the solution vectors in time-dependent numerical simulations,
+    supporting both DIRK (Diagonally Implicit Runge-Kutta) and BDF (Backward Differentiation Formula) temporal schemes.
+    The update routines handle the propagation of solution variables (udg, wdg, etc.) through time integration stages,
+    including special handling for wave problems and HDG (Hybridizable Discontinuous Galerkin) spatial schemes.
+
+    Functions:
+
+    - UpdateSolutionDIRK:
+        Updates the solution for a DIRK time integration stage.
+        Handles both standard and wave problems, updating solution vectors and temporary storage.
+        After the last DIRK stage, copies the temporary solution to the main solution vector.
+
+    - UpdateSolutionBDF:
+        Updates the solution for a BDF time integration stage, specifically for wave problems.
+        Computes the source term using previous solution states and BDF coefficients, then updates the solution.
+
+    - UpdateSolution (overloaded):
+        Selects the appropriate update routine (DIRK or BDF) based on the temporal scheme specified in 'common'.
+        Handles both standard and wave problems.
+
+    - UpdateSolution (extended, with appstruct, resstruct, tempstruct):
+        Similar to the previous UpdateSolution, but includes additional arguments for application, residual, and temporary structures.
+        Handles HDG spatial schemes by updating the solution for each element block using wEquation.
+        Updates solution vectors for each DIRK stage and after the final stage.
+
+    Key Concepts:
+    - Solution vectors (udg, wdg, etc.) represent the state of the simulation at each time step.
+    - DIRK and BDF are implicit time integration schemes used for advancing the solution in time.
+    - The functions use utility routines (ArrayAXPBY, ArrayCopy, ArrayExtract, etc.) for efficient vector operations.
+    - Special handling is provided for wave problems and HDG spatial discretizations.
+
+    Arguments:
+    - solstruct &sol: Structure containing solution vectors.
+    - sysstruct &sys: Structure containing system-level temporary vectors.
+    - appstruct &app: Structure containing application-specific data.
+    - resstruct &res: Structure containing residual vectors.
+    - tempstruct &tmp: Structure containing temporary storage for element-wise operations.
+    - commonstruct &common: Structure containing common simulation parameters (e.g., time step, scheme type).
+    - Int backend: Identifier for computational backend (e.g., CPU/GPU).
+
+*/
 #ifndef __UPDATESOLUTION
 #define __UPDATESOLUTION
 

@@ -1,3 +1,43 @@
+/*
+    geometry.cpp
+
+    This file contains functions for computing geometric quantities at element and face Gauss points
+    for finite element discretizations in 1D, 2D, and 3D. The geometric data is used for numerical integration
+    and flux computations in high-order methods.
+
+    Main Functions:
+    ---------------
+    - ElemGeomBlock: Computes geometric quantities (Jacobian, coordinates, etc.) at Gauss points for a block of elements.
+    - ElemGeom: Allocates memory and computes geometric quantities for all elements in the domain.
+    - FaceGeomBlock: Computes geometric quantities (Jacobian, normal vectors, etc.) at Gauss points for a block of faces.
+    - FaceGeom: Allocates memory and computes geometric quantities for all faces in the domain.
+    - ElemFaceGeomBlock: Computes geometric quantities at Gauss points on all faces of a block of elements.
+    - ElemFaceGeom: Allocates memory and computes geometric quantities for all element faces in the domain.
+
+    Key Concepts:
+    -------------
+    - Uses master element shape functions and mappings to compute coordinates and derivatives at Gauss points.
+    - Handles different spatial dimensions (nd = 1, 2, 3) with specialized routines for each case.
+    - Supports block-wise computation for parallelization and efficient memory access.
+    - Uses temporary storage for intermediate results and copies final results to solution structures.
+    - Integrates with CUDA/cuBLAS for GPU acceleration via the cublasHandle_t parameter.
+
+    Parameters:
+    -----------
+    - solstruct, masterstruct, meshstruct, tempstruct, commonstruct: Data structures holding solution, master element,
+      mesh, temporary arrays, and common parameters.
+    - cublasHandle_t handle: cuBLAS handle for GPU computations.
+    - Int backend: Specifies the computational backend (CPU/GPU).
+    - Int nd, npe, nge, ncx, e1, e2, f1, f2, nfe, ne, ngf, npf: Various mesh and discretization parameters.
+
+    Notes:
+    ------
+    - The functions assume that memory allocation and initialization of input structures are handled elsewhere.
+    - ArrayCopy and TemplateMalloc are utility functions for memory management.
+    - Specialized routines (ElemGeom1D, ElemGeom2D, ElemGeom3D, FaceGeom1D, FaceGeom2D, FaceGeom3D) are called
+      depending on the spatial dimension.
+    - Normal vectors on boundaries are adjusted to ensure correct orientation.
+*/
 #ifndef __GEOMETRY
 #define __GEOMETRY
 

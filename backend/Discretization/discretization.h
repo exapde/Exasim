@@ -1,3 +1,43 @@
+/**
+ * @class CDiscretization
+ * @brief Handles the discretization process for numerical simulations, supporting both CPU and GPU backends.
+ *
+ * This class encapsulates data structures and methods required for discretizing PDEs, assembling linear systems,
+ * evaluating residuals, fluxes, artificial viscosity fields, and performing conversions between DG and CG representations.
+ *
+ * Members:
+ * - sol: Solution structure containing state variables.
+ * - res: Residual structure for storing residuals.
+ * - app: Application-specific parameters and data.
+ * - master: Master element data for discretization.
+ * - mesh: Mesh structure containing grid information.
+ * - tmp: Temporary storage for intermediate computations.
+ * - common: Common parameters shared across computations.
+ *
+ * Methods:
+ * - CDiscretization(...): Constructor initializing the discretization with input/output files and parallelization parameters.
+ * - ~CDiscretization(): Destructor for cleanup.
+ * - compGeometry(...): Computes geometry-related quantities.
+ * - compMassInverse(...): Computes the inverse of the mass matrix.
+ * - hdgAssembleLinearSystem(...): Assembles the linear system for HDG methods.
+ * - hdgAssembleResidual(...): Assembles the residual vector for HDG methods.
+ * - evalResidual(...): Evaluates the residual vector.
+ * - evalResidual(...): Evaluates the residual vector at a given solution.
+ * - evalQ(...): Evaluates the flux and stores it in the solution structure.
+ * - evalQSer(...): Serial version of flux evaluation.
+ * - evalQ(...): Evaluates the flux at a given solution.
+ * - evalMatVec(...): Evaluates the matrix-vector product Jv = J(u)*v.
+ * - evalMatVec(...): Overloaded version with spatial scheme selection.
+ * - updateUDG(...): Updates the solution structure with new values and computes flux.
+ * - updateU(...): Updates the solution structure with new values.
+ * - evalAVfield(...): Evaluates the artificial viscosity field at a given solution.
+ * - evalAVfield(...): Evaluates the artificial viscosity field at the current solution.
+ * - evalOutput(...): Evaluates output quantities at the current solution.
+ * - evalMonitor(...): Evaluates a monitor function for tracking solution changes during pseudotime stepping.
+ * - DG2CG(...): Converts DG representation to CG.
+ * - DG2CG2(...): Alternative DG to CG conversion.
+ * - DG2CG3(...): Another variant of DG to CG conversion.
+ */
 #ifndef __DISCRETIZATION_H__
 #define __DISCRETIZATION_H__
 

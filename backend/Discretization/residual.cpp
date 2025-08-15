@@ -1,3 +1,40 @@
+/*
+    residual.cpp
+
+    This file contains the implementation of residual and related computations for the Exasim backend Discretization module.
+    The main functionalities provided include:
+
+    - DG2CGAVField: Converts a discontinuous Galerkin (DG) artificial viscosity field to a continuous Galerkin (CG) field, with smoothing iterations.
+    - GetQ: Computes the q variable (e.g., gradients or fluxes) for the solution, including element and face integrals, and applies mass matrix inversion.
+    - GetW: Computes the w variable (e.g., auxiliary or thermodynamic variables) using either explicit time-stepping or Newton's method for nonlinear systems.
+    - GetAv: Computes and smooths the artificial viscosity field, and interpolates it to Gauss points for elements and faces.
+    - RuResidual: Assembles the residual vector for the main unknowns, including computation of uhat, q, w, and AV fields, and both element and face integrals.
+    - MPI variants (GetQMPI, RuResidualMPI, RuResidualMPI1): Support for distributed memory parallelism using MPI, with non-blocking communication for solution exchange between subdomains.
+    - Residual: Top-level function to compute the residual, handling both serial and MPI-parallel cases, and applying time-stepping and debug output.
+    - Enzyme AD support (GetdQ, GetdAv, dRuResidual, dRuResidualMPI, dResidual): Functions for computing directional derivatives of the residual using automatic differentiation (Enzyme), including MPI support.
+    - ComputeQ: Utility to compute q variable, supporting both serial and MPI-parallel execution.
+
+    The file relies on several helper functions and drivers for element/face integrals, matrix operations, and communication primitives.
+    It supports both CUDA/HIP GPU acceleration and MPI parallelism, with conditional compilation for these features.
+
+    Data structures:
+    - solstruct: Solution variables (udg, wdg, odg, etc.)
+    - resstruct: Residual vectors and intermediate storage
+    - appstruct: Application-specific parameters
+    - masterstruct: Master element data (shape functions, etc.)
+    - meshstruct: Mesh connectivity and indexing
+    - tempstruct: Temporary arrays for computation
+    - commonstruct: Common parameters (problem size, flags, MPI info, etc.)
+
+    Key features:
+    - Modular design for element/face integrals and variable updates
+    - Support for artificial viscosity smoothing and interpolation
+    - MPI communication for distributed memory parallelism
+    - Optional debug output to binary files
+    - Automatic differentiation support for Jacobian-vector products
+
+    Note: Many functions rely on external drivers and array utilities (e.g., ArrayExtract, ArrayInsert, PutFaceNodes, etc.) defined elsewhere in the codebase.
+*/
 #ifndef __RESIDUAL
 #define __RESIDUAL
 

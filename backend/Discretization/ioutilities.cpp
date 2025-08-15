@@ -1,3 +1,34 @@
+/**
+ * @file ioutilities.cpp
+ * @brief Utility functions for input/output operations, array printing, copying, reading, and writing.
+ *
+ * This file provides a collection of utility functions and templates for handling arrays of various types and dimensions,
+ * including printing, copying, reading from files/streams, and writing to files/streams. It also includes support for
+ * GPU backends (CUDA/HIP) for transferring data between host and device memory.
+ *
+ * Main functionalities:
+ * - Printing 1D, 2D, and 3D arrays of integer and floating-point types.
+ * - Copying arrays.
+ * - Reading arrays from streams and files, with support for GPU memory.
+ * - Writing arrays to streams and files, with support for GPU memory.
+ * - Checking file existence.
+ * - Converting numbers to strings.
+ * - Writing time step and scalar field data to files.
+ *
+ * GPU support:
+ * Functions with backend parameter support CUDA (backend==2) and HIP (backend==3) for device-host memory transfers.
+ *
+ * Template parameters:
+ * - T: Array element type (e.g., Int, double, dstype).
+ *
+ * Dependencies:
+ * - Requires CUDA/HIP headers and macros if GPU support is enabled.
+ * - Uses standard C++ streams and string manipulation.
+ *
+ * Note:
+ * - Error handling is performed via custom error() function or standard output.
+ * - Some functions assume specific array memory layouts (column-major or row-major).
+ */
 #ifndef __IOUTILITIES
 #define __IOUTILITIES
 

@@ -1,3 +1,43 @@
+/**
+ * @file solution.h
+ * @brief Defines the CSolution class for managing and solving PDE problems.
+ *
+ * The CSolution class encapsulates the main components and routines for
+ * discretization, preconditioning, and solving linear/nonlinear systems
+ * arising from PDEs. It provides interfaces for steady-state and time-dependent
+ * problem solving, solution initialization, and input/output operations.
+ */
+
+ /**
+  * @class CSolution
+  * @brief Main class for handling PDE solution workflow.
+  *
+  * This class manages the discretization, preconditioning, and solver modules,
+  * and provides methods for solving steady-state and time-dependent problems,
+  * as well as saving and loading solutions and outputs.
+  *
+  * @section Members
+  * - CDiscretization disc: Handles spatial discretization.
+  * - CPreconditioner prec: Manages preconditioning for solvers.
+  * - CSolver solv: Provides linear and nonlinear solver routines.
+  *
+  * @section Methods
+  * - CSolution(...): Constructor initializing all components.
+  * - ~CSolution(): Destructor.
+  * - SteadyProblem(...): Solve steady-state problems.
+  * - SteadyProblem_PTC(...): Solve steady-state problems using PTC.
+  * - TimeStepping(...): Advance solution in time using DIRK/BDF schemes.
+  * - UnsteadyProblem(...): Solve time-dependent problems.
+  * - DIRK(...): Time integration using DIRK scheme.
+  * - InitSolution(...): Precompute quantities for solution.
+  * - SolveProblem(...): Solve both steady-state and time-dependent problems.
+  * - SaveSolutions(...): Save solutions to binary files.
+  * - SaveSolutionsOnBoundary(...): Save boundary solutions to binary files.
+  * - SaveNodesOnBoundary(...): Save boundary nodes to binary files.
+  * - ReadSolutions(...): Read solutions from binary files.
+  * - SaveOutputDG(...): Save DG output to binary files.
+  * - SaveOutputCG(...): Save CG output to binary files.
+  */
 #ifndef __SOLUTION_H__
 #define __SOLUTION_H__
 

@@ -1,3 +1,38 @@
+/*
+    matvec.cpp
+
+    This file contains functions for matrix-vector operations and assembly routines used in the HDG (Hybridizable Discontinuous Galerkin) discretization backend of Exasim.
+
+    Functions:
+
+    - MatVec: Computes matrix-vector products using finite difference or automatic differentiation (Enzyme) for the Jacobian-vector product.
+    - hdgAssembleRHS: Assembles the right-hand side vector for HDG systems from elemental face contributions.
+    - hdgBlockILU0: Constructs a block ILU(0) preconditioner for the HDG global matrix.
+    - hdgElementalAdditiveSchwarz: Builds an additive Schwarz preconditioner at the element level for HDG.
+    - hdgBlockJacobi: Constructs and applies a block Jacobi preconditioner for HDG systems.
+    - hdgGetDUDG: Computes the solution increment for the DG unknowns from face unknowns.
+    - hdgMatVec: Performs matrix-vector multiplication for the HDG global matrix, supporting both serial and MPI-parallel execution.
+    - hdgAssembleLinearSystemMPI: Assembles the HDG global linear system in parallel using MPI, including communication of interface data.
+    - hdgAssembleResidualMPI: Assembles the HDG residual vector in parallel using MPI, including communication of interface data.
+
+    Notes:
+    - Many routines support both CPU and GPU backends, and MPI for distributed memory parallelism.
+    - Communication routines use non-blocking MPI send/receive for interface and boundary data exchange.
+    - Several routines include debug output to binary files for verification.
+    - The file also contains commented-out legacy and alternative implementations for matrix assembly and multiplication.
+
+    Dependencies:
+    - ioutilities.cpp: For I/O and utility functions.
+    - Various data structures: solstruct, resstruct, appstruct, masterstruct, meshstruct, tempstruct, commonstruct.
+    - cublasHandle_t: For GPU BLAS operations.
+    - MPI: For parallel communication.
+
+    Usage:
+    - These routines are typically called during the assembly and solution phases of HDG solvers in Exasim.
+    - Preconditioner routines are used to accelerate iterative solvers.
+    - Matrix-vector products are used in Krylov solvers and for Jacobian evaluations.
+
+*/
 #ifndef __MATVEC
 #define __MATVEC
 

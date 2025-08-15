@@ -1,8 +1,63 @@
+/*
+    qresidual.cpp
+
+    This file contains functions for computing residuals associated with the weak form of PDEs in a LDG discretization. The main operations involve element and face integrals for the quantities Rqe and Rqf, as well as their derivatives when Enzyme is enabled.
+
+    Functions:
+
+    - RqElemBlock:
+        Calculates the element residual Rqe = (u, nabla dot v)_K for a given solution vector u over a block of elements.
+        Performs the following steps:
+            1. Extracts solution values at nodes.
+            2. Projects node values to Gauss points.
+            3. Applies geometric transformation (Xx).
+            4. Projects results back to nodes.
+            5. Optionally writes debug output.
+
+    - RqElem:
+        Loops over element blocks and calls RqElemBlock for each block.
+
+    - RqFaceBlock:
+        Calculates the face residual Rqf = <uhat, v dot n>_F for a given trace solution uhat over a block of faces.
+        Performs the following steps:
+            1. Extracts face solution values at nodes.
+            2. Projects node values to Gauss points.
+            3. Applies geometric transformation with face normals and Jacobians.
+            4. Projects results back to nodes.
+            5. Optionally writes debug output.
+
+    - RqFace:
+        Loops over face blocks and calls RqFaceBlock for each block.
+
+    - dRqElemBlock (HAVE_ENZYME):
+        Computes the derivative of the element residual with respect to the solution vector, using Enzyme for automatic differentiation.
+
+    - dRqElem (HAVE_ENZYME):
+        Loops over element blocks and calls dRqElemBlock for each block.
+
+    - dRqFaceBlock (HAVE_ENZYME):
+        Computes the derivative of the face residual with respect to the trace solution, using Enzyme for automatic differentiation.
+
+    - dRqFace (HAVE_ENZYME):
+        Loops over face blocks and calls dRqFaceBlock for each block.
+
+    Data Structures:
+        - solstruct: Contains solution vectors (udg, uh, etc.).
+        - resstruct: Contains residual vectors (Rqe, Rqf, etc.).
+        - appstruct: Application-specific parameters.
+        - masterstruct: Master element data (shape functions, etc.).
+        - meshstruct: Mesh connectivity and geometry.
+        - tempstruct: Temporary storage for intermediate computations.
+        - commonstruct: Common parameters and handles (dimensions, block indices, etc.).
+
+    Notes:
+        - Functions support both CPU and GPU backends.
+        - Debug output is controlled by the EXADEBUG macro.
+        - Automatic differentiation is enabled via HAVE_ENZYME.
+*/
 #ifndef __QRESIDUAL
 #define __QRESIDUAL
 
-// #include "../AppDriver/uhatDriver.cpp"
-// #include "../AppDriver/ubouDriver.cpp"
 
 // Calculate Rqe = (u, nabla dot v)_K for a given u
 void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 

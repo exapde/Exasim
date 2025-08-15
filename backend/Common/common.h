@@ -1,3 +1,43 @@
+/**
+ * @file common.h
+ * @brief Common definitions, macros, and data structures for Exasim backend.
+ *
+ * This header provides:
+ * - Precision and integer type selection via macros (`USE_FLOAT`, `USE_LONG`).
+ * - BLAS/LAPACK function name mappings for single/double precision.
+ * - CUDA/HIP/CPU backend abstraction macros and memory management templates.
+ * - Utility macros for error checking, memory allocation, and timing.
+ * - Bitwise NaN detection functions for float/double.
+ * - Data structures for application, master, mesh, solution, residual, temporary, system, preconditioner, and common simulation parameters.
+ * - Each struct contains pointers to simulation data, size information, printinfo and freememory methods.
+ * - MPI, Kokkos, and optional mutation++/enzyme support.
+ *
+ * Main structs:
+ * - appstruct: Application-level parameters and data arrays.
+ * - masterstruct: Master element/face shape functions and quadrature data.
+ * - meshstruct: Mesh connectivity and partitioning information.
+ * - solstruct: Solution vectors and auxiliary arrays.
+ * - resstruct: Residuals, matrices, and pivot arrays.
+ * - tempstruct: Temporary buffers for communication and computation.
+ * - sysstruct: System vectors for solvers and time-stepping.
+ * - precondstruct: Preconditioner matrices and pivots.
+ * - commonstruct: Global simulation parameters, arrays, and MPI/CUDA handles.
+ *
+ * Memory management:
+ * - TemplateMalloc/TemplateFree/TemplateCopytoDevice/TemplateCopytoHost for backend-agnostic allocation and transfer.
+ * - CPUFREE, GPUFREE, HIPFREE macros for safe pointer deallocation.
+ *
+ * Error handling:
+ * - CHECK, CHECK_CUBLAS, CHECK_HIPBLAS, CHECK_ROCBLAS macros for backend error reporting.
+ *
+ * Timing:
+ * - Macros for timing code blocks, optionally synchronized with CUDA.
+ *
+ * Usage:
+ * - Include this header in backend modules to access common types, macros, and data structures.
+ * - Select precision and backend via compile-time macros.
+ * - Use provided structs for organizing simulation data and managing memory.
+ */
 #ifndef __COMMON_H__
 #define __COMMON_H__
 

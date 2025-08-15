@@ -1,3 +1,22 @@
+/**
+ * @file setprecondstruct.cpp
+ * @brief Defines the setprecondstruct function for initializing preconditioner structures.
+ *
+ * @details
+ * The setprecondstruct function allocates memory for the fields of a precondstruct object
+ * using the specified backend. It initializes the following members:
+ * - W: Workspace array of size N*M.
+ * - U: Workspace array of size N*M.
+ * - ipiv: Pivot array of size M+1.
+ * - szipiv: Stores the size of ipiv.
+ * - szW: Stores the size of W.
+ * - szU: Stores the size of U.
+ * - backend: Stores the backend identifier.
+ *
+ * @param precond Reference to the precondstruct to be initialized.
+ * @param disc Reference to the CDiscretization object containing discretization information.
+ * @param backend Integer specifying the memory allocation backend.
+ */
 #ifndef __SETPRECSTRUCT
 #define __SETPRECSTRUCT
 

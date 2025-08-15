@@ -1,3 +1,38 @@
+/**
+ * @file main.cpp
+ * @brief Main entry point for the Exasim backend solver.
+ *
+ * This file initializes the computational environment, sets up parallel backends (MPI, OpenMP, CUDA, HIP),
+ * parses command-line arguments, and manages the lifecycle of PDE model objects for simulation.
+ * It supports multi-physics and multi-domain problems, time-dependent and steady-state simulations,
+ * and various run modes for solution, evaluation, and output.
+ *
+ * Key Features:
+ * - MPI initialization and rank management for distributed computing.
+ * - Backend selection for CPU, multi-threading (OpenMP), and GPU (CUDA/HIP).
+ * - Kokkos initialization for performance portability.
+ * - Dynamic allocation and initialization of CSolution objects for each PDE model.
+ * - Flexible input/output file handling for multiple models.
+ * - Support for restart functionality and time-stepping schemes (DIRK).
+ * - Solution management including reading, writing, and updating solutions.
+ * - Specialized routines for AV distance function and pseudo-time stepping.
+ * - Clean resource deallocation and MPI finalization.
+ *
+ * Usage:
+ *   ./cppfile nummodels InputFile OutputFile [restart]
+ *
+ * Command-line Arguments:
+ *   nummodels   - Number of PDE models (or encoded for multi-domain problems).
+ *   InputFile   - Input file(s) for each model.
+ *   OutputFile  - Output file(s) for each model.
+ *   restart     - (Optional) Restart timestep.
+ *
+ * Dependencies:
+ *   - MPI, OpenMP, CUDA, HIP, Kokkos, and various custom headers/classes.
+ *
+ * Author: Exasim Team
+ * Date: 2024
+ */
 #include <string>
 #include <fstream>
 #include <sstream>

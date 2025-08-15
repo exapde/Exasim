@@ -1,3 +1,65 @@
+/*
+
+    This file provides functions for applying matrix operations in the context of preconditioning,
+    specifically for mass matrix inversion and general matrix application on finite element meshes.
+
+    Functions:
+
+    void ApplyMassInv(
+        cublasHandle_t handle,
+        dstype *MinvR,
+        dstype *Minv,
+        dstype *R,
+        Int curvedmesh,
+        Int npe,
+        Int ncu,
+        Int ne,
+        Int backend
+    )
+    ---------------------------------------------------------------------------
+    Applies the inverse mass matrix to a vector R, storing the result in MinvR.
+    Handles both curved and straight mesh cases, and supports different backends.
+    For curved meshes, applies either a batched GEMM or a looped Gauss2Node operation.
+    For straight meshes, applies a Jacobian inverse and then Gauss2Node.
+    Parameters:
+        - handle: cuBLAS handle for GPU operations.
+        - MinvR: Output array for the result.
+        - Minv: Inverse mass matrix (or Jacobian inverse for straight mesh).
+        - R: Input vector.
+        - curvedmesh: Flag indicating curved (1) or straight (0) mesh.
+        - npe: Number of points per element.
+        - ncu: Number of components per unknown.
+        - ne: Number of elements.
+        - backend: Backend type (CPU/GPU).
+
+    void ApplyMatrix(
+        cublasHandle_t handle,
+        dstype *y,
+        dstype *MassInv,
+        dstype *x,
+        Int npe,
+        Int ncu,
+        Int ne,
+        Int matrixtype,
+        Int curvedmesh,
+        Int backend
+    )
+    ---------------------------------------------------------------------------
+    Applies a matrix operation to vector x, storing the result in y.
+    If matrixtype is 0, performs an identity operation (copy).
+    Otherwise, applies the mass matrix inverse using ApplyMassInv.
+    Parameters:
+        - handle: cuBLAS handle for GPU operations.
+        - y: Output array for the result.
+        - MassInv: Mass inverse matrix.
+        - x: Input vector.
+        - npe: Number of points per element.
+        - ncu: Number of components per unknown.
+        - ne: Number of elements.
+        - matrixtype: Type of matrix operation (0 for identity, otherwise mass inverse).
+        - curvedmesh: Flag indicating curved (1) or straight (0) mesh.
+        - backend: Backend type (CPU/GPU).
+*/
 #ifndef __APPLYMATRIX
 #define __APPLYMATRIX
 

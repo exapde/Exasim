@@ -12,6 +12,12 @@
 *.asv
 .gitignore~
 .DS_Store
+docs/
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
 backup/
 datain/
 dataout/
@@ -36,3 +42,12 @@ frontends/Julia/.DS_Store
 frontends/Matlab/.DS_Store
 frontends/Python/.DS_Store
 kokkos/.DS_Store
+examples/ShallowWater/.DS_Store
+examples/SpaceWeather/.DS_Store
+frontends/Julia/.DS_Store
+frontends/Matlab/.DS_Store
+kokkos/.DS_Store
+text2code/text2code/.DS_Store
+backend/.DS_Store
+backend/backend.zip
+backend/.DS_Store

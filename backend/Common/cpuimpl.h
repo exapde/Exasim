@@ -1,3 +1,42 @@
+/**
+ * @file cpuimpl.h
+ * @brief Common CPU implementations for mesh and array operations in Exasim backend.
+ *
+ * This header provides a collection of utility functions for manipulating arrays,
+ * mesh connectivity, face and element indexing, sorting, and CRS (Compressed Row Storage)
+ * matrix construction. It is designed for finite element and finite volume mesh operations,
+ * including face-to-element, element-to-face, and neighbor relationships.
+ *
+ * Main functionalities:
+ * - Array operations: setting values, finding min/max, inserting subarrays.
+ * - Mesh connectivity: building face-to-element (f2e), element-to-element (e2e),
+ *   element-to-face (e2f), and face-to-face (f2f) mappings.
+ * - Face and element indexing: generating indices for faces and elements, including
+ *   boundary and interface faces.
+ * - Sorting and ordering: bubble sort, recurrence-based sort, and reordering of faces
+ *   for efficient computation.
+ * - CRS matrix construction: building row pointers and column indices for sparse matrices
+ *   representing mesh connectivity.
+ * - Partitioning: grid partitioning for 2D and 3D meshes into blocks.
+ * - ILU0 indexing: generating indices for incomplete LU factorization on CRS matrices.
+ *
+ * Types:
+ * - dstype: Data type for array operations (typically double or float).
+ * - Int: Integer type for printing arrays (typically int).
+ *
+ * Usage:
+ * - Include this header in CPU-based mesh processing modules.
+ * - Functions are designed for 0-based indexing and column-major storage where applicable.
+ * - Memory allocation is performed internally for temporary arrays; caller is responsible
+ *   for freeing output arrays where noted.
+ *
+ * Note:
+ * - Many functions assume specific mesh layouts and are tailored for Exasim's mesh data structures.
+ * - Error checking is performed for grid partitioning and ILU0 diagonal presence.
+ *
+ * Author: Exasim backend team
+ * License: MIT or project-specific
+ */
 #ifndef __CPUIMPL_H__
 #define __CPUIMPL_H__
 
@@ -405,7 +444,7 @@ void mke2f(int* e2f, const int* f2e, int nf, int nfe, int ne)
     }
 
     for (int i = 0; i < nf; ++i) {
-        int e1 = f2e[i * 4 + 0];  // f2e(:, i) †
+        int e1 = f2e[i * 4 + 0];  // f2e(:, i) ï¿½
         int l1 = f2e[i * 4 + 1];
         int e2 = f2e[i * 4 + 2];
         int l2 = f2e[i * 4 + 3];

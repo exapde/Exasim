@@ -1,3 +1,60 @@
+/*
+    readbinaryfiles.cpp
+
+    This file provides functions for reading and writing binary files containing the data structures
+    used in the Exasim backend for high-order finite element simulations. The main structures handled
+    are appstruct, masterstruct, meshstruct, and solstruct, which store application parameters, master
+    element data, mesh connectivity, and solution data, respectively.
+
+    Functions:
+
+    - void readappstruct(string filename, appstruct &app)
+        Reads application parameters from a binary file into an appstruct object. Handles initialization
+        of physics and solver parameters, and optionally initializes Mutation++ mixture options if enabled.
+
+    - void writeappstruct(string filename, appstruct &app)
+        Writes the contents of an appstruct object to a binary file.
+
+    - void readmasterstruct(string filename, masterstruct &master)
+        Reads master element data from a binary file into a masterstruct object.
+
+    - void writemasterstruct(string filename, masterstruct &master)
+        Writes the contents of a masterstruct object to a binary file.
+
+    - void readmeshstruct(string filename, meshstruct &mesh)
+        Reads mesh connectivity and partitioning data from a binary file into a meshstruct object.
+
+    - void writemeshstruct(string filename, meshstruct &mesh)
+        Writes the contents of a meshstruct object to a binary file.
+
+    - void readsolstruct(string filename, solstruct &sol)
+        Reads solution data (coordinates, unknowns, auxiliary variables) from a binary file into a solstruct object.
+
+    - void writesolstruct(string filename, solstruct &sol)
+        Writes the contents of a solstruct object to a binary file.
+
+    - void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, Int mpirank)
+        Reads solution data from a binary file, with additional logic for initializing solution arrays
+        based on the application, master, and mesh structures, and MPI rank.
+
+    - void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+        Reads all input data structures from binary files, handling both serial and parallel (MPI) cases.
+
+    - void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+        Writes all output data structures to binary files, handling both serial and parallel (MPI) cases.
+
+    Dependencies:
+        - Standard C++ libraries: <string>, <fstream>
+        - Optional: Mutation++ library (if HAVE_MPP is defined)
+        - Custom types: appstruct, masterstruct, meshstruct, solstruct, Int, dstype
+        - Utility functions: readiarrayfromdouble, readarray, writeiarraytodouble, writearray, error, NumberToString, cpuArraySetValue, cpuArrayInsert, cpuInituDriver, cpuInitudgDriver, cpuInitodgDriver, cpuInitwdgDriver, CPUFREE
+
+    Notes:
+        - All file operations are performed in binary mode for efficiency and compatibility.
+        - Error handling is performed via the error() function.
+        - MPI and OpenMP support is handled via function arguments and conditional logic.
+        - Some functions contain conditional compilation for Mutation++ and Enzyme support.
+*/
 #ifndef __READBINARYFILES
 #define __READBINARYFILES
 

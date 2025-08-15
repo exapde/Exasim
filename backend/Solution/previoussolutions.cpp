@@ -1,3 +1,22 @@
+/**
+ * @brief Updates previous solution arrays for time-stepping schemes (DIRK, BDF1, BDF2, BDF3).
+ *
+ * This function manages the storage and extraction of previous solution states required for
+ * multi-stage and multi-step time integration schemes. It handles both the main solution variables
+ * and auxiliary variables (if present), supporting both DIRK and BDF schemes up to third order.
+ *
+ * @param sol     Reference to the solution structure containing current solution arrays.
+ * @param sys     Reference to the system structure containing previous solution arrays.
+ * @param common  Reference to the common structure with configuration and time-stepping parameters.
+ * @param backend Integer specifying the computational backend.
+ *
+ * @details
+ * - For DIRK schemes, extracts previous timestep solutions and computes weighted combinations
+ *   based on DIRK coefficients.
+ * - For BDF schemes (orders 1, 2, and 3), shifts and extracts previous solution arrays as needed.
+ * - Handles both main solution variables (`udg`) and auxiliary variables (`wdg`) if present.
+ * - Uses helper functions (`ArrayExtract`, `ArrayCopy`, `ArrayAXPB`) for array manipulations.
+ */
 #ifndef __PREVIOUSSOLUTIONS
 #define __PREVIOUSSOLUTIONS
 

@@ -1,3 +1,49 @@
+/*
+    ptcsolver.cpp
+
+    This file contains implementations for nonlinear and linear solvers using Pseudo-Time Continuation (PTC) and Newton's method, 
+    with support for reduced basis (RB) preconditioning and timing analysis. The solvers are designed for high-performance 
+    scientific computing, potentially leveraging CUDA and MPI for parallelism.
+
+    Functions:
+
+    - int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int it, Int backend)
+        Solves the linear system arising in each nonlinear iteration. Evaluates the residual, constructs the preconditioner, 
+        applies GMRES, and manages timing and logging. Handles reduced basis updates and checks for convergence.
+
+    - void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int backend)
+        Updates the reduced basis vectors used for preconditioning if the current solution increment is significant.
+
+    - Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int backend)
+        Implements the Pseudo-Time Continuation (PTC) nonlinear solver. Iteratively solves the nonlinear system R(u) = 0 
+        using the linear solver, updates the solution, checks for divergence, logs residual norms, and manages reduced basis updates.
+
+    - void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int N, Int backend)
+        Alternate version of UpdateRB with explicit dimension argument. Updates the reduced basis vectors for preconditioning.
+
+    - void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
+        Overloaded LinearSolver supporting different spatial discretization schemes. Assembles the linear system, constructs 
+        the preconditioner, applies GMRES, and logs timing information.
+
+    - Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)
+        Implements Newton's method for nonlinear systems. Iteratively solves the linearized system, applies solution updates 
+        with damping, computes residuals, manages reduced basis updates, and checks for convergence.
+
+    Key Concepts:
+    - Residual evaluation and norm computation for convergence checks.
+    - Reduced basis (RB) preconditioning for accelerating linear solves.
+    - GMRES iterative solver for linear systems.
+    - Timing and performance analysis for solver components.
+    - Support for different spatial discretization schemes (e.g., HDG).
+    - Logging and debugging support for solution and residual vectors.
+    - Handling of divergence and NaN residuals with output and termination.
+
+    Dependencies:
+    - CUDA and MPI support (conditional compilation).
+    - External array and linear algebra utilities (e.g., ArrayAXPY, ArrayCopy, PNORM).
+    - Data structures: sysstruct, CDiscretization, CPreconditioner.
+
+*/
 #ifndef __PTCSOLVER
 #define __PTCSOLVER
 

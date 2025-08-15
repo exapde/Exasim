@@ -1,3 +1,80 @@
+/*
+================================================================================
+GMRES Solver Implementation
+================================================================================
+
+This file implements the Generalized Minimal Residual (GMRES) iterative solver 
+with support for polynomial preconditioning and restart functionality. The solver 
+is designed for use with CUDA/cuBLAS and supports both classical and modified 
+Gram-Schmidt orthogonalization methods.
+
+--------------------------------------------------------------------------------
+Functions:
+--------------------------------------------------------------------------------
+
+1. void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N, Int m, Int backend)
+    - Performs Classical Gram-Schmidt orthogonalization on Krylov vectors.
+    - Computes the projection and normalization of the new vector.
+
+2. void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+                        sysstruct &sys, dstype *q, dstype *p, int N, int backend)
+    - Applies a polynomial preconditioner to a vector using Ritz values.
+    - Handles both real and complex Ritz values for improved convergence.
+
+3. void UpdateSolution(cublasHandle_t handle, dstype *x, dstype *y, dstype *H, dstype *s, dstype *V,
+                             Int i, Int N, Int n, Int backend)
+    - Updates the solution vector using the computed Krylov basis and coefficients.
+
+4. Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int backend)
+    - Main GMRES solver routine.
+    - Handles initialization, polynomial preconditioning, orthogonalization, 
+      convergence checks, and solution updates.
+    - Supports restart and timing of key operations.
+
+5. void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+                        sysstruct &sys, dstype *q, dstype *p, int N, Int spatialScheme, int backend)
+    - Overloaded version of ApplyPoly with spatialScheme parameter for flexibility.
+
+6. Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, Int spatialScheme, Int backend)
+    - Overloaded GMRES routine supporting additional spatial scheme parameter.
+    - Provides detailed timing for matrix-vector products, preconditioning, 
+      orthogonalization, and solution updates.
+
+--------------------------------------------------------------------------------
+Key Concepts:
+--------------------------------------------------------------------------------
+
+- Polynomial Preconditioning: Improves convergence by transforming the system 
+  using a polynomial of the matrix, based on computed Ritz values.
+- Restart: Limits the number of Krylov vectors to control memory usage and 
+  improve robustness.
+- Orthogonalization: Supports both Classical (CGS) and Modified Gram-Schmidt (MGS).
+- Timing: Measures and reports the time spent in major solver components.
+- Convergence: Checks relative error against a tolerance and reports warnings 
+  if not achieved.
+
+--------------------------------------------------------------------------------
+Parameters:
+--------------------------------------------------------------------------------
+
+- sysstruct: Structure containing system vectors and temporary memory.
+- CDiscretization: Discretization object providing matrix-vector operations.
+- CPreconditioner: Preconditioner object for applying preconditioning.
+- N: Problem size (number of unknowns).
+- spatialScheme: Indicates the spatial discretization scheme.
+- backend: Specifies the computational backend (e.g., CPU, GPU).
+- cublasHandle_t: cuBLAS handle for GPU operations.
+
+--------------------------------------------------------------------------------
+Usage:
+--------------------------------------------------------------------------------
+
+Call GMRES with appropriate system, discretization, and preconditioner objects.
+Configure solver parameters (max iterations, restart, tolerance, orthogonalization method)
+via the 'common' member of CDiscretization.
+
+================================================================================
+*/
 #ifndef __GMRESSOLVER
 #define __GMRESSOLVER 
 

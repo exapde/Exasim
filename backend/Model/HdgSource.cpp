@@ -4,7 +4,7 @@ void HdgSource(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const
 		dstype xdg1 = xdg[0*ng+i];
 		dstype xdg2 = xdg[1*ng+i];
 		{
-		f[0*ng+i] = 19.739208802178716*sin(M_PI*xdg1)*sin(M_PI*xdg2);
+		f[0*ng+i] = 2*pow(M_PI, 2)*sin(M_PI*xdg1)*sin(M_PI*xdg2);
 		}
 		{
 		f_udg[0*ng+i] = 0;

@@ -1,3 +1,31 @@
+/*
+    massinv.cpp
+
+    This file contains functions for computing and applying the inverse of the mass matrix in finite element discretizations.
+
+    Functions:
+
+    1. void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+                        meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+        - Computes the inverse of the mass matrix (Minv) for either straight or curved meshes.
+        - Allocates memory for mass and inverse matrices, workspace, and pivot arrays.
+        - For straight meshes, computes a single master element mass matrix and its inverse.
+        - For curved meshes, computes element-wise mass matrices and their inverses.
+        - Uses geometric and shape information to assemble matrices.
+        - Handles 1D, 2D, and 3D cases with appropriate geometric computations.
+        - Frees allocated memory at the end.
+
+    2. void ApplyMinv(dstype* MinvR, dstype* Minv, dstype* R, dstype scalar, Int curvedmesh, Int npe, Int ncr, Int e1, Int e2)
+        - Applies the inverse mass matrix to a residual vector R, storing the result in MinvR.
+        - Handles both curved and straight mesh cases.
+        - Performs batched matrix multiplication or direct application depending on mesh type.
+        - Scales the result by a given scalar.
+
+    Notes:
+    - The functions rely on several utility routines for memory management, matrix operations, and geometric computations.
+    - The code is designed to work with both CPU and GPU backends, as indicated by the 'backend' parameter.
+    - Assumes existence of supporting data structures and utility functions (e.g., TemplateMalloc, ArrayCopy, Inverse, etc.).
+*/
 #ifndef __MASSINV
 #define __MASSINV
 

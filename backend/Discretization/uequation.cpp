@@ -1,3 +1,43 @@
+/*
+  uequation.cpp
+
+  This file contains functions for assembling and solving the HDG (Hybridizable Discontinuous Galerkin) system for a general PDE discretization. The main routines are responsible for computing element and face contributions, assembling global matrices, and handling Schur complement reduction for efficient solution of the HDG system.
+
+  Functions:
+
+  - uEquationElemBlock:
+    Assembles element-wise contributions to the HDG system, including source terms, fluxes, and their derivatives. Handles time-dependent and steady-state problems, and supports auxiliary variables (e.g., w-equation coupling).
+
+  - uEquationElemFaceBlock:
+    Assembles face-wise contributions, including numerical fluxes and boundary/interface conditions. Handles the mapping between element and face degrees of freedom, and supports auxiliary variables and coupled boundary conditions.
+
+  - uEquationSchurBlock:
+    Performs Schur complement reduction to eliminate element unknowns and assemble the global system for face unknowns. Handles coupling terms for mixed systems and supports multi-dimensional problems.
+
+  - uEquationHDG:
+    High-level routine that calls the element, face, and Schur block assembly functions for all element blocks in the mesh.
+
+  - RuEquationElemBlock:
+    Computes only the residual vector for the element block, without assembling the full HDG matrices. Used for residual evaluation in nonlinear solvers.
+
+  - RuEquationElemFaceBlock:
+    Computes only the residual vector for the face block, including boundary and interface conditions.
+
+  - ResidualHDG:
+    High-level routine that computes the HDG residuals for all element blocks in the mesh.
+
+  Notes:
+  - The routines support both steady-state and time-dependent problems.
+  - Auxiliary variables (e.g., w-equation) are supported for multiphysics coupling.
+  - Boundary and interface conditions are imposed strongly via face contributions.
+  - The code is designed for parallel execution and supports batched linear algebra operations.
+  - Debugging output is available via file writing when debugMode is enabled.
+
+  Dependencies:
+  - Requires definitions for solstruct, resstruct, appstruct, masterstruct, meshstruct, tempstruct, commonstruct, and various linear algebra and utility routines.
+  - Uses cublasHandle_t for GPU-accelerated batched matrix operations.
+
+*/
 #ifndef __UEQUATION
 #define __UEQUATION
 

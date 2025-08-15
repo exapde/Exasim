@@ -1,3 +1,45 @@
+/*
+    getuhat.cpp
+
+    This file contains functions for computing the numerical trace (uhat) and its derivatives on the faces of elements
+    in a finite element mesh, as part of the Exasim backend discretization routines.
+
+    Functions:
+
+    - int isin(Int ib, Int *a, Int n)
+        Utility function to check if integer ib is present in array a of length n.
+
+    - void UhatBlock(...)
+        Computes the numerical trace (uhat) on a block of faces, handling both interior and boundary faces.
+        For boundary faces, it computes geometric quantities, gathers solution and auxiliary data, and calls
+        the boundary condition driver (UbouDriver). For interior faces, it directly copies solution data.
+
+    - void GetUhat(...)
+        Loops over face blocks and calls UhatBlock for each block to compute uhat for all faces in the specified range.
+
+    - void dUhatBlock(...) [ifdef HAVE_ENZYME]
+        Computes the derivative of the numerical trace (duhat) with respect to the solution variables, for use in
+        automatic differentiation (Enzyme). Handles both interior and boundary faces, gathering necessary data and
+        calling the boundary condition driver for derivatives.
+
+    - void GetdUhat(...) [ifdef HAVE_ENZYME]
+        Loops over face blocks and calls dUhatBlock for each block to compute duhat for all faces in the specified range.
+
+    Notes:
+    - The functions rely on various mesh, solution, and temporary data structures, as well as BLAS handles for
+      possible GPU acceleration.
+    - The code supports synthetic turbulence generation (commented out) and is designed for extensibility.
+    - The HAVE_ENZYME preprocessor directive enables derivative computations for use with automatic differentiation.
+
+    Parameters (common across functions):
+    - solstruct, resstruct, appstruct, masterstruct, meshstruct, tempstruct, commonstruct: Data structures holding
+      solution, mesh, application, master element, temporary, and common parameters.
+    - cublasHandle_t handle: BLAS handle for GPU computations.
+    - Int nd, npe, npf, nc, ncu, ncx, nco: Mesh and solution dimensions.
+    - Int f1, f2, ib: Face block indices and boundary type.
+    - Int backend: Backend identifier for CPU/GPU execution.
+
+*/
 #ifndef __GETUHAT
 #define __GETUHAT
 

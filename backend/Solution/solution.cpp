@@ -1,3 +1,43 @@
+/*
+    solution.cpp
+
+    This file implements the CSolution class methods for solving PDEs using various numerical schemes.
+    The main functionalities include initialization, time-stepping, steady-state solving, saving and reading solutions,
+    and handling output for both DG and CG methods. The code supports parallel execution (MPI), adaptive timestepping,
+    and artificial viscosity (AV) field computation.
+
+    Main Methods:
+    -------------
+    - SteadyProblem: Solves steady-state problems, computes AV fields, and prepares solution data for output.
+    - InitSolution: Initializes solution variables, sets up geometry, mass matrix, and prepares for time-dependent or steady problems.
+    - DIRK: Implements time-stepping using Diagonally Implicit Runge-Kutta (DIRK) schemes, including source term updates and solution saving.
+    - SteadyProblem_PTC: Solves steady problems using Pseudo-Transient Continuation (PTC) with adaptive timestep control and convergence monitoring.
+    - SolveProblem: Entry point for solving either time-dependent or steady-state problems, including solution initialization and output.
+    - SaveSolutions / ReadSolutions: Save and load solution data to/from binary files, supporting both time-dependent and steady-state cases.
+    - SaveOutputDG / SaveOutputCG: Save DG and CG output data, including post-processing and conversion between DG and CG representations.
+    - SaveSolutionsOnBoundary / SaveNodesOnBoundary: Save solution and node data on domain boundaries for post-processing or coupling.
+
+    Features:
+    ---------
+    - Supports multiple spatial discretization schemes (HDG, DG, etc.).
+    - Handles artificial viscosity computation and smoothing, including parallel communication.
+    - Adaptive timestep control for PTC and DIRK schemes.
+    - MPI parallelization for distributed memory computation.
+    - Flexible output and checkpointing for solutions and boundary data.
+    - Modular design with external dependencies for geometry, mass matrix, and residual computation.
+
+    Usage:
+    ------
+    - Instantiate CSolution and call SolveProblem() to solve a PDE problem.
+    - Use SaveSolutions(), SaveOutputDG(), SaveOutputCG() for output and post-processing.
+    - Configure via disc.common for problem-specific parameters (timestepping, output frequency, AV options, etc.).
+
+    Note:
+    -----
+    - Requires external files: solution.h, previoussolutions.cpp, updatesolution.cpp, updatesource.cpp, timestepcoeff.cpp, avsolution.cpp.
+    - Some methods rely on external functions for array manipulation, MPI communication, and numerical linear algebra.
+    - Timing and debugging output are controlled via preprocessor macros (TIMING, TIMESTEP, HAVE_MPI, etc.).
+*/
 #ifndef __SOLUTION
 #define __SOLUTION
 
