@@ -9,6 +9,7 @@
 *.hpp~
 *.cmake~
 *.txt~
+*.asv
 .gitignore~
 .DS_Store
 backup/

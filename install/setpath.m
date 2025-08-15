@@ -16,7 +16,7 @@ addpath(char(srcdir + "/Postprocessing"));
 addpath(char(srcdir + "/Utilities"));
 
 % Set Matlab's PATH enviroment variable so that Exasim can call external packages    
-setenv('PATH', '/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin:/home/linuxbrew/.linuxbrew/opt/llvm@11/bin/:/usr/local/cuda-11.7/bin/');
+setenv('PATH', '/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/opt/llvm@11/bin/:/usr/local/cuda-11.7/bin/');
 % Add more paths if neccesary 
 setenv('PATH', [getenv('PATH') ':/Applications/ParaView-5.8.1.app/Contents/MacOS']);
 setenv('LD_LIBRARY_PATH','/usr/bin:/usr/local/cuda-11.7/bin:/usr/local/cuda-11.7/lib64');
