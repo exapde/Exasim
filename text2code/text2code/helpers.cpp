@@ -282,25 +282,32 @@ void cumsum_int(const int* in, int* out, int n) {
 }
 
 // Sort and remove duplicates
+// int unique_ints(int* arr, int n) {
+//     // Simple insertion sort
+//     for (int i = 1; i < n; ++i) {
+//         int key = arr[i];
+//         int j = i - 1;
+//         while (j >= 0 && arr[j] > key) {
+//             arr[j + 1] = arr[j];
+//             j--;
+//         }
+//         arr[j + 1] = key;
+//     }
+//     // Remove duplicates
+//     int m = 0;
+//     for (int i = 0; i < n; ++i) {
+//         if (m == 0 || arr[i] != arr[m - 1]) {
+//             arr[m++] = arr[i];
+//         }
+//     }
+//     return m;
+// }
+
 int unique_ints(int* arr, int n) {
-    // Simple insertion sort
-    for (int i = 1; i < n; ++i) {
-        int key = arr[i];
-        int j = i - 1;
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-    // Remove duplicates
-    int m = 0;
-    for (int i = 0; i < n; ++i) {
-        if (m == 0 || arr[i] != arr[m - 1]) {
-            arr[m++] = arr[i];
-        }
-    }
-    return m;
+    if (n <= 1) return n;
+    std::sort(arr, arr + n);                       // introsort (quick+heap+insertion)
+    int* last = std::unique(arr, arr + n);         // compacts uniques to front
+    return int(last - arr);                        // new length m
 }
 
 void extract_subset(int* b, const int* a, const int* ind, size_t k) 

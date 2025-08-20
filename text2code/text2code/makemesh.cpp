@@ -256,6 +256,53 @@ void assignboundaryfaces(
     }
 }
 
+void assignboundaryfaces(
+    int* f,                     // [nfe x ne], zero-based, must be initialized to -1
+    const int* t,               // [nve x ne], element-to-node connectivity
+    const int* f2t,             // [4 x nf], face-to-element connectivity
+    const int* ind,             // [nb], indices of boundary faces   
+    const int* localfaces,      // [nvf x nfe], local face connectivity
+    const double* p,           // [dim x np]
+    char** bndexpr,       // boundary expressions, e.g., {"x*x + y*y <= 1"}
+    int dim, int nve, int nvf, int nfe, int ne, int nb, int nbndexpr) 
+{
+    for (int i = 0; i < nfe * ne; ++i)
+        f[i] = -1;
+
+    int ind2 = 1;
+    if (nvf==1) ind2 = 0;
+            
+    for (int ii = 0; ii < nb; ++ii) {
+        int b = ind[ii];
+        int e = f2t[0 + 4 * b];
+        int l = f2t[1 + 4 * b];
+
+        for (int k = 0; k < nbndexpr; ++k) {
+            bool ok = true;
+            int check_pts[3] = {0, ind2, nvf - 1};
+
+            for (int m = 0; m < 3; ++m) {
+                int i = check_pts[m];
+
+                // Get the local node index for this face
+                int local_node = localfaces[i + l * nvf];
+                int node = t[local_node + nve * e];   // node index from element e
+                const double* x = &p[dim * node];
+
+                if (!eval_expr(bndexpr[k], x, dim)) {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok) {
+                f[l + nfe * e] = k;
+                break;
+            }
+        }
+    }
+}
+
 bool equal_face_nodes(const int* a, const int* b, int nnf) {
     for (int i = 0; i < nnf; i++) {
         if (a[i] != b[i]) return false;
@@ -376,6 +423,135 @@ int mke2e(int* e2e, const int* e2n, const int* local_faces, int ne, int nne, int
     return face_count;
 }
 
+// Hashable key of fixed max size 8 (adjust if needed)
+struct FaceKey {
+    std::array<int,8> a{};
+    uint8_t len{}; // nnf
+
+    bool operator==(const FaceKey& o) const noexcept {
+        if (len != o.len) return false;
+        for (uint8_t i = 0; i < len; ++i) if (a[i] != o.a[i]) return false;
+        return true;
+    }
+};
+struct FaceKeyHash {
+    size_t operator()(const FaceKey& k) const noexcept {
+        // simple 64-bit mix across len entries
+        uint64_t h = 0x9E3779B97F4A7C15ull ^ k.len;
+        for (uint8_t i = 0; i < k.len; ++i) {
+            uint64_t x = static_cast<uint64_t>(k.a[i]) + 0x9E3779B97F4A7C15ull;
+            x ^= (x >> 30); x *= 0xBF58476D1CE4E5B9ull;
+            x ^= (x >> 27); x *= 0x94D049BB133111EBull;
+            x ^= (x >> 31);
+            h ^= x + 0x9E3779B97F4A7C15ull + (h<<6) + (h>>2);
+        }
+        return static_cast<size_t>(h);
+    }
+};
+
+int mkf2e_hash(int* f2e,
+               const int* e2n, const int* local_faces,
+               int ne, int nne, int nnf, int nfe)
+{
+    using Val = std::pair<int,int>; // (elem, lf)
+    std::unordered_map<FaceKey, Val, FaceKeyHash> map;
+    map.reserve(static_cast<size_t>(ne) * nfe * 1.3);
+
+    int out = 0;
+
+    auto make_key = [&](int e, int lf) {
+        FaceKey k; k.len = static_cast<uint8_t>(nnf);
+        // gather face nodes
+        for (int i = 0; i < nnf; ++i) {
+            int ln = local_faces[lf*nnf + i];
+            k.a[i] = e2n[e*nne + ln];
+        }
+        std::sort(k.a.begin(), k.a.begin() + nnf);
+        return k;
+    };
+
+    for (int e = 0; e < ne; ++e) {
+        for (int lf = 0; lf < nfe; ++lf) {
+            FaceKey k = make_key(e, lf);
+            auto it = map.find(k);
+            if (it == map.end()) {
+                map.emplace(std::move(k), Val{e, lf});
+            } else {
+                // found the interior faces
+                const auto [e0, lf0] = it->second;
+                f2e[4*out + 0] = e0;  f2e[4*out + 1] = lf0;
+                f2e[4*out + 2] = e;   f2e[4*out + 3] = lf;
+                map.erase(it);
+                ++out;
+            }
+        }
+    }
+
+    // Remaining entries in map are boundary faces
+    for (const auto& kv : map) {
+        const auto [e0, lf0] = kv.second;
+        f2e[4*out + 0] = e0;  f2e[4*out + 1] = lf0;
+        f2e[4*out + 2] = -1;  f2e[4*out + 3] = -1;
+        ++out;
+    }
+
+    return out;
+}
+
+// ---- Build e2e: for each element 'e' and local face 'lf', write neighbor element id or -1 ----
+// e2e must be sized to ne * nfe (ints).
+int mke2e_hash(int* e2e,
+               const int* e2n,          // [ne * nne] global node ids per element
+               const int* local_faces,  // [nfe * nnf] local node indices per local face
+               int ne, int nne, int nnf, int nfe)
+{
+    using Val = std::pair<int,int>; // (elem, lf) of the first owner of the face
+
+    // init all neighbors to -1 (assume boundary until proven otherwise)
+    for (int i = 0; i < ne * nfe; ++i) e2e[i] = -1;
+
+    // map holds faces seen once (awaiting their twin)
+    std::unordered_map<FaceKey, Val, FaceKeyHash> map;
+    map.reserve(static_cast<size_t>(ne) * static_cast<size_t>(nfe) * 13 / 10); // slack to keep LF low
+
+    int out = 0;
+
+    auto make_key = [&](int e, int lf) {
+        FaceKey k; k.len = static_cast<uint8_t>(nnf);
+        // gather global node ids of this face
+        for (int i = 0; i < nnf; ++i) {
+            const int ln = local_faces[lf * nnf + i];   // local node id on this face
+            k.a[i] = e2n[e * nne + ln];                 // map to global node id
+        }
+        // canonicalize (orientation-independent)
+        std::sort(k.a.begin(), k.a.begin() + nnf);
+        return k;
+    };
+
+    for (int e = 0; e < ne; ++e) {
+        for (int lf = 0; lf < nfe; ++lf) {
+            FaceKey k = make_key(e, lf);
+            auto it = map.find(k);
+
+            if (it == map.end()) {
+                // first time seeing this face
+                map.emplace(std::move(k), Val{e, lf});
+            } else {
+                // found twin: set both directions and remove from map
+                const auto [e0, lf0] = it->second;
+
+                e2e[e0 * nfe + lf0] = e;   // neighbor of the first owner is current element
+                e2e[e  * nfe + lf ] = e0;  // neighbor of current element is the first owner
+
+                map.erase(it);
+                ++out;
+            }
+        }
+    }
+
+    return out; 
+}
+
 int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t,                    
     char** bndexpr, int dim, int elemtype, int ne, int nbndexpr) 
 {
@@ -386,24 +562,28 @@ int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t
     //int* face = (int*) malloc(sizeof(int) * nfe * nvf);
     getelemface(face, dim, elemtype);    
     
-    double* pf = (double*) malloc(sizeof(double) * dim * nvf * nfe * ne);
-    compute_pf(t2lf, pf, t, p, face, nve, nvf, nfe, dim, ne);   
+    for (int e = 0; e < ne; ++e) {
+        for (int f = 0; f < nfe; ++f) {
+            for (int v = 0; v < nvf; ++v) {
+                int lf = face[v + nvf * f];      // zero-based local face node index
+                int node = t[lf + nve * e];            // node index from element e
+                int idx = v + nvf * (f + nfe * e);     // linear index in t2lf
+                t2lf[idx] = node;
+            }
+        }
+    }    
 
     int* f2e = (int*) malloc(sizeof(int) * 4 * nfe * ne);
-    int nf = mkf2e(f2e, t, face, ne, nve, nvf, nfe); 
-    //print2iarray(f2e, 4, nf);
+    int nf = mkf2e_hash(f2e, t, face, ne, nve, nvf, nfe); 
     
     int* ind = (int*) malloc(sizeof(int) * nf);
     int nb = 0;
     for (int i=0; i<nf; i++) ind[i] = -1;
     for (int i=0; i<nf; i++) 
-      if (f2e[2 + 4*i] == -1) ind[nb++] = i;    
-        
-    //printf("%d %d\n",nf, nb);
-    
-    assignboundaryfaces(f, f2e, ind, pf, bndexpr, dim, nvf, nfe, ne, nb, nbndexpr);    
-    
-    CPUFREE(pf);
+      if (f2e[2 + 4*i] == -1) ind[nb++] = i;
+
+    assignboundaryfaces(f, t, f2e, ind, face, p, bndexpr, dim, nve, nvf, nfe, ne, nb, nbndexpr);    
+
     CPUFREE(f2e);
     CPUFREE(ind);
     

@@ -298,7 +298,7 @@ void writeBinaryFiles(const PDE& pde, Mesh& mesh, const Master master)
         for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] -= 1;        
         
         mesh.t2t.resize(mesh.nfe*mesh.ne);
-        mesh.nf = mke2e(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.ne, mesh.nve, mesh.nvf, mesh.nfe);
+        mesh.nf = mke2e_hash(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.ne, mesh.nve, mesh.nvf, mesh.nfe);
         
     //       if (pde.debugmode==1) {
     //         writearray2file(pde.datapath + "/t2t.bin", mesh.t2t.data(), mesh.t2t.size());
