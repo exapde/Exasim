@@ -92,7 +92,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else {
-    throw std::runtime_error("invalid choice");
+    FAIL() << "invalid choice";
   }
 
   Kokkos::deep_copy(aux_view, v_h);
@@ -101,6 +101,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
 }
 
 bool compute_gold(const std::string& name) {
+  // NOLINTBEGIN(bugprone-branch-clone)
   if (name == "empty") {
     return true;
   } else if (name == "one-element") {
@@ -121,8 +122,10 @@ bool compute_gold(const std::string& name) {
     return true;
   } else if (name == "large-b") {
     return false;
+    // NOLINTEND(bugprone-branch-clone)
   } else {
-    throw std::runtime_error("invalid choice");
+    Kokkos::abort("invalid choice");
+    return false;  // unreachable
   }
 }
 
@@ -154,7 +157,7 @@ void run_single_scenario(const InfoType& scenario_info) {
   resultsB[0] =
       KE::is_sorted(exespace(), KE::cbegin(view), KE::cend(view), comp);
   resultsB[1]     = KE::is_sorted("label", exespace(), KE::cbegin(view),
-                              KE::cend(view), comp);
+                                  KE::cend(view), comp);
   resultsB[2]     = KE::is_sorted(exespace(), view, comp);
   resultsB[3]     = KE::is_sorted("label", exespace(), view, comp);
   const auto allB = std::all_of(resultsB.cbegin(), resultsB.cend(),

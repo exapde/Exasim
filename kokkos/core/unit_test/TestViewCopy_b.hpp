@@ -29,7 +29,7 @@ struct CheckResult {
   using value_type = typename ViewType::non_const_value_type;
   ViewType v;
   value_type value;
-  CheckResult(ViewType v_, value_type value_) : v(v_), value(value_){};
+  CheckResult(ViewType v_, value_type value_) : v(v_), value(value_) {}
   KOKKOS_FUNCTION
   void operator()(const int i, int& lsum) const {
     for (int j = 0; j < static_cast<int>(v.extent(1)); j++) {
@@ -62,6 +62,10 @@ TEST(TEST_CATEGORY, view_copy_tests_rank_0) {
 
   // No execution space
   { Kokkos::deep_copy(defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(a, 0);
+    ASSERT_TRUE(run_check(a, 0));
+  }
   {
     Kokkos::deep_copy(a, 1);
     ASSERT_TRUE(run_check(a, 1));
@@ -110,6 +114,10 @@ TEST(TEST_CATEGORY, view_copy_tests_rank_0) {
   // Device
   { Kokkos::deep_copy(dev, defaulted, defaulted); }
   {
+    Kokkos::deep_copy(dev, a, 0);
+    ASSERT_TRUE(run_check(a, 0));
+  }
+  {
     Kokkos::deep_copy(dev, a, 1);
     ASSERT_TRUE(run_check(a, 1));
   }
@@ -156,6 +164,10 @@ TEST(TEST_CATEGORY, view_copy_tests_rank_0) {
 
   // Host
   { Kokkos::deep_copy(host, defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(host, a, 0);
+    ASSERT_TRUE(run_check(a, 0));
+  }
   {
     Kokkos::deep_copy(host, a, 1);
     ASSERT_TRUE(run_check(a, 1));
@@ -206,14 +218,14 @@ TEST(TEST_CATEGORY, view_copy_degenerated) {
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
       v_um_def_1;
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-  v_um_1(reinterpret_cast<int*>(-1), 0);
+      v_um_1(reinterpret_cast<int*>(-1), 0);
   Kokkos::View<int*, TEST_EXECSPACE> v_m_def_1;
   Kokkos::View<int*, TEST_EXECSPACE> v_m_1("v_m_1", 0);
 
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
       v_um_def_2;
   Kokkos::View<int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-  v_um_2(reinterpret_cast<int*>(-1), 0);
+      v_um_2(reinterpret_cast<int*>(-1), 0);
   Kokkos::View<int*, TEST_EXECSPACE> v_m_def_2;
   Kokkos::View<int*, TEST_EXECSPACE> v_m_2("v_m_2", 0);
 

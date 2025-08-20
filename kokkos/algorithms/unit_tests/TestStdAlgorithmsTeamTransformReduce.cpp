@@ -16,7 +16,7 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
 
 namespace Test {
 namespace stdalgos {
@@ -43,7 +43,7 @@ struct MultipliesFunctor {
 template <class ValueType>
 struct PlusOneFunctor {
   KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const ValueType& val) const { return val + 1; };
+  ValueType operator()(const ValueType& val) const { return val + 1; }
 };
 
 template <class FirstDataViewType, class SecondDataViewType,
@@ -293,6 +293,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
         break;
       }
+      default: Kokkos::abort("unreachable");
     }
 
 #undef transform_reduce

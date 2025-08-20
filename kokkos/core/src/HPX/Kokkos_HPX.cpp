@@ -43,7 +43,7 @@ namespace Kokkos {
 namespace Impl {
 void hpx_thread_buffer::resize(const std::size_t num_threads,
                                const std::size_t size_per_thread,
-                               const std::size_t extra_space) noexcept {
+                               const std::size_t extra_space) {
   m_num_threads     = num_threads;
   m_size_per_thread = size_per_thread;
   m_extra_space     = extra_space;
@@ -153,7 +153,7 @@ void HPX::impl_instance_fence_locked(const std::string &name) const {
         auto &s = impl_get_sender();
 
         hpx::this_thread::experimental::sync_wait(std::move(s));
-        s = hpx::execution::experimental::unique_any_sender(
+        s = hpx::execution::experimental::unique_any_sender<>(
             hpx::execution::experimental::just());
       });
 }
@@ -184,7 +184,7 @@ void HPX::impl_static_fence(const std::string &name) {
         }
 
         hpx::this_thread::experimental::sync_wait(std::move(s));
-        s = hpx::execution::experimental::unique_any_sender(
+        s = hpx::execution::experimental::unique_any_sender<>(
             hpx::execution::experimental::just());
       });
 }

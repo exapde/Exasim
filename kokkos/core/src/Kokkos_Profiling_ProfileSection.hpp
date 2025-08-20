@@ -18,7 +18,7 @@
 #define KOKKOSP_PROFILE_SECTION_HPP
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
-#define KOKKOS_IMPL_PUBLIC_INCLUDE_PROFILING_PROFILESECTION
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING_PROFILESECTION
 #endif
 
 #include <Kokkos_Macros.hpp>
@@ -32,7 +32,7 @@ class [[nodiscard]] ProfilingSection {
   uint32_t sectionID;
 
  public:
-  ProfilingSection(ProfilingSection const&) = delete;
+  ProfilingSection(ProfilingSection const&)            = delete;
   ProfilingSection& operator=(ProfilingSection const&) = delete;
 
 #if defined(__has_cpp_attribute) && __has_cpp_attribute(nodiscard) >= 201907
@@ -51,7 +51,7 @@ class [[nodiscard]] ProfilingSection {
 
 }  // namespace Kokkos::Profiling
 
-#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING_PROFILESECTION
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_PROFILING_PROFILESECTION
 #endif

@@ -29,7 +29,7 @@ struct CheckResult {
   using value_type = typename ViewType::non_const_value_type;
   ViewType v;
   value_type value;
-  CheckResult(ViewType v_, value_type value_) : v(v_), value(value_){};
+  CheckResult(ViewType v_, value_type value_) : v(v_), value(value_) {}
   KOKKOS_FUNCTION
   void operator()(const int i, int& lsum) const {
     for (int j = 0; j < static_cast<int>(v.extent(1)); j++) {
@@ -77,6 +77,10 @@ TEST(TEST_CATEGORY, view_copy_tests) {
 
   // Contiguous copies
   { Kokkos::deep_copy(defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(a, 0);
+    ASSERT_TRUE(run_check(a, 0));
+  }
   {
     Kokkos::deep_copy(a, 1);
     ASSERT_TRUE(run_check(a, 1));
@@ -186,6 +190,10 @@ TEST(TEST_CATEGORY, view_copy_tests) {
   // Contiguous copies
   { Kokkos::deep_copy(dev, defaulted, defaulted); }
   {
+    Kokkos::deep_copy(dev, a, 0);
+    ASSERT_TRUE(run_check(a, 0));
+  }
+  {
     Kokkos::deep_copy(dev, a, 1);
     ASSERT_TRUE(run_check(a, 1));
   }
@@ -260,6 +268,10 @@ TEST(TEST_CATEGORY, view_copy_tests) {
 
   // Contiguous copies
   { Kokkos::deep_copy(host, defaulted, defaulted); }
+  {
+    Kokkos::deep_copy(host, a, 0);
+    ASSERT_TRUE(run_check(a, 0));
+  }
   {
     Kokkos::deep_copy(host, a, 1);
     ASSERT_TRUE(run_check(a, 1));
