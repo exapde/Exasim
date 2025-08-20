@@ -38,7 +38,8 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
-#include <string.h>
+// Use C++ header for C string utilities
+#include <cstring>
 //#include <stdlib.h>
 //#include <chrono>
 //#include <sys/unistd.h>
@@ -186,7 +187,13 @@ int main(int argc, char** argv)
     
 #ifdef HAVE_CUDA            
     int device;    
-    cudaSetDevice(shmrank); 
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);
+    if (deviceCount <= 0) {
+        if (mpirank==0) std::cerr << "No CUDA devices available" << std::endl;
+        return 1;
+    }
+    cudaSetDevice(shmrank % deviceCount); 
     //gpuDeviceInfo(shmrank);
     cudaGetDevice( &device );
 //     char hostname[128];
@@ -196,7 +203,7 @@ int main(int argc, char** argv)
     size_t available, total;
     cudaMemGetInfo(&available, &total);
     
-    int deviceCount = 0;
+    // re-query in case runtime changed
     cudaGetDeviceCount(&deviceCount);
     
     std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", CUDA Device: " << device 
@@ -208,7 +215,13 @@ int main(int argc, char** argv)
 #ifdef HAVE_HIP
     int device;
     // Set the device based on the rank
-    CHECK(hipSetDevice(shmrank));
+    int deviceCount = 0;
+    hipGetDeviceCount(&deviceCount);
+    if (deviceCount <= 0) {
+        if (mpirank==0) std::cerr << "No HIP devices available" << std::endl;
+        return 1;
+    }
+    CHECK(hipSetDevice(shmrank % deviceCount));
 
     // Get the current device ID
     CHECK(hipGetDevice(&device));
@@ -217,7 +230,7 @@ int main(int argc, char** argv)
     size_t available, total;
     CHECK(hipMemGetInfo(&available, &total));
 
-    int deviceCount = 0;
+    // re-query in case runtime changed
     hipGetDeviceCount(&deviceCount);
     
     // Print memory information
@@ -229,16 +242,19 @@ int main(int argc, char** argv)
     
   Kokkos::initialize(argc, argv);
   {        
-    if( argc >= 4 ) {
-    }
-    else {      
-      printf("Usage: ./cppfile nummodels InputFile OutputFile\n");
+    if (argc < 3) {
+      printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");
       return 1;
-    }                
+    }
     
     //Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
     string mystr = string(argv[1]);
-    nummodels = stoi(mystr);  // number of pde models
+    try {
+        nummodels = stoi(mystr);  // number of pde models
+    } catch (...) {
+        if (mpirank==0) std::cerr << "Invalid nummodels: " << mystr << std::endl;
+        return 1;
+    }
     string filein[10]; 
     string fileout[10];
     
@@ -254,6 +270,14 @@ int main(int argc, char** argv)
       return 1;
     }
     
+    // Validate argument count for file pairs
+    int required = 2*nummodels + 2; // exe, nummodels, then 2 per model
+    if (argc < required) {
+        if (mpirank==0) std::cerr << "Expected " << (2*nummodels) 
+                                   << " file arguments (in/out per model)" << std::endl;
+        return 1;
+    }
+
     for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files
         fileout[i]  = string(argv[2*i+3]); // output files        
@@ -262,10 +286,14 @@ int main(int argc, char** argv)
     }
     
     restart = 0;
-    if (argc>=(2*nummodels+3)) {
+    if (argc >= (2*nummodels + 3)) {
         mystr = string(argv[2*nummodels+2]);
-        restart = stoi(mystr);
-    }             
+        try { restart = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid restart value: " << mystr << std::endl;
+            return 1;
+        }
+    }
     
     // reset nummodels
     if (mpiprocs0 > 0) nummodels = 1;

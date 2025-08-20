@@ -125,14 +125,19 @@ for i = 1:length(requiredKeys)
           fprintf(fid, '%s = %s;\n', key, char(tm));         
         end
       elseif ischar(value)
-          fprintf(fid, '%s = \"%s\";\n', key, value);  
-      elseif isstring(value)
+          if ~((key == "exasimpath") || (key == "datapath"))           
+            fprintf(fid, '%s = \"%s\";\n', key, value);  
+          end
+      elseif isstring(value)          
         if length(value)==1
           if key == "boundaryexpressions" || key == "curvedboundaryexprs" || key == "periodicexprs1" || key == "periodicexprs2"
             fprintf(fid, '%s = [\"%s\"];\n', key, char(value));     
+          elseif (key == "modelfile")  
+            fprintf(fid, '%s = \"%s\";\n', key, char(value + ".txt"));     
+          elseif (key == "exasimpath") || (key == "datapath")          
           else
-            fprintf(fid, '%s = \"%s\";\n', key, char(value));     
-          end
+            fprintf(fid, '%s = \"%s\";\n', key, char(value));                 
+          end          
         else
           tm = char(34) + value(1) + char(34);
           for k = 2:length(value)

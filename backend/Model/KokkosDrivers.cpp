@@ -1,4 +1,50 @@
 
+/*
+  This file contains driver functions for various numerical operations in the Exasim backend,
+  including flux, source, output, monitor, boundary, initialization, and equation-of-state computations.
+  The drivers are designed to interface with both DG-based and HDG-based implementations.
+
+  Included Files:
+  - DG-based implementations: KokkosFlux.cpp, KokkosFhat.cpp, KokkosFbou.cpp, KokkosUbou.cpp, KokkosUhat.cpp,
+    KokkosStab.cpp, KokkosSource.cpp, KokkosSourcew.cpp, KokkosOutput.cpp, KokkosMonitor.cpp, KokkosInitu.cpp,
+    KokkosInitq.cpp, KokkosInitwdg.cpp, KokkosInitudg.cpp, KokkosInitodg.cpp, KokkosEoS.cpp, KokkosEoSdu.cpp,
+    KokkosEoSdw.cpp, KokkosAvfield.cpp, KokkosTdfunc.cpp
+  - CPU-based initialization: cpuInitu.cpp, cpuInitq.cpp, cpuInitwdg.cpp, cpuInitudg.cpp, cpuInitodg.cpp
+  - HDG-based implementations: HdgFlux.cpp, HdgFbou.cpp, HdgFbouonly.cpp, HdgFint.cpp, HdgFintonly.cpp,
+    HdgSource.cpp, HdgSourcew.cpp, HdgSourcewonly.cpp, HdgEoS.cpp
+
+  Driver Functions:
+  - FluxDriver: Computes fluxes using Kokkos or HDG implementations.
+  - SourceDriver: Computes source terms.
+  - SourcewDriver: Computes source terms related to w variables.
+  - OutputDriver: Computes output quantities.
+  - MonitorDriver: Computes monitoring quantities.
+  - AvfieldDriver: Computes artificial viscosity field.
+  - EosDriver, EosduDriver, EosdwDriver: Computes equation-of-state and its derivatives.
+  - TdfuncDriver: Computes time-dependent functions.
+  - FhatDriver: Computes numerical fluxes at element interfaces.
+  - FbouDriver: Computes boundary fluxes.
+  - UhatDriver: Computes numerical traces at interfaces.
+  - UbouDriver: Computes boundary traces.
+  - Initialization Drivers (InitodgDriver, InitqDriver, InitudgDriver, InituDriver, InitwdgDriver): 
+    Initialize solution variables.
+  - CPU Initialization Drivers (cpuInitodgDriver, cpuInitqDriver, cpuInitudgDriver, cpuInituDriver, cpuInitwdgDriver):
+    CPU-based initialization routines.
+
+  HDG-specific Drivers:
+  - HDG versions of FluxDriver, SourceDriver, SourcewDriver, EosDriver, FbouDriver, FintDriver, FhatDriver
+    provide additional outputs such as derivatives with respect to udg, wdg, and uhg.
+
+  Parameters:
+  - All drivers accept pointers to solution arrays, mesh, master, app, sol, temp, and common structures,
+    as well as integer parameters specifying grid sizes, element indices, and backend selection.
+
+  Notes:
+  - The drivers abstract away the details of the underlying numerical implementation, allowing for
+    flexible switching between Kokkos and HDG approaches.
+  - Some drivers are overloaded to provide additional outputs (e.g., derivatives).
+  - The file is intended for internal use within the Exasim backend and is not a standalone module.
+*/
 #include "KokkosFlux.cpp"
 #include "KokkosFhat.cpp"
 #include "KokkosFbou.cpp"

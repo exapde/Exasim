@@ -54,3 +54,6 @@ backend/.DS_Store
 text2code/text2code/text2code
 text2code/text2code/.DS_Store
 .DS_Store
+text2code/text2code/.DS_Store
+*.zip
+/examples/tests

@@ -145,7 +145,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     Int ne = disc.common.ne1;
     Int N = npe*ncu*ne;
     dstype nrmb, nrmr, tol, scalar;
-    tol = min(0.01,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
+    tol = std::min(0.01,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
     maxit = disc.common.linearSolverMaxIter;
     nrest = disc.common.gmresRestart;
     orthogMethod = disc.common.gmresOrthogMethod;
@@ -199,7 +199,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
         cout<<"Old RHS Norm: "<<nrmb<<",  New RHS Norm: "<<nrmr<<endl; 
     
     disc.common.linearSolverTolFactor = nrmb/nrmr;
-    tol = min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
+    tol = std::min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
         
     //disc.common.ppdegree = 0;
     
@@ -561,4 +561,3 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
 }
 
 #endif
-

@@ -215,7 +215,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     if (common.spatialScheme == 0) compMassInverse(backend);    
     
     // moved from InitSolution to here
-    if ((common.ncq>0) & (common.wave==0) & (common.spatialScheme == 0) ) evalQSer(backend); 
+    if ((common.ncq>0) && (common.wave==0) && (common.spatialScheme == 0)) evalQSer(backend); 
     
     if (common.spatialScheme > 0)  { // HDG
       Int neb = common.neb; // maximum number of elements per block
@@ -842,4 +842,3 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
 }
 
 #endif        
-

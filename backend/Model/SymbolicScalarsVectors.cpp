@@ -22,9 +22,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          eta[i] = Expression("eta"  + std::to_string(i));
     }
 
-    szuq = 3;
-    uq.resize(3);
-    for (int i = 0; i < 3; ++i) {
+    szuq = 12;
+    uq.resize(12);
+    for (int i = 0; i < 12; ++i) {
          uq[i] = Expression("uq"  + std::to_string(i));
     }
 
@@ -34,9 +34,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          n[i] = Expression("n"  + std::to_string(i));
     }
 
-    szuhat = 1;
-    uhat.resize(1);
-    for (int i = 0; i < 1; ++i) {
+    szuhat = 4;
+    uhat.resize(4);
+    for (int i = 0; i < 4; ++i) {
          uhat[i] = Expression("uhat"  + std::to_string(i));
     }
 
@@ -46,9 +46,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          v[i] = Expression("v"  + std::to_string(i));
     }
 
-    szmu = 1;
-    mu.resize(1);
-    for (int i = 0; i < 1; ++i) {
+    szmu = 8;
+    mu.resize(8);
+    for (int i = 0; i < 8; ++i) {
          mu[i] = Expression("mu"  + std::to_string(i));
     }
 

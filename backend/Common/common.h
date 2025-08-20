@@ -41,6 +41,11 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#include <cstdint>
+#include <cstring>
+#include <chrono>
+#include <cmath>
+
 #define SCOPY scopy_
 #define SSCAL sscal_
 #define SAXPY saxpy_
@@ -129,7 +134,7 @@ extern "C" {
     float SNRM2(Int*,float*,Int*);  
     float SDOT(Int*,float*,Int*,float*,Int*);
     void SCOPY(Int*,float*,Int*,float*,Int*);
-    void SSCAL(Int*,double*,double*,Int*);
+    void SSCAL(Int*,float*,float*,Int*);
     void SAXPY(Int*,float*,float*,Int*,float*,Int*);
     void SGEMM(char*,char*,Int*,Int*,Int*,float*,float*,Int*,
              float*,Int*,float*,float*,Int*);  
@@ -138,9 +143,9 @@ extern "C" {
     void SGETRI(Int*,float*,Int*,Int*,float*,Int*,Int*);
     void STRSM(char *, char*, char*, char *, Int *, Int*, float*, float*, Int*,
              float*, Int*);        
-    void SGEEV( char* jobvl, char* jobvr, int* n, double* a,
-                int* lda, double* wr, double* wi, double* vl, int* ldvl,
-                double* vr, int* ldvr, double* work, int* lwork, int* info );    
+    void SGEEV( char* jobvl, char* jobvr, Int* n, float* a,
+                Int* lda, float* wr, float* wi, float* vl, Int* ldvl,
+                float* vr, Int* ldvr, float* work, Int* lwork, Int* info );    
 }
 
 template <typename T>
@@ -192,25 +197,25 @@ dstype cublasZero[1] = {zero};
 #endif                      
 
 #ifdef TIMING    
-    #define INIT_TIMING auto begin = chrono::high_resolution_clock::now(); auto end = chrono::high_resolution_clock::now();
+    #define INIT_TIMING auto begin = std::chrono::high_resolution_clock::now(); auto end = std::chrono::high_resolution_clock::now();
 #else
     #define INIT_TIMING
 #endif
 
 #ifdef TIMING
-   #define TIMING_START  begin = chrono::high_resolution_clock::now();   
+   #define TIMING_START  begin = std::chrono::high_resolution_clock::now();   
 #else 
    #define TIMING_START     
 #endif       
 
 #ifdef TIMING
-   #define TIMING_END    end = chrono::high_resolution_clock::now();   
+   #define TIMING_END    end = std::chrono::high_resolution_clock::now();   
 #else 
    #define TIMING_END     
 #endif       
 
 #ifdef TIMING       
-   #define TIMING_GET(num) common.timing[num] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+   #define TIMING_GET(num) common.timing[num] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
 #else 
    #define TIMING_GET(num)  
 #endif                      
@@ -228,7 +233,7 @@ dstype cublasZero[1] = {zero};
 #endif       
 
 #ifdef TIMING       
-   #define TIMING_GET1(num) disc.common.timing[num] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+   #define TIMING_GET1(num) disc.common.timing[num] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
 #else 
    #define TIMING_GET1(num)  
 #endif                      
@@ -1079,6 +1084,7 @@ struct resstruct {
       printf("size of G: %d\n", szG);
       printf("size of K: %d\n", szK);
       printf("size of H: %d\n", szH);
+      printf("size of Ri: %d\n", szRi);  
       printf("size of Gi: %d\n", szGi);
       printf("size of Ki: %d\n", szKi);
       printf("size of Hi: %d\n", szHi);
@@ -1245,6 +1251,7 @@ struct sysstruct {
         TemplateFree(r, backend); 
         TemplateFree(b, backend); 
         if (szv>0) TemplateFree(v, backend); 
+        else v = nullptr;
         TemplateFree(q, backend); 
         TemplateFree(p, backend); 
         TemplateFree(randvect, backend);

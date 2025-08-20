@@ -10,12 +10,6 @@ batch x, uq, v, w, uhat, n
 
 outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu
 
-datatype dstype
-
-framework kokkos
-
-codeformat exasim
-
 function Flux(x, uq, v, w, eta, mu, t)  
     output_size(f) = 8;
 

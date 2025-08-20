@@ -90,7 +90,7 @@ for i = 1:nproc
     dmd{i}.elemrecv = dmd{i}.elemrecv(:,2);        
 end
 
-save dmdelem.mat dmd t2t elem2cpu;
+%save dmdelem.mat dmd t2t elem2cpu;
 
 
 % for i = 1:nproc  
