@@ -20,42 +20,102 @@
 #include <Kokkos_SIMD.hpp>
 #include <SIMDTesting_Utilities.hpp>
 
+using Kokkos::Experimental::all_of;
+
+template <typename DataType>
+struct Gen_increment {
+  KOKKOS_FUNCTION DataType operator()(std::size_t i) { return (DataType)(i); }
+};
+
+struct Gen_bool {
+  KOKKOS_FUNCTION bool operator()(std::size_t i) { return 0 == (i & 1); }
+};
+
 template <typename Abi>
 inline void host_check_conversions() {
-  {
-    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
-    auto b = Kokkos::Experimental::simd<std::int64_t, Abi>(a);
-    EXPECT_TRUE(all_of(b == decltype(b)(1)));
+  if constexpr (is_simd_avail_v<uint64_t, Abi>) {
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(1);
+      auto b = Kokkos::Experimental::basic_simd<std::int64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(1)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(1);
+      auto b = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(1)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(1);
+      auto b = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(1)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(
+          Gen_increment<std::uint64_t>());
+      auto b = Kokkos::Experimental::basic_simd<std::int64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_increment<std::int64_t>())));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(
+          Gen_increment<std::int32_t>());
+      auto b = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_increment<std::uint64_t>())));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(
+          Gen_increment<std::uint64_t>());
+      auto b = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_increment<std::int32_t>())));
+    }
   }
-  {
-    auto a = Kokkos::Experimental::simd<std::int32_t, Abi>(1);
-    auto b = Kokkos::Experimental::simd<std::uint64_t, Abi>(a);
-    EXPECT_TRUE(all_of(b == decltype(b)(1)));
-  }
-  {
-    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
-    auto b = Kokkos::Experimental::simd<std::int32_t, Abi>(a);
-    EXPECT_TRUE(all_of(b == decltype(b)(1)));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<double, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(a);
-    EXPECT_TRUE(b == decltype(b)(true));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<std::uint64_t, Abi>(a);
-    EXPECT_TRUE(b == decltype(b)(true));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<std::int64_t, Abi>(a);
-    EXPECT_TRUE(b == decltype(b)(true));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<double, Abi>(a);
-    EXPECT_TRUE(b == decltype(b)(true));
+
+  if constexpr (is_type_v<
+                    Kokkos::Experimental::basic_simd_mask<int32_t, Abi>> &&
+                is_type_v<
+                    Kokkos::Experimental::basic_simd_mask<int64_t, Abi>>) {
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<double, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<std::uint64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<double, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<double, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_bool())));
+    }
+    {
+      auto a =
+          Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<std::uint64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_bool())));
+    }
+    {
+      auto a =
+          Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int64_t, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_bool())));
+    }
+    {
+      auto a =
+          Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<double, Abi>(a);
+      EXPECT_TRUE(all_of(b == decltype(b)(Gen_bool())));
+    }
   }
 }
 
@@ -67,41 +127,84 @@ inline void host_check_conversions_all_abis(
 
 template <typename Abi>
 KOKKOS_INLINE_FUNCTION void device_check_conversions() {
-  kokkos_checker checker;
-  {
-    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
-    auto b = Kokkos::Experimental::simd<std::int64_t, Abi>(a);
-    checker.truth(all_of(b == decltype(b)(1)));
-  }
-  {
-    auto a = Kokkos::Experimental::simd<std::int32_t, Abi>(1);
-    auto b = Kokkos::Experimental::simd<std::uint64_t, Abi>(a);
-    checker.truth(all_of(b == decltype(b)(1)));
-  }
-  {
-    auto a = Kokkos::Experimental::simd<std::uint64_t, Abi>(1);
-    auto b = Kokkos::Experimental::simd<std::int32_t, Abi>(a);
-    checker.truth(all_of(b == decltype(b)(1)));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<double, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(a);
-    checker.truth(b == decltype(b)(true));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<std::uint64_t, Abi>(a);
-    checker.truth(b == decltype(b)(true));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<std::int64_t, Abi>(a);
-    checker.truth(b == decltype(b)(true));
-  }
-  {
-    auto a = Kokkos::Experimental::simd_mask<std::int32_t, Abi>(true);
-    auto b = Kokkos::Experimental::simd_mask<double, Abi>(a);
-    checker.truth(b == decltype(b)(true));
+  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<uint64_t, Abi>>) {
+    kokkos_checker checker;
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(1);
+      auto b = Kokkos::Experimental::basic_simd<std::int64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(1)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(1);
+      auto b = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(1)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(1);
+      auto b = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(1)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(
+          Gen_increment<std::uint64_t>());
+      auto b = Kokkos::Experimental::basic_simd<std::int64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_increment<std::int64_t>())));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(
+          Gen_increment<std::int32_t>());
+      auto b = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_increment<std::uint64_t>())));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd<std::uint64_t, Abi>(
+          Gen_increment<std::uint64_t>());
+      auto b = Kokkos::Experimental::basic_simd<std::int32_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_increment<std::int32_t>())));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<double, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<std::uint64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(true);
+      auto b = Kokkos::Experimental::basic_simd_mask<double, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(true)));
+    }
+    {
+      auto a = Kokkos::Experimental::basic_simd_mask<double, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_bool())));
+    }
+    {
+      auto a =
+          Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<std::uint64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_bool())));
+    }
+    {
+      auto a =
+          Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<std::int64_t, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_bool())));
+    }
+    {
+      auto a =
+          Kokkos::Experimental::basic_simd_mask<std::int32_t, Abi>(Gen_bool());
+      auto b = Kokkos::Experimental::basic_simd_mask<double, Abi>(a);
+      checker.truth(all_of(b == decltype(b)(Gen_bool())));
+    }
   }
 }
 

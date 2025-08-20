@@ -56,8 +56,7 @@ bool is_overlapping<Kokkos::HIP>(const Kokkos::HIP&) {
 
 #if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
 template <>
-bool is_overlapping<Kokkos::Experimental::SYCL>(
-    const Kokkos::Experimental::SYCL&) {
+bool is_overlapping<Kokkos::SYCL>(const Kokkos::SYCL&) {
   return true;
 }
 #endif
@@ -160,10 +159,7 @@ static void OverlapRangePolicy(benchmark::State& state) {
   int R = state.range(2);
 
   TEST_EXECSPACE space;
-  std::vector<TEST_EXECSPACE> execution_space_instances =
-      Kokkos::Experimental::partition_space(space, 1, 1);
-  TEST_EXECSPACE space1 = execution_space_instances[0];
-  TEST_EXECSPACE space2 = execution_space_instances[1];
+  auto [space1, space2] = Kokkos::Experimental::partition_space(space, 1, 1);
 
   for (auto _ : state) {
     Kokkos::View<double**, TEST_EXECSPACE> a("A", N, M);
@@ -333,10 +329,7 @@ static void OverlapMDRangePolicy(benchmark::State& state) {
   int R = state.range(2);
 
   TEST_EXECSPACE space;
-  std::vector<TEST_EXECSPACE> execution_space_instances =
-      Kokkos::Experimental::partition_space(space, 1, 1);
-  TEST_EXECSPACE space1 = execution_space_instances[0];
-  TEST_EXECSPACE space2 = execution_space_instances[1];
+  auto [space1, space2] = Kokkos::Experimental::partition_space(space, 1, 1);
 
   for (auto _ : state) {
     Kokkos::View<double**, TEST_EXECSPACE> a("A", N, M);
@@ -525,10 +518,7 @@ static void OverlapTeamPolicy(benchmark::State& state) {
   int R = state.range(2);
 
   TEST_EXECSPACE space;
-  std::vector<TEST_EXECSPACE> execution_space_instances =
-      Kokkos::Experimental::partition_space(space, 1, 1);
-  TEST_EXECSPACE space1 = execution_space_instances[0];
-  TEST_EXECSPACE space2 = execution_space_instances[1];
+  auto [space1, space2] = Kokkos::Experimental::partition_space(space, 1, 1);
 
   for (auto _ : state) {
     Kokkos::View<double**, Kokkos::LayoutRight, TEST_EXECSPACE> a("A", N, M);
