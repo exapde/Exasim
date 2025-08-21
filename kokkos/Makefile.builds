@@ -1,0 +1,45 @@
+# Makefile.builds - build Kokkos for different backends
+
+NPROCS := $(strip $(shell \
+  (command -v nproc >/dev/null 2>&1 && nproc) || \
+  (command -v sysctl >/dev/null 2>&1 && sysctl -n hw.ncpu) || \
+  (command -v getconf >/dev/null 2>&1 && getconf _NPROCESSORS_ONLN) || \
+  (command -v cmd.exe >/dev/null 2>&1 && cmd.exe /C echo %NUMBER_OF_PROCESSORS%) || \
+  echo 1))
+
+.PHONY: all serial cuda hip clean
+
+all: serial cuda hip
+
+serial:
+	mkdir -p buildserial
+	cd buildserial && \
+	  cmake .. \
+	    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	    -DCMAKE_INSTALL_PREFIX=../buildserial && \
+	  $(MAKE) -j$(NPROCS) install
+
+cuda:
+	mkdir -p buildcuda
+	cd buildcuda && \
+	  cmake .. \
+	    -DCMAKE_CXX_COMPILER=g++ \
+	    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	    -DKokkos_ENABLE_CUDA=ON \
+	    -DKokkos_ENABLE_CUDA_LAMBDA=ON \
+	    -DCMAKE_INSTALL_PREFIX=../buildcuda && \
+	  $(MAKE) -j$(NPROCS) install
+
+hip:
+	mkdir -p buildhip
+	cd buildhip && \
+	  cmake .. \
+	    -DCMAKE_CXX_COMPILER=hipcc \
+	    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	    -DKokkos_ENABLE_HIP=ON \
+	    -DKokkos_ENABLE_ROCM=ON \
+	    -DCMAKE_INSTALL_PREFIX=../buildhip && \
+	  $(MAKE) -j$(NPROCS) install
+
+clean:
+	rm -rf buildserial buildcuda buildhip
