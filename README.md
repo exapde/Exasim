@@ -28,7 +28,7 @@ Since Exasim uses Kokkos to target various computing platforms, you must build K
 cd Exasim/kokkos   
 mkdir buildserial
 cd buildserial
-cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=../buildserial
 make install   
 ```
 
@@ -37,7 +37,7 @@ To build Kokkos CUDA library for Nvidia GPU platform, please follow the below st
 cd Exasim/kokkos
 mkdir buildcuda
 cd buildcuda
-cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DKokkos_ENABLE_CUDA_LAMBDA=ON -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
 make install   
 ```
 To build Kokkos HIP library for AMD GPU platform, please follow the below steps
@@ -45,15 +45,14 @@ To build Kokkos HIP library for AMD GPU platform, please follow the below steps
 cd Exasim/kokkos
 mkdir buildhip
 cd buildhip
-cmake .. -DCMAKE_CXX_COMPILER=hipcc -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
+cmake .. -DCMAKE_CXX_COMPILER=hipcc -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
 make install   
 ```
 
 To use Text2Code as a code generator and preprocessor in Exasim, please follow the below steps
 ```
 cd Exasim/text2code
-cmake -S . -B superbuild 
-cmake --build superbuild -j4
+make text2code
 ``` 
 
 Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. After installing Text2Code successfully, please procceed installing Exasim as follows
