@@ -8,7 +8,7 @@ cmake --build superbuild -j4
 ##### If the above installation fails, then install them inviddually #####
 
 # Install GKlib
-cd text2code/GKlib 
+cd GKlib 
 make config prefix=$(pwd)
 make install
 
@@ -31,7 +31,7 @@ cmake -S . -B build \
   -DCMAKE_CXX_FLAGS="-std=gnu++17 -fPIC"
 
 cmake --build build -j4
-make install 
+cmake --install build 
 
 # Install TEXT2CODE
 cd ../text2code

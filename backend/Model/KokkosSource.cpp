@@ -4,7 +4,10 @@ void KokkosSource(dstype* f, const dstype* x, const dstype* uq, const dstype* v,
   Kokkos::parallel_for("Source", N, KOKKOS_LAMBDA(const size_t i) {
 
 
-    f[0 * N + i] = 0.0;
+    f[0 * N + i] = 0;
+    f[1 * N + i] = 0;
+    f[2 * N + i] = 0;
+    f[3 * N + i] = 0;
   });
 }
 

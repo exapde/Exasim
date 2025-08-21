@@ -2,14 +2,14 @@
 cd Exasim/kokkos
 mkdir buildserial
 cd buildserial
-cmake .. -DCMAKE_INSTALL_PREFIX=../buildserial
+cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=../buildserial
 make install   
 
 # Build Kokkos CUDA Library
 cd Exasim/kokkos
 mkdir buildcuda
 cd buildcuda
-cmake .. -DCMAKE_CXX_COMPILER=clang++ -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
+cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DKokkos_ENABLE_CUDA_LAMBDA=ON -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
 make install   
 
 

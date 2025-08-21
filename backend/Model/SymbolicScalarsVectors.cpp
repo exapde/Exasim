@@ -22,21 +22,21 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          eta[i] = Expression("eta"  + std::to_string(i));
     }
 
-    szuq = 4;
-    uq.resize(4);
-    for (int i = 0; i < 4; ++i) {
+    szuq = 12;
+    uq.resize(12);
+    for (int i = 0; i < 12; ++i) {
          uq[i] = Expression("uq"  + std::to_string(i));
     }
 
-    szn = 3;
-    n.resize(3);
-    for (int i = 0; i < 3; ++i) {
+    szn = 2;
+    n.resize(2);
+    for (int i = 0; i < 2; ++i) {
          n[i] = Expression("n"  + std::to_string(i));
     }
 
-    szuhat = 1;
-    uhat.resize(1);
-    for (int i = 0; i < 1; ++i) {
+    szuhat = 4;
+    uhat.resize(4);
+    for (int i = 0; i < 4; ++i) {
          uhat[i] = Expression("uhat"  + std::to_string(i));
     }
 
@@ -46,15 +46,15 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          v[i] = Expression("v"  + std::to_string(i));
     }
 
-    szmu = 5;
-    mu.resize(5);
-    for (int i = 0; i < 5; ++i) {
+    szmu = 8;
+    mu.resize(8);
+    for (int i = 0; i < 8; ++i) {
          mu[i] = Expression("mu"  + std::to_string(i));
     }
 
-    szx = 3;
-    x.resize(3);
-    for (int i = 0; i < 3; ++i) {
+    szx = 2;
+    x.resize(2);
+    for (int i = 0; i < 2; ++i) {
          x[i] = Expression("x"  + std::to_string(i));
     }
 

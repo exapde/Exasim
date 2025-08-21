@@ -364,6 +364,7 @@ int buildDynamicLibraries(ParsedSpec& spec)
         if (fs::exists(nvccw)) cuda_cxx = nvccw;
 
         const std::string inc_dir = make_path(kokkos_cuda_path, "include");
+        const std::string lib_dir = make_path(kokkos_cuda_path, "lib");
         const std::string lib_core = make_path(kokkos_cuda_path, "lib/libkokkoscore.a");
         const std::string lib_cont = make_path(kokkos_cuda_path, "lib/libkokkoscontainers.a");
         const std::string src      = make_path(spec.modelpath, "libpdemodel.cpp");
@@ -371,11 +372,10 @@ int buildDynamicLibraries(ParsedSpec& spec)
 
         std::cout << "Compiling libpdemodelcuda\n";
         std::stringstream cmd;
-        cmd << quote(cuda_cxx) << " -shared -std=c++17 -fPIC "
+        cmd << quote(cuda_cxx) << " -shared -std=c++17 -Xcompiler -fPIC --expt-extended-lambda --expt-relaxed-constexpr "
             << inc(spec.modelpath) << " " << inc(inc_dir) << " "
-            << quote(src) << " "
-            << quote(lib_core) << " " << quote(lib_cont) << " "
-            << "-o " << quote(out);
+            << quote(src) << " -L" << quote(lib_dir) << " -lkokkoscore -lkokkoscontainers -Wl,-rpath,"
+            << quote(lib_dir) << " " << "-o " << quote(out);
 
         std::cout << cmd.str() << "\n";
         status = std::system(cmd.str().c_str());

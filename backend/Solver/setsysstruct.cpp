@@ -333,15 +333,16 @@ void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruc
     
     sys.szipiv = max(common.ppdegree, M*M);
     sys.sztempmem = (5*M + M*M);
-        
-    TemplateMalloc(&sys.randvect, common.npe*common.ncu*common.ne, backend);        
+                 
     if (common.spatialScheme==0) {
+      TemplateMalloc(&sys.randvect, common.npe*common.ncu*common.ne, backend);     
       randomfield(sys.randvect, common, res, mesh, tmp, backend);
     }
     else {
       dstype *randvectu;
-      TemplateMalloc(&randvectu, common.npe*common.ncu*common.ne, backend);    
+      TemplateMalloc(&randvectu, common.npe*common.ncu*common.ne, backend);            
       randomfield(randvectu, common, res, mesh, tmp, backend);      
+      TemplateMalloc(&sys.randvect, ndof, backend);     
       GetFaceNodes(sys.randvect, randvectu, mesh.f2e, mesh.perm, common.npf, ncu, npe, ncu, common.nf);
     }    
     
