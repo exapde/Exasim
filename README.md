@@ -23,33 +23,24 @@ To deploy, compile, and run Exasim on **HPC systems**, please follow the intruct
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
 
-Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform, please follow the below steps
+Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform:
 ```
 cd Exasim/kokkos   
-mkdir buildserial
-cd buildserial
-cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=../buildserial
-make install   
+make -f Makefile.builds serial 
 ```
 
-To build Kokkos CUDA library for Nvidia GPU platform, please follow the below steps
+To build Kokkos CUDA library for Nvidia GPU platform:
 ```
 cd Exasim/kokkos
-mkdir buildcuda
-cd buildcuda
-cmake .. -DCMAKE_CXX_COMPILER=g++ -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DKokkos_ENABLE_CUDA_LAMBDA=ON -DKokkos_ENABLE_CUDA=ON -DCMAKE_INSTALL_PREFIX=../buildcuda
-make install   
+make -f Makefile.builds cuda   
 ```
-To build Kokkos HIP library for AMD GPU platform, please follow the below steps
+To build Kokkos HIP library for AMD GPU platform:
 ```
 cd Exasim/kokkos
-mkdir buildhip
-cd buildhip
-cmake .. -DCMAKE_CXX_COMPILER=hipcc -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_ROCM=ON -DCMAKE_INSTALL_PREFIX=../buildhip
-make install   
+make -f Makefile.builds hip   
 ```
 
-To use Text2Code as a code generator and preprocessor in Exasim, please follow the below steps
+To use Text2Code as a code generator and preprocessor in Exasim:
 ```
 cd Exasim/text2code
 make text2code
@@ -62,7 +53,7 @@ cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -
 cmake --build .
 ``` 
 
-This will produce Exasim's executable programs in Exasim/build. EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. If you hit any installation issues, see [install.txt](https://github.com/exapde/Exasim/blob/master/text2code/install.txt).
+This will produce Exasim's executable programs in Exasim/build. EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. 
 
 # Examples
 
