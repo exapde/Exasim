@@ -8,6 +8,8 @@
 #define REALTYPEWIDTH 32
 #define IDXTYPEWIDTH 32
 #define REALTYPEWIDTH 32
+#define IDXTYPEWIDTH 32
+#define REALTYPEWIDTH 32
 /*!
 \file metis.h 
 \brief This file contains function prototypes and constant definitions for METIS
