@@ -170,6 +170,10 @@ template <> bool is_nan_bitwise<float>(float x) {
 // Optional macro for quick usage
 #define IS_NAN(x) is_nan_bitwise<decltype(x)>(x)
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 // global variables for BLAS  
 dstype one = 1.0;
 dstype minusone = -1.0;
