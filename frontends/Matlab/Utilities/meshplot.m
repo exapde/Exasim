@@ -44,7 +44,7 @@ elseif dim == 2 || surface==1
     if opts(1) == 0 % plot elements using p        
         hh=[hh;patch('faces',t,'vertices',p,pars{:})];                        
     else            % plot elements using dgnodes
-        e=boundedges(mesh.plocal,mesh.tlocal,mesh.elemtype);
+        e=boundedges(mesh.xpe,mesh.telem,mesh.elemtype);
         e1=segcollect(e);        
         axis equal,axis off
         nt=size(mesh.dgnodes,3);
@@ -187,7 +187,7 @@ function e1=segcollect(e)
 %SEGCOLLECT Collect polygons from edge segments.
 
 ue=unique(e(:));
-he=histc(e(:),ue);
+he=histcounts(e(:),ue);
 current=ue(min(find(he==1))); % Find an endpoint
 if isempty(current) % Closed curve
   current=e(1,1);
