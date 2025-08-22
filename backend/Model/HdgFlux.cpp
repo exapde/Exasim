@@ -11,8 +11,8 @@ void HdgFlux(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const d
 		dstype udg1 = udg[0*ng+i];
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
-		dstype odg1 = odg[0*ng+i];
-		dstype odg2 = odg[1*ng+i];
+		dstype odg4 = odg[3*ng+i];
+		dstype odg5 = odg[4*ng+i];
 		{
 		dstype t2 = param5*param5;
 		dstype t3 = xdg1*xdg1;
@@ -28,8 +28,8 @@ void HdgFlux(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const d
 		dstype t13 = t12+1.0;
 		dstype t14 = t5*t6*t13;
 		dstype t17 = -1.0/(t14-time);
-		f[0*ng+i] = odg1*t17*udg1+param1*t12*udg2;
-		f[1*ng+i] = odg2*t17*udg1+param1*t12*udg3;
+		f[0*ng+i] = odg4*t17*udg1+param1*t12*udg2;
+		f[1*ng+i] = odg5*t17*udg1+param1*t12*udg3;
 		}
 		{
 		dstype t2 = param5*param5;
@@ -47,8 +47,8 @@ void HdgFlux(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const d
 		dstype t14 = t12+1.0;
 		dstype t15 = t5*t6*t14;
 		dstype t18 = -1.0/(t15-time);
-		f_udg[0*ng+i] = odg1*t18;
-		f_udg[1*ng+i] = odg2*t18;
+		f_udg[0*ng+i] = odg4*t18;
+		f_udg[1*ng+i] = odg5*t18;
 		f_udg[2*ng+i] = t13;
 		f_udg[3*ng+i] = 0.0;
 		f_udg[4*ng+i] = 0.0;

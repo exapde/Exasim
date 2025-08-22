@@ -13,8 +13,8 @@ void KokkosFbou1(dstype* f, const dstype* xdg, const dstype* udg, const dstype* 
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
-		dstype odg1 = odg[0*ng+i];
-		dstype odg2 = odg[1*ng+i];
+		dstype odg4 = odg[3*ng+i];
+		dstype odg5 = odg[4*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
 		dstype t2 = param5*param5;
@@ -30,7 +30,7 @@ void KokkosFbou1(dstype* f, const dstype* xdg, const dstype* udg, const dstype* 
 		dstype t12 = param3*t11;
 		dstype t13 = t12+1.0;
 		dstype t14 = t5*t6*t13;
-		f[0*ng+i] = -nlg1*((odg1*udg1)/(t14-time)-param1*t12*udg2)-nlg2*((odg2*udg1)/(t14-time)-param1*t12*udg3)+tau1*(udg1-uhg1);
+		f[0*ng+i] = -nlg1*((odg4*udg1)/(t14-time)-param1*t12*udg2)-nlg2*((odg5*udg1)/(t14-time)-param1*t12*udg3)+tau1*(udg1-uhg1);
 	});
 }
 

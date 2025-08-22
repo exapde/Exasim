@@ -1,0 +1,119 @@
+% Add Exasim to Matlab search path
+cdir = pwd(); ii = strfind(cdir, "Exasim");
+run(cdir(1:(ii+5)) + "/install/setpath.m");
+
+% initialize pde structure and mesh structure
+[pde,mesh] = initializeexasim();
+
+pde.nd = 2;
+pde.elemtype = 1;
+pde.nodetype = 1;
+pde.porder = 3;             % polynomial degree
+pde.pgauss = 2*pde.porder;
+
+% create a grid of 8 by 8 on the unit square
+[mesh.p,mesh.t] = squaremesh(50,50,1,pde.elemtype);
+mesh.p(1,:) = 2*mesh.p(1,:) - 1;
+mesh.p(2,:) = 2*mesh.p(2,:) - 1;
+
+% expressions for domain boundaries
+mesh.boundaryexpr = {@(p) abs(p(2,:)+1)<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(2,:)-1)<1e-8, @(p) abs(p(1,:)+1)<1e-8};
+mesh.boundarycondition = [1;1;1;1]; % Set boundary condition for each boundary
+mesh.porder = pde.porder;
+mesh.f = facenumbering(mesh.p,mesh.t,pde.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
+mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
+
+master = Master(pde);
+
+x = (mesh.dgnodes(:,1,:));
+y = (mesh.dgnodes(:,2,:));
+r = sqrt(x.^2+y.^2);
+a1 = 20;
+a2 = 100;
+a = 0.25;
+rho = 1 + a1*sech(a2*(r.^2-a^2));
+L = averagevector(master,mesh);
+theta = sum(L(:).*rho(:))/sum(L(:));
+
+rhox = -(2*a1*a2*x.*sinh(a2*(- a^2 + x.^2 + y.^2)))./cosh(a2*(- a^2 + x.^2 + y.^2)).^2;
+rhoy = -(2*a1*a2*y.*sinh(a2*(- a^2 + x.^2 + y.^2)))./cosh(a2*(- a^2 + x.^2 + y.^2)).^2;
+
+mesh.vdg = rho/theta;
+mesh.vdg(:,2,:) = rhox/theta;
+mesh.vdg(:,3,:) = rhoy/theta;
+
+pde.physicsparam = [1 theta a1 a2 a];  
+
+% solve Poisson equation with  homogeneous Neumann boundary condition
+pdeapp_poisson; % return sol 
+
+% get the velocity field as the gradient of the solution of the poisson equation
+mesh.vdg(:,4:5,:) = sol(:,2:3,:); 
+
+% original mesh;
+mesh.xpe = master.xpe;
+mesh.telem = master.telem;
+mesh.elemtype = master.elemtype;
+
+% mesh1 is the adaptive mesh
+mesh1 = mesh; 
+
+% solve the transport equation with initial condition u(x,y,t=0) = x
+mesh.udg = mesh.dgnodes(:,1,:);
+pdeapp_transport;
+
+pause
+
+% the x-component of the adaptive mesh is the solution of the transport
+% equation at time t = 1
+mesh1.dgnodes(:,1,:) = solt(:,1,:,end);
+
+% solve the transport equation with initial condition u(x,y,t=0) = y
+mesh.udg = mesh.dgnodes(:,2,:);
+pdeapp_transport;
+
+% the y-component of the adaptive mesh is the solution of the transport
+% equation at time t = 1
+mesh1.dgnodes(:,2,:) = solt(:,1,:,end);
+
+% plot the velocity field
+figure(1); clf; scaplot(mesh,sol(:,2,:),[],2); axis on; axis equal; axis tight;
+figure(2); clf; scaplot(mesh,sol(:,3,:),[],2); axis on; axis equal; axis tight;
+
+% plot the mesh density function
+x = (mesh.dgnodes(:,1,:));
+y = (mesh.dgnodes(:,2,:));
+r = sqrt(x.^2+y.^2);
+rho = 1 + a1*sech(a2*(r.^2-a^2));
+figure(3); clf; scaplot(mesh,rho(:,1,:),[],1); axis on; axis equal; axis tight;
+
+% plot the original mesh
+figure(4); clf; meshplot(mesh,1); axis on; axis equal; axis tight;
+
+% plot the adaptive mesh
+figure(5); clf; meshplot(mesh1,1); axis on; axis equal; axis tight;
+
+% % Compute rho, drhodx, and drhody
+% % 0. Calculate rho from the flow field 
+% % 0.a gradient of the flow density = sqrt(UDG(:,5,:).^2 + UDG(:,9,:).^2);
+% % 0.b rho = 1 + limiting(grad r, 0, 10, 1e3, 0)
+% % 0.c Calculate drhodx and drhody
+% 
+% % INPUT: mesh, rho, drhodx, drhody
+% % OUTPUT: mesh1 
+% % mesh1 = radaptivity(mesh, rho, drhodx, drhody, diffcoeff)
+% 
+% % Implementation of radaptivity
+% % 0. mesh1 = mesh
+% % 1. Calculate theta = int_\Omega rho dx / int_\Omega dx
+% % 2. calculate F = rho/theta 
+% % 3. mesh.vdg(:,1,:) = F, mesh.vdg(:,2,:) = drhodx/theta, mesh.vdg(:,3,:) = drhody/theta
+% % 4. Solve the Poisson equation by calling pdeapp_poisson to obtain sol = (u, dudx, dudy)
+% % 5. mesh.vdg(:,4,:) = sol(:,2,:), mesh.vdg(:,5,:) = sol(:,3,:)
+% % 6. Solve the transport equation with IC u = x 
+% % 6.a mesh.udg = mesh.dgnodes(:,1,:) 
+% % 6.b call pdeapp_transport and set mesh1.dgnodes(:,1,:) = solt(:,1,:,end)
+% % 7. Solve the transport equation with IC u = y 
+% % 7.a mesh.udg = mesh.dgnodes(:,2,:) 
+% % 7.b call pdeapp_transport and set mesh1.dgnodes(:,2,:) = solt(:,2,:,end)
+% 

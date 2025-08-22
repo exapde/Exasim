@@ -8,8 +8,8 @@ void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype xdg1 = xdg[0*ng+i];
 		dstype xdg2 = xdg[1*ng+i];
 		dstype udg1 = udg[0*ng+i];
-		dstype odg1 = odg[0*ng+i];
-		dstype odg2 = odg[1*ng+i];
+		dstype odg4 = odg[3*ng+i];
+		dstype odg5 = odg[4*ng+i];
 		dstype t2 = param5*param5;
 		dstype t3 = xdg1*xdg1;
 		dstype t4 = xdg2*xdg2;
@@ -26,7 +26,7 @@ void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype t15 = t14+1.0;
 		dstype t16 = t5*t6*t15;
 		dstype t19 = -1.0/(t16-time);
-		f[0*ng+i] = t19*udg1*(t5*t15+t5*t6*((odg1*param3*param4*t11*t13*xdg1*2.0)/(t16-time)+(odg2*param3*param4*t11*t13*xdg2*2.0)/(t16-time))-1.0);
+		f[0*ng+i] = t19*udg1*(t5*t15+t5*t6*((odg4*param3*param4*t11*t13*xdg1*2.0)/(t16-time)+(odg5*param3*param4*t11*t13*xdg2*2.0)/(t16-time))-1.0);
 	});
 }
 
