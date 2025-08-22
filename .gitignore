@@ -96,3 +96,8 @@ backend/Model/KokkosSource.cpp
 backend/Model/KokkosSourcew.cpp
 backend/Model/KokkosTdfunc.cpp
 backend/Model/KokkosUbou.cpp
+backend/Model/HdgFlux.cpp
+backend/Model/HdgSource.cpp
+backend/Model/KokkosFbou.cpp
+backend/Model/KokkosFlux.cpp
+backend/Model/KokkosSource.cpp

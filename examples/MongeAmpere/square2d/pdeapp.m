@@ -19,7 +19,7 @@ pdeapp_transport;
 
 % the x-component of the adaptive mesh is the solution of the transport
 % equation at time t = 1
-mesh1.dgnodes(:,1,:) = solt(:,:,:,end);
+mesh1.dgnodes(:,1,:) = solt(:,1,:,end);
 
 % solve the transport equation with initial condition u(x,y,t=0) = y
 mesh.udg = mesh.dgnodes(:,2,:);
@@ -27,7 +27,7 @@ pdeapp_transport;
 
 % the y-component of the adaptive mesh is the solution of the transport
 % equation at time t = 1
-mesh1.dgnodes(:,2,:) = solt(:,:,:,end);
+mesh1.dgnodes(:,2,:) = solt(:,1,:,end);
 
 % plot the velocity field
 figure(1); clf; scaplot(mesh,sol(:,2,:),[],2); axis on; axis equal; axis tight;

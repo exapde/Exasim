@@ -8,6 +8,8 @@ void HdgFbou1(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dsty
 		}
 		{
 		f_udg[0*ng+i] = 1.0;
+		f_udg[1*ng+i] = 0.0;
+		f_udg[2*ng+i] = 0.0;
 		}
 		{
 		f_uhg[0*ng+i] = -1.0;

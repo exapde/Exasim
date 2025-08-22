@@ -47,6 +47,8 @@ void HdgSource(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const
 		dstype t16 = t5*t6*t15;
 		dstype t19 = -1.0/(t16-time);
 		f_udg[0*ng+i] = t19*(t5*t15+t5*t6*((odg1*param3*param4*t11*t13*xdg1*2.0)/(t16-time)+(odg2*param3*param4*t11*t13*xdg2*2.0)/(t16-time))-1.0);
+		f_udg[1*ng+i] = 0.0;
+		f_udg[2*ng+i] = 0.0;
 		}
 	});
 }

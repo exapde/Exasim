@@ -30,7 +30,7 @@ F = rho/theta;
 w1 = v1/(t + (1-t)*F);
 w2 = v2/(t + (1-t)*F);
 
-f = [w1*u w2*u];
+f = [w1*u+mu(1)*(rho-1)*q(1) w2*u+mu(1)*(rho-1)*q(2)];
 end
 
 function s = source(u, q, w, v, x, t, mu, eta)
