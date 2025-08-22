@@ -14,19 +14,19 @@ end
 
 function s = source(u, q, w, v, x, t, mu, eta)
 
-theta = mu(2);
-a1 = mu(3);
-a2 = mu(4);
-a = mu(5);
-x1 = x(1);
-x2 = x(2);
+% theta = mu(2);
+% a1 = mu(3);
+% a2 = mu(4);
+% a = mu(5);
+% x1 = x(1);
+% x2 = x(2);
+% 
+% r = sqrt(x1^2 + x2^2);
+% rho = 1 + a1*sech(a2*(r^2 - a^2));
+% F = rho/theta;
+% s = F - 1;
 
-r = sqrt(x1^2 + x2^2);
-rho = 1 + a1*sech(a2*(r^2 - a^2));
-F = rho/theta;
-s = F - 1;
-
-% s = v(1) - 1;
+s = v(1) - 1;
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
