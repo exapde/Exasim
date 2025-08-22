@@ -53,8 +53,24 @@ L = averagevector(master,mesh);
 theta = sum(L(:).*rho(:))/sum(L(:));
 pde.physicsparam = [1 theta a1 a2 a];  
 
+% L_i = int phi_i dx
+
+% rho ->  theta = int rho dx / |Omega| 
+% F = rho/theta
+% int F dx =  int rho/theta dx = int rho dx/ int rho dx / |Omega| = |Omega|
+
 % call exasim to generate and run C++ code to solve the PDE model
 [sol,pde,mesh,master,dmd,comstr,runstr] = exasim(pde,mesh);
 
-
-
+% Apply to the cone problem
+% 1. Calculate rho from the flow field 
+% 2. Calculate theta
+% 3. calculate F = rho/theta 
+% 4. calculate grad rho = (drhodx, drhody) 
+% 5. mesh.vdg(:,1,:) = F, mesh.vdg(:,2,:) = drhodx/theta, mesh.vdg(:,3,:) = drhody/theta
+% 6. Solve the Poisson equation to obtain sol = (u, dudx, dudy)
+% 7. mesh.vdg(:,4,:) = sol(:,2,:), mesh.vdg(:,5,:) = sol(:,3,:)
+% 8. Solve the transport equation with IC u = x 
+% 8. mesh.udg = mesh.dgnodes(:,1,:) and mesh1.dgnodes(:,1,:) = solt(:,1,:,end)
+% 9. Solve the transport equation with IC u = y 
+% 9. mesh.udg = mesh.dgnodes(:,2,:) and mesh1.dgnodes(:,2,:) = solt(:,1,:,end)

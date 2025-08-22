@@ -23,7 +23,7 @@ pdet.tau = 2.0;               % DG stabilization parameter
 pdet.dt = 0.02*ones(1,50);   % time step sizes
 pdet.soltime = 1:length(pdet.dt); % steps at which solution are collected
 pdet.visdt = 0.05; % visualization timestep size
-pdet.physicsparam = [1e-4 theta a1 a2 a];  
+pdet.physicsparam = [1-4 theta a1 a2 a];  
 
 % % call exasim to generate and run C++ code to solve the PDE model
 [solt,pdet] = exasim(pdet,mesh);

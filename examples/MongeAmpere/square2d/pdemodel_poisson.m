@@ -26,6 +26,7 @@ rho = 1 + a1*sech(a2*(r^2 - a^2));
 F = rho/theta;
 s = F - 1;
 
+% s = v(1) - 1;
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)

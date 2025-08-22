@@ -1,6 +1,6 @@
 
 % solve Poisson equation with  homogeneous Neumann boundary condition
-pdeapp_poisson; 
+pdeapp_poisson; % return sol 
 
 % get the velocity field as the gradient of the solution of the poisson equation
 mesh.vdg = sol(:,2:3,:); 
@@ -45,4 +45,28 @@ figure(4); clf; meshplot(mesh,1); axis on; axis equal; axis tight;
 
 % plot the adaptive mesh
 figure(5); clf; meshplot(mesh1,1); axis on; axis equal; axis tight;
+
+% Compute rho, drhodx, and drhody
+% 0. Calculate rho from the flow field 
+% 0.a gradient of the flow density = sqrt(UDG(:,5,:).^2 + UDG(:,9,:).^2);
+% 0.b rho = 1 + limiting(grad r, 0, 10, 1e3, 0)
+% 0.c Calculate drhodx and drhody
+
+% INPUT: mesh, rho, drhodx, drhody
+% OUTPUT: mesh1 
+% mesh1 = radaptivity(mesh, rho, drhodx, drhody, diffcoeff)
+
+% Implementation of radaptivity
+% 0. mesh1 = mesh
+% 1. Calculate theta = int_\Omega rho dx / int_\Omega dx
+% 2. calculate F = rho/theta 
+% 3. mesh.vdg(:,1,:) = F, mesh.vdg(:,2,:) = drhodx/theta, mesh.vdg(:,3,:) = drhody/theta
+% 4. Solve the Poisson equation by calling pdeapp_poisson to obtain sol = (u, dudx, dudy)
+% 5. mesh.vdg(:,4,:) = sol(:,2,:), mesh.vdg(:,5,:) = sol(:,3,:)
+% 6. Solve the transport equation with IC u = x 
+% 6.a mesh.udg = mesh.dgnodes(:,1,:) 
+% 6.b call pdeapp_transport and set mesh1.dgnodes(:,1,:) = solt(:,1,:,end)
+% 7. Solve the transport equation with IC u = y 
+% 7.a mesh.udg = mesh.dgnodes(:,2,:) 
+% 7.b call pdeapp_transport and set mesh1.dgnodes(:,2,:) = solt(:,2,:,end)
 

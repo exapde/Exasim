@@ -13,8 +13,8 @@ m = sym(1.0);
 end
 
 function f = flux(u, q, w, v, x, t, mu, eta)
-v1 = v(1);
-v2 = v(2);
+v1 = v(1); % x-component of the velocity field
+v2 = v(2); % y-component of the velocity field
 
 theta = mu(2);
 a1 = mu(3);
@@ -31,6 +31,14 @@ w1 = v1/(t + (1-t)*F);
 w2 = v2/(t + (1-t)*F);
 
 f = [w1*u+mu(1)*(rho-1)*q(1) w2*u+mu(1)*(rho-1)*q(2)];
+
+% F = v(1);
+% v1 = v(4);
+% v2 = v(5);
+% w1 = v1/(t + (1-t)*F);
+% w2 = v2/(t + (1-t)*F);
+% f = [w1*u+mu(1)*(rho-1)*q(1) w2*u+mu(1)*(rho-1)*q(2)];
+
 end
 
 function s = source(u, q, w, v, x, t, mu, eta)
@@ -56,6 +64,16 @@ w2 = v2/(t + (1-t)*F);
 
 d = (w1*rho1 + w2*rho2)/theta;
 s = u*(F - 1 - (1 - t)*d)/(t + (1-t)*F);
+
+% F = v(1);
+% F1 = v(2);
+% F2 = v(3);
+% v1 = v(4);
+% v2 = v(5);
+% w1 = v1/(t + (1-t)*F);
+% w2 = v2/(t + (1-t)*F);
+% d = (w1*F1 + w2*F2);
+% s = u*(F - 1 - (1 - t)*d)/(t + (1-t)*F);
 
 end
 
