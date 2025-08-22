@@ -16,8 +16,8 @@ serial:
 	cd buildserial && \
 	  cmake .. \
 	    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-	    -DCMAKE_INSTALL_PREFIX=../buildserial && cmake --build . && \
-	  $(MAKE) install
+	    -DCMAKE_INSTALL_PREFIX=../buildserial &&  \
+	  cmake --build . && cmake --install
 
 cuda:
 	mkdir -p buildcuda
@@ -27,8 +27,8 @@ cuda:
 	    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 	    -DKokkos_ENABLE_CUDA=ON \
 	    -DKokkos_ENABLE_CUDA_LAMBDA=ON \
-	    -DCMAKE_INSTALL_PREFIX=../buildcuda && cmake --build . && \
-	  $(MAKE) install
+	    -DCMAKE_INSTALL_PREFIX=../buildcuda && \
+	  cmake --build . && cmake --install
 
 hip:
 	mkdir -p buildhip
@@ -38,8 +38,8 @@ hip:
 	    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 	    -DKokkos_ENABLE_HIP=ON \
 	    -DKokkos_ENABLE_ROCM=ON \
-	    -DCMAKE_INSTALL_PREFIX=../buildhip && cmake --build . && \
-	  $(MAKE) install
+	    -DCMAKE_INSTALL_PREFIX=../buildhip &&  \
+	  cmake --build . && cmake --install
 
 clean:
 	rm -rf buildserial buildcuda buildhip
