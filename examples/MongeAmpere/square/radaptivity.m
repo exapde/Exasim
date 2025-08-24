@@ -1,10 +1,13 @@
-function mesh1 = radaptivity(mesh, rho, kappa, diffcoeff)
+function mesh1 = radaptivity(mesh, rho, kappa, diffcoeff, nhms)
 
 if nargin<3 
     kappa = 0.1;
 end
 if nargin<4
     diffcoeff = 0;
+end
+if nargin<5
+    nhms = 1;
 end
 
 % initialize pde structure and mesh structure
@@ -64,8 +67,8 @@ end
 runcode(pdehm, 1); % run C++ code
 solhm = fetchsolution(pdehm,master,dmd,pdehm.buildpath + '/dataout');
 
-nhm = 1;
-for i = 2:nhm
+% solve Helmholtz equation again if nhms > 1
+for i = 2:nhms
     mesh.vdg(:,2,:) = solhm(:,1,:);
     runcode(pdehm, 1); % run C++ code
     solhm = fetchsolution(pdehm,master,dmd,pdehm.buildpath + '/dataout');

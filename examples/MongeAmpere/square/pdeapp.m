@@ -4,5 +4,5 @@ run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 [mesh, rho] = mkmesh_square(50, 4, 1);
 
-mesh1 = radaptivity(mesh, rho, 0.1, 1e-4);
+mesh1 = radaptivity(mesh, rho, 0.1, 1e-4, 1);
 
