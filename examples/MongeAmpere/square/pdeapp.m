@@ -2,8 +2,7 @@
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/install/setpath.m");
 
-[mesh, rho, drhodx, drhody] = mkmesh_square(50, 4, 1);
+[mesh, rho] = mkmesh_square(50, 4, 1);
 
-mesh1 = radaptivity(mesh, rho, drhodx, drhody, 1e-4);
-
+mesh1 = radaptivity(mesh, rho, 0.1, 1e-4);
 

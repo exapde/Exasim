@@ -37,8 +37,8 @@ v1 = v(4);
 v2 = v(5);
 w1 = v1/(t + (1-t)*F);
 w2 = v2/(t + (1-t)*F);
-rho = mu(2)*F;
-f = [w1*u+mu(1)*(rho-1)*q(1) w2*u+mu(1)*(rho-1)*q(2)];
+hz = (mu(2)*F - 1)*v(6);
+f = [w1*u+mu(1)*hz*q(1) w2*u+mu(1)*hz*q(2)];
 
 end
 
@@ -93,6 +93,8 @@ end
 
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 fb = u(1) - uhat(1);
+% f = flux(u, q, w, v, x, t, mu, eta);
+% fb = f(1)*n(1) + f(2)*n(2) + tau*(u(1)-uhat(1));
 end
 
 
