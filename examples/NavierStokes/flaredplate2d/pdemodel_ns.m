@@ -99,63 +99,18 @@ f = fi+fv +fl;
 f = reshape(f,[4,2]);        
 end
 
-% function f = avfield(u, q, w, v, x, t, mu, eta)
-%     f = getavfield2d(u,q,v,mu);
-% end
-
 function s = source(u, q, w, v, x, t, mu, eta)
     s = [sym(0.0); sym(0.0); sym(0.0); sym(0.0)];
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-
-    f = flux(uhat, q, w, v, x, t, mu, eta);
-    fi = f(:,1)*n(1) + f(:,2)*n(2) + tau*(u-uhat); % numerical flux at freestream boundary
-    
-    % adiabatic wall
-    faw = fi;
-    faw(1) = 0.0;   % zero velocity 
-    faw(end) = 0.0; % adiabatic wall -> zero heat flux
-    
-    % Flux Thermal Wall
-    ftw = fi;
-    ftw(1) = 0.0;
-    
-    % freestream, adiabatic wall, isothermal wall, adiabatic slip wall, supersonic inflow, supersonic outflow
-    fb = [fi faw ftw faw fi fi]; 
+    fb = 0*uhat; 
 end
 
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-
-    gam = mu(1);
-    gam1 = gam - 1.0;
-    
-    % freestream boundary condition
-    uinf = sym(mu(5:8)); % freestream flow
-    uinf = uinf(:);
-    u = u(:);          % state variables 
-
-    nx = n(1); ny = n(2);
-
-    % Isothermal Wall
-    Tinf = mu(9);
-    Tref = mu(10);
-    Twall = mu(11);
-    TisoW = Twall/Tref * Tinf;
-    utw = u(:);
-    utw(2:3) = 0;
-    utw(4) = u(1)*TisoW;
-    
-    % Slip wall
-    usw = u;
-    usw(2) = u(2) - nx * (u(2)*nx + u(3)*ny);
-    usw(3) = u(3) - ny * (u(2)*nx + u(3)*ny);
-    
-    % freestream, adiabatic wall, isothermal wall, adiabatic slip wall, supersonic inflow, supersonic outflow
-    ub = [uinf uinf utw usw uinf u]; 
+    ub = 0*uhat; 
 end
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-
 
     gam = mu(1);
     gam1 = gam - 1.0;
@@ -177,8 +132,31 @@ function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     f1(4) = -uhat(4) +uhat(1)*TisoW;
     % f = flux(uhat, q, w, v, x, t, mu, eta);
     % f1(4) = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4)); % zero heat flux
-    % freestream, adiabatic wall, isothermal wall, adiabatic slip wall, supersonic inflow, supersonic outflow
-    fb = [f_in f_in f1 f1 f_in f_out];
+
+    % uinf = u;
+    % run = u(2)*n(1) + u(3)*n(2);
+    % uinf(2) = uinf(2) - n(1).*run;
+    % uinf(3) = uinf(3) - n(2).*run;
+    % f2 = (uinf - uhat);    
+    % f = flux(uhat, q, w, v, x, t, mu, eta);
+    % f1(4) = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4)); % zero heat flux
+
+    % slip wall condition                
+    ru = u(2);
+    rv = u(3);
+    nx = n(1);
+    ny = n(2);   
+    run = ru*nx + rv*ny;        
+    uinf = u;
+    uinf(2) = uinf(2) - nx.*run;
+    uinf(3) = uinf(3) - ny.*run;
+    f_slip = tau*(uinf - uhat);    
+    
+    % zero gradient condition
+    q = q(:);
+    f_grad = q(1:4)*nx + q(5:8)*ny + tau*(u(:) - uhat(:));
+    
+    fb = [f_in f_out f1 f_slip f_grad];
 end
 
 function u0 = initu(x, mu, eta)

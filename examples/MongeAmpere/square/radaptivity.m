@@ -1,14 +1,14 @@
-function mesh1 = radaptivity(mesh, rho, kappa, diffcoeff, nhms)
-
-if nargin<3 
-    kappa = 0.1;
-end
-if nargin<4
-    diffcoeff = 0;
-end
-if nargin<5
-    nhms = 1;
-end
+% function mesh1 = radaptivity(mesh, rho, kappa, diffcoeff, nhms)
+% 
+% if nargin<3 
+%     kappa = 0.1;
+% end
+% if nargin<4
+%     diffcoeff = 0;
+% end
+% if nargin<5
+%     nhms = 1;
+% end
 
 % initialize pde structure and mesh structure
 [pde, mesh0] = initializeexasim();
@@ -48,6 +48,7 @@ mesh.telem = master.telem;
 [~, ~, jac] = volgeom(master.shapent,permute(mesh.dgnodes,[1 3 2]));
 mesh.vdg = reshape(jac, size(mesh.dgnodes(:,1,:)));
 mesh.vdg(:,2,:) = rho;
+mesh.vdg(:,1,:) = 1;
 
 % solve Helmholtz equation with homogeneous Neumann boundary condition
 pdehm = pde;
@@ -80,13 +81,17 @@ rho = solhm(:,1,:);
 drhodx = -solhm(:,2,:);
 drhody = -solhm(:,3,:);
 
-% figure(1); clf; scaplot(mesh,rho(:,1,:),[],1); axis on; axis equal; axis tight;
-% figure(2); clf; scaplot(mesh,drhodx(:,1,:),[],1); axis on; axis equal; axis tight;
-% figure(3); clf; scaplot(mesh,drhody(:,1,:),[],1); axis on; axis equal; axis tight;
-% figure(4); clf; scaplot(mesh,solhm(:,1,:),[],1); axis on; axis equal; axis tight;
-% figure(5); clf; scaplot(mesh,-solhm(:,2,:),[],1); axis on; axis equal; axis tight;
-% figure(6); clf; scaplot(mesh,-solhm(:,3,:),[],1); axis on; axis equal; axis tight;
-% pause
+figure(1); clf; scaplot(mesh,rho0(:,1,:),[],1); axis on; axis equal; axis tight;
+figure(2); clf; scaplot(mesh,mesh.vdg(:,1,:),[],1); axis on; axis equal; axis tight;
+%figure(3); clf; scaplot(mesh,drhody(:,1,:),[],1); axis on; axis equal; axis tight;
+figure(4); clf; scaplot(mesh,solhm(:,1,:),[],1); axis on; axis equal; axis tight;
+figure(5); clf; scaplot(mesh,-solhm(:,2,:),[],1); axis on; axis equal; axis tight;
+figure(6); clf; scaplot(mesh,-solhm(:,3,:),[],1); axis on; axis equal; axis tight;
+pause
+
+% rho(:) = 1;
+% drhodx(:) = 0;
+% drhody(:) = 0;
 
 L = averagevector(master,mesh);
 theta = sum(L(:).*rho(:))/sum(L(:));
@@ -96,10 +101,12 @@ mesh.vdg(:,3,:) = drhody/theta;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.physicsparam = [1 theta];  
-pde.tau = 1.0;              % DG stabilization parameter
+pde.tau = 2.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-8; % GMRES tolerance
 pde.preconditioner = 1;
-pde.GMRESrestart = 100;
+pde.GMRESrestart = 200;
+pde.linearsolveriter = 400;
+pde.NLtol = 1e-8;
 
 % solve Poisson equation with  homogeneous Neumann boundary condition
 pde.buildpath = rpath + "/poisson"; 
@@ -111,6 +118,11 @@ end
 runcode(pde, 1); % run C++ code
 % get solution from output files in dataout folder
 sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
+
+% plot the velocity field
+figure(1); clf; scaplot(mesh,sol(:,2,:),[],2); axis on; axis equal; axis tight;
+figure(2); clf; scaplot(mesh,sol(:,3,:),[],2); axis on; axis equal; axis tight;
+pause
 
 % get the velocity field as the gradient of the solution of the poisson equation
 mesh.vdg(:,4:5,:) = sol(:,2:3,:); 
@@ -160,10 +172,6 @@ solt = fetchsolution(pdet,master,dmd, pdet.buildpath + '/dataout');
 % the y-component of the adaptive mesh is the solution of the transport
 % equation at time t = 1
 mesh1.dgnodes(:,2,:) = solt(:,1,:,end);
-
-% plot the velocity field
-figure(1); clf; scaplot(mesh,sol(:,2,:),[],2); axis on; axis equal; axis tight;
-figure(2); clf; scaplot(mesh,sol(:,3,:),[],2); axis on; axis equal; axis tight;
 
 % plot the mesh density function
 figure(3); clf; scaplot(mesh,rho0(:,1,:),[],1); axis on; axis equal; axis tight;

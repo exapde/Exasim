@@ -123,3 +123,4 @@ backend/Model/KokkosTdfunc.cpp
 backend/Model/HdgFlux.cpp
 backend/Model/KokkosFbou.cpp
 backend/Model/KokkosFlux.cpp
+/examples/NavierStokes/cone2d
