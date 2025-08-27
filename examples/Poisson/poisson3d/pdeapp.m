@@ -23,7 +23,7 @@ pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-6; % GMRES tolerance
 pde.ppdegree = 1;           % degree of polynomial preconditioner
 pde.RBdim = 0;              % reduced basis dimension for preconditioner
-pde.GMRESrestart = 202;
+pde.GMRESrestart = 50;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
 [mesh.p,mesh.t] = cubemesh(8,8,8,1);

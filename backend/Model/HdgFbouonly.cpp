@@ -2,15 +2,34 @@ void HdgFbouonly1(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 {
 	Kokkos::parallel_for("Fbouonly1", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype param1 = param[0];
+		dstype param2 = param[1];
 		dstype tau1 = tau[0];
 		dstype udg1 = udg[0*ng+i];
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
+		dstype udg4 = udg[3*ng+i];
+		dstype udg5 = udg[4*ng+i];
+		dstype udg6 = udg[5*ng+i];
+		dstype udg7 = udg[6*ng+i];
+		dstype udg8 = udg[7*ng+i];
+		dstype udg9 = udg[8*ng+i];
+		dstype udg10 = udg[9*ng+i];
+		dstype udg11 = udg[10*ng+i];
+		dstype udg12 = udg[11*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
-		dstype odg1 = odg[0*ng+i];
+		dstype uhg2 = uhg[1*ng+i];
+		dstype uhg3 = uhg[2*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*odg1*param1*udg2+nlg2*odg1*param1*udg3;
+		dstype nlg3 = nlg[2*ng+i];
+		dstype t2 = udg5+udg7;
+		dstype t3 = udg6+udg10;
+		dstype t4 = udg9+udg11;
+		dstype t5 = udg4+udg8+udg12;
+		dstype t6 = param2*t5;
+		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*(t6+param1*udg4*2.0)+nlg2*param1*t2+nlg3*param1*t3;
+		f[1*ng+i] = tau1*(udg2-uhg2)+nlg2*(t6+param1*udg8*2.0)+nlg1*param1*t2+nlg3*param1*t4;
+		f[2*ng+i] = tau1*(udg3-uhg3)+nlg3*(t6+param1*udg12*2.0)+nlg1*param1*t3+nlg2*param1*t4;
 	});
 }
 
@@ -19,35 +38,49 @@ void HdgFbouonly2(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 	Kokkos::parallel_for("Fbouonly2", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype tau1 = tau[0];
 		dstype uhg1 = uhg[0*ng+i];
+		dstype uhg2 = uhg[1*ng+i];
+		dstype uhg3 = uhg[2*ng+i];
 		f[0*ng+i] = -tau1*uhg1;
+		f[1*ng+i] = -tau1*uhg2;
+		f[2*ng+i] = -tau1*uhg3;
 	});
 }
 
 void HdgFbouonly3(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
 {
 	Kokkos::parallel_for("Fbouonly3", ng, KOKKOS_LAMBDA(const size_t i) {
-		dstype tau1 = tau[0];
-		dstype uhg1 = uhg[0*ng+i];
-		dstype odg2 = odg[1*ng+i];
-		f[0*ng+i] = tau1*(odg2-uhg1);
-	});
-}
-
-void HdgFbouonly4(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
-{
-	Kokkos::parallel_for("Fbouonly4", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype param1 = param[0];
+		dstype param2 = param[1];
+		dstype param3 = param[2];
+		dstype param4 = param[3];
+		dstype param5 = param[4];
 		dstype tau1 = tau[0];
 		dstype udg1 = udg[0*ng+i];
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
+		dstype udg4 = udg[3*ng+i];
+		dstype udg5 = udg[4*ng+i];
+		dstype udg6 = udg[5*ng+i];
+		dstype udg7 = udg[6*ng+i];
+		dstype udg8 = udg[7*ng+i];
+		dstype udg9 = udg[8*ng+i];
+		dstype udg10 = udg[9*ng+i];
+		dstype udg11 = udg[10*ng+i];
+		dstype udg12 = udg[11*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
-		dstype odg1 = odg[0*ng+i];
-		dstype odg2 = odg[1*ng+i];
+		dstype uhg2 = uhg[1*ng+i];
+		dstype uhg3 = uhg[2*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		dstype t2 = -uhg1;
-		f[0*ng+i] = tau1*(odg2+t2)+tau1*(t2+udg1)+nlg1*odg1*param1*udg2+nlg2*odg1*param1*udg3;
+		dstype nlg3 = nlg[2*ng+i];
+		dstype t2 = udg5+udg7;
+		dstype t3 = udg6+udg10;
+		dstype t4 = udg9+udg11;
+		dstype t5 = udg4+udg8+udg12;
+		dstype t6 = param2*t5;
+		f[0*ng+i] = -param3+tau1*(udg1-uhg1)+nlg1*(t6+param1*udg4*2.0)+nlg2*param1*t2+nlg3*param1*t3;
+		f[1*ng+i] = -param4+tau1*(udg2-uhg2)+nlg2*(t6+param1*udg8*2.0)+nlg1*param1*t2+nlg3*param1*t4;
+		f[2*ng+i] = -param5+tau1*(udg3-uhg3)+nlg3*(t6+param1*udg12*2.0)+nlg1*param1*t3+nlg2*param1*t4;
 	});
 }
 
@@ -59,7 +92,5 @@ void HdgFbouonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* 
 		HdgFbouonly2(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
 	else if (ib == 3)
 		HdgFbouonly3(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
-	else if (ib == 4)
-		HdgFbouonly4(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
 }
 
