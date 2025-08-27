@@ -31,7 +31,12 @@ end
 
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 f = flux(u, q, w, v, x, t, mu, eta);
-fb = f(1)*n(1) + f(2)*n(2) + tau*(u-uhat);
+fb1 = f(1)*n(1) + f(2)*n(2) + tau*(u-uhat);
+fb2 = tau*(0-uhat); 
+fb3 = tau*(v(2)-uhat); 
+fb4 = f(1)*n(1) + f(2)*n(2) + tau*(u-uhat) + tau*(v(2)-uhat);
+fb = [fb1 fb2 fb3 fb4];
 end
+
 
 

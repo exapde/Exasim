@@ -4,7 +4,11 @@ run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 % initialize pdehm structure and mesh structure
 [pdehm,~] = initializeexasim();
+
 pdehm.buildpath = string(pwd()) + "/hm";
+if exist(pdehm.buildpath, 'dir') == 0
+    mkdir(pdehm.buildpath);
+end
 
 % Define a pdehm model: governing equations, initial solutions, and boundary conditions
 pdehm.model = "ModelD";          % ModelC, ModelD, ModelW
@@ -35,7 +39,6 @@ meshhm.boundarycondition = [1;1;1;1;1;1;1];
 
 [~,cgelcon,rowent2elem,colent2elem,~] = mkcgent2dgent(meshhm.dgnodes,1e-8);
 
-
 div = limiting(divergence(sol, 1),0,divmax,1e3,0);
 div = div/max(div(:)); 
 div = limiting(div,0,1,1e3,0.1);
@@ -49,7 +52,6 @@ dis = limiting(dis,0,1,1e3,0.1);
 div = div/max(div(:));
 dis = dis/max(dis(:));
 meshhm.vdg = (div+dis);
-% meshhm.vdg = dg2cg2(meshhm.vdg, cgelcon, colent2elem, rowent2elem);
 % meshhm.vdg = dg2cg2(meshhm.vdg, cgelcon, colent2elem, rowent2elem);
 
 [~, ~, jac] = volgeom(master.shapent,permute(meshhm.dgnodes,[1 3 2]));
@@ -77,17 +79,4 @@ figure(2); clf; scaplot(meshhm,dis(:,1,:)); axis on; axis equal;
 figure(3); clf; scaplot(meshhm,meshhm.vdg(:,1,:)); axis on; axis equal;
 
 figure(4); clf; scaplot(meshhm,av(:,1,:)); axis on; axis equal;
-
-% div = limiting(divergence(sol, 1),0,10,1e3,0);
-% s = div/max(div(:));
-% S0 = 0; gamma = 1e3;
-% av = (s-S0).*(atan(gamma*(s-S0))/pi + 0.5) - atan(gamma)/pi + 0.5;    
-% figure(2); clf; scaplot(meshhm,s); axis on; axis equal;
-% 
-
-% div = limiting(divergence(sol, 1),0,1e2,1e3,0);
-% div = div/max(div(:)); 
-% div = limiting(div,0,1,1e3,0.1);
-% figure(2); clf; scaplot(mesh, div,[0 1],2);
-
 

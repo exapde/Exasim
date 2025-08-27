@@ -1,6 +1,9 @@
 function [mesh, rho, drhodx, drhody] = mkmesh_square(n, porder, elemtype)
 
 [mesh.p,mesh.t] = squaremesh(n,n,1,elemtype);
+% mesh.p(1,:) = loginc(mesh.p(1,:),2);
+% mesh.p(2,:) = loginc(mesh.p(2,:),2);
+
 mesh.p(1,:) = 2*mesh.p(1,:) - 1;
 mesh.p(2,:) = 2*mesh.p(2,:) - 1;
 

@@ -20,6 +20,10 @@ p=mesh.p';
 t=mesh.t';
 f=mesh.f;
 dim=size(p,2);
+if isfield(mesh, 'xpe')==0
+    mesh.xpe = mesh.plocal;
+    mesh.telem = mesh.tlocal;
+end
 dpl=size(mesh.xpe,2);
 
 % surface mesh

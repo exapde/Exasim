@@ -2,8 +2,8 @@ void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 {
 	Kokkos::parallel_for("Source", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype udg1 = udg[0*ng+i];
-		dstype odg1 = odg[0*ng+i];
-		f[0*ng+i] = odg1-udg1;
+		dstype odg2 = odg[1*ng+i];
+		f[0*ng+i] = odg2-udg1;
 	});
 }
 

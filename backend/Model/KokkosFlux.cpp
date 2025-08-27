@@ -4,9 +4,9 @@ void KokkosFlux(dstype* f, const dstype* xdg, const dstype* udg, const dstype* o
 		dstype param1 = param[0];
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
-		dstype odg2 = odg[1*ng+i];
-		f[0*ng+i] = odg2*param1*udg2;
-		f[1*ng+i] = odg2*param1*udg3;
+		dstype odg1 = odg[0*ng+i];
+		f[0*ng+i] = odg1*param1*udg2;
+		f[1*ng+i] = odg1*param1*udg3;
 	});
 }
 

@@ -124,3 +124,4 @@ backend/Model/HdgFlux.cpp
 backend/Model/KokkosFbou.cpp
 backend/Model/KokkosFlux.cpp
 /examples/NavierStokes/cone2d
+/examples/NavierStokes/flaredplate2d/hm
