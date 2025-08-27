@@ -5,7 +5,6 @@ void cpuInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* pa
 		int k = i/npe;
 		f[j+npe*0+npe*nce*k] = 0.0;
 		f[j+npe*1+npe*nce*k] = 0.0;
-		f[j+npe*2+npe*nce*k] = 0.0;
 	}
 }
 

@@ -10,26 +10,15 @@ void HdgFbouonly1(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype udg4 = udg[3*ng+i];
 		dstype udg5 = udg[4*ng+i];
 		dstype udg6 = udg[5*ng+i];
-		dstype udg7 = udg[6*ng+i];
-		dstype udg8 = udg[7*ng+i];
-		dstype udg9 = udg[8*ng+i];
-		dstype udg10 = udg[9*ng+i];
-		dstype udg11 = udg[10*ng+i];
-		dstype udg12 = udg[11*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
 		dstype uhg2 = uhg[1*ng+i];
-		dstype uhg3 = uhg[2*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		dstype nlg3 = nlg[2*ng+i];
-		dstype t2 = udg5+udg7;
-		dstype t3 = udg6+udg10;
-		dstype t4 = udg9+udg11;
-		dstype t5 = udg4+udg8+udg12;
-		dstype t6 = param2*t5;
-		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*(t6+param1*udg4*2.0)+nlg2*param1*t2+nlg3*param1*t3;
-		f[1*ng+i] = tau1*(udg2-uhg2)+nlg2*(t6+param1*udg8*2.0)+nlg1*param1*t2+nlg3*param1*t4;
-		f[2*ng+i] = tau1*(udg3-uhg3)+nlg3*(t6+param1*udg12*2.0)+nlg1*param1*t3+nlg2*param1*t4;
+		dstype t2 = udg3+udg6;
+		dstype t3 = udg4+udg5;
+		dstype t4 = param2*t2;
+		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*(t4+param1*udg3*2.0)+nlg2*param1*t3;
+		f[1*ng+i] = tau1*(udg2-uhg2)+nlg2*(t4+param1*udg6*2.0)+nlg1*param1*t3;
 	});
 }
 
@@ -39,10 +28,8 @@ void HdgFbouonly2(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype tau1 = tau[0];
 		dstype uhg1 = uhg[0*ng+i];
 		dstype uhg2 = uhg[1*ng+i];
-		dstype uhg3 = uhg[2*ng+i];
 		f[0*ng+i] = -tau1*uhg1;
 		f[1*ng+i] = -tau1*uhg2;
-		f[2*ng+i] = -tau1*uhg3;
 	});
 }
 
@@ -53,7 +40,6 @@ void HdgFbouonly3(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype param2 = param[1];
 		dstype param3 = param[2];
 		dstype param4 = param[3];
-		dstype param5 = param[4];
 		dstype tau1 = tau[0];
 		dstype udg1 = udg[0*ng+i];
 		dstype udg2 = udg[1*ng+i];
@@ -61,26 +47,15 @@ void HdgFbouonly3(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype udg4 = udg[3*ng+i];
 		dstype udg5 = udg[4*ng+i];
 		dstype udg6 = udg[5*ng+i];
-		dstype udg7 = udg[6*ng+i];
-		dstype udg8 = udg[7*ng+i];
-		dstype udg9 = udg[8*ng+i];
-		dstype udg10 = udg[9*ng+i];
-		dstype udg11 = udg[10*ng+i];
-		dstype udg12 = udg[11*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
 		dstype uhg2 = uhg[1*ng+i];
-		dstype uhg3 = uhg[2*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		dstype nlg3 = nlg[2*ng+i];
-		dstype t2 = udg5+udg7;
-		dstype t3 = udg6+udg10;
-		dstype t4 = udg9+udg11;
-		dstype t5 = udg4+udg8+udg12;
-		dstype t6 = param2*t5;
-		f[0*ng+i] = -param3+tau1*(udg1-uhg1)+nlg1*(t6+param1*udg4*2.0)+nlg2*param1*t2+nlg3*param1*t3;
-		f[1*ng+i] = -param4+tau1*(udg2-uhg2)+nlg2*(t6+param1*udg8*2.0)+nlg1*param1*t2+nlg3*param1*t4;
-		f[2*ng+i] = -param5+tau1*(udg3-uhg3)+nlg3*(t6+param1*udg12*2.0)+nlg1*param1*t3+nlg2*param1*t4;
+		dstype t2 = udg3+udg6;
+		dstype t3 = udg4+udg5;
+		dstype t4 = param2*t2;
+		f[0*ng+i] = -param3+tau1*(udg1-uhg1)+nlg1*(t4+param1*udg3*2.0)+nlg2*param1*t3;
+		f[1*ng+i] = -param4+tau1*(udg2-uhg2)+nlg2*(t4+param1*udg6*2.0)+nlg1*param1*t3;
 	});
 }
 
