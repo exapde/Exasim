@@ -3,8 +3,10 @@ void cpuInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* pa
 	for (int i = 0; i <ng; i++) {
 		int j = i%npe;
 		int k = i/npe;
-		f[j+npe*0+npe*nce*k] = 0.0;
-		f[j+npe*1+npe*nce*k] = 0.0;
+		dstype xdg1 = xdg[j+npe*0+npe*ncx*k];
+		dstype xdg2 = xdg[j+npe*1+npe*ncx*k];
+		f[j+npe*0+npe*nce*k] = xdg1;
+		f[j+npe*1+npe*nce*k] = xdg2;
 	}
 }
 

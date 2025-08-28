@@ -14,11 +14,15 @@ void HdgFbouonly1(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype uhg2 = uhg[1*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		dstype t2 = udg3+udg6;
-		dstype t3 = udg4+udg5;
-		dstype t4 = param2*t2;
-		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*(t4+param1*udg3*2.0)+nlg2*param1*t3;
-		f[1*ng+i] = tau1*(udg2-uhg2)+nlg2*(t4+param1*udg6*2.0)+nlg1*param1*t3;
+		dstype t2 = udg3*udg6;
+		dstype t3 = udg4*udg5;
+		dstype t4 = -t2;
+		dstype t5 = -t3;
+		dstype t6 = t2+t5;
+		dstype t7 = t3+t4+1.0;
+		dstype t8 = 1.0/t6;
+		f[0*ng+i] = tau1*(udg1-uhg1)+nlg2*(param1*udg5+param1*t8*udg4+param2*t7*udg4)-nlg1*(-param1*udg3+param1*t8*udg6+param2*t7*udg6);
+		f[1*ng+i] = tau1*(udg2-uhg2)+nlg1*(param1*udg4+param1*t8*udg5+param2*t7*udg5)-nlg2*(-param1*udg6+param1*t8*udg3+param2*t7*udg3);
 	});
 }
 
@@ -26,10 +30,12 @@ void HdgFbouonly2(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 {
 	Kokkos::parallel_for("Fbouonly2", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype tau1 = tau[0];
+		dstype xdg1 = xdg[0*ng+i];
+		dstype xdg2 = xdg[1*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
 		dstype uhg2 = uhg[1*ng+i];
-		f[0*ng+i] = -tau1*uhg1;
-		f[1*ng+i] = -tau1*uhg2;
+		f[0*ng+i] = -tau1*(uhg1-xdg1);
+		f[1*ng+i] = -tau1*(uhg2-xdg2);
 	});
 }
 
@@ -51,11 +57,15 @@ void HdgFbouonly3(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 		dstype uhg2 = uhg[1*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		dstype t2 = udg3+udg6;
-		dstype t3 = udg4+udg5;
-		dstype t4 = param2*t2;
-		f[0*ng+i] = -param3+tau1*(udg1-uhg1)+nlg1*(t4+param1*udg3*2.0)+nlg2*param1*t3;
-		f[1*ng+i] = -param4+tau1*(udg2-uhg2)+nlg2*(t4+param1*udg6*2.0)+nlg1*param1*t3;
+		dstype t2 = udg3*udg6;
+		dstype t3 = udg4*udg5;
+		dstype t4 = -t2;
+		dstype t5 = -t3;
+		dstype t6 = t2+t5;
+		dstype t7 = t3+t4+1.0;
+		dstype t8 = 1.0/t6;
+		f[0*ng+i] = param3+tau1*(udg1-uhg1)+nlg2*(param1*udg5+param1*t8*udg4+param2*t7*udg4)-nlg1*(-param1*udg3+param1*t8*udg6+param2*t7*udg6);
+		f[1*ng+i] = param4+tau1*(udg2-uhg2)+nlg1*(param1*udg4+param1*t8*udg5+param2*t7*udg5)-nlg2*(-param1*udg6+param1*t8*udg3+param2*t7*udg3);
 	});
 }
 
