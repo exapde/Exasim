@@ -41,10 +41,10 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-#include <cstdint>
-#include <cstring>
-#include <chrono>
-#include <cmath>
+// #include <cstdint>
+// #include <cstring>
+// #include <chrono>
+// #include <cmath>
 
 #define SCOPY scopy_
 #define SSCAL sscal_
@@ -489,6 +489,72 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
 #endif    
 }
 
+static void PrintErrorAndExit(const char* errmsg, const char *file, int line ) 
+{    
+    printf( "%s in %s at line %d\n", errmsg, file, line );
+    
+#ifdef  HAVE_MPI       
+    MPI_Finalize();    
+#endif
+    
+    exit( 1 );    
+}
+
+static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
+{    
+    printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
+    
+#ifdef  HAVE_MPI       
+    MPI_Finalize();    
+#endif
+    
+    exit( 1 );    
+}
+
+#define error( errmsg ) (PrintErrorAndExit( errmsg, __FILE__, __LINE__ ))
+
+std::string trim_dir(const std::string& s) {
+    return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes
+}
+
+bool ensure_dir(const std::string& dir) {
+    std::filesystem::path p(dir);
+    if (std::filesystem::exists(p)) return std::filesystem::is_directory(p);  // false if it's a file
+    return std::filesystem::create_directories(p);               // creates parents as needed
+}
+
+std::string make_path(const std::string& str1, const std::string& str2) {
+    std::filesystem::path base = str1;
+    std::filesystem::path tail = str2;
+
+    // If tail is absolute, strip its root so it becomes relative
+    if (tail.is_absolute())
+        tail = tail.relative_path();
+
+    std::filesystem::path full = base / tail;
+    return full.lexically_normal().string();
+}
+
+std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
+    std::size_t pos = fullPath.find(keyword);  // Use find to get the first occurrence
+    if (pos != std::string::npos) {
+        return fullPath.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
+std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
+    std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
+    if (pos != std::string::npos) {
+        return fullPath.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
 struct appstruct {              
     Int *lsize=nullptr;
     Int *nsize=nullptr;  // data size
@@ -922,6 +988,7 @@ struct solstruct {
     dstype *odg=nullptr; // auxilary term 
     dstype *wdg=nullptr; // dw/dt = u (wave problem)
     dstype *uh=nullptr;  // uhat      
+    dstype *xcg=nullptr;  // xcg      
 
     #ifdef HAVE_ENZYME
         dstype *dudg=nullptr; // solution (du, dq, dp) 
@@ -946,13 +1013,13 @@ struct solstruct {
     dstype *wdual=nullptr;   // source term due to the dual time derivative for DAE equations  
     dstype** udgarray;
     
-    Int szxdg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
+    Int szxdg=0, szxcg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
     Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
     Int szudgavg=0, szwsrc=0, szwdual=0, szxdgint=0;
 
     int sizeofint() {return 0;}
     int sizeoffloat() {
-      int sz = szxdg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
+      int sz = szxdg + szxcg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
                szelemfaceg + szsdgg + szodgg + szog1 + szog2 + szudgavg + 
                szwsrc + szwdual + szxdgint;
       return sz;
@@ -962,6 +1029,7 @@ struct solstruct {
     {
       printf("--------------- Solution Struct Information ----------------\n");
       printf("size of xdg: %d\n", szxdg);
+      printf("size of xcg: %d\n", szxcg);
       printf("size of udg: %d\n", szudg);
       printf("size of sdg: %d\n", szsdg);
       printf("size of odg: %d\n", szodg);
@@ -988,6 +1056,7 @@ struct solstruct {
         TemplateFree(nsize, backend);
         TemplateFree(ndims, backend);    
         TemplateFree(xdg, backend); // spatial coordinates
+        TemplateFree(xcg, 0);       // spatial coordinates
         TemplateFree(udg, backend); // solution (u, q, p) 
         TemplateFree(sdg, backend); // source term due to the previous solution
         TemplateFree(odg, backend); // auxilary term 
@@ -1318,6 +1387,7 @@ struct precondstruct {
 };
 
 struct commonstruct {     
+    string exasimpath = "";  
     string filein;       // Name of binary file with input data
     string fileout;      // Name of binary file to write the solution            
     
@@ -1339,7 +1409,12 @@ struct commonstruct {
     Int ncs;// number of compoments of (sdg)
     Int nce;// number of compoments of (edg)
     Int ncm;// number of compoments of PTC monitor function
-    
+    Int nsca; // number of components of scalar fields for visualization
+    Int nvec; // number of components of vector fields for visualization
+    Int nten; // number of components of tensur fields for visualization
+    Int nsurf; // number of components of surface fields for visualization, storage, and QoIs
+    Int nvqoi;  // number of volume quantities of interest (QoIs)    
+
     Int nd; // spatial dimension    
     Int elemtype;
     Int nodetype;

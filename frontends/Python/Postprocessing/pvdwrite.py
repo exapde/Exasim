@@ -32,7 +32,7 @@ def pvdwrite(filename, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, fi
         vtuwrite(vtufile, cgnodes, cgelcon, cgcells, celltype, scalars, vectors, tm);
 
         ind = vtufile.find("/");
-        outfile = vtufile[(ind+1):] + ".vtu";
+        outfile = vtufile[(ind+0):] + ".vtu";
 
         mystr = mystr + "    <DataSet timestep=\"" + str((i+1)*dt) + "\" group=\"\" part=\"0\"\n";
         mystr = mystr + "             file=\"" + outfile + "\"/>\n"

@@ -52,7 +52,7 @@
 #endif
 
 #include "discretization.h"
-#include "errormsg.cpp"
+//#include "errormsg.cpp"
 #include "ioutilities.cpp"
 
 #ifdef HAVE_TEXT2CODE

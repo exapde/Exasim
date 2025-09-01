@@ -58,8 +58,6 @@
 #ifndef __READBINARYFILES
 #define __READBINARYFILES
 
-#include <string>
-
 #ifdef HAVE_MPP
 #include <mutation++.h>
 #endif
@@ -560,6 +558,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     #endif
 
     if ((sol.nsize[3] >0) && (sol.nsize[3] == npe*nco*ne)) {
+        if (mpirank==0) printf("Reading vdg from binary files \n");  
         readarray(in, &sol.odg, sol.nsize[3]);    
         sol.szodg = sol.nsize[3];
     }
@@ -575,6 +574,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     #endif
 
     if ((sol.nsize[4] >0) && (sol.nsize[4] == npe*ncw*ne)) {
+        if (mpirank==0) printf("Reading wdg from binary files \n");  
         readarray(in, &sol.wdg, sol.nsize[4]);    
         sol.szwdg = sol.nsize[4];
     }
@@ -585,14 +585,17 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.szwdg = sol.nsize[4];
     }
     if (sol.nsize[5] == npf*nf*ncu) {
-        //std::cout << "Reading in uh ..." << std::endl;
+        if (mpirank==0) printf("Reading uh from binary files \n");  
         readarray(in, &sol.uh, sol.nsize[5]);
-        //print2darray(sol.uh, npf*ncu*10, 2);
         app.read_uh = 1;
+        sol.szuh = sol.nsize[5];
     }
-    //std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
+    if (sol.nsize[6] > 0) {
+        if (mpirank==0) printf("Reading xcg from binary files \n");  
+        readarray(in, &sol.xcg, sol.nsize[6]);
+        sol.szxcg = sol.nsize[6];
+    }    
         
-    // Close file:
     in.close();            
 }
 

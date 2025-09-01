@@ -26,8 +26,8 @@
  * Compilation Examples:
  *   See commented lines at the top of the file for various compilation options.
  *
- * Author: [Your Name]
- * Date: [Date]
+ * Author: Ngoc Cuong Nguyen
+ * Date: 07/07/2025
  */
 
 #include <iostream>
@@ -38,6 +38,7 @@
 #include <vector>
 #include <array>
 #include <regex>
+#include <numeric>
 #include <unordered_map>
 #include <unordered_set>
 #include <cstdlib>
@@ -54,7 +55,9 @@
 // g++ -O2 -std=c++17 text2code.cpp -o text2code -lblas -llapack 
 
 using namespace std;
-        
+
+#include "TextParser.hpp"
+
 #include "tinyexpr.cpp"
 #include "helpers.cpp"
 #include "readpdeapp.cpp"
@@ -82,17 +85,22 @@ int main(int argc, char* argv[])
            
     InputParams params = parseInputFile(argv[1]);                           
     PDE pde = initializePDE(params);    
-        
+     
+    ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
+    spec.exasimpath = pde.exasimpath;
+    spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
+    spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
+    
     Mesh mesh = initializeMesh(params, pde);        
     Master master = initializeMaster(pde, mesh);                            
         
-    writeBinaryFiles(pde, mesh, master);
-
+    writeBinaryFiles(pde, mesh, master, spec);
+    
 #ifdef USE_CMAKE
-    if (pde.gencode==1) ParsedSpec spec = generateCppCode(pde);
+    if (pde.gencode==1) generateCppCode(spec);
 #else    
     if (pde.gencode==1) {
-        ParsedSpec spec = generateCppCode(pde);
+        generateCppCode(spec);
         executeCppCode(spec); 
         buildDynamicLibraries(spec);     
     }

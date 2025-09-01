@@ -7,7 +7,7 @@
  *   - Computing face node coordinates and connectivity (compute_pf)
  *   - Evaluating expressions at mesh points (eval_expr)
  *   - Assigning boundary faces based on geometric expressions (assignboundaryfaces)
- *   - Sorting and comparing face node arrays (sort_face_nodes, equal_face_nodes)
+ *   - Sorting and comparing face node arrays (sort_facenodes, equal_faces)
  *   - Building face-to-element and element-to-element connectivity (mkf2e, mke2e)
  *   - Identifying and marking boundary faces (setboundaryfaces)
  *   - Handling periodic boundary conditions and matching periodic faces (setperiodicfaces)
@@ -303,125 +303,125 @@ void assignboundaryfaces(
     }
 }
 
-bool equal_face_nodes(const int* a, const int* b, int nnf) {
-    for (int i = 0; i < nnf; i++) {
-        if (a[i] != b[i]) return false;
-    }
-    return true;
-}
+// bool equal_faces(const int* a, const int* b, int nnf) {
+//     for (int i = 0; i < nnf; i++) {
+//         if (a[i] != b[i]) return false;
+//     }
+//     return true;
+// }
+// 
+// // Sort small arrays (nnf elements) using bubble sort
+// void sort_facenodes(int* face, int nnf) {
+//     for (int i = 0; i < nnf - 1; ++i) {
+//         for (int j = 0; j < nnf - i - 1; ++j) {
+//             if (face[j] > face[j + 1]) {
+//                 int tmp = face[j];
+//                 face[j] = face[j + 1];
+//                 face[j + 1] = tmp;
+//             }
+//         }
+//     }
+// }
 
-// Sort small arrays (nnf elements) using bubble sort
-void sort_face_nodes(int* face, int nnf) {
-    for (int i = 0; i < nnf - 1; ++i) {
-        for (int j = 0; j < nnf - i - 1; ++j) {
-            if (face[j] > face[j + 1]) {
-                int tmp = face[j];
-                face[j] = face[j + 1];
-                face[j + 1] = tmp;
-            }
-        }
-    }
-}
-
-int mkf2e(int* f2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
-{
-    int max_faces = ne * nfe;
-    int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces); // stores sorted face nodes
-    int count = 0;
-
-    for (int elem = 0; elem < ne; ++elem) {
-        for (int lf = 0; lf < nfe; ++lf) {
-            int temp_face[8];  
-            for (int i = 0; i < nnf; ++i) {
-                int local_node = local_faces[i + lf * nnf];
-                temp_face[i] = e2n[elem * nne + local_node];
-            }
-
-            sort_face_nodes(temp_face, nnf);
-
-            // Check if face already exists
-            int match = -1;
-            for (int f = 0; f < count; ++f) {
-                if (equal_face_nodes(temp_face, &face_nodes[f * nnf], nnf)) {
-                    match = f;
-                    break;
-                }
-            }
-
-            if (match >= 0) {
-                // Second element sharing the face
-                f2e[2 + match * 4] = elem;  // element on other side
-                f2e[3 + match * 4] = lf;    // local face index in that element
-            } else {
-                // New face
-                for (int i = 0; i < nnf; ++i)
-                    face_nodes[count * nnf + i] = temp_face[i];
-
-                f2e[0 + count * 4] = elem;  // first element
-                f2e[1 + count * 4] = lf;    // local face index in first element
-                f2e[2 + count * 4] = -1;    // no neighbor yet
-                f2e[3 + count * 4] = -1;
-                ++count;
-            }
-        }
-    }
-    
-    CPUFREE(face_nodes);
-    return count;    
-}
-
-int mke2e(int* e2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
-{
-    int max_faces = ne * nfe;
-    int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces);
-    int* face_owner = (int*)malloc(sizeof(int) * max_faces);
-    int* face_lf = (int*)malloc(sizeof(int) * max_faces);
-    int face_count = 0;
-
-    for (int elem = 0; elem < ne; ++elem) {
-        for (int lf = 0; lf < nfe; ++lf) {
-            int temp_face[8];
-            for (int i = 0; i < nnf; ++i) {
-                int local_node = local_faces[i + lf * nnf];
-                temp_face[i] = e2n[elem * nne + local_node];
-            }
-
-            sort_face_nodes(temp_face, nnf);
-
-            int match = -1;
-            for (int f = 0; f < face_count; ++f) {
-                if (equal_face_nodes(temp_face, &face_nodes[f * nnf], nnf)) {
-                    match = f;
-                    break;
-                }
-            }
-
-            if (match >= 0) {
-                // Face shared with another element
-                int e1 = face_owner[match];
-                int l1 = face_lf[match];
-                int e2 = elem;
-                int l2 = lf;
-
-                e2e[e1 * nfe + l1] = e2;
-                e2e[e2 * nfe + l2] = e1;
-            } else {
-                // New face
-                for (int i = 0; i < nnf; ++i)
-                    face_nodes[face_count * nnf + i] = temp_face[i];
-                face_owner[face_count] = elem;
-                face_lf[face_count] = lf;
-                e2e[elem * nfe + lf] = -1;  // boundary face
-                face_count++;
-            }
-        }
-    }
-
-    CPUFREE(face_nodes);
-    CPUFREE(face_owner);
-    CPUFREE(face_lf);
-    return face_count;
-}
+// int mkf2e(int* f2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
+// {
+//     int max_faces = ne * nfe;
+//     int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces); // stores sorted face nodes
+//     int count = 0;
+// 
+//     for (int elem = 0; elem < ne; ++elem) {
+//         for (int lf = 0; lf < nfe; ++lf) {
+//             int temp_face[8];  
+//             for (int i = 0; i < nnf; ++i) {
+//                 int local_node = local_faces[i + lf * nnf];
+//                 temp_face[i] = e2n[elem * nne + local_node];
+//             }
+// 
+//             sort_facenodes(temp_face, nnf);
+// 
+//             // Check if face already exists
+//             int match = -1;
+//             for (int f = 0; f < count; ++f) {
+//                 if (equal_faces(temp_face, &face_nodes[f * nnf], nnf)) {
+//                     match = f;
+//                     break;
+//                 }
+//             }
+// 
+//             if (match >= 0) {
+//                 // Second element sharing the face
+//                 f2e[2 + match * 4] = elem;  // element on other side
+//                 f2e[3 + match * 4] = lf;    // local face index in that element
+//             } else {
+//                 // New face
+//                 for (int i = 0; i < nnf; ++i)
+//                     face_nodes[count * nnf + i] = temp_face[i];
+// 
+//                 f2e[0 + count * 4] = elem;  // first element
+//                 f2e[1 + count * 4] = lf;    // local face index in first element
+//                 f2e[2 + count * 4] = -1;    // no neighbor yet
+//                 f2e[3 + count * 4] = -1;
+//                 ++count;
+//             }
+//         }
+//     }
+// 
+//     CPUFREE(face_nodes);
+//     return count;    
+// }
+// 
+// int mke2e(int* e2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
+// {
+//     int max_faces = ne * nfe;
+//     int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces);
+//     int* face_owner = (int*)malloc(sizeof(int) * max_faces);
+//     int* face_lf = (int*)malloc(sizeof(int) * max_faces);
+//     int face_count = 0;
+// 
+//     for (int elem = 0; elem < ne; ++elem) {
+//         for (int lf = 0; lf < nfe; ++lf) {
+//             int temp_face[8];
+//             for (int i = 0; i < nnf; ++i) {
+//                 int local_node = local_faces[i + lf * nnf];
+//                 temp_face[i] = e2n[elem * nne + local_node];
+//             }
+// 
+//             sort_facenodes(temp_face, nnf);
+// 
+//             int match = -1;
+//             for (int f = 0; f < face_count; ++f) {
+//                 if (equal_faces(temp_face, &face_nodes[f * nnf], nnf)) {
+//                     match = f;
+//                     break;
+//                 }
+//             }
+// 
+//             if (match >= 0) {
+//                 // Face shared with another element
+//                 int e1 = face_owner[match];
+//                 int l1 = face_lf[match];
+//                 int e2 = elem;
+//                 int l2 = lf;
+// 
+//                 e2e[e1 * nfe + l1] = e2;
+//                 e2e[e2 * nfe + l2] = e1;
+//             } else {
+//                 // New face
+//                 for (int i = 0; i < nnf; ++i)
+//                     face_nodes[face_count * nnf + i] = temp_face[i];
+//                 face_owner[face_count] = elem;
+//                 face_lf[face_count] = lf;
+//                 e2e[elem * nfe + lf] = -1;  // boundary face
+//                 face_count++;
+//             }
+//         }
+//     }
+// 
+//     CPUFREE(face_nodes);
+//     CPUFREE(face_owner);
+//     CPUFREE(face_lf);
+//     return face_count;
+// }
 
 // Hashable key of fixed max size 8 (adjust if needed)
 struct FaceKey {

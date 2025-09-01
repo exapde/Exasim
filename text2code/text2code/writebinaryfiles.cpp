@@ -47,7 +47,7 @@
 #ifndef __WRITEBINARYFILES
 #define __WRITEBINARYFILES
 
-void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const vector<int>& elempart, const vector<int>& facepartpts, const std::string& filename) 
+void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const Conn& conn, const vector<int>& elempart, const vector<int>& facepartpts, const std::string& filename) 
 {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) error("Error opening file: " + filename);
@@ -83,7 +83,10 @@ void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const vect
     if (!mesh.uhat.empty()) {
         nsize[5] = static_cast<double>(mesh.uhat.size());
     }
-    
+    if (!conn.cgnodes.empty()) {
+        nsize[6] = static_cast<double>(conn.cgnodes.size());
+    }
+
     // Helper to write vector as binary double
     auto writeDoubleVector = [&](const std::vector<double>& vec) {
         file.write(reinterpret_cast<const char*>(vec.data()), vec.size() * sizeof(double));
@@ -117,6 +120,9 @@ void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const vect
     }
     if (!mesh.uhat.empty()) {
         writeDoubleVector(mesh.uhat);
+    }
+    if (!conn.cgnodes.empty()) {
+        writeDoubleVector(conn.cgnodes);
     }
     
     file.close();
@@ -271,10 +277,29 @@ void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector
 }
 #endif
 
-void writeBinaryFiles(const PDE& pde, Mesh& mesh, const Master master) 
+void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSpec& spec) 
 {
     ensure_dir(pde.datainpath);
     ensure_dir(pde.dataoutpath);
+    
+    for (const auto& vec : spec.vectors) {
+        const std::string& name = vec.first;
+        int size = vec.second;
+        //std::cout<<name<<" : "<<size<<std::endl;
+        if (name == "uhat") pde.ncu = size;
+        if (name == "v") pde.ncv = size;
+        if (name == "w") pde.ncw = size;
+        if (name == "uq") pde.nc = size;        
+    }
+
+    for (int i=0; i<spec.functions.size(); i++) {
+        //std::cout<<spec.functions[i].name<<" : "<<spec.functions[i].outputsize<<std::endl;
+        if (spec.functions[i].name == "VisScalars") pde.nsca = spec.functions[i].outputsize;
+        if (spec.functions[i].name == "VisVectors") pde.nvec = spec.functions[i].outputsize/pde.nd;
+        if (spec.functions[i].name == "VisTensors") pde.nten = spec.functions[i].outputsize/(pde.nd*pde.nd);
+        if (spec.functions[i].name == "QoISurface") pde.nsurf = spec.functions[i].outputsize;
+        if (spec.functions[i].name == "QoIVolume") pde.nvqoi = spec.functions[i].outputsize;
+    }
     
     writepde(pde, make_path(pde.datainpath, "app.bin"));
     writemaster(master, make_path(pde.datainpath, "master.bin"));    
@@ -315,16 +340,16 @@ void writeBinaryFiles(const PDE& pde, Mesh& mesh, const Master master)
             Conn conn;            
             buildConn(conn, pde, mesh, master, dmd[n]);
             
-            writesol(pde, mesh, master, dmd[n].elempart, conn.facepartpts, make_path(pde.datainpath, "sol" + std::to_string(n+1) + ".bin"));    
+            writesol(pde, mesh, master, conn, dmd[n].elempart, conn.facepartpts, make_path(pde.datainpath, "sol" + std::to_string(n+1) + ".bin"));    
             writemesh(pde, mesh, master, dmd[n], conn, make_path(pde.datainpath, "mesh" + std::to_string(n+1) + ".bin"));
         }               
         } else {
-        Conn conn;    
-        DMD dmd = initializeDMD(pde, mesh);    
-        buildConn(conn, pde, mesh, master, dmd);
-
-        writesol(pde, mesh, master, dmd.elempart, conn.facepartpts, make_path(pde.datainpath , "sol.bin"));    
-        writemesh(pde, mesh, master, dmd, conn, make_path(pde.datainpath, "mesh.bin"));      
+            Conn conn;    
+            DMD dmd = initializeDMD(pde, mesh);    
+            buildConn(conn, pde, mesh, master, dmd);
+    
+            writesol(pde, mesh, master, conn, dmd.elempart, conn.facepartpts, make_path(pde.datainpath , "sol.bin"));    
+            writemesh(pde, mesh, master, dmd, conn, make_path(pde.datainpath, "mesh.bin"));      
         }    
     }
 

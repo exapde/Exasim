@@ -42,14 +42,14 @@
 
 */
 
-ParsedSpec generateCppCode(PDE& pde)
-{    
-    std::cout << "\nGenerating the C++ code for this model file ("<< make_path(pde.datapath, pde.modelfile) << ") ... \n\n";
-  
-    ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
-    spec.exasimpath = pde.exasimpath;
-    spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
-    spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
+void generateCppCode(ParsedSpec spec)
+{
+    std::cout << "\nGenerating the C++ code for this model file ("<< spec.modelfile << ") ... \n\n";
+
+    // ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
+    // spec.exasimpath = pde.exasimpath;
+    // spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
+    // spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
     
     // Generate SymEngine code
     CodeGenerator gen(spec);
@@ -78,6 +78,9 @@ ParsedSpec generateCppCode(PDE& pde)
     if (spec.isoutput[14]==false) gen.generateEmptyAvfieldCpp(spec.modelpath);
     if (spec.isoutput[15]==false) gen.generateEmptyFintCpp(spec.modelpath);
     if (spec.isoutput[16]==false) gen.generateEmptyEoSCpp(spec.modelpath);
+    if (spec.isoutput[17]==false) gen.generateEmptyVisScalarsCpp(spec.modelpath);
+    if (spec.isoutput[18]==false) gen.generateEmptyVisVectorsCpp(spec.modelpath);
+    if (spec.isoutput[19]==false) gen.generateEmptyVisTensorsCpp(spec.modelpath);
     gen.generateEmptyFhatCpp(spec.modelpath);
     gen.generateEmptyUhatCpp(spec.modelpath);
     gen.generateEmptyStabCpp(spec.modelpath);
@@ -87,7 +90,7 @@ ParsedSpec generateCppCode(PDE& pde)
     std::cout << "C++ source files are generated and located in this directory " << spec.modelpath << "\n";
     std::cout << "Finished generating code.\n";
     
-    return spec;
+    //return spec;
 }
 
 namespace fs = std::filesystem;

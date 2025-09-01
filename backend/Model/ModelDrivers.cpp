@@ -631,3 +631,53 @@ void FhatDriver(dstype* f, dstype* u, const dstype* xg, dstype* udg, const dstyp
     AddStabilization1(f, udg, uhg, app.tau, M);      
 }
 
+void VisScalarsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisScalars(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void VisVectorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisVectors(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void VisTensorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisTensors(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}

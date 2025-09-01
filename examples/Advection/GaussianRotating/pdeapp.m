@@ -11,7 +11,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
+pde.mpiprocs = 4;              % number of MPI processors
 pde.hybrid = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
@@ -32,7 +32,7 @@ mesh.boundaryexpr = {@(p) abs(p(2,:)+0.5)<1e-4, @(p) abs(p(1,:)-0.5)<1e-4, @(p) 
 mesh.boundarycondition = [1;1;1;1]; 
 
 % % call exasim to generate and run C++ code to solve the PDE model
-[sol,pde,mesh] = exasim(pde,mesh);
+[sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
 % % visualize the numerical solution of the PDE model using Paraview
 % pde.visscalars = {"temperature", 1};  % list of scalar fields for visualization
@@ -42,7 +42,7 @@ mesh.boundarycondition = [1;1;1;1];
 
 mesh.porder = pde.porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
-for i = 1:size(sol,4)
+for i = 1:20:size(sol,4)
   figure(1); clf; scaplot(mesh,sol(:,1,:,i),[-1 1],2,1); axis on; axis equal; axis tight;
 end
 

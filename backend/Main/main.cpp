@@ -37,12 +37,17 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <cmath>
+#include <vector>
+#include <numeric>
+
 // Use C++ header for C string utilities
+#include <cstdint>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
-//#include <stdlib.h>
-//#include <chrono>
+
 //#include <sys/unistd.h>
+
 
 #ifdef _OPENMP
 #define HAVE_OPENMP
@@ -62,6 +67,7 @@
 
 #ifdef _TEXT2CODE
 #define HAVE_TEXT2CODE
+#define HAVE_METIS
 #endif
 
 #ifdef _ENZYME
@@ -101,6 +107,13 @@
 #include <mpi.h>
 #endif
 
+#ifdef HAVE_TEXT2CODE
+#include <array>
+#include <regex>
+#include <unordered_map>
+#include <unordered_set>
+#endif
+
 #ifdef TIMING
 #include <chrono>
 #endif
@@ -117,12 +130,17 @@ using namespace std;
 #include "../Discretization/discretization.cpp" // discretization class
 #include "../Preconditioning/preconditioner.cpp" // preconditioner class
 #include "../Solver/solver.cpp"                 // solver class
+#include "../Visualization/visualization.cpp"  //  visualization class
 #include "../Solution/solution.cpp"             // solution class
+
+#ifdef HAVE_TEXT2CODE
+#include "../../text2code/text2code/readpdeapp.cpp"
+#endif
 
 int main(int argc, char** argv) 
 {   
   
-    Int nummodels, restart, mpiprocs, mpirank, shmrank, backend;    
+    Int nummodels, mpiprocs, mpirank, shmrank, backend;    
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
@@ -145,11 +163,7 @@ int main(int argc, char** argv)
     mpirank = 0;
     shmrank = 0;
 #endif                
-  
-#ifdef HAVE_TEXT2CODE
-    if (mpirank==0) printf("TEXT2CODE ENABLED...\n");    
-#endif
-    
+      
 // #ifdef HAVE_OPENMP    
 //     // set OpenMP threads
 //     ncores = omp_get_num_procs();
@@ -242,31 +256,32 @@ int main(int argc, char** argv)
     
   Kokkos::initialize(argc, argv);
   {        
-    if (argc < 3) {
-      printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");
-      return 1;
-    }
-    
-    //Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
-    string mystr = string(argv[1]);
-    try {
-        nummodels = stoi(mystr);  // number of pde models
-    } catch (...) {
-        if (mpirank==0) std::cerr << "Invalid nummodels: " << mystr << std::endl;
-        return 1;
-    }
+
     string filein[10]; 
     string fileout[10];
-    
-    // two-physics and two-domain problems  
     int mpiprocs0 = 0;
-    if (nummodels>100) {
-      mpiprocs0 = nummodels - 100;
-      nummodels = 2;
-    }
-    
-    if ((mpiprocs0 > 0) && (mpiprocs<= mpiprocs0)) {
-      printf("For two-domain problem, total number of MPI processors (%d) must be greater than # MPI processors on the first domain (%d)\n", mpiprocs, mpiprocs0);
+    int restart = 0;
+
+#ifdef HAVE_TEXT2CODE
+    if (argc < 2) {
+        if (mpirank==0) std::cerr << "Usage: ./Exasim <pdeapp.txt>\n";
+        return 1;
+    }    
+
+    if (std::filesystem::exists(argv[1])) {
+        if (mpirank==0) std::cout << "Running Exasim with this text file ("<< argv[1] << ") ... \n\n";
+    } else {
+        error("Error: Input file does not exist.\n");        
+    }          
+           
+    InputParams params = parseInputFile(argv[1]);                           
+    PDE pde = initializePDE(params);        
+    nummodels = 1;
+    filein[0] = pde.datainpath + "/";
+    fileout[0] = make_path(pde.dataoutpath, "out");      
+#else      
+    if (argc < 3) {
+      printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");
       return 1;
     }
     
@@ -278,14 +293,32 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    string mystr = string(argv[1]);
+    try {
+        nummodels = stoi(mystr);  // number of pde models
+    } catch (...) {
+        if (mpirank==0) std::cerr << "Invalid nummodels: " << mystr << std::endl;
+        return 1;
+    }
+          
+    // two-physics and two-domain problems      
+    if (nummodels>100) {
+      mpiprocs0 = nummodels - 100;
+      nummodels = 2;
+    }
+    
+    if ((mpiprocs0 > 0) && (mpiprocs<= mpiprocs0)) {
+      printf("For two-domain problem, total number of MPI processors (%d) must be greater than # MPI processors on the first domain (%d)\n", mpiprocs, mpiprocs0);
+      return 1;
+    }
+    
     for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files
         fileout[i]  = string(argv[2*i+3]); // output files        
         //cout<<filein[i]<<endl;
         //cout<<fileout[i]<<endl;
     }
-    
-    restart = 0;
+        
     if (argc >= (2*nummodels + 3)) {
         mystr = string(argv[2*nummodels+2]);
         try { restart = stoi(mystr); }
@@ -294,7 +327,8 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    
+#endif    
+
     // reset nummodels
     if (mpiprocs0 > 0) nummodels = 1;
                 
@@ -305,7 +339,7 @@ int main(int argc, char** argv)
     CSolution** pdemodel = new CSolution*[nummodels];     
     // initialize file streams
     ofstream* out = new ofstream[nummodels];    
-                
+            
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
           pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
@@ -420,6 +454,7 @@ int main(int argc, char** argv)
 
                 // save solutions into binary files                
                 pdemodel[i]->SaveSolutions(backend); 
+                if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
                 pdemodel[i]->SaveSolutionsOnBoundary(backend); 
                 if (pdemodel[i]->disc.common.nce>0)
                     pdemodel[i]->SaveOutputCG(backend);                
@@ -461,6 +496,7 @@ int main(int argc, char** argv)
                     pdemodel[i]->disc.evalQ(backend);
                 pdemodel[i]->disc.common.saveSolOpt = 1;
                 pdemodel[i]->SaveSolutions(backend);      
+                if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
                 pdemodel[i]->SaveOutputCG(backend);            
             }
             else if (pdemodel[i]->disc.common.runmode==2){

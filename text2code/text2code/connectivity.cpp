@@ -888,8 +888,9 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
       conn.ncgnodes = mkelconcg_hashgrid(conn.cgnodes.data(), conn.cgelcon.data(), tm.data(), master.npe, mesh.dim, ne);
       conn.ncgdof = mkent2elem(conn.rowent2elem, conn.colent2elem, conn.cgelcon, master.npe, ne);
       map_cgent2dgent(conn.cgent2dgent, conn.rowent2elem, conn.colent2elem, conn.cgnodes, tm,  master.npe, mesh.dim, conn.ncgdof);                                      
-    }
-    
+    }    
+    conn.cgnodes.resize(mesh.dim * conn.ncgnodes);
+
     cout << "Finished map_cgent2dgent" << endl;
 
 //     if (pde.debugmode==1 && pde.mpiprocs==1) {

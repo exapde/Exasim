@@ -401,6 +401,30 @@ void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype alpha, 
     });
 }
 
+void VisDG2CG(float* ucg, const dstype* udg, const int* cgent2dgent, const int* colent2elem, const int* rowent2elem, int ne1, const int ncg, int ndg, int na, int nb, int nc)
+{        
+    int N = nb * ncg * nc;
+    Kokkos::parallel_for("VisDG2CG", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i1 = idx%nb; 
+        int n  = idx/nb; 
+        int i  = n%ncg;
+        int i3 = n/ncg;
+        int ic = i1 + nb*i3;
+        // idx = i1 + nb*i + nb*ncg*i3
+
+        dstype sum = 0.0, n1 = 0.0;
+        int nelem = rowent2elem[i+1]-rowent2elem[i];               
+        for (int k=0; k<nelem; k++) {
+            int e = colent2elem[rowent2elem[i]+k];
+            if (e<ne1) {
+                sum += udg[cgent2dgent[rowent2elem[i]+k] + ndg*ic]; 
+                n1 += 1.0;
+            }
+        }
+        ucg[i1 + na*i + na*ncg*i3] = (float) (sum/n1);
+    });
+}
+
 void ArrayDG2CG(dstype* ucg, const dstype* udg, const int* cgent2dgent, const int* rowent2elem, const int nent)
 {        
     Kokkos::parallel_for("ArrayDG2CG", nent, KOKKOS_LAMBDA(const size_t i) {

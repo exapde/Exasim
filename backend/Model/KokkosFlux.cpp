@@ -3,21 +3,11 @@ void KokkosFlux(dstype* f, const dstype* xdg, const dstype* udg, const dstype* o
 	Kokkos::parallel_for("Flux", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype param1 = param[0];
 		dstype param2 = param[1];
-		dstype udg3 = udg[2*ng+i];
-		dstype udg4 = udg[3*ng+i];
-		dstype udg5 = udg[4*ng+i];
-		dstype udg6 = udg[5*ng+i];
-		dstype t2 = udg3*udg6;
-		dstype t3 = udg4*udg5;
-		dstype t4 = -t2;
-		dstype t5 = -t3;
-		dstype t6 = t2+t5;
-		dstype t7 = t3+t4+1.0;
-		dstype t8 = 1.0/t6;
-		f[0*ng+i] = param1*udg3-param1*t8*udg6-param2*t7*udg6;
-		f[1*ng+i] = param1*udg4+param1*t8*udg5+param2*t7*udg5;
-		f[2*ng+i] = param1*udg5+param1*t8*udg4+param2*t7*udg4;
-		f[3*ng+i] = param1*udg6-param1*t8*udg3-param2*t7*udg3;
+		dstype xdg1 = xdg[0*ng+i];
+		dstype xdg2 = xdg[1*ng+i];
+		dstype udg1 = udg[0*ng+i];
+		f[0*ng+i] = param1*udg1*xdg2;
+		f[1*ng+i] = -param2*udg1*xdg1;
 	});
 }
 

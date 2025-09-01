@@ -358,6 +358,7 @@ struct PDE {
     int mpiprocs = 1;
     int nd = 1, nc = 1, ncu = 1, ncq = 0, ncp = 0, ncv = 0;
     int nch = 1, ncx = 1, ncw = 0, nce = 0, np=0, nve=0, ne=0;
+    int nsca=0, nvec=0, nten=0, nsurf=0, nvqoi=0;
     int neb = 512 * 8;
     int nfb = 512 * 16;
     int elemtype = 1;
@@ -844,6 +845,11 @@ void writepde(const PDE& pde, const std::string& filename)
     ndims[11] = pde.ncx;
     ndims[12] = pde.nce;
     ndims[13] = pde.ncw;
+    ndims[14] = pde.nsca;
+    ndims[15] = pde.nvec;
+    ndims[16] = pde.nten;
+    ndims[17] = pde.nsurf;
+    ndims[18] = pde.nvqoi;
 
     std::vector<double> nsize(30, 0.0);
     nsize[0] = ndims.size();

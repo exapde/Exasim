@@ -13,26 +13,26 @@ public:
     Expression t;
 
     // input symbolic vectors
-    std::vector<Expression> tau;
-    std::vector<Expression> w;
-    std::vector<Expression> eta;
-    std::vector<Expression> uq;
-    std::vector<Expression> n;
-    std::vector<Expression> uhat;
-    std::vector<Expression> v;
-    std::vector<Expression> mu;
     std::vector<Expression> x;
+    std::vector<Expression> mu;
+    std::vector<Expression> v;
+    std::vector<Expression> uhat;
+    std::vector<Expression> n;
+    std::vector<Expression> uq;
+    std::vector<Expression> eta;
+    std::vector<Expression> w;
+    std::vector<Expression> tau;
 
     // vector sizes
-    int sztau;
-    int szw;
-    int szeta;
-    int szuq;
-    int szn;
-    int szuhat;
-    int szv;
-    int szmu;
     int szx;
+    int szmu;
+    int szv;
+    int szuhat;
+    int szn;
+    int szuq;
+    int szeta;
+    int szw;
+    int sztau;
     bool exasim;
 
     std::vector<bool> outputfunctions;

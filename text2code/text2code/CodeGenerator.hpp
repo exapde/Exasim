@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "TextParser.hpp"
+//#include "TextParser.hpp"
 
 class CodeGenerator {
 public:
@@ -49,6 +49,9 @@ public:
     void generateEmptyUhatCpp(std::string modelpath) const;    
     void generateEmptyStabCpp(std::string modelpath) const;    
     void generateEmptyEoSCpp(std::string modelpath) const;    
+    void generateEmptyVisScalarsCpp(std::string modelpath) const;
+    void generateEmptyVisVectorsCpp(std::string modelpath) const;
+    void generateEmptyVisTensorsCpp(std::string modelpath) const;
     void generateLibPDEModelHpp(std::string modelpath) const;
     void generateLibPDEModelCpp(std::string modelpath) const;
     

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "fstream": "cpp",
+        "locale": "cpp"
+    }
+}

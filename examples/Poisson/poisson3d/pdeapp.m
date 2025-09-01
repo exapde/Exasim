@@ -37,9 +37,9 @@ mesh.boundarycondition = [1;1;1;1;1;1]; % Set boundary condition for each bounda
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
 % visualize the numerical solution of the PDE model using Paraview
-% pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
-% pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
-% dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
+pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
+pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
+dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
 dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
 x = dgnodes(:,1,:); y = dgnodes(:,2,:); z = dgnodes(:,3,:);
 uexact = sin(pi*x).*sin(pi*y).*sin(pi*z);           % exact solution

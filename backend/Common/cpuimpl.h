@@ -1624,5 +1624,150 @@ void crs_indexingilu0(
     }
 }
 
+int index4D(int i, int j, int k, int l, const vector<int>& shape) {
+    // Column-major indexing: idx = i + j*n1 + k*n1*n2 + l*n1*n2*n3
+    return i + shape[0] * (j + shape[1] * (k + shape[2] * l));
+}
+
+void masternodes(vector<dstype>& pelem, vector<int>& telem,
+                 vector<dstype>& pface, vector<int>& tface,
+                 vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
+{
+    
+    ifstream file(filename, ios::binary);
+    
+    if (!file) error("Error opening file: " + filename);
+
+    // Read the full file into a vector
+    file.seekg(0, ios::end);
+    size_t num_bytes = file.tellg();
+    file.seekg(0, ios::beg);
+    size_t num_doubles = num_bytes / sizeof(dstype);
+
+    vector<dstype> tmp(num_doubles);
+    file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
+    file.close();
+
+    // Parse header
+    int ndims = static_cast<int>(tmp[0]);  
+    
+    vector<int> narrays(ndims);
+    for (int i = 0; i < ndims; ++i)
+        narrays[i] = static_cast<int>(tmp[1 + i]);
+    
+    int offset = 1 + ndims;
+    int total_blocks = 1;
+    for (int d : narrays)
+        total_blocks *= d;
+
+    vector<int> sz1(total_blocks), sz2(total_blocks);
+    for (int i = 0; i < total_blocks; ++i)
+        sz1[i] = static_cast<int>(tmp[offset + i]);
+    for (int i = 0; i < total_blocks; ++i)
+        sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
+
+    vector<int> sz(total_blocks);
+    for (int i = 0; i < total_blocks; ++i)
+        sz[i] = sz1[i] * sz2[i];
+    
+    // cumulative offsets
+    vector<int> lz(total_blocks + 1, 0);
+    partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
+    
+    // Starting point of real data
+    int data_start = offset + 2 * total_blocks;
+    
+    auto extract_block = [&](int i, vector<dstype>& out) {
+        int e = elemtype + 1;        
+        int idx = index4D(i, e - 1, porder - 1, dim - 1, narrays);
+        int start = lz[idx];
+        int count = sz[idx];
+        //printf("i = %d, e = %d, porder = %d, dim = %d, idx = %d, start = %d, count = %d\n", i, e, porder, dim, idx, start, count);
+        out.resize(count);
+        copy(tmp.begin() + data_start + start,
+             tmp.begin() + data_start + start + count,
+             out.begin());
+    };
+
+    vector<dstype>  telemd, tfaced, permd;
+    
+    extract_block(0, pelem);
+    extract_block(1, telemd);
+    extract_block(2, pface);
+    extract_block(3, tfaced);
+    extract_block(4, permd);
+    
+    if (dim==1) {
+      pface.resize(1); pface[0] = 0;
+      tfaced.resize(1); tfaced[0] = 1;
+    }
+    
+    perm.resize(permd.size());    
+    telem.resize(telemd.size());    
+    tface.resize(tfaced.size());    
+    
+    for (int i=0; i<permd.size(); i++) perm[i] = (int) permd[i]-1;     
+    for (int i=0; i<telemd.size(); i++) telem[i] = (int) telemd[i]-1;           
+    for (int i=0; i<tfaced.size(); i++) tface[i] = (int) tfaced[i]-1;                
+}
+
+void gaussnodes(vector<dstype>& xgauss, vector<dstype>& wgauss,
+                int pgauss, int dim, int elemtype, const std::string filename) 
+{
+    ifstream file(filename, ios::binary);
+    if (!file) error("Error opening file: " + filename);
+
+    // Read the file into a buffer
+    file.seekg(0, ios::end);
+    size_t num_bytes = file.tellg();
+    file.seekg(0, ios::beg);
+    size_t num_doubles = num_bytes / sizeof(dstype);
+    vector<dstype> tmp(num_doubles);
+    file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
+    file.close();
+
+    // Read header
+    int ndims = static_cast<int>(tmp[0]);
+    vector<int> narrays(ndims);
+    for (int i = 0; i < ndims; ++i)
+        narrays[i] = static_cast<int>(tmp[1 + i]);
+
+    int offset = 1 + ndims;
+    int total_blocks = 1;
+    for (int d : narrays)
+        total_blocks *= d;
+
+    vector<int> sz1(total_blocks), sz2(total_blocks);
+    for (int i = 0; i < total_blocks; ++i)
+        sz1[i] = static_cast<int>(tmp[offset + i]);
+    for (int i = 0; i < total_blocks; ++i)
+        sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
+
+    vector<int> sz(total_blocks);
+    for (int i = 0; i < total_blocks; ++i)
+        sz[i] = sz1[i] * sz2[i];
+
+    // Compute cumulative lengths
+    vector<int> lz(total_blocks + 1, 0);
+    partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
+
+    int data_start = offset + 2 * total_blocks;
+
+    auto extract_block = [&](int i, vector<dstype>& out) {
+        // Corrected zero-based indexing
+        int e = elemtype + 1;
+        int idx = index4D(i, e - 1, pgauss - 1, dim - 1, narrays);
+        int start = lz[idx];
+        int count = sz[idx];
+        out.resize(count);
+        copy(tmp.begin() + data_start + start,
+             tmp.begin() + data_start + start + count,
+             out.begin());
+    };
+
+    extract_block(0, xgauss);
+    extract_block(1, wgauss);
+}
+
 #endif  
 

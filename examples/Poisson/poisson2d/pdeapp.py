@@ -17,7 +17,7 @@ pde['modelfile'] = "pdemodel"; # name of a file defining the PDE model
 
 # Choose computing platform and set number of processors
 #pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
-pde['mpiprocs'] = 1;        # number of MPI processors
+pde['mpiprocs'] = 4;        # number of MPI processors
 pde['hybrid'] = 1;          # 0 -> LDG, 1 -> HDG
 
 # Set discretization parameters, physical parameters, and solver parameters
@@ -26,7 +26,7 @@ pde['physicsparam'] = numpy.array([1.0]);   # unit thermal conductivity
 pde['tau'] = numpy.array([1.0]);            # DG stabilization parameter
 
 # create a mesh of 8 by 8 quads on a square domain
-mesh['p'], mesh['t'] = Mesh.SquareMesh(8,8,1)[0:2];
+mesh['p'], mesh['t'] = Mesh.SquareMesh(16,16,1)[0:2];
 # expressions for domain boundaries
 mesh['boundaryexpr'] = [lambda p: (p[1,:] < 1e-3), lambda p: (p[0,:] > 1-1e-3), lambda p: (p[1,:] > 1-1e-3), lambda p: (p[0,:] < 1e-3)];
 mesh['boundarycondition'] = numpy.array([1, 1, 1, 1]); # Set boundary condition for each boundary

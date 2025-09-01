@@ -44,12 +44,20 @@
 
 void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, 
         string filein, string fileout, Int curvedMesh, Int fileoffset)
-{               
+{                   
     common.filein = filein;
     common.fileout = fileout;
             
     common.mpiRank = app.comm[0];  // MPI rank      
     common.mpiProcs = app.comm[1]; // number of MPI ranks           
+    
+    common.exasimpath = trimToSubstringAtLastOccurence(common.exasimpath, "Exasim");     
+    if (common.exasimpath == "") {      
+      std::filesystem::path cwd = std::filesystem::current_path();
+      common.exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
+      if (common.exasimpath == "") common.exasimpath = trimToSubstringAtLastOccurence(common.fileout, "Exasim");       
+    }
+    if (common.mpiRank==0) std::cout << "exasimpath = "<<common.exasimpath<<std::endl;
     
 #ifdef HAVE_ENZYME    
     common.enzyme = 1;
@@ -64,6 +72,12 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.ncx = app.ndims[11];// number of compoments of (xdg)        
     common.nce = app.ndims[12];// number of compoments of (output)        
     common.ncw = app.ndims[13];//number of compoments of (w)
+    common.nsca = app.ndims[14];// number of components of scalar fields for visualization
+    common.nvec = app.ndims[15];// number of components of vector fields for visualization
+    common.nten = app.ndims[16];// number of components of tensor fields for visualization
+    common.nsurf = app.ndims[17];// number of components of surface fields for visualization, storage, and QoIs
+    common.nvqoi = app.ndims[18];// number of volume quantities of interest (QoIs)    
+
     common.ncm = 1;//number of components of monitor function    
     if (app.flag[1]==1)
         common.ncs = common.nc;  // wave problem

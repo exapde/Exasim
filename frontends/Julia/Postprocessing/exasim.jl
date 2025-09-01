@@ -61,7 +61,8 @@ else
 
     # get solution from output files in dataout folder
     for m = 1:nmodels        
-        sol[m] = fetchsolution(pde[m], master[m], dmd[m], "dataout" * string(m));
+        sol[m] = Postprocessing.fetchsolution(pde[m], master[m], dmd[m], "dataout" * string(m));
+        #sol[m],~,~ = Postprocessing.getsolutions(pde[m], dmd[m]);
 
         if pde[m].saveResNorm
             fn = "dataout/out_residualnorms" * string(m-1) * ".bin";
