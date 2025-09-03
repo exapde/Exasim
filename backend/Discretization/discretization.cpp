@@ -52,7 +52,6 @@
 #endif
 
 #include "discretization.h"
-//#include "errormsg.cpp"
 #include "ioutilities.cpp"
 
 #ifdef HAVE_TEXT2CODE
@@ -63,6 +62,7 @@
 //#include "../Model/KokkosDrivers.cpp"
 //#include "../Model/ModelDrivers.cpp"
 
+#include "connectivity.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"

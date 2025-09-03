@@ -43,7 +43,7 @@ struct Conn
     vector<int> elemcon, facecon, bf, f2t, facepartpts, facepartbnd, eblks, fblks;
     vector<int> cgelcon, rowent2elem, colent2elem, cgent2dgent;
     vector<int> rowe2f1, cole2f1, ent2ind1, rowe2f2, cole2f2, ent2ind2;
-    int ncgnodes=0, ncgdof=0, nbe=0, nbf=0, neb=0, nfb=0, nf=0;
+    int ncgnodes, ncgdof, nbe, nbf, neb, nfb, nf;
 };
     
 void apply_bcm(int* bf, const int* fi, const int* bcm, int n, int nbcm) 
@@ -192,34 +192,141 @@ void build_connectivity(int* elemcon, int* facecon, const int* f2t, const int* f
     CPUFREE(facenode2);
 }
 
+// Generic reallocate for raw arrays
+template <typename T>
+void reallocate(T*& ptr, std::size_t newSize) {
+    // Allocate first; may throw. If it throws, ptr stays valid.
+    T* newBuf = newSize ? new T[newSize] : nullptr;
+
+    // Success: release the old and install the new.
+    delete[] ptr;
+    ptr = newBuf;
+}
+
+// Reallocate raw array and preserve up to min(oldSize, newSize) elements.
+template <typename T>
+void reallocate_preserve(T*& ptr,
+                         std::size_t oldSize,
+                         std::size_t newSize)
+{
+    // Allocate first; if this throws, ptr remains unchanged.
+    T* newBuf = newSize ? new T[newSize] : nullptr;
+
+    if (newBuf && ptr) {
+        const std::size_t n = (oldSize < newSize) ? oldSize : newSize;
+
+        if constexpr (std::is_trivially_copyable_v<T>) {
+            // Fast path for POD / trivially copyable types
+            std::memcpy(newBuf, ptr, n * sizeof(T));
+        } else {
+            // Safe path for non-trivial types
+            std::copy(ptr, ptr + n, newBuf);
+        }
+    }
+
+    // Release old storage and install new pointer
+    delete[] ptr;
+    ptr = newBuf;
+}
+
+int connectivity(int* elemcon, int* facecon, int* bf, int* f2t, 
+                 int* facepartpts, int* facepartbnd, 
+                 const int* ti, const int* elempart, const int* localfaces,  
+                 const int* perm, const int* permind,  const int* bcm, int dim, int elemtype, 
+                 int nve, int nvf, int nfe, int npf, int npe, int ne, int ne1, int nbcm) 
+{          
+    int* f2t_tmp = (int*)malloc(4 * nfe * ne * sizeof(int));
+    int nf1 = mkf2e_hash(f2t_tmp, ti, localfaces, ne, nve, nvf, nfe);       
+    
+    int* ind = (int*)malloc(nf1 * sizeof(int));
+    int nf = 0;
+    for (int i=0; i<nf1; i++)
+    if (f2t_tmp[0 + 4*i] < ne1)
+      ind[nf++] = i;                
+    
+    reallocate(f2t, 4*nf);
+    select_columns(f2t, f2t_tmp, ind, 4, nf);        
+    CPUFREE(f2t_tmp);
+        
+    int nifaces = find(f2t, 0, 4, nf, 2, 2);
+    int nbfaces = find(f2t, -1, 4, nf, 2, 0);      
+    int* ifaces = (int*)malloc(nifaces * sizeof(int));
+    int* bfaces = (int*)malloc(nbfaces * sizeof(int));
+    find(ifaces, f2t, 0, 4, nf, 2, 2);  // interior faces
+    find(bfaces, f2t, -1, 4, nf, 2, 0); // boundary faces
+            
+    int* bfa = (int*)malloc(nbfaces * sizeof(int));
+    for (int i=0; i<nbfaces; i++) {
+    int e = f2t[0 + 4*bfaces[i]];
+    int l = f2t[1 + 4*bfaces[i]];
+    bfa[i] = bf[l + nfe*e];
+    }                    
+              
+    int* sortedbfaces = (int*)malloc(nbfaces * sizeof(int));
+    simple_bubble_sort(sortedbfaces, ind, bfa, nbfaces);                  
+    
+    reallocate(facepartbnd, (nbcm+1));
+    reallocate(facepartpts, (nbcm+1));
+    facepartbnd[0] = 0;
+    facepartpts[0] = nifaces;
+    int nbc = unique_count(&facepartbnd[1], &facepartpts[1], sortedbfaces, nbfaces);      
+    //facepartpts.erase(facepartpts.begin() + 1 + nbc, facepartpts.end());
+    //facepartbnd.erase(facepartbnd.begin() + 1 + nbc, facepartbnd.end());        
+    reallocate_preserve(facepartpts, nbcm+1, nbc+1);
+    reallocate_preserve(facepartbnd, nbcm+1, nbc+1);
+
+    int* bind = (int*)malloc(nf * sizeof(int));
+    for (int i=0; i<nifaces; i++) bind[i] = ifaces[i];
+    for (int i=0; i<nbfaces; i++) bind[nifaces+i] = bfaces[ind[i]];
+    permute_columns(f2t, bind, 4, nf); 
+    
+    CPUFREE(ifaces); CPUFREE(bfaces); CPUFREE(bfa); CPUFREE(ind); CPUFREE(bind);  CPUFREE(sortedbfaces);                
+        
+    fix_f2t_consistency(f2t, elempart, nf); 
+        
+    // elemcon.resize(npf * nfe * ne);      
+    // std::fill(elemcon.begin(), elemcon.end(), -1);
+    // facecon.resize(npf * 2 * nf);      
+    // std::fill(facecon.begin(), facecon.end(), -1);
+    reallocate(elemcon, npf * nfe * ne);
+    reallocate(facecon, npf * 2 * nf);
+    for (int i=0; i<npf * nfe * ne; i++)  elemcon[i] = -1;
+    for (int i=0; i<npf * 2 * nf; i++)  facecon[i] = -1;
+    build_connectivity(elemcon, facecon, f2t, localfaces, ti, perm, 
+          permind, dim, elemtype, npf, nfe, npe, ne, nf); 
+        
+    return nf;      
+}
+
 int connectivity(vector<int>& elemcon, vector<int>& facecon, vector<int>& bf, vector<int>& f2t, 
                  vector<int>& facepartpts, vector<int>& facepartbnd, 
-                 const int* t, const int* f, const int* elempart, const int* localfaces,  
+                 const int* ti, const int* elempart, const int* localfaces,  
                  const int* perm, const int* permind,  const int* bcm, int dim, int elemtype, 
                  int nve, int nvf, int nfe, int npf, int npe, int ne, int ne1, int nbcm) 
 {      
-      bf.resize(nfe * ne);
-  
-      int* fi = (int*)malloc(nfe * ne * sizeof(int));      
-      select_columns(fi, f, elempart, nfe, ne);       
-      apply_bcm(bf.data(), fi, bcm, nfe*ne, nbcm);                   
-      
-//       print2iarray(fi, nfe, ne);
-//       print2iarray(bf.data(), nfe, ne);
-//       print2iarray(bcm, 1, nbcm);
-//       error("here");
-      
-      CPUFREE(fi);
+//       bf.resize(nfe * ne);
+// 
+//       int* fi = (int*)malloc(nfe * ne * sizeof(int));      
+//       select_columns(fi, f, elempart, nfe, ne);       
+//       apply_bcm(bf.data(), fi, bcm, nfe*ne, nbcm);                   
+// 
+// //       print2iarray(fi, nfe, ne);
+// //       print2iarray(bf.data(), nfe, ne);
+// //       print2iarray(bcm, 1, nbcm);
+// //       error("here");
+// 
+//       CPUFREE(fi);
                                                       
-      int* ti = (int*)malloc(nve * ne * sizeof(int));                  
-      select_columns(ti, t, elempart, nve, ne); 
-      
+      // int* ti = (int*)malloc(nve * ne * sizeof(int));                  
+      // select_columns(ti, t, elempart, nve, ne); 
+    
       int* f2t_tmp = (int*)malloc(4 * nfe * ne * sizeof(int));
       int nf1 = mkf2e_hash(f2t_tmp, ti, localfaces, ne, nve, nvf, nfe);       
-      
+      //int mkf2e(int* f2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
+
 //       print2iarray(elempart, 1, ne);
 //       print2iarray(ti, nve, ne);
-//       print2iarray(f2t_tmp, 4, nf1);
+//      print2iarray(f2t_tmp, 4, nf1);
       
       int* ind = (int*)malloc(nf1 * sizeof(int));
       int nf = 0;
@@ -298,7 +405,7 @@ int connectivity(vector<int>& elemcon, vector<int>& facecon, vector<int>& bf, ve
 //       print2iarray(perm, 1, npf);
 //       print2iarray(permind, 1, npf);
       
-      CPUFREE(ti);
+//      CPUFREE(ti);
       
       return nf;      
 }
@@ -501,7 +608,7 @@ int mkelconcg_hashgrid(
                 for (int d = 0; d < dim; ++d) cgnodes[ncg * dim + d] = p[d];
                 cgelcon[aidx] = ncg;
 
-                // insert into its cell’s list
+                // insert into its cell's list
                 auto& vec = grid[ck];
                 vec.push_back(ncg);
 
@@ -511,6 +618,90 @@ int mkelconcg_hashgrid(
     }
 
     return ncg;
+}
+
+int mkent2elem(
+    int* rowent2elem, // output [ndof+1], allocated inside
+    int* colent2elem,  // output [nnz], allocated inside        
+    const int* cgelcon, // [nrow * ne], column-major
+    int nrow,
+    int ne
+) {
+    int total = nrow * ne;
+    int entmax = 0;
+    for (int i = 0; i < total; ++i)
+        if (cgelcon[i] > entmax)
+            entmax = cgelcon[i];
+
+    bool* mark = (bool*)calloc(entmax + 1, sizeof(bool));
+    for (int i = 0; i < total; ++i)
+        if (cgelcon[i] >= 0)
+            mark[cgelcon[i]] = true;
+
+    int* ent2ind = (int*)malloc((entmax + 1) * sizeof(int));
+    int ndof = 0;
+    for (int i = 0; i <= entmax; ++i) {
+        if (mark[i]) {
+            ent2ind[i] = ndof++;
+        } else {
+            ent2ind[i] = -1;
+        }
+    }
+
+    //int* rowent2elem = (int*)calloc(ndof + 1, sizeof(int));
+    //rowent2elem.resize(ndof+1);
+    //std::fill(rowent2elem.begin(), rowent2elem.end(), 0);
+    reallocate(rowent2elem, (ndof+1));
+    for (int i=0; i<ndof+1; i++) rowent2elem[i]=0;
+
+    int* counter = (int*)calloc(ndof, sizeof(int));
+    bool* seen = (bool*)calloc(entmax + 1, sizeof(bool));
+
+    for (int e = 0; e < ne; ++e) {
+        for (int i = 0; i < nrow; ++i) {
+            int ent = cgelcon[i + nrow * e];
+            if (ent >= 0 && !seen[ent]) {
+                seen[ent] = true;
+                rowent2elem[ent2ind[ent] + 1]++;
+            }
+        }
+        for (int i = 0; i < nrow; ++i) {
+            int ent = cgelcon[i + nrow * e];
+            if (ent >= 0)
+                seen[ent] = false;
+        }
+    }
+
+    for (int i = 1; i <= ndof; ++i)
+        rowent2elem[i] += rowent2elem[i - 1];
+
+    //colent2elem.resize(rowent2elem[ndof]);
+    //std::fill(colent2elem.begin(), colent2elem.end(), 0);    
+    reallocate(colent2elem, rowent2elem[ndof]);
+    for (int i=0; i<rowent2elem[ndof]; i++) colent2elem[i]=0;
+
+    for (int e = 0; e < ne; ++e) {
+        for (int i = 0; i < nrow; ++i) {
+            int ent = cgelcon[i + nrow * e];
+            if (ent >= 0 && !seen[ent]) {
+                seen[ent] = true;
+                int id = ent2ind[ent];
+                colent2elem[rowent2elem[id] + counter[id]++] = e;
+            }
+        }
+        for (int i = 0; i < nrow; ++i) {
+            int ent = cgelcon[i + nrow * e];
+            if (ent >= 0)
+                seen[ent] = false;
+        }
+    }
+
+    CPUFREE(mark);
+    CPUFREE(counter);
+    CPUFREE(seen);
+    CPUFREE(ent2ind);
+    
+    return ndof;
 }
 
 // Converts element-to-node connectivity (cgelcon) to node-to-element connectivity (CRS format)
@@ -613,6 +804,36 @@ int xiny(const double* xcg, const double* xdg, int npe, int dim)
 
 // Maps CG node to corresponding DG node via CRS connectivity
 void map_cgent2dgent(
+    int* cgent2dgent,        // [nnz], output mapping (same shape as colent2elem)
+    int* rowent2elem, // [nent+1]
+    int* colent2elem, // [nnz]    
+    const double* cgnodes,  // [nent * dim], row-major
+    const double* dgnodes,  // [npe * dim * ne], column-major
+    int npe, int dim, int nent) 
+{    
+    //cgent2dgent.resize(rowent2elem[nent]);
+    reallocate(cgent2dgent, rowent2elem[nent]);
+    for (int i = 0; i < nent; ++i) {
+        int start = rowent2elem[i];
+        int end = rowent2elem[i + 1];
+        const double* xcg = &cgnodes[i * dim];
+        for (int j = start; j < end; ++j) {
+            int elem = colent2elem[j];
+            const double* xdg = &dgnodes[npe * dim * elem];
+            int in = xiny(xcg, xdg, npe, dim);
+            if (in==-1) {
+              for (int k = 0; k < npe; ++k) 
+                for (int d = 0; d < dim; ++d) 
+                  printf("%d %d: %g\n", k, d, fabs(xcg[d] - xdg[k + npe * d]));
+              error("xcg and xdg do not match.");            
+            }        
+            cgent2dgent[j] = elem * npe + in; // global DG index
+        }
+    }
+}
+
+// Maps CG node to corresponding DG node via CRS connectivity
+void map_cgent2dgent(
     vector<int>& cgent2dgent,        // [nnz], output mapping (same shape as colent2elem)
     const vector<int>& rowent2elem, // [nent+1]
     const vector<int>& colent2elem, // [nnz]    
@@ -640,6 +861,68 @@ void map_cgent2dgent(
             cgent2dgent[j] = elem * npe + in; // global DG index
         }
     }
+}
+
+int mkdge2dgf(int* rowdge2dgf, int* coldge2dgf, int* ent2ind,
+              const int* facecon, int ndgf, int entmax) 
+{
+    // Step 1: Extract positive entries from facecon
+    int* tmp = (int*)malloc(ndgf * sizeof(int));
+    int count = 0;
+    for (int i = 0; i < ndgf; ++i)
+        if (facecon[i] >= 0)
+            tmp[count++] = facecon[i];
+
+    // Step 2: Sort and get unique entities
+    int nent = unique_ints(tmp, count);
+
+    // Step 3: Allocate and build ent2ind
+    //int* ent2ind = (int*)calloc(entmax, sizeof(int));
+    //ent2ind.resize(entmax);    
+    //std::fill(ent2ind.begin(), ent2ind.end(), -1);
+    reallocate(ent2ind, entmax);
+    for (int i = 0; i < entmax; ++i) ent2ind[i]=-1;    
+    for (int i = 0; i < nent; ++i)
+        ent2ind[tmp[i]] = i;
+
+    // Step 4: Count occurrences per entity
+    //int* rowdge2dgf = (int*)calloc(nent + 1, sizeof(int));
+    //rowdge2dgf.resize(nent+1);
+    //std::fill(rowdge2dgf.begin(), rowdge2dgf.end(), 0);
+    reallocate(rowdge2dgf, nent+1);
+    for (int i = 0; i < nent+1; ++i) rowdge2dgf[i]=0;    
+    for (int i = 0; i < ndgf; ++i) {
+        int k = facecon[i];
+        if (k >= 0) {
+            int ind = ent2ind[k];
+            rowdge2dgf[ind + 1]++;
+        }
+    }
+
+    // Step 5: Compute prefix sum
+    for (int i = 0; i < nent; ++i)
+        rowdge2dgf[i + 1] += rowdge2dgf[i];
+
+    // Step 6: Fill col indices
+    int total = rowdge2dgf[nent];
+    //int* coldge2dgf = (int*)malloc(total * sizeof(int));
+    //coldge2dgf.resize(total);
+    reallocate(coldge2dgf, total);
+    int* inc = (int*)calloc(nent, sizeof(int));
+    for (int i = 0; i < ndgf; ++i) {
+        int k = facecon[i];
+        if (k >= 0) {
+            int ind = ent2ind[k];
+            int pos = rowdge2dgf[ind] + inc[ind];
+            coldge2dgf[pos] = i;
+            inc[ind]++;
+        }
+    }
+
+    CPUFREE(tmp);
+    CPUFREE(inc);
+    
+    return nent;
 }
 
 // Construct CRS-style mapping from facecon to per-entity degrees of freedom
@@ -700,6 +983,50 @@ int mkdge2dgf(vector<int>& rowdge2dgf, vector<int>& coldge2dgf, vector<int>& ent
     return nent;
 }
 
+int removeBoundaryFaces(int* facecon, const int* fblks, int m, int npf, int nf) 
+{
+    std::vector<bool> keep(nf, true);
+
+    // Step 1: Identify columns to remove
+    for (int i = 0; i < m; ++i) {
+        int start = fblks[0 + 3*i]-1;
+        int end   = fblks[1 + 3*i]-1;
+        int flag  = fblks[2 + 3*i];
+        if (flag > 0) {
+            for (int j = start; j <= end; ++j) {
+                if (j >= 0 && j < nf) {
+                    keep[j] = false;
+                }
+            }
+        }
+    }
+
+    // Step 2: Count kept columns
+    int new_nf = 0;
+    for (bool k : keep) {
+        if (k) ++new_nf;
+    }
+
+    // Step 3: Allocate and fill new_facecon
+    std::vector<int> new_facecon(npf * new_nf);
+    int col_index = 0;
+    for (int j = 0; j < nf; ++j) {
+        if (keep[j]) {
+            for (int i = 0; i < npf; ++i) {
+                new_facecon[i + col_index * npf] = facecon[i + j * npf];
+            }
+            ++col_index;
+        }
+    }
+    
+    // Step 4: Replace facecon
+    //facecon = std::move(new_facecon);    
+    reallocate(facecon, (npf * new_nf));
+    for (int i=0; i<(npf * new_nf); i++) facecon[i] = new_facecon[i];
+
+    return new_nf;
+}
+
 int removeBoundaryFaces(std::vector<int>& facecon, const std::vector<int>& fblks, int m, int npf, int nf) 
 {
     std::vector<bool> keep(nf, true);
@@ -742,6 +1069,29 @@ int removeBoundaryFaces(std::vector<int>& facecon, const std::vector<int>& fblks
     return new_nf;
 }
 
+int divide_interval(int* intervals, int n, int m) 
+{
+    if (n <= 0 || m <= 0) return 0;
+
+    int num_intervals = (n + m - 1) / m; // ceil(n/m)
+    //intervals.resize(3*num_intervals);
+    reallocate(intervals, 3*num_intervals);
+            
+    int base = n / num_intervals;
+    int rem = n % num_intervals;
+    int current = 1;
+
+    for (int i = 0; i < num_intervals; ++i) {
+        int len = base + (i < rem ? 1 : 0);
+        intervals[3 * i] = current;
+        intervals[3 * i + 1] = current + len - 1;
+        intervals[3 * i + 2] = 0;
+        current += len;
+    }
+
+    return num_intervals;
+}
+
 int divide_interval(vector<int>& intervals, int n, int m) 
 {
     if (n <= 0 || m <= 0) return 0;
@@ -762,6 +1112,36 @@ int divide_interval(vector<int>& intervals, int n, int m)
     }
 
     return num_intervals;
+}
+
+int mkfaceblocks(int* nm, const int* mf, const int* bcm, int nmf_len, int ns) 
+{
+    if (ns <= 0) ns = 2048;  // default value
+
+    int max_blocks = 0;
+    for (int i = 0; i < nmf_len - 1; ++i)
+        max_blocks += (mf[i + 1] - mf[i] + ns - 1) / ns;
+
+    //nm.resize(3 * max_blocks);
+    reallocate(nm, 3*max_blocks);
+    int count = 0;
+
+    for (int i = 0; i < nmf_len - 1; ++i) {
+        int nf = mf[i + 1] - mf[i];
+        vector<int> intervals; 
+        int nblocks = divide_interval(intervals, nf, ns);
+
+        for (int j = 0; j < nblocks; ++j) {
+            int start = mf[i] + intervals[3 * j];       // 0-based
+            int end   = mf[i] + intervals[3 * j + 1];    // 0-based
+            nm[3 * count + 0] = start;
+            nm[3 * count + 1] = end;
+            nm[3 * count + 2] = bcm[i];  // boundary code
+            count++;
+        }
+    }
+
+    return count; 
 }
 
 int mkfaceblocks(vector<int>& nm, const vector<int>& mf, const vector<int>& bcm, int nmf_len, int ns) 
@@ -795,20 +1175,30 @@ int mkfaceblocks(vector<int>& nm, const vector<int>& mf, const vector<int>& bcm,
 
 void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& master, const DMD& dmd)
 {                  
-    //int ne = mesh.ne;
-    //int ne1 = mesh.ne;   
-    int ne = dmd.elempart.size(); 
-    int ne1 = ne;
-    if (pde.mpiprocs>1) {      
+    int ne = mesh.ne;
+    int ne1 = mesh.ne;    
+    if (pde.mpiprocs>1) {
+      ne = dmd.elempart.size();
       ne1 = dmd.elempartpts[0] + dmd.elempartpts[1];
       if (pde.hybrid==0) ne1 += dmd.elempartpts[2];        
     }
     
+    conn.bf.resize(mesh.nfe * ne); 
+    int* fi = (int*)malloc(mesh.nfe * ne * sizeof(int));      
+    select_columns(fi, mesh.f.data(), dmd.elempart.data(), mesh.nfe, ne);       
+    apply_bcm(conn.bf.data(), fi, mesh.boundaryConditions.data(), mesh.nfe*ne, mesh.nbcm);                              
+    CPUFREE(fi);
+    
+    int* ti = (int*)malloc(mesh.nve * ne * sizeof(int));                  
+    select_columns(ti, mesh.t.data(), dmd.elempart.data(), mesh.nve, ne); 
+    
     conn.nf = connectivity(conn.elemcon, conn.facecon, conn.bf, conn.f2t, conn.facepartpts, conn.facepartbnd, 
-              mesh.t.data(), mesh.f.data(), dmd.elempart.data(), mesh.localfaces.data(), master.perm.data(), 
+              ti, dmd.elempart.data(), mesh.localfaces.data(), master.perm.data(), 
               master.permind.data(), mesh.boundaryConditions.data(), mesh.dim, mesh.elemtype, mesh.nve, 
               mesh.nvf, mesh.nfe, master.npf, master.npe, ne, ne1, mesh.nbcm);       
     
+    CPUFREE(ti);
+
     cout << "Finished connectivity" << endl;
 
     //writesol(pde, mesh, master, dmd.elempart, conn.facepartpts, 0, pde.datapath + "/sol.bin");        

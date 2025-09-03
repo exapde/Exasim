@@ -1,4 +1,14 @@
-function [udgx] = fieldatx(mesh,UDG,x,nref)
+function [udgx] = fieldatx(mesh,master,UDG,x,nref)
+
+if size(mesh.t,1) < size(mesh.t,2)    
+    mesh.t = mesh.t';
+    mesh.p = mesh.p';
+end
+mesh.nd = master.nd;
+mesh.nodetype = master.nodetype;
+mesh.elemtype = master.elemtype;
+mesh.plocal = master.xpe;
+mesh.tlocal = master.telem;
 
 nc = size(UDG,2);
 nd = mesh.nd;
@@ -27,7 +37,7 @@ for i = 1:nx
     end
     distance = sqrt((x(i,1)-xm(:,1)).^2 + (x(i,2)-xm(:,2)).^2);    
     [~,inde] = sort(distance);
-    inde = inde(1:100);
+    inde = inde(1:min(100, length(inde)));
     ind = (inde(:)'-1)*npe+indp;
     xa = pdg(ind,:);
     distance = sqrt((x(i,1)-xa(:,1)).^2 + (x(i,2)-xa(:,2)).^2);    

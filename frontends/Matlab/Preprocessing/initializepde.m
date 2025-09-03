@@ -32,6 +32,7 @@ pde.gpulibflags = "";
 pde.pdemodel="ModelD";
 pde.modelnumber = 0;
 
+pde.Cxxpreprocessing = 1;
 pde.preprocessmode = 1;
 pde.mpiprocs = 1;
 pde.nd = 1;

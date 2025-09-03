@@ -133,17 +133,17 @@ end
 disp('run facenumbering...');  
 [mesh.f, mesh.tprd, t2t] = facenumbering(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
 
-[f2, tprd2, t2t2] = setboundaryperiodicfaces(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
-if max([max(abs(f2(:)-mesh.f(:))) max(abs(tprd2(:)-mesh.tprd(:))) max(abs(t2t2(:)-t2t(:)))]) > 1e-12
-  error("setboundaryperiodicfaces is incorrect.");
-end
+% [f2, tprd2, t2t2] = setboundaryperiodicfaces(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
+% if max([max(abs(f2(:)-mesh.f(:))) max(abs(tprd2(:)-mesh.tprd(:))) max(abs(t2t2(:)-t2t(:)))]) > 1e-12
+%   error("setboundaryperiodicfaces is incorrect.");
+% end
 
 mpiprocs = app.mpiprocs;
 %dmd = meshpartition(mesh.p,mesh.t,mesh.f,t2t,mesh.tprd,app.elemtype,app.boundaryconditions,mesh.boundaryexpr,mesh.periodicexpr,app.porder,mpiprocs,app.metis);
 if (app.hybrid ==1)
-  dmd = meshpartitionhdg(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,coupledinterface,mpiprocs,app.metis);
+  dmd = meshpartitionhdg(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,coupledinterface,mpiprocs,app.metis,app.Cxxpreprocessing);  
 else
-  dmd = meshpartition2(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+  dmd = meshpartition2(mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis,app.Cxxpreprocessing);
 end
 
 for i = 1:mpiprocs       
@@ -156,10 +156,7 @@ for i = 1:mpiprocs
           mesh.dgnodes = xdg;        
         end
     end    
-        
-    %xdg = createdgnodes(mesh.p,mesh.t(:,dmd{i}.elempart),mesh.f(:,dmd{i}.elempart),mesh.curvedboundary,mesh.curvedboundaryexpr,app.porder);    
-    
-    [~,cgelcon,rowent2elem,colent2elem,cgent2dgent] = mkcgent2dgent(xdg,1e-6);
+            
     disp(['Writing initial solution into file ' num2str(i) '...']);
     if (mpiprocs>1) || (coupledinterface>0)
         fileID1 = fopen(filename + "sol" + string(i) + ".bin",'w');
@@ -168,7 +165,9 @@ for i = 1:mpiprocs
     end
     ndims = zeros(12,1);           
     ndims(1) = length(dmd{i}.elempart); % number of elements
-    ndims(2) = sum(dmd{i}.facepartpts); % number of faces
+    if app.Cxxpreprocessing == 0
+        ndims(2) = sum(dmd{i}.facepartpts); % number of faces
+    end
     ndims(3) = size(master.perm,2); % number of faces per element          
     ndims(4) = master.npe;
     ndims(5) = master.npf;            
@@ -214,9 +213,6 @@ for i = 1:mpiprocs
     fwrite(fileID1,nsize(:),'double',endian);
     fwrite(fileID1,ndims(:),'double',endian);
     fwrite(fileID1,xdg(:),'double',endian);
-    %fwrite(fileID1,udg(:),'double',endian);        
-%     fwrite(fileID1,odg(:),'double',endian);
-%     fwrite(fileID1,wdg(:),'double',endian);
     if isfield(mesh, 'udg')        
         fwrite(fileID1,mesh.udg(:,:,dmd{i}.elempart),'double',endian);                
     end
@@ -234,52 +230,56 @@ for i = 1:mpiprocs
     end
     fclose(fileID1);         
     
-    % divide elements and faces into blocks
-    if mpiprocs==1
-        if coupledinterface>0
-          me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2)]);
-          [eblks,nbe] = mkfaceblocks(me,[0 -1],app.neb);                
+    if app.Cxxpreprocessing == 0
+        [~,cgelcon,rowent2elem,colent2elem,cgent2dgent] = mkcgent2dgent(xdg,1e-6);
+    
+        % divide elements and faces into blocks
+        if mpiprocs==1
+            if coupledinterface>0
+              me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2)]);
+              [eblks,nbe] = mkfaceblocks(me,[0 -1],app.neb);                
+            else
+              ne = length(dmd{i}.elempart);        
+              [eblks,nbe] = mkelemblocks(ne,app.neb);
+              eblks(3,:) = 0;        
+            end     
+            mf = cumsum([0 dmd{i}.facepartpts]);    
+            [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);       
+            neb = max(eblks(2,:)-eblks(1,:))+1;
+            nfb = max(fblks(2,:)-fblks(1,:))+1;        
         else
-          ne = length(dmd{i}.elempart);        
-          [eblks,nbe] = mkelemblocks(ne,app.neb);
-          eblks(3,:) = 0;        
-        end     
-        mf = cumsum([0 dmd{i}.facepartpts]);    
-        [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);       
-        neb = max(eblks(2,:)-eblks(1,:))+1;
-        nfb = max(fblks(2,:)-fblks(1,:))+1;        
-    else
-        if coupledinterface>0
-          me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2) dmd{i}.intepartpts(3) dmd{i}.intepartpts(4)]);
-          [eblks,nbe] = mkfaceblocks(me,[0 -1 1 2],app.neb);          
-        else
-          me = cumsum([0 dmd{i}.elempartpts(1) dmd{i}.elempartpts(2) dmd{i}.elempartpts(3)]);
-          [eblks,nbe] = mkfaceblocks(me,[0 1 2],app.neb);          
-        end
-        mf = cumsum([0 dmd{i}.facepartpts]);                 
-        [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);        
-        neb = max(eblks(2,:)-eblks(1,:))+1;
-        nfb = max(fblks(2,:)-fblks(1,:))+1;        
-    end            
-    dmd{i}.eblks = eblks;
-    dmd{i}.fblks = fblks;
-    npe = master.npe;
-    nfe = size(master.perm,2);
-    facecon1 = reshape(dmd{i}.facecon(:,1,:),[size(dmd{i}.facecon,1) size(dmd{i}.facecon,3)]);
-    facecon2 = reshape(dmd{i}.facecon(:,2,:),[size(dmd{i}.facecon,1) size(dmd{i}.facecon,3)]);      
-    ind = [];        
-    for ii = 1:size(fblks,2)
-        if fblks(3,ii)>0
-            ind = [ind fblks(1,ii):fblks(2,ii)];
-        end
-    end            
-
-    facecon2(:,ind)=[];        
-    [rowe2f1,cole2f1,ent2ind1] = mkdge2dgf(facecon1,npe*length(dmd{i}.elempart));                
-    [rowe2f2,cole2f2,ent2ind2] = mkdge2dgf(facecon2,npe*length(dmd{i}.elempart));      
-        
-    %save tmp.mat dmd eblks fblks rowe2f1 cole2f1 ent2ind1 rowe2f2 cole2f2 ent2ind2 cgelcon rowent2elem colent2elem cgent2dgent
+            if coupledinterface>0
+              me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2) dmd{i}.intepartpts(3) dmd{i}.intepartpts(4)]);
+              [eblks,nbe] = mkfaceblocks(me,[0 -1 1 2],app.neb);          
+            else
+              me = cumsum([0 dmd{i}.elempartpts(1) dmd{i}.elempartpts(2) dmd{i}.elempartpts(3)]);
+              [eblks,nbe] = mkfaceblocks(me,[0 1 2],app.neb);          
+            end
+            mf = cumsum([0 dmd{i}.facepartpts]);                 
+            [fblks,nbf] = mkfaceblocks(mf,dmd{i}.facepartbnd,app.nfb);        
+            neb = max(eblks(2,:)-eblks(1,:))+1;
+            nfb = max(fblks(2,:)-fblks(1,:))+1;        
+        end            
+        dmd{i}.eblks = eblks;
+        dmd{i}.fblks = fblks;
+        npe = master.npe;
+        nfe = size(master.perm,2);
+        facecon1 = reshape(dmd{i}.facecon(:,1,:),[size(dmd{i}.facecon,1) size(dmd{i}.facecon,3)]);
+        facecon2 = reshape(dmd{i}.facecon(:,2,:),[size(dmd{i}.facecon,1) size(dmd{i}.facecon,3)]);      
+        ind = [];        
+        for ii = 1:size(fblks,2)
+            if fblks(3,ii)>0
+                ind = [ind fblks(1,ii):fblks(2,ii)];
+            end
+        end            
+    
+        facecon2(:,ind)=[];        
+        [rowe2f1,cole2f1,ent2ind1] = mkdge2dgf(facecon1,npe*length(dmd{i}.elempart));                
+        [rowe2f2,cole2f2,ent2ind2] = mkdge2dgf(facecon2,npe*length(dmd{i}.elempart));      
             
+        %save tmp.mat dmd eblks fblks rowe2f1 cole2f1 ent2ind1 rowe2f2 cole2f2 ent2ind2 cgelcon rowent2elem colent2elem cgent2dgent
+    end
+
     disp(['Writing mesh into file ' num2str(i) '...']); 
     if (mpiprocs>1) || (coupledinterface>0)
         fileID2 = fopen(filename + "mesh" + string(i) + ".bin",'w');
@@ -289,19 +289,25 @@ for i = 1:mpiprocs
     ndims = zeros(20,1);
     ndims(1) = size(mesh.p,1);
     ndims(2) = length(dmd{i}.elempart);
-    ndims(3) = sum(dmd{i}.facepartpts);
-    ndims(4) = max(mesh.t(:));
-    ndims(5) = nfe;
-    ndims(6) = nbe;
-    ndims(7) = neb;
-    ndims(8) = nbf;
-    ndims(9) = nfb;
+    if app.Cxxpreprocessing == 0
+        ndims(3) = sum(dmd{i}.facepartpts);
+        ndims(4) = max(mesh.t(:));
+        ndims(5) = nfe;
+        ndims(6) = nbe;
+        ndims(7) = neb;
+        ndims(8) = nbf;
+        ndims(9) = nfb;
+    end
         
     nsize = zeros(50,1);
     nsize(1) = length(ndims(:));
-    nsize(2) = length(dmd{i}.facecon(:));  
-    nsize(3) = length(eblks(:)); 
-    nsize(4) = length(fblks(:)); 
+
+    if app.Cxxpreprocessing == 0
+        nsize(2) = length(dmd{i}.facecon(:));  
+        nsize(3) = length(eblks(:)); 
+        nsize(4) = length(fblks(:)); 
+    end
+
     nsize(5) = length(dmd{i}.nbsd(:)); 
     nsize(6) = length(dmd{i}.elemsend(:)); 
     nsize(7) = length(dmd{i}.elemrecv(:)); 
@@ -309,35 +315,44 @@ for i = 1:mpiprocs
     nsize(9) = length(dmd{i}.elemrecvpts(:));             
     nsize(10) = length(dmd{i}.elempart(:)); 
     nsize(11) = length(dmd{i}.elempartpts(:)); 
-    nsize(12) = length(cgelcon(:));  
-    nsize(13) = length(rowent2elem(:));  
-    nsize(14) = length(cgent2dgent(:));  
-    nsize(15) = length(colent2elem(:));                          
-    nsize(16) = length(rowe2f1(:));  
-    nsize(17) = length(cole2f1(:));  
-    nsize(18) = length(ent2ind1(:));                          
-    nsize(19) = length(rowe2f2(:));  
-    nsize(20) = length(cole2f2(:));  
-    nsize(21) = length(ent2ind2(:));  
-    if (app.hybrid > 0)
-      nsize(22) = length(dmd{i}.f2t(:));  
-      nsize(23) = length(dmd{i}.elemcon(:));  
-      nsize(24) = length(master.perm(:));  
-      nsize(25) = length(dmd{i}.bf(:));   
-      
-      if isfield(app, 'cartgridpart')    
-       nsize(26) = length(app.cartgridpart);        
-      end      
-%       if coupledinterface>0
-%         nsize(26) = length(dmd{i}.intepartpts(:));    
-%       end
+
+    if app.Cxxpreprocessing == 0
+        nsize(12) = length(cgelcon(:));  
+        nsize(13) = length(rowent2elem(:));  
+        nsize(14) = length(cgent2dgent(:));  
+        nsize(15) = length(colent2elem(:));                          
+        nsize(16) = length(rowe2f1(:));  
+        nsize(17) = length(cole2f1(:));  
+        nsize(18) = length(ent2ind1(:));                          
+        nsize(19) = length(rowe2f2(:));  
+        nsize(20) = length(cole2f2(:));  
+        nsize(21) = length(ent2ind2(:));      
+        nsize(22) = length(dmd{i}.f2t(:));  
+        nsize(23) = length(dmd{i}.elemcon(:));
     end
+
+    nsize(24) = length(master.perm(:));  
+    nsize(25) = length(dmd{i}.bf(:));         
+    if isfield(app, 'cartgridpart')    
+        nsize(26) = length(app.cartgridpart);        
+    end      
+    ti = mesh.tprd(:,dmd{i}.elempart)-1;
+    nsize(27) = length(ti(:));         
+    nsize(28) = length(app.boundaryconditions(:));         
+    if coupledinterface>0 && isfield(app, 'intepartpts')    
+        nsize(29) = length(dmd{i}.intepartpts(:));    
+    end
+    
     fwrite(fileID2,length(nsize(:)),'double',endian);
     fwrite(fileID2,nsize(:),'double',endian);
     fwrite(fileID2,ndims(:),'double',endian);
-    fwrite(fileID2,reshape(permute(dmd{i}.facecon-1,[2 1 3]),[2*master.npf(1)*ndims(3) 1]),'double',endian);
-    fwrite(fileID2,eblks(:),'double',endian);
-    fwrite(fileID2,fblks(:),'double',endian);
+
+    if app.Cxxpreprocessing == 0
+        fwrite(fileID2,reshape(permute(dmd{i}.facecon-1,[2 1 3]),[2*master.npf(1)*ndims(3) 1]),'double',endian);
+        fwrite(fileID2,eblks(:),'double',endian);
+        fwrite(fileID2,fblks(:),'double',endian);
+    end
+
     if (~isempty(dmd{i}.nbsd(:))) 
       fwrite(fileID2,dmd{i}.nbsd(:)-1,'double',endian);
     end    
@@ -351,28 +366,32 @@ for i = 1:mpiprocs
     fwrite(fileID2,dmd{i}.elemrecvpts(:),'double',endian);
     fwrite(fileID2,dmd{i}.elempart(:)-1,'double',endian);
     fwrite(fileID2,dmd{i}.elempartpts(:),'double',endian);
-    fwrite(fileID2,cgelcon(:)-1,'double',endian);
-    fwrite(fileID2,rowent2elem(:),'double',endian);
-    fwrite(fileID2,cgent2dgent(:)-1,'double',endian);
-    fwrite(fileID2,colent2elem(:)-1,'double',endian);            
-    fwrite(fileID2,rowe2f1(:),'double',endian);
-    fwrite(fileID2,cole2f1(:)-1,'double',endian);
-    fwrite(fileID2,ent2ind1(:)-1,'double',endian);                 
-    fwrite(fileID2,rowe2f2(:),'double',endian);
-    fwrite(fileID2,cole2f2(:)-1,'double',endian);
-    fwrite(fileID2,ent2ind2(:)-1,'double',endian);        
-    if (app.hybrid > 0) % HDG
-      fwrite(fileID2,dmd{i}.f2t(:)-1,'double',endian);        
-      fwrite(fileID2,dmd{i}.elemcon(:)-1,'double',endian);        
-      fwrite(fileID2,master.perm(:)-1,'double',endian);        
-      fwrite(fileID2,dmd{i}.bf(:),'double',endian);      
-      if isfield(app, 'cartgridpart')            
-        fwrite(fileID2,app.cartgridpart(:),'double',endian);             
-      end            
-%       if coupledinterface>0
-%         fwrite(fileID2,dmd{i}.intepartpts(:),'double',endian);      
-%       end
+
+    if app.Cxxpreprocessing == 0
+        fwrite(fileID2,cgelcon(:)-1,'double',endian);
+        fwrite(fileID2,rowent2elem(:),'double',endian);
+        fwrite(fileID2,cgent2dgent(:)-1,'double',endian);
+        fwrite(fileID2,colent2elem(:)-1,'double',endian);            
+        fwrite(fileID2,rowe2f1(:),'double',endian);
+        fwrite(fileID2,cole2f1(:)-1,'double',endian);
+        fwrite(fileID2,ent2ind1(:)-1,'double',endian);                 
+        fwrite(fileID2,rowe2f2(:),'double',endian);
+        fwrite(fileID2,cole2f2(:)-1,'double',endian);
+        fwrite(fileID2,ent2ind2(:)-1,'double',endian);            
+        fwrite(fileID2,dmd{i}.f2t(:)-1,'double',endian);        
+        fwrite(fileID2,dmd{i}.elemcon(:)-1,'double',endian);        
     end
+
+    fwrite(fileID2,master.perm(:)-1,'double',endian);        
+    fwrite(fileID2,dmd{i}.bf(:),'double',endian);      
+    if isfield(app, 'cartgridpart')            
+        fwrite(fileID2,app.cartgridpart(:),'double',endian);             
+    end                
+    fwrite(fileID2,ti(:),'double',endian);         
+    fwrite(fileID2,app.boundaryconditions(:),'double',endian);             
+    if coupledinterface>0 && isfield(app, 'intepartpts')    
+        fwrite(fileID2,dmd{i}.intepartpts(:),'double',endian);       
+    end    
     fclose(fileID2);             
 end
 
@@ -382,14 +401,4 @@ mesh.telem = master.telem;
 mesh.tface = master.telem;
 mesh.xpe = master.xpe;
 mesh.xpf = master.xpf;
-% for i = 1:mpiprocs   
-%     dmd{i}.elem2cpu = [];
-%     dmd{i}.elemrecv = [];
-%     dmd{i}.nbsd = [];
-%     dmd{i}.elemsend = [];
-%     dmd{i}.elemsendpts = [];
-%     dmd{i}.elemrecvpts = [];
-%     dmd{i}.facepartpts = [];
-%     dmd{i}.facepartbnd = [];
-%     dmd{i}.facecon = [];
-% end
+

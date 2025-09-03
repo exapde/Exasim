@@ -274,8 +274,8 @@ int main(int argc, char** argv)
         error("Error: Input file does not exist.\n");        
     }          
            
-    InputParams params = parseInputFile(argv[1]);                           
-    PDE pde = initializePDE(params);        
+    InputParams params = parseInputFile(argv[1], mpirank);                           
+    PDE pde = initializePDE(params, mpirank);        
     nummodels = 1;
     filein[0] = pde.datainpath + "/";
     fileout[0] = make_path(pde.dataoutpath, "out");      

@@ -7,6 +7,7 @@ void HdgUbou1(dstype* f, dstype* J1, dstype* J2, dstype* J3, const dstype* x, co
     J1[0 * N + i] = 0;
     J1[1 * N + i] = 0;
     J1[2 * N + i] = 0;
+    J1[3 * N + i] = 0;
     J3[0 * N + i] = 0;
   });
 }

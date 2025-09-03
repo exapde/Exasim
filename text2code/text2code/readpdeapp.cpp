@@ -184,7 +184,7 @@ std::vector<double> parseExpression(const std::string& expr) {
     return result;
 }
 
-InputParams parseInputFile(const std::string& filename) 
+InputParams parseInputFile(const std::string& filename, int mpirank=0) 
 {
     InputParams params;
     
@@ -298,7 +298,7 @@ InputParams parseInputFile(const std::string& filename)
     }
 
     if (err) error("Input file is missing required parameters. Exiting.\n");    
-    else std::cout << "Finished parseInputFile.\n";
+    else if (mpirank==0) std::cout << "Finished parseInputFile.\n";
     
     return params;
 }
@@ -478,7 +478,7 @@ std::vector<double> makeDoubleVector(Args... args) {
     return { static_cast<double>(args)... };
 }
 
-PDE initializePDE(InputParams& params)
+PDE initializePDE(InputParams& params, int mpirank=0)
 {
     PDE pde;
     
@@ -786,27 +786,27 @@ PDE initializePDE(InputParams& params)
         
     pde.exasimpath = trimToSubstringAtLastOccurence(pde.exasimpath, "Exasim");     
     if (pde.exasimpath == "") {      
-      std::cout<<"exasimpath is not set in "<< params.pdeappfile <<" file.\nWe use the working directory to define exasimpath.\n";
+      if (mpirank==0) std::cout<<"exasimpath is not set in "<< params.pdeappfile <<" file.\nWe use the working directory to define exasimpath.\n";
       std::filesystem::path cwd = std::filesystem::current_path();
       pde.exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
       if (pde.exasimpath == "") 
         error("exasimpath is not valid. Please set exasimpath to the correct path of the Exasim source code in pdeapp.txt file.");     
     }
-    std::cout << "exasimpath = "<<pde.exasimpath<<std::endl;
+    if (mpirank==0) std::cout << "exasimpath = "<<pde.exasimpath<<std::endl;
     
     pde.pdeappfile = params.pdeappfile;    
     if (pde.datapath == "") {      
       string dp = trim_dir(params.pdeappfile);
       if (dp == "") {
-        std::cout<<"datapath is not set in "<< params.pdeappfile <<" file.\nWe set datapath to the working directory.\n";
+        if (mpirank==0) std::cout<<"datapath is not set in "<< params.pdeappfile <<".\nWe set datapath to the working directory.\n";
         pde.datapath = std::filesystem::current_path();    
       }
       else {
-        std::cout<<"datapath is not set in the input file "<< params.pdeappfile <<" file.\nWe set datapath by using the path of the input file.\n";
+        if (mpirank==0) std::cout<<"datapath is not set in the input file "<< params.pdeappfile <<".\nWe set datapath by using the path of the input file.\n";
         pde.datapath = dp;    
       }
     }        
-    std::cout << "datapath = "<<pde.datapath<<std::endl;
+    if (mpirank==0) std::cout << "datapath = "<<pde.datapath<<std::endl;
         
     if (pde.modelnumber<=0) {
       //pde.datainpath = make_path(pde.exasimpath, "build/datain");
@@ -820,7 +820,7 @@ PDE initializePDE(InputParams& params)
       pde.dataoutpath = make_path(pde.datapath, "dataout" + std::to_string(pde.modelnumber));
     }
     
-    std::cout << "Finished initializePDE.\n";
+    if (mpirank==0) std::cout << "Finished initializePDE.\n";
     
     if (pde.debugmode==1) printInputParams(params);
     

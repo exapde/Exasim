@@ -449,6 +449,12 @@ template <typename T> static void TemplateFree(T *data,  Int backend)
 #endif                      
 }
 
+template <typename T> static void TemplateReallocate(T **data, Int n, Int backend)
+{
+    TemplateFree(*data,  backend);
+    TemplateMalloc(data, n, backend);
+}
+
 template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int n, Int backend)
 {
     if (backend <= 1)  {

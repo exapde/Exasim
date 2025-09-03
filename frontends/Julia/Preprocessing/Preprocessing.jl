@@ -165,13 +165,12 @@ end
 
 # app.neb = 50000;
 # app.nfb = 100000;
-
 #dmd = meshpartition(dmd,mesh.p,mesh.t,mesh.f,t2t,mesh.tprd,app.elemtype,app.boundaryconditions,mesh.boundaryexpr,mesh.periodicexpr,app.porder,mpiprocs,app.metis);
 #dmd = meshpartition2(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
 if (app.hybrid ==1)
-  dmd = meshpartitionhdg(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+  dmd = meshpartitionhdg(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis, app.Cxxpreprocessing);
 else
-  dmd = meshpartition2(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis);
+  dmd = meshpartition2(dmd,mesh.tprd,mesh.f,t2t,app.boundaryconditions,app.nd,app.elemtype,app.porder,mpiprocs,app.metis, app.Cxxpreprocessing);
 end
 
 for i = 1:mpiprocs
@@ -186,9 +185,7 @@ for i = 1:mpiprocs
     if mpiprocs==1
       mesh.dgnodes = xdg;        
     end
-
-    cgelcon,rowent2elem,colent2elem,cgent2dgent,~ = mkcgent2dgent(xdg,1e-8);
-
+    
     if (size(mesh.udg,3) > 0)
       udg = mesh.udg[:,:,dmd[i].elempart[:]];
     else
@@ -204,57 +201,70 @@ for i = 1:mpiprocs
     else
       wdg = zeros(0,0,0);
     end
-    
+
     if mpiprocs==1
         writesol(filename  * "/sol",0,xdg, udg, odg, wdg);
-        ne = length(dmd[i].elempart);
-        eblks,nbe = mkelemblocks(ne,app.neb);
-        eblks = vcat(eblks, zeros(Int, 1, size(eblks,2)));
-        mf = cumsum([0; dmd[i].facepartpts[:]]);
-        fblks,nbf = mkfaceblocks(mf,dmd[i].facepartbnd[:],app.nfb);
-        neb = maximum(eblks[2,:]-eblks[1,:])+1;
-        nfb = maximum(fblks[2,:]-fblks[1,:])+1;
     else
         writesol(filename  * "/sol",i,xdg, udg, odg, wdg);
-        me = cumsum([0; dmd[i].elempartpts[1]; dmd[i].elempartpts[2]; dmd[i].elempartpts[3]]);
-        eblks,nbe = mkfaceblocks(me,[0 1 2],app.neb);
-        mf = cumsum([0; dmd[i].facepartpts[:]]);
-        fblks,nbf = mkfaceblocks(mf,dmd[i].facepartbnd[:],app.nfb);
-        neb = maximum(eblks[2,:]-eblks[1,:])+1;
-        nfb = maximum(fblks[2,:]-fblks[1,:])+1;
     end
 
-    npe = master.npe;
-    nfe = size(master.perm,2);
-    facecon1 = reshape(dmd[i].facecon[:,1,:],size(dmd[i].facecon,1), size(dmd[i].facecon,3));
-    facecon2 = reshape(dmd[i].facecon[:,2,:],size(dmd[i].facecon,1), size(dmd[i].facecon,3));
-    ind = [];
-    for ii = 1:size(fblks,2)
-        if fblks[3,ii]>0
-            ind = vcat(ind, Vector(fblks[1,ii]:fblks[2,ii]));
+    if app.Cxxpreprocessing == 0
+        cgelcon,rowent2elem,colent2elem,cgent2dgent,~ = mkcgent2dgent(xdg,1e-8);
+
+        if mpiprocs==1
+            ne = length(dmd[i].elempart);
+            eblks,nbe = mkelemblocks(ne,app.neb);
+            eblks = vcat(eblks, zeros(Int, 1, size(eblks,2)));
+            mf = cumsum([0; dmd[i].facepartpts[:]]);
+            fblks,nbf = mkfaceblocks(mf,dmd[i].facepartbnd[:],app.nfb);
+            neb = maximum(eblks[2,:]-eblks[1,:])+1;
+            nfb = maximum(fblks[2,:]-fblks[1,:])+1;
+        else
+            me = cumsum([0; dmd[i].elempartpts[1]; dmd[i].elempartpts[2]; dmd[i].elempartpts[3]]);
+            eblks,nbe = mkfaceblocks(me,[0 1 2],app.neb);
+            mf = cumsum([0; dmd[i].facepartpts[:]]);
+            fblks,nbf = mkfaceblocks(mf,dmd[i].facepartbnd[:],app.nfb);
+            neb = maximum(eblks[2,:]-eblks[1,:])+1;
+            nfb = maximum(fblks[2,:]-fblks[1,:])+1;
         end
+
+        npe = master.npe;
+        nfe = size(master.perm,2);
+        facecon1 = reshape(dmd[i].facecon[:,1,:],size(dmd[i].facecon,1), size(dmd[i].facecon,3));
+        facecon2 = reshape(dmd[i].facecon[:,2,:],size(dmd[i].facecon,1), size(dmd[i].facecon,3));
+        ind = [];
+        for ii = 1:size(fblks,2)
+            if fblks[3,ii]>0
+                ind = vcat(ind, Vector(fblks[1,ii]:fblks[2,ii]));
+            end
+        end
+        if length(ind)>0
+            facecon2 = facecon2[:, setdiff(1:end, ind)];
+        end
+        rowe2f1,cole2f1,ent2ind1 = mkdge2dgf(facecon1,master.npe*length(dmd[i].elempart));
+        rowe2f2,cole2f2,ent2ind2 = mkdge2dgf(facecon2,master.npe*length(dmd[i].elempart));
     end
-    if length(ind)>0
-        facecon2 = facecon2[:, setdiff(1:end, ind)];
-    end
-    rowe2f1,cole2f1,ent2ind1 = mkdge2dgf(facecon1,master.npe*length(dmd[i].elempart));
-    rowe2f2,cole2f2,ent2ind2 = mkdge2dgf(facecon2,master.npe*length(dmd[i].elempart));
+
     ndims = zeros(Int,20,1);
-    ndims[1] = size(mesh.p,1);
+    ndims[1] = size(mesh.p,1);    
     ndims[2] = length(dmd[i].elempart);
-    ndims[3] = sum(dmd[i].facepartpts);
-    ndims[4] = maximum(mesh.t[:]);
-    ndims[5] = nfe;
-    ndims[6] = nbe;
-    ndims[7] = neb;
-    ndims[8] = nbf;
-    ndims[9] = nfb;
+    if app.Cxxpreprocessing == 0
+        ndims[3] = sum(dmd[i].facepartpts);
+        ndims[4] = maximum(mesh.t[:]);
+        ndims[5] = nfe;
+        ndims[6] = nbe;
+        ndims[7] = neb;
+        ndims[8] = nbf;
+        ndims[9] = nfb;
+    end
 
     nsize = zeros(Int,50,1);
     nsize[1] = length(ndims);
-    nsize[2] = length(dmd[i].facecon);
-    nsize[3] = length(eblks);
-    nsize[4] = length(fblks);
+    if app.Cxxpreprocessing == 0
+        nsize[2] = length(dmd[i].facecon);
+        nsize[3] = length(eblks);
+        nsize[4] = length(fblks);
+    end
     nsize[5] = length(dmd[i].nbsd);
     nsize[6] = length(dmd[i].elemsend);
     nsize[7] = length(dmd[i].elemrecv);
@@ -262,22 +272,26 @@ for i = 1:mpiprocs
     nsize[9] = length(dmd[i].elemrecvpts);
     nsize[10] = length(dmd[i].elempart);
     nsize[11] = length(dmd[i].elempartpts);
-    nsize[12] = length(cgelcon);
-    nsize[13] = length(rowent2elem);
-    nsize[14] = length(cgent2dgent);
-    nsize[15] = length(colent2elem);
-    nsize[16] = length(rowe2f1);
-    nsize[17] = length(cole2f1);
-    nsize[18] = length(ent2ind1);
-    nsize[19] = length(rowe2f2);
-    nsize[20] = length(cole2f2);
-    nsize[21] = length(ent2ind2);
-    if app.hybrid > 0
-      nsize[22] = length(dmd[i].f2t[:])
-      nsize[23] = length(dmd[i].elemcon[:])
-      nsize[24] = length(master.perm[:])
-      nsize[25] = length(dmd[i].bf[:])
+
+    if app.Cxxpreprocessing == 0    
+        nsize[12] = length(cgelcon);
+        nsize[13] = length(rowent2elem);
+        nsize[14] = length(cgent2dgent);
+        nsize[15] = length(colent2elem);
+        nsize[16] = length(rowe2f1);
+        nsize[17] = length(cole2f1);
+        nsize[18] = length(ent2ind1);
+        nsize[19] = length(rowe2f2);
+        nsize[20] = length(cole2f2);
+        nsize[21] = length(ent2ind2);
+        nsize[22] = length(dmd[i].f2t[:])
+        nsize[23] = length(dmd[i].elemcon[:])
     end
+    nsize[24] = length(master.perm[:])
+    nsize[25] = length(dmd[i].bf[:])
+    ti = mesh.tprd[:,dmd[i].elempart[:]] .- 1;
+    nsize[27] = length(ti[:]);         
+    nsize[28] = length(app.boundaryconditions[:]);         
 
     if (mpiprocs>1)
         print("Writing mesh into file " * string(i) * "\n");
@@ -290,9 +304,13 @@ for i = 1:mpiprocs
     write(fileID,Float64(length(nsize[:])));
     write(fileID,Float64.(nsize[:]));
     write(fileID,Float64.(ndims[:]));
-    write(fileID,Float64.(reshape(permutedims(dmd[i].facecon.-1,[2,1,3]),length(dmd[i].facecon),1)));
-    write(fileID,Float64.(eblks[:]));
-    write(fileID,Float64.(fblks[:]));
+
+    if app.Cxxpreprocessing == 0
+        write(fileID,Float64.(reshape(permutedims(dmd[i].facecon.-1,[2,1,3]),length(dmd[i].facecon),1)));
+        write(fileID,Float64.(eblks[:]));
+        write(fileID,Float64.(fblks[:]));
+    end
+
     if (mpiprocs>1)
       write(fileID,Float64.(dmd[i].nbsd[:].-1));
       write(fileID,Float64.(dmd[i].elemsend[:].-1));
@@ -302,22 +320,26 @@ for i = 1:mpiprocs
     write(fileID,Float64.(dmd[i].elemrecvpts[:]));
     write(fileID,Float64.(dmd[i].elempart[:].-1));
     write(fileID,Float64.(dmd[i].elempartpts[:]));
-    write(fileID,Float64.(cgelcon[:].-1));
-    write(fileID,Float64.(rowent2elem[:]));
-    write(fileID,Float64.(cgent2dgent[:].-1));
-    write(fileID,Float64.(colent2elem[:].-1));
-    write(fileID,Float64.(rowe2f1[:]));
-    write(fileID,Float64.(cole2f1[:].-1));
-    write(fileID,Float64.(ent2ind1[:].-1));
-    write(fileID,Float64.(rowe2f2[:]));
-    write(fileID,Float64.(cole2f2[:].-1));
-    write(fileID,Float64.(ent2ind2[:].-1));
-    if app.hybrid > 0
-      write(fileID,Float64.(dmd[i].f2t[:].-1))
-      write(fileID,Float64.(dmd[i].elemcon[:].-1))
-      write(fileID,Float64.(master.perm[:]).-1)
-      write(fileID,Float64.(dmd[i].bf[:]))
+
+    if app.Cxxpreprocessing == 0
+        write(fileID,Float64.(cgelcon[:].-1));
+        write(fileID,Float64.(rowent2elem[:]));
+        write(fileID,Float64.(cgent2dgent[:].-1));
+        write(fileID,Float64.(colent2elem[:].-1));
+        write(fileID,Float64.(rowe2f1[:]));
+        write(fileID,Float64.(cole2f1[:].-1));
+        write(fileID,Float64.(ent2ind1[:].-1));
+        write(fileID,Float64.(rowe2f2[:]));
+        write(fileID,Float64.(cole2f2[:].-1));
+        write(fileID,Float64.(ent2ind2[:].-1));
+        write(fileID,Float64.(dmd[i].f2t[:].-1));
+        write(fileID,Float64.(dmd[i].elemcon[:].-1));
     end
+    write(fileID,Float64.(master.perm[:]).-1)
+    write(fileID,Float64.(dmd[i].bf[:]))
+    write(fileID,Float64.(ti[:]));
+    write(fileID,Float64.(app.boundaryconditions[:]));
+
     close(fileID);
 end
 

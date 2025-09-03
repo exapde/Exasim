@@ -44,3 +44,5 @@ pde['visscalars'] = ["temperature", 0]; # list of scalar fields for visualizatio
 pde['visvectors'] = []; # list of vector fields for visualization
 Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
 print("Done!");
+
+

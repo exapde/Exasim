@@ -7,12 +7,20 @@ public:
 
     // Geometry (owned; always 3D padded: [3 x npoints], column-major)
     std::vector<float>  cgnodes;
-
+    
     // Topology (owned)
     std::vector<int32_t> cgcells;      // [nve x ncells], column-major (0-based)
     std::vector<int32_t> celloffsets;  // [ncells] cumulative ends (nve, 2*nve, ...)
     std::vector<uint8_t> celltypes;    // [ncells] VTK cell type per cell (uniform)
 
+    // Geometry (owned; always 3D padded: [3 x nnodes], column-major)
+    std::vector<float>  facenodes;
+    
+    // Topology (owned)
+    std::vector<int32_t> faceconn;     // [nvf x nfaces], column-major (0-based)
+    std::vector<int32_t> faceoffsets;  // [ncells] cumulative ends (nve, 2*nve, ...)
+    std::vector<uint8_t> facetypes;    // [ncells] VTK cell type per cell (uniform)
+    
     // Field schemas (names only; data are provided at write time)
     std::vector<std::string> scalar_names;   // nscalars
     std::vector<std::string> vector_names;   // nvectors (3 comps each, z padded if nd==2)
@@ -25,6 +33,9 @@ public:
     int npoints = 0;
     int ncells  = 0;
     int nve     = 0;
+    int nnodes  = 0;
+    int nfaces  = 0;
+    int nvf     = 0;    
     int savemode = 0;
     
     // Precomputed appended-data offsets for VTU metadata

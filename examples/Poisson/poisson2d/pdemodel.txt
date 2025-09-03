@@ -50,14 +50,3 @@ function Initu(x, eta, mu)
   ui[0] = 0.0;
 end
 
-function VisScalars(x, uq, v, w, eta, mu, t)  
-  output_size(s) = 2;
-  s[0] = uq[0];
-  s[1] = uq[1] + uq[2];  
-end
-
-function VisVectors(x, uq, v, w, eta, mu, t)  
-  output_size(s) = 2;
-  s[0] = uq[1];
-  s[1] = uq[2];  
-end

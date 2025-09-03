@@ -22,6 +22,7 @@ mutable struct PDEStruct
 
     usecmake::IntP; 
     buildexec::IntP; 
+    Cxxpreprocessing::IntP; # preprocessing mode
     preprocessmode::IntP; # preprocessing mode
     mpiprocs::IntP; # number of MPI ranks
     nd::IntP; # physical dimension
@@ -168,6 +169,7 @@ function initializepde(version)
     pde.cpulibflags = ""
     pde.gpulibflags = ""
     pde.modelfile = "";
+    pde.Cxxpreprocessing = 1;
     pde.preprocessmode = 1;
     pde.mpiprocs = 1;
     pde.nd = 1;

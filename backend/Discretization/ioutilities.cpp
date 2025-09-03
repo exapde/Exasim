@@ -219,7 +219,7 @@ template <typename T> T * copyarray(T *b, Int N)
             a[i] = b[i];
     }    
     else {
-        a = NULL;
+        a = nullptr;
     }
     return a;
 }
@@ -240,7 +240,7 @@ template <typename T> T * readarray(ifstream &in, Int N)
         in.read( reinterpret_cast<char*>( a ), sizeof(T)*N );        
     }    
     else {
-        a = NULL;
+        a = nullptr;
     }
     return a;
 }
@@ -257,7 +257,7 @@ Int * readiarrayfromdouble(ifstream &in, Int N)
         }        
     }
     else {
-        a = NULL;
+        a = nullptr;
     }
     return a;
 }
