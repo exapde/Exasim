@@ -39,6 +39,7 @@
 #include <iostream>
 #include <vector>
 #include <numeric>
+#include <filesystem>
 
 // Use C++ header for C string utilities
 #include <cstdint>
@@ -47,7 +48,6 @@
 #include <cstring>
 
 //#include <sys/unistd.h>
-
 
 #ifdef _OPENMP
 #define HAVE_OPENMP

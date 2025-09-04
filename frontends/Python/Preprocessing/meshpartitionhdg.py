@@ -1,7 +1,7 @@
 from elementpartitionhdg import elementpartitionhdg
 from facepartitionhdg import facepartitionhdg
 
-def meshpartitionhdg(dmd, t, f, t2t, bcm, dim, elemtype, porder, nproc, metis):
+def meshpartitionhdg(dmd, t, f, t2t, bcm, dim, elemtype, porder, nproc, metis, Cxxpreprocessing):
     print("run elementpartition...")
     dmd = elementpartitionhdg(dmd, t, t2t, nproc, metis)
 

@@ -35,6 +35,7 @@ def initializepde(version):
 
     pde['usecmake'] = 0;
     pde['buildexec'] = 0;
+    pde['Cxxpreprocessing'] = 1;
     pde['preprocessmode'] = 1;
     pde['mpiprocs'] = 1;
     pde['nd'] = 1;
