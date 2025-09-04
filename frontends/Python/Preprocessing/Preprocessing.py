@@ -200,7 +200,7 @@ def preprocessing(app,mesh):
         ndims = zeros(20);
         ndims[1-1] = mesh['p'].shape[0];
         ndims[2-1] = size(dmd[i]['elempart']);
-        if app['Cxxpreprocessing'] == 1:
+        if app['Cxxpreprocessing'] == 0:
             ndims[3-1] = sum(dmd[i]['facepartpts']);
             ndims[4-1] = max(mesh['t'].flatten())+1;
             ndims[5-1] = nfe;
@@ -209,10 +209,10 @@ def preprocessing(app,mesh):
             ndims[8-1] = nbf;
             ndims[9-1] = nfb;
 
-        nsize = zeros((25,1));
+        nsize = zeros((50,1));
         nsize[1-1] = size(ndims);
 
-        if app['Cxxpreprocessing'] == 1:
+        if app['Cxxpreprocessing'] == 0:
             nsize[2-1] = size(dmd[i]['facecon']);
             nsize[3-1] = size(eblks);
             nsize[4-1] = size(fblks);
@@ -225,7 +225,7 @@ def preprocessing(app,mesh):
         nsize[10-1] = size(dmd[i]['elempart']);
         nsize[11-1] = size(dmd[i]['elempartpts']);
 
-        if app['Cxxpreprocessing'] == 1:
+        if app['Cxxpreprocessing'] == 0:
             nsize[12-1] = size(cgelcon);
             nsize[13-1] = size(rowent2elem);
             nsize[14-1] = size(cgent2dgent);
@@ -256,7 +256,7 @@ def preprocessing(app,mesh):
         nsize.astype('float64').tofile(fileID);
         ndims.astype('float64').tofile(fileID);
 
-        if app['Cxxpreprocessing'] == 1:
+        if app['Cxxpreprocessing'] == 0:
             dmd[i]['facecon'].transpose(1,0,2).flatten('F').astype(float64).tofile(fileID);
             eblks.flatten('F').astype(float64).tofile(fileID);
             fblks.flatten('F').astype(float64).tofile(fileID);
@@ -276,7 +276,7 @@ def preprocessing(app,mesh):
         if len(dmd[i]['elempartpts'])>0:
             dmd[i]['elempartpts'].flatten('F').astype(float64).tofile(fileID);
         
-        if app['Cxxpreprocessing'] == 1:        
+        if app['Cxxpreprocessing'] == 0:        
             cgelcon.flatten('F').astype(float64).tofile(fileID);
             rowent2elem.flatten('F').astype(float64).tofile(fileID);
             cgent2dgent.flatten('F').astype(float64).tofile(fileID);

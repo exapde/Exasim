@@ -3,7 +3,7 @@ void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 	Kokkos::parallel_for("Source", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype xdg1 = xdg[0*ng+i];
 		dstype xdg2 = xdg[1*ng+i];
-		f[0*ng+i] = sin(xdg1*3.141592653589793)*sin(xdg2*3.141592653589793)*1.973920880217872E+1;
+		f[0*ng+i] = 19.739208802178716*sin(M_PI*xdg1)*sin(M_PI*xdg2);
 	});
 }
 

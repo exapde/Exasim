@@ -4,7 +4,7 @@ function getsolutions(basename::AbstractString, dmd::AbstractVector)
     if nproc == 1
         n1, n2, n3, nsteps, block =
             read_rank(string(basename, "_np", 0, ".bin"))
-        display([n1, n2, n3, nsteps])    
+        
         return block  # size: (n1, n2, n3, nsteps)
     else
         # how many elements each rank contributes
