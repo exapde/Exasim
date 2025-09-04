@@ -119,6 +119,17 @@ std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const s
     }
 }
 
+std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
+    const std::string s = fullPath.generic_string();
+    std::size_t pos = s.find(keyword);  // Use find to get the first occurrence
+    if (pos != std::string::npos) {
+        return s.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
 std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
     if (pos != std::string::npos) {
@@ -127,6 +138,17 @@ std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const st
     else {      
       return "";
     }
+}
+
+std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                           const std::string& keyword)
+{
+    // generic_string uses forward slashes on all platforms (nice for substring ops)
+    const std::string s = fullPath.generic_string();
+    const auto pos = s.rfind(keyword);
+    if (pos != std::string::npos)
+        return s.substr(0, pos + keyword.size());
+    return {};
 }
 
 void print2darray(const double* a, int m, int n)
