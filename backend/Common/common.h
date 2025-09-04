@@ -561,6 +561,17 @@ std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const st
     }
 }
 
+std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                           const std::string& keyword)
+{
+    // generic_string uses forward slashes on all platforms (nice for substring ops)
+    const std::string s = fullPath.generic_string();
+    const auto pos = s.rfind(keyword);
+    if (pos != std::string::npos)
+        return s.substr(0, pos + keyword.size());
+    return {};
+}
+
 struct appstruct {              
     Int *lsize=nullptr;
     Int *nsize=nullptr;  // data size

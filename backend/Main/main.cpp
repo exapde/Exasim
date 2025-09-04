@@ -140,7 +140,7 @@ using namespace std;
 int main(int argc, char** argv) 
 {   
   
-    Int nummodels, mpiprocs, mpirank, shmrank, backend;    
+    Int nummodels=1, mpiprocs=1, mpirank=0, shmrank=0, backend=0;    
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
@@ -285,14 +285,6 @@ int main(int argc, char** argv)
       return 1;
     }
     
-    // Validate argument count for file pairs
-    int required = 2*nummodels + 2; // exe, nummodels, then 2 per model
-    if (argc < required) {
-        if (mpirank==0) std::cerr << "Expected " << (2*nummodels) 
-                                   << " file arguments (in/out per model)" << std::endl;
-        return 1;
-    }
-
     string mystr = string(argv[1]);
     try {
         nummodels = stoi(mystr);  // number of pde models
@@ -301,6 +293,14 @@ int main(int argc, char** argv)
         return 1;
     }
           
+    // Validate argument count for file pairs
+    int required = 2*nummodels + 2; // exe, nummodels, then 2 per model
+    if (argc < required) {
+        if (mpirank==0) std::cerr << "Expected " << (2*nummodels) 
+                                   << " file arguments (in/out per model)" << std::endl;
+        return 1;
+    }
+      
     // two-physics and two-domain problems      
     if (nummodels>100) {
       mpiprocs0 = nummodels - 100;
