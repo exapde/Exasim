@@ -1361,6 +1361,7 @@ void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const mas
     mesh.szcole2f2 = mesh.nsize[19] = mesh.rowe2f2[nent2];
     mesh.szent2ind2 = mesh.nsize[20] = npe*ne;
     mesh.szf2e = mesh.nsize[21] = 4*nf;    
+    mesh.szelemcon = mesh.nsize[22] = npf * nfe * ne;
     
     CPUFREE(xcg);
     CPUFREE(localfaces);
@@ -1507,6 +1508,7 @@ void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstruct& ap
     compare(mesh.nsize[19], mesh.rowe2f2[nent2], "mesh.nsize[19]");
     compare(mesh.nsize[20], npe * ne, "mesh.nsize[20]");
     compare(mesh.nsize[21], 4 * nf, "mesh.nsize[21]");
+    compare(mesh.nsize[22], npf * nfe * ne, "mesh.nsize[21]");
     
     CPUFREE(xcg);
     CPUFREE(localfaces);
