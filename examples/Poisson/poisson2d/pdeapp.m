@@ -25,8 +25,8 @@ pde.linearsolvertol = 1e-8; % GMRES tolerance
 pde.ppdegree = 1;          % degree of polynomial preconditioner
 pde.RBdim = 0;
 pde.GMRESrestart = 50;
-pde.saveSolBouFreq = 0;
-pde.ibs = 0;
+pde.saveSolBouFreq = 1;
+pde.ibs = 1;
 
 % create a grid of 8 by 8 on the unit square
 [mesh.p,mesh.t] = squaremesh(8,8,1,1);

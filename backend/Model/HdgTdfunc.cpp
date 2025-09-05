@@ -7,7 +7,6 @@ void HdgTdfunc(dstype* f, dstype* J1, dstype* J2, const dstype* x, const dstype*
     J1[0 * N + i] = 0;
     J1[1 * N + i] = 0;
     J1[2 * N + i] = 0;
-    J1[3 * N + i] = 0;
   });
 }
 

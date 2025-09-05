@@ -51,7 +51,7 @@ void open_and_write(std::ofstream& ofs,
     std::string filename = fileout + prefix +
                            NumberToString(rank - offset) + ".bin";
     ofs.open(filename.c_str(), std::ios::out | std::ios::binary);
-    if (!ofs) throw std::runtime_error("Failed to open file: " + filename);
+    if (!ofs) error("Failed to open file: " + filename);
 
     dstype a[3] = { dstype(a0), dstype(a1), dstype(a2) };
     writearray(ofs, a, 3);
@@ -68,9 +68,11 @@ public:
     ofstream outwdg;  
     ofstream outuhat;  
     ofstream outbouxdg;  
+    ofstream outboundg;  
     ofstream outbouudg;  
     ofstream outbouwdg;  
     ofstream outbouuhat;  
+    ofstream outqoi;
     
     // constructor 
     CSolution(string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend)   
@@ -78,6 +80,7 @@ public:
          prec(disc, backend), solv(disc, backend), vis(disc, backend) 
     {   
         int ncx = disc.common.ncx;                            
+        int nd = disc.common.nd;     
         int ncu = disc.common.ncu;     
         int nc = (disc.common.saveSolOpt==0) ? disc.common.ncu : disc.common.nc;        
         int ncw = disc.common.ncw;
@@ -88,6 +91,19 @@ public:
         int rank = disc.common.mpiRank;
         int offset = disc.common.fileoffset;
         std::string base = disc.common.fileout;
+
+
+        if (mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
+            outqoi.open(base + "qoi.txt", std::ios::out);                         
+            outqoi << std::setw(16) << std::left << "Time";
+            for (size_t i = 0; i < disc.common.nvqoi; ++i) {                
+                outqoi << std::setw(16) << std::left << "Domain_QoI" + std::to_string(i + 1);
+            }
+            for (size_t i = 0; i < disc.common.nsurf; ++i) {                
+                outqoi << std::setw(16) << std::left << "Boundary_QoI" + std::to_string(i + 1);
+            }
+            outqoi << "\n";
+        }
 
         open_and_write(outsol, "udg_np", rank, offset, npe, nc, ne, base);
 
@@ -112,6 +128,7 @@ public:
             }
 
             open_and_write(outbouxdg, "bouxdg_np", rank, offset, npf, nfbou, ncx, base);
+            open_and_write(outboundg, "boundg_np", rank, offset, npf, nfbou, nd, base);
             open_and_write(outbouudg, "bouudg_np", rank, offset, npf, nfbou, disc.common.nc, base);            
             open_and_write(outbouuhat, "bouuhat_np", rank, offset, npf, nfbou, ncu, base);
             if (ncw > 0) open_and_write(outbouwdg, "bouwdg_np", rank, offset, npf, nfbou, ncw, base);
@@ -136,9 +153,11 @@ public:
         if (outwdg.is_open()) { outwdg.close(); }
         if (outuhat.is_open()) { outuhat.close(); }
         if (outbouxdg.is_open()) { outbouxdg.close(); }
+        if (outboundg.is_open()) { outboundg.close(); }
         if (outbouudg.is_open()) { outbouudg.close(); }
         if (outbouwdg.is_open()) { outbouwdg.close(); }
         if (outbouuhat.is_open()) { outbouuhat.close(); }
+        if (outqoi.is_open()) { outqoi.close(); }
     }; 
 
     // solve steady-state problems
@@ -175,6 +194,8 @@ public:
     
     // save solutions in binary files
     void SaveSolutions(Int backend);    
+
+    void SaveQoI(Int backend);    
 
     // save fields in VTU files
     void SaveParaview(Int backend);    

@@ -454,6 +454,7 @@ int main(int argc, char** argv)
 
                 // save solutions into binary files                
                 pdemodel[i]->SaveSolutions(backend); 
+                pdemodel[i]->SaveQoI(backend); 
                 if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
                 pdemodel[i]->SaveSolutionsOnBoundary(backend); 
                 if (pdemodel[i]->disc.common.nce>0)
@@ -496,6 +497,7 @@ int main(int argc, char** argv)
                     pdemodel[i]->disc.evalQ(backend);
                 pdemodel[i]->disc.common.saveSolOpt = 1;
                 pdemodel[i]->SaveSolutions(backend);      
+                pdemodel[i]->SaveQoI(backend);
                 if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
                 pdemodel[i]->SaveOutputCG(backend);            
             }

@@ -19,6 +19,9 @@ ncw = 0;
 neb = 4096;
 nfb = 8192;
 
+saveSolBouFreq = 1;
+ibs = 1;
+
 NewtonIter = 20;
 NewtonTol = 1e-06;
 GMRESiter = 200;

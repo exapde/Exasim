@@ -130,6 +130,37 @@ else
     app.tdep = 0;
 end
 
+qdgsym = sym('udg',[app.ncq 1]); 
+wdgsym = sym('wdg',[app.ncw 1]); 
+odgsym = sym('odg',[app.nco 1]); 
+udgsym = sym('uhat',[app.ncu 1]); 
+time = sym('time');
+uhatsym = sym('uhg',[app.ncu 1]); 
+nsym = sym('nlg',[app.nd 1]); 
+tausym = sym('tau',[length(app.tau) 1]); 
+if isfield(pde, 'visscalars')        
+    sdgsym = pde.visscalars(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    app.nsca = length(sdgsym(:));
+end
+if isfield(pde, 'visvectors')        
+    sdgsym = pde.visvectors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    app.nvec = length(sdgsym(:))/app.nd;
+    sdgsym = reshape(sdgsym, [app.nd app.nvec]);
+end
+if isfield(pde, 'vistensors')        
+    sdgsym = pde.vistensors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    app.nten = length(sdgsym(:))/(app.nd*app.nd);
+    sdgsym = reshape(sdgsym, [app.nd*app.nd app.nten]);
+end
+if isfield(pde, 'qoivolume')        
+    sdgsym = pde.qoivolume(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    app.nvqoi = length(sdgsym(:));
+end
+if isfield(pde, 'qoiboundary')        
+    sdgsym = pde.qoiboundary(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym, uhatsym, nsym, tausym);         
+    app.nbqoi = length(sdgsym(:));
+end
+
 disp('run facenumbering...');  
 [mesh.f, mesh.tprd, t2t] = facenumbering(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
 

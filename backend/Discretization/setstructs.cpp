@@ -215,6 +215,9 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.cartgridpart = copyarray(mesh.cartgridpart,mesh.nsize[25]); 
     common.szcartgridpart = mesh.nsize[25];
     
+    common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));
+    common.qoisurface = (dstype*) malloc(common.nsurf*sizeof(dstype));
+
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
         Int f1 = common.fblks[3*j]-1;

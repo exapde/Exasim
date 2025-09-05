@@ -8,7 +8,7 @@ void KokkosFbou1(dstype* f, const dstype* xdg, const dstype* udg, const dstype* 
 		dstype udg3 = udg[2*ng+i];
 		dstype nlg1 = nlg[0*ng+i];
 		dstype nlg2 = nlg[1*ng+i];
-		f[0*ng+i] = nlg1*param1*udg2 + nlg2*param1*udg3 + tau1*udg1;
+		f[0*ng+i] = tau1*udg1+nlg1*param1*udg2+nlg2*param1*udg3;
 	});
 }
 

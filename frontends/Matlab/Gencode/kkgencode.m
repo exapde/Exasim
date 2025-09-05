@@ -55,6 +55,30 @@ if isfield(pde, 'source')
 else    
     error("pde.source is not defined");
 end
+if isfield(pde, 'visscalars')
+    f = pde.visscalars(u, q, wdg, odg, xdg, time, param, uinf);
+    kkgencodeelem("VisScalars" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);    
+else    
+    kknocodeelem("VisScalars" + strn, kkdir);
+end
+if isfield(pde, 'visvectors')
+    f = pde.visvectors(u, q, wdg, odg, xdg, time, param, uinf);
+    kkgencodeelem("VisVectors" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);    
+else    
+    kknocodeelem("VisVectors" + strn, kkdir);
+end
+if isfield(pde, 'vistensors')
+    f = pde.vistensors(u, q, wdg, odg, xdg, time, param, uinf);
+    kkgencodeelem("VisTensors" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);    
+else    
+    kknocodeelem("VisTensors" + strn, kkdir);
+end
+if isfield(pde, 'qoivolume')
+    f = pde.qoivolume(u, q, wdg, odg, xdg, time, param, uinf);
+    kkgencodeelem("QoIvolume" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);    
+else    
+    kknocodeelem("QoIvolume" + strn, kkdir);
+end
 if isfield(pde, 'eos')
     f = pde.eos(u, q, wdg, odg, xdg, time, param, uinf);
     kkgencodeelem2("EoS" + strn, f, xdg, udg, odg, wdg, uinf, param, time, kkdir);
@@ -132,6 +156,12 @@ if isfield(pde, 'ubou')
 else
     % disp("WARNING: ubou is not defined in the PDE model")
     error("pde.ubou is not defined");
+end
+if isfield(pde, 'qoiboundary')    
+    f = pde.qoiboundary(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
+    kkgencodeface("QoIboundary" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
+else
+    kknocodeface("QoIboundary" + strn, kkdir);
 end
 if isfield(pde, 'fhat')    
     f = pde.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);

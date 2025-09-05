@@ -52,6 +52,11 @@
 #include "KokkosUhat.cpp"
 #include "KokkosStab.cpp"
 #include "KokkosSource.cpp"
+#include "KokkosVisScalars.cpp"
+#include "KokkosVisVectors.cpp"
+#include "KokkosVisTensors.cpp"
+#include "KokkosQoIvolume.cpp"
+#include "KokkosQoIboundary.cpp"
 #include "KokkosSourcew.cpp"
 #include "KokkosOutput.cpp"
 #include "KokkosMonitor.cpp"
@@ -103,6 +108,75 @@ void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* 
   dstype time = common.time;
             
   KokkosSource(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void QoIvolumeDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosQoIvolume(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void VisScalarsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisScalars(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void VisVectorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisVectors(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+
+void VisTensorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisTensors(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
@@ -330,6 +404,23 @@ void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  
     dstype time = common.time;    
 
     KokkosFbou(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                      common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
+}
+
+void QoIboundaryDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
+        meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
+{
+    Int nc = common.nc; // number of compoments of (u, q, p)
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int ncw = common.ncw;// number of compoments of (w)
+    Int nco = common.nco;// number of compoments of (o)
+    Int ncx = common.ncx;// number of compoments of (xdg)        
+    Int nd = common.nd;     // spatial dimension        
+    Int numPoints = ngf*(f2-f1);
+    dstype time = common.time;    
+
+    KokkosQoIboundary(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 

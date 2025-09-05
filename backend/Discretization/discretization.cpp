@@ -59,15 +59,14 @@
 #else
 #include "../Model/KokkosDrivers.cpp"
 #endif
-//#include "../Model/KokkosDrivers.cpp"
-//#include "../Model/ModelDrivers.cpp"
 
 #include "connectivity.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"
 #include "matvec.cpp"
-      
+#include "qoicalculation.cpp"
+
 void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int nese)
 {            
     common.nse = nse;

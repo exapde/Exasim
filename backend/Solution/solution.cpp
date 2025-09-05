@@ -317,7 +317,8 @@ void CSolution::DIRK(ofstream &out, Int backend)
 
         // save solutions into binary files
         //SaveSolutions(disc.sol, solv.sys, disc.common, backend);            
-        this->SaveSolutions(backend); 
+        this->SaveSolutions(backend);
+        this->SaveQoI(backend);
         if (vis.savemode > 0) this->SaveParaview(backend); 
         this->SaveSolutionsOnBoundary(backend); 
         if (disc.common.nce>0)
@@ -454,6 +455,7 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
                             conv_flag = 1;
                             istep = disc.common.tsteps+10;
                             this->SaveSolutions(backend); 
+                            this->SaveQoI(backend);
                             if (vis.savemode > 0) this->SaveParaview(backend); 
                             this->SaveSolutionsOnBoundary(backend); 
                         }
@@ -484,6 +486,7 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
         // Save steady solution anyways
         disc.common.tdep=0;
         this->SaveSolutions(backend); 
+        this->SaveQoI(backend);
         if (vis.savemode > 0) this->SaveParaview(backend); 
         this->SaveSolutionsOnBoundary(backend); 
     }
@@ -503,6 +506,7 @@ void CSolution::SolveProblem(ofstream &out, Int backend)
                 
         // save solutions into binary files            
         this->SaveSolutions(backend);    
+        this->SaveQoI(backend);
         if (vis.savemode > 0) this->SaveParaview(backend); 
                 
         this->SaveSolutionsOnBoundary(backend);         
@@ -580,60 +584,6 @@ void CSolution::SaveSolutions(Int backend)
    // }    
 }
 
-void CSolution::SaveParaview(Int backend) 
-{
-#ifdef HAVE_TEXT2CODE     
-   int nc = disc.common.nc;  
-   int ncx = disc.common.ncx;   
-   int nco = disc.common.nco;  
-   int ncw = disc.common.ncw;  
-   int nsca = disc.common.nsca; 
-   int nvec = disc.common.nvec;  
-   int nten = disc.common.nten;     
-   int npe  = disc.common.npe;     
-   int ne   = disc.common.ne1;      
-   int ndg  = npe * ne;
-   int ncg  = vis.npoints;
-
-   dstype* xdg = &disc.tmp.tempn[0];  
-   dstype* udg = disc.res.Rq;   
-   dstype* vdg = &disc.tmp.tempn[npe*ncx*ne];    
-   dstype* wdg = disc.res.Ru;     
-   dstype* f = solv.sys.v;
-
-   GetElemNodes(xdg, disc.sol.xdg, npe, ncx, 0, ncx, 0, ne);
-   GetElemNodes(udg, disc.sol.udg, npe, nc, 0, nc, 0, ne);
-   if (nco > 0) GetElemNodes(vdg, disc.sol.odg, npe, nco, 0, nco, 0, ne);
-   if (ncw > 0) GetElemNodes(wdg, disc.sol.wdg, npe, ncw, 0, ncw, 0, ne);
-
-   if (nsca > 0) {        
-        VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-        VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
-   }    
-   if (nvec > 0) {        
-        VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-        VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
-   }
-   if (nten > 0) {        
-        VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-        VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
-   }
-
-   if (disc.common.tdep==1) { 
-        if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
-        {        
-            
-        }    
-   }
-   else {                        
-        if (disc.common.mpiProcs==1)                
-            vis.vtuwrite("vis", vis.scafields, vis.vecfields, vis.tenfields);
-        else
-            vis.vtuwrite_parallel("vis", disc.common.mpiRank, disc.common.mpiProcs, vis.scafields, vis.vecfields, vis.tenfields);
-   }    
-#endif    
-}
-
 void CSolution::ReadSolutions(Int backend) 
 {
    if (disc.common.tdep==1) { 
@@ -683,6 +633,78 @@ void CSolution::ReadSolutions(Int backend)
    }    
 }
  
+
+void CSolution::SaveParaview(Int backend) 
+{
+//#ifdef HAVE_TEXT2CODE     
+   int nc = disc.common.nc;  
+   int ncx = disc.common.ncx;   
+   int nco = disc.common.nco;  
+   int ncw = disc.common.ncw;  
+   int nsca = disc.common.nsca; 
+   int nvec = disc.common.nvec;  
+   int nten = disc.common.nten;     
+   int npe  = disc.common.npe;     
+   int ne   = disc.common.ne1;      
+   int ndg  = npe * ne;
+   int ncg  = vis.npoints;
+
+   dstype* xdg = &disc.tmp.tempn[0];  
+   dstype* udg = disc.res.Rq;   
+   dstype* vdg = &disc.tmp.tempn[npe*ncx*ne];    
+   dstype* wdg = disc.res.Ru;     
+   dstype* f = solv.sys.v;
+
+   GetElemNodes(xdg, disc.sol.xdg, npe, ncx, 0, ncx, 0, ne);
+   GetElemNodes(udg, disc.sol.udg, npe, nc, 0, nc, 0, ne);
+   if (nco > 0) GetElemNodes(vdg, disc.sol.odg, npe, nco, 0, nco, 0, ne);
+   if (ncw > 0) GetElemNodes(wdg, disc.sol.wdg, npe, ncw, 0, ncw, 0, ne);
+
+   if (nsca > 0) {        
+        VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+        VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
+   }    
+   if (nvec > 0) {        
+        VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+        VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
+   }
+   if (nten > 0) {        
+        VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+        VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
+   }
+
+   if (disc.common.tdep==1) { 
+        if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
+        {        
+            
+        }    
+   }
+   else {                        
+        if (disc.common.mpiProcs==1)                
+            vis.vtuwrite(disc.common.fileout + "vis", vis.scafields, vis.vecfields, vis.tenfields);
+        else
+            vis.vtuwrite_parallel(disc.common.fileout + "vis", disc.common.mpiRank, disc.common.mpiProcs, vis.scafields, vis.vecfields, vis.tenfields);
+   }    
+//#endif    
+}
+
+void CSolution::SaveQoI(Int backend) 
+{
+    if (disc.common.nvqoi > 0) qoiElement(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
+    if (disc.common.nsurf > 0) qoiFace(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
+
+    if (disc.common.mpiRank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
+        if (disc.common.tdep==1) 
+            outqoi << std::setw(16) << std::scientific << std::setprecision(6) << disc.common.time;
+        else outqoi << std::setw(16) << std::scientific << std::setprecision(6) << 0.0;
+        for (size_t i = 0; i < disc.common.nvqoi; ++i) 
+            outqoi << std::setw(16) << std::scientific << std::setprecision(6) << disc.common.qoivolume[i];            
+        for (size_t i = 0; i < disc.common.nsurf; ++i) 
+            outqoi << std::setw(16) << std::scientific << std::setprecision(6) << disc.common.qoisurface[i];            
+        outqoi << "\n";
+    }
+}
+
 void CSolution::SaveOutputDG(Int backend) 
 {
    if (disc.common.tdep==1) { 
@@ -767,12 +789,31 @@ void CSolution::SaveNodesOnBoundary(Int backend)
             Int f2 = disc.common.fblks[3*j+1];    
             Int ib = disc.common.fblks[3*j+2];            
             if (ib == disc.common.ibs) {     
+                Int nd = disc.common.nd; 
                 Int npf = disc.common.npf; // number of nodes on master face      
                 Int nf = f2-f1;
                 Int nn = npf*nf; 
                 Int ncx = disc.common.ncx; // number of compoments of (u, q, p)                            
                 GetArrayAtIndex(disc.tmp.tempn, disc.sol.xdg, &disc.mesh.findxdg1[npf*ncx*f1], nn*ncx);                
                 writearray(outbouxdg, disc.tmp.tempn, nn*ncx, backend);
+                
+                Int n1 = nn*ncx;                           // nlg
+                Int n2 = nn*(ncx+nd);                      // jac
+                Int n3 = nn*(ncx+nd+1);                    // Jg
+                if (nd==1) {
+                    FaceGeom1D(&disc.tmp.tempn[n2], &disc.tmp.tempn[n1], &disc.tmp.tempn[n3], nn);    
+                    FixNormal1D(&disc.tmp.tempn[n1], &disc.mesh.facecon[2*f1], nn);    
+                }
+                else if (nd==2){
+                    Node2Gauss(disc.common.cublasHandle, &disc.tmp.tempn[n3], disc.tmp.tempn, &disc.master.shapfnt[npf*npf], npf, npf, nf*nd, backend);                
+                    FaceGeom2D(&disc.tmp.tempn[n2], &disc.tmp.tempn[n1], &disc.tmp.tempn[n3], nn);
+                }
+                else if (nd==3) {
+                    Node2Gauss(disc.common.cublasHandle, &disc.tmp.tempn[n3], disc.tmp.tempn, &disc.master.shapfnt[npf*npf], npf, npf, nf*nd, backend);                     
+                    Node2Gauss(disc.common.cublasHandle, &disc.tmp.tempn[n3+nn*nd], disc.tmp.tempn, &disc.master.shapfnt[2*npf*npf], npf, npf, nf*nd, backend);                
+                    FaceGeom3D(&disc.tmp.tempn[n2], &disc.tmp.tempn[n1], &disc.tmp.tempn[n3], nn);
+                }
+                writearray(outboundg, &disc.tmp.tempn[n1], nn*nd, backend);
             }
         }              
     }

@@ -1630,16 +1630,18 @@ struct commonstruct {
     Int* Lind_ji=nullptr;
     Int* Unum_ji=nullptr;
     Int* Uind_ji=nullptr;
-    
-    dstype timing[128];
+        
+    dstype  timing[128];
     dstype* dt=nullptr;
     dstype* dae_dt=nullptr;
     dstype* DIRKcoeff_c=nullptr;
     dstype* DIRKcoeff_d=nullptr;
     dstype* DIRKcoeff_t=nullptr;
     dstype* BDFcoeff_c=nullptr;
-    dstype* BDFcoeff_t=nullptr;
-    
+    dstype* BDFcoeff_t=nullptr;    
+    dstype* qoivolume=nullptr;
+    dstype* qoisurface=nullptr;
+
     cudaEvent_t eventHandle;
     cublasHandle_t cublasHandle;
     
@@ -1835,7 +1837,9 @@ struct commonstruct {
         CPUFREE(DIRKcoeff_d); 
         CPUFREE(DIRKcoeff_t); 
         CPUFREE(BDFcoeff_c); 
-        CPUFREE(BDFcoeff_t);         
+        CPUFREE(BDFcoeff_t);  
+        CPUFREE(qoivolume);  
+        CPUFREE(qoisurface);  
     }                         
 };
 

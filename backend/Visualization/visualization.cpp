@@ -77,7 +77,7 @@ public:
             int ne      = disc.common.ne1;
             int elemtype= disc.common.elemtype;
             int nve_in  = (elemtype==0) ? (nd_in + 1) : std::pow(2, nd_in);
-    
+                
             std::string fn1 = make_path(disc.common.exasimpath, "/text2code/text2code/masternodes.bin");
             std::vector<dstype> xpe, xpf;
             std::vector<int> telem, tface, perm;
@@ -97,9 +97,18 @@ public:
             std::vector<std::string> surfaces(nsurf);
             for (int i = 0; i < nsurf; i++) surfaces[i] = "Surface Field " + std::to_string(i);
             
-            Init(disc.sol.xcg, nd_in, npoints_in, disc.mesh.cgelcon, npe, ne,
+            int* cgelcon;
+            if (backend==0) cgelcon = &disc.mesh.cgelcon[0];
+            else {
+                TemplateMalloc(&cgelcon, npe*ne, 0);
+                TemplateCopytoHost(cgelcon, disc.mesh.cgelcon, npe*ne, backend);
+            }            
+            
+            Init(disc.sol.xcg, nd_in, npoints_in, cgelcon, npe, ne,
                  telem.data(), nce, nve_in, elemtype,
                  scalars, vectors, tensors, surfaces);
+
+            if (backend != 0) CPUFREE(cgelcon);    
 
             savemode = (nsca + nvec + nten > 0); 
         

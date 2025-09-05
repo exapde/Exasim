@@ -1309,8 +1309,9 @@ void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const mas
     int ncgdof = mkent2elem(mesh.rowent2elem, mesh.colent2elem, mesh.cgelcon, npe, ne);
     map_cgent2dgent(mesh.cgent2dgent, mesh.rowent2elem, mesh.colent2elem, xcg, sol.xdg,  npe, dim, ncgdof);                                          
     TemplateMalloc(&sol.xcg, dim*ncgnodes, 0);
-    for (int i=0; i<dim*ncgnodes; i++) sol.xcg[i] = xcg[i];
-    
+    for (int i=0; i<dim*ncgnodes; i++) sol.xcg[i] = xcg[i];    
+    sol.szxcg = dim*ncgnodes;
+
     // compare(mesh.ndims[0], dim, "dim");
     // compare(mesh.ndims[1], ne, "ne");
     // compare(mesh.ndims[2], nf, "nf");             // number of faces in this subdomain
