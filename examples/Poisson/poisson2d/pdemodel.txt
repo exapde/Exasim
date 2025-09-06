@@ -8,7 +8,7 @@ hessian
 
 batch x, uq, v, w, uhat, n
 
-outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars, VisVectors
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars, VisVectors, QoIvolume, QoIboundary
 
 function Flux(x, uq, v, w, eta, mu, t)  
   output_size(f) = 2;
@@ -60,4 +60,22 @@ function VisVectors(x, uq, v, w, eta, mu, t)
   output_size(s) = 2;
   s[0] = uq[1];
   s[1] = uq[2];  
+end
+
+function QoIvolume(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 2;
+  x1 = x[0];
+  x2 = x[1];  
+  t1 = Expression(pi);  
+  t2 = sin(t1*x1);
+  t3 = sin(t1*x2);  
+  uexact = mul(t2,t3); 
+  s[0] = (uq[0] - uexact)*(uq[0] - uexact);
+  s[1] = uq[0];
+end
+  
+function QoIboundary(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 1;
+  f = Flux(x, uq, v, w, eta, mu, t);  
+  fb[0] = f[0]*n[0] + f[1]*n[1] + tau[0]*(uq[0]-uhat[0]);
 end

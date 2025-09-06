@@ -1,21 +1,26 @@
-void KokkosQoIboundary1(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+void KokkosQoIboundary1(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)
 {
-	Kokkos::parallel_for("QoIboundary1", ng, KOKKOS_LAMBDA(const size_t i) {
-		dstype param1 = param[0];
-		dstype tau1 = tau[0];
-		dstype udg1 = udg[0*ng+i];
-		dstype udg2 = udg[1*ng+i];
-		dstype udg3 = udg[2*ng+i];
-		dstype uhg1 = uhg[0*ng+i];
-		dstype nlg1 = nlg[0*ng+i];
-		dstype nlg2 = nlg[1*ng+i];
-		f[0*ng+i] = tau1*(udg1-uhg1)+nlg1*param1*udg2+nlg2*param1*udg3;
-	});
+
+  Kokkos::parallel_for("QoIboundary", N, KOKKOS_LAMBDA(const size_t i) {
+    dstype uq0 = uq[0*N+i];
+    dstype uq1 = uq[1*N+i];
+    dstype uq2 = uq[2*N+i];
+    dstype uhat0 = uhat[0*N+i];
+    dstype n0 = n[0*N+i];
+    dstype n1 = n[1*N+i];
+    dstype tau0 = tau[0];
+    dstype mu0 = mu[0];
+
+
+    f[0 * N + i] = tau0*(-uhat0 + uq0) + n0*uq1*mu0 + n1*uq2*mu0;
+  });
 }
 
-void KokkosQoIboundary(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
-{
-	if (ib == 1)
-		KokkosQoIboundary1(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
+void KokkosQoIboundary(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg,
+           const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,
+           const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd,
+           const int ncx, const int nco, const int ncw) {
+    if (ib == 1 )
+        KokkosQoIboundary1(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber,
+                        ng, nc, ncu, nd, ncx, nco, ncw, nc, ncu, nd);
 }
-

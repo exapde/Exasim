@@ -81,3 +81,27 @@ std::vector<Expression> VisVectors(const std::vector<Expression>& x, const std::
     return s;
 }
 
+std::vector<Expression> QoIvolume(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
+    std::vector<Expression> s;
+    s.resize(2);
+
+    Expression x1 = x[0];
+    Expression x2 = x[1];
+    auto t1 = Expression(SymEngine::pi);
+    auto t2 = sin(t1*x1);
+    auto t3 = sin(t1*x2);
+    auto uexact = mul(t2,t3);
+    s[0]  =  (uq[0] - uexact)*(uq[0] - uexact);
+    s[1]  =  uq[0];
+    return s;
+}
+
+std::vector<Expression> QoIboundary(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& uhat, const std::vector<Expression>& n, const std::vector<Expression>& tau, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
+    std::vector<Expression> fb;
+    fb.resize(1);
+
+    auto f = Flux(x, uq, v, w, eta, mu, t);
+    fb[0]  =  f[0]*n[0] + f[1]*n[1] + tau[0]*(uq[0]-uhat[0]);
+    return fb;
+}
+

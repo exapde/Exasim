@@ -555,6 +555,12 @@ static void PGEMTV(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A
 #endif  
     
 #ifdef  HAVE_MPI          
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif        
 #ifdef USE_FLOAT         
     MPI_Allreduce(ylocal, y, n, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else            
@@ -670,6 +676,12 @@ static void PGEMTM(cublasHandle_t handle, Int m, Int n, Int k, dstype *alpha, ds
     Int p = m*n;
     
 #ifdef  HAVE_MPI          
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif            
 #ifdef USE_FLOAT         
     MPI_Allreduce(Clocal, C, p, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else            

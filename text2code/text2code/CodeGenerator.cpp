@@ -76,8 +76,12 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "          fname = std::string(\"HdgSourcewonly\");\n";
     os << "          jname = std::string(\"HdgSourcew\");\n";
     os << "        }\n";    
+    os << "        if (funcname == \"QoIboundary\") { \n";
+    os << "            ssv.func2cppfiles(f, ssv.modelpath + fname, fname + std::to_string(1), i, false);\n";
+    os << "            ssv.appendUbouFbou(ssv.modelpath + fname, fname, 1);\n";
+    os << "        }\n";
     //os << "        std::cout<<funcname<<\", \"<<fname<<\", \"<<jname<<std::endl;\n";    
-    os << "        if ((funcname == \"Ubou\") || (funcname == \"Fbou\") || (funcname == \"FbouHdg\")) { \n";
+    os << "        else if ((funcname == \"Ubou\") || (funcname == \"Fbou\") || (funcname == \"FbouHdg\")) { \n";
     os << "          int szf = f.size();\n";
     os << "          int szuhat = ssv.szuhat;\n";
     os << "          int nbc = szf/szuhat;\n";
