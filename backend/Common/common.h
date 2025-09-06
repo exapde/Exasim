@@ -533,9 +533,8 @@ std::string make_path(const std::string& str1, const std::string& str2) {
     std::filesystem::path base = str1;
     std::filesystem::path tail = str2;
 
-    // If tail is absolute, strip its root so it becomes relative
-    if (tail.is_absolute())
-        tail = tail.relative_path();
+    // If tail is absolute, strip its root so it becomes relative    
+    tail = tail.relative_path();
 
     std::filesystem::path full = base / tail;
     return full.lexically_normal().string();
@@ -580,7 +579,7 @@ std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath
     const auto pos = s.rfind(keyword);
     if (pos != std::string::npos)
         return s.substr(0, pos + keyword.size());
-    return {};
+    return "";
 }
 
 struct appstruct {              
