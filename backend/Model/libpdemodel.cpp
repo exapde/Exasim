@@ -48,3 +48,5 @@ using namespace std;
 #include "KokkosVisScalars.cpp"
 #include "KokkosVisVectors.cpp"
 #include "KokkosVisTensors.cpp"
+#include "KokkosQoIvolume.cpp"
+#include "KokkosQoIboundary.cpp"

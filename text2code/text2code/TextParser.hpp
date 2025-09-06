@@ -28,7 +28,8 @@ struct ParsedSpec {
     std::vector<std::string> exasimfunctions = {
         "Flux", "Source", "Tdfunc", "Ubou", "Fbou", "FbouHdg",
         "Sourcew", "Output", "Monitor", "Initu", "Initq", "Inituq",
-        "Initw", "Initv", "Avfield", "Fint", "EoS", "VisScalars", "VisVectors", "VisTensors"};
+        "Initw", "Initv", "Avfield", "Fint", "EoS", "VisScalars", 
+        "VisVectors", "VisTensors", "QoIvolume", "QoIboundary"};
     std::vector<bool> isoutput;     
     std::string datatype = "dstype";
     std::string framework = "kokkos";
