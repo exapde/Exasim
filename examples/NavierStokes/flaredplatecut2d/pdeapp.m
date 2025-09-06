@@ -1,11 +1,22 @@
+% This example requires (mesh, master, sol) from /examples/NavierStokes/flaredplate2d
+% First, you need to run /examples/NavierStokes/flaredplate2d/pdeapp.m
+% Next, uncomment and run the below lines to obtain sol1 and av1
+
+% porder = 3;
+% mesh1 = mkmesh_flatcase2d(porder);
+% sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
+% av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
+
+% Finally, you run this script
+
 % Add Exasim to Matlab search path
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 % initialize pde structure and mesh structure
-[pde,mesh] = initializeexasim();
+pde = initializeexasim();
 pde.model = "ModelD";  
-pde.modelfile = "pdemodel1";
+pde.modelfile = "pdemodel";
 
 % Choose computing platform and set number of processors
 pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
@@ -40,14 +51,13 @@ pde.linearsolveriter = 500; %try 100
 pde.preconditioner = 1;
 pde.RBdim = 0;
 pde.ppdegree = 0;
-pde.NLtol = 1e-6;              % Newton tolerance
-pde.NLiter = 15;                % Newton iterations
+pde.NLtol = 1e-7;              % Newton tolerance
+pde.NLiter = 10;                % Newton iterations
 pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
 
-mesh = mkmesh_flatcasecut(pde.porder);
+mesh = mkmesh_flatcase2d(pde.porder);
 % Inflow (left boundary), Wall (bottom boundary), Outflow (right boundary), Farfield (top boundary)
 mesh.boundarycondition = [1 4 3 2]; 
-figure(1);clf;meshplot(mesh);
 
 master = Master(pde);
 
@@ -60,4 +70,5 @@ mesh.vdg = av1;  % -> v(1) which is the AV field
 mesh.vdg(:,2:5,:) = sol1(:,1:4,:); % -> v(2:5) which is used to define the inflow condition f_inflow = v(2:5) - uhat; 
 
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
-
+figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2);
+figure(2); clf; scaplot(mesh, mesh.vdg(:,1,:),[],2);
