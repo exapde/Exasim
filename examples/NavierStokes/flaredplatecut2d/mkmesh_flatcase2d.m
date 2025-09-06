@@ -1,9 +1,9 @@
 function mesh = mkmesh_flatcase2d(porder, nx2, nx3, ny, dwall)
 if nargin<2
-    nx2 = 55;  % number of points on the flare line %orig 85
+    nx2 = 65;  % number of points on the flare line %orig 85
     nx3 = 9; %number of points on flat plate %orig 13
-    ny = 61;   % number of points in the radial direction
-    dwall = 0.0005; % control the element size closest to the wall        
+    ny = 71;   % number of points in the radial direction
+    dwall = 0.0008; % control the element size closest to the wall        
 end
 
 s2 = 0.25;
@@ -14,7 +14,7 @@ rnose = 0.0002;
 thcone = 0;
 rflare = 1;
 Lcone = 0.3;
-R = 0.09;
+R = 0.06;
 delta = 0;
 
 xm = rnose*(1-sin(thcone)) + Lplate; % move the center of the flared cone by Lplate
