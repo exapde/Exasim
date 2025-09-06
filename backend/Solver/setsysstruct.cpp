@@ -344,6 +344,7 @@ void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruc
       randomfield(randvectu, common, res, mesh, tmp, backend);      
       TemplateMalloc(&sys.randvect, ndof, backend);     
       GetFaceNodes(sys.randvect, randvectu, mesh.f2e, mesh.perm, common.npf, ncu, npe, ncu, common.nf);
+      TemplateFree(randvectu, backend);  
     }    
     
     dstype normr = PNORM(common.cublasHandle, ndof, common.ndofuhatinterface, sys.randvect, backend);    
