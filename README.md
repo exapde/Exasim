@@ -57,20 +57,7 @@ EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Si
 
 # Examples
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, Euler equations, Navier-Stokes equations, and MHD equations. 
-
-To run an example using Text2Code, open a terminal and perform the following commands
-
-```
-cd /path/to/Exasim/examples/<example>
-/path/to/Exasim/build/text2code pdeapp.txt
-/path/to/Exasim/build/cput2cEXASIM pdeapp.txt                     (if you run on one CPU core)
-/path/to/Exasim/build/gput2cEXASIM pdeapp.txt                     (if you run on one GPU)
-mpirun -np $N /path/to/Exasim/build/cpumpit2cEXASIM pdeapp.txt    (if you run on many CPU cores)
-mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM pdeapp.txt    (if you run on many GPUs) 
-```
-
-where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system. If there are examples that do not have pdeapp.txt and pdemodel.txt, they can be made by making use of pdeapp.m and pdemodel.m.  
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, linear elasticity, nonlinear elasticity, Euler equations, Navier-Stokes equations, and MHD equations.   
 
 To run any example with Julia, type the following line and hit return
 
@@ -91,6 +78,19 @@ To run any example with Matlab, type the following line and hit return
 ```
 
 Exasim produces two folders in the `Exasim/build` directory. The `datain` folder contains input files which store the master, mesh and initial solution. The `dataout` folder contains the output files which store the numerical solution of the PDE model defined in the `pdeapp` script.
+
+To run an example using Text2Code, open a terminal and perform the following commands
+
+```
+cd /path/to/Exasim/examples/<example>
+/path/to/Exasim/build/text2code pdeapp.txt
+/path/to/Exasim/build/cput2cEXASIM pdeapp.txt                     (if you run on one CPU core)
+/path/to/Exasim/build/gput2cEXASIM pdeapp.txt                     (if you run on one GPU)
+mpirun -np $N /path/to/Exasim/build/cpumpit2cEXASIM pdeapp.txt    (if you run on many CPU cores)
+mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM pdeapp.txt    (if you run on many GPUs) 
+```
+
+where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system. If there are examples that do not have pdeapp.txt and pdemodel.txt, they can be made by making use of pdeapp.m and pdemodel.m.
 
 # Publications
 [1] Vila-Pérez, J., Van Heyningen, R. L., Nguyen, N.-C., & Peraire, J. (2022). Exasim: Generating discontinuous Galerkin codes for numerical solutions of partial differential equations on graphics processors. SoftwareX, 20, 101212. https://doi.org/10.1016/j.softx.2022.101212
