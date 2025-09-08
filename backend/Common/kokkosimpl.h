@@ -1,3 +1,67 @@
+/*
+ * kokkosimpl.h
+ * 
+ * This header provides a collection of utility functions for array and matrix operations,
+ * tailored for high-performance computing using the Kokkos library. All functions are 
+ * designed to run efficiently on various hardware backends supported by Kokkos.
+ * 
+ * Main Features:
+ * --------------
+ * - Array manipulation: copying, setting values, adding scalars, multiplying, extracting, inserting.
+ * - Matrix operations: multiplication, batched GEMM, inversion for small matrices (1x1 to 5x5).
+ * - Element and face node operations: extraction, insertion, boundary handling, face connectivity.
+ * - Stabilization and flux calculations for numerical methods.
+ * - Assembly routines for block matrices, Schur complements, and CRS matrices.
+ * - Geometry calculations for 1D, 2D, and 3D elements and faces.
+ * - Parallelization: All routines use Kokkos::parallel_for for efficient execution.
+ * 
+ * Type Requirements:
+ * ------------------
+ * - All array/matrix pointers are expected to be of type `dstype*` (user-defined or typedef).
+ * - Integer arrays are used for indexing and connectivity.
+ * 
+ * Function Categories:
+ * --------------------
+ * 1. Array Operations:
+ *    - AverageFlux, ArrayCopy, ArraySetValue, ArrayAddScalar, ArrayMultiplyScalar, ArrayAXPB, ArrayAXPBY, ArrayAXY, ArrayAdd3Vectors
+ *    - GetArrayAtIndex, PutArrayAtIndex, AddColumns, SubtractColumns, ArrayExtract, ArrayInsert, ArrayGemmBatch, ArrayGemmBatch1, ArrayGemmBatch2
+ * 
+ * 2. Matrix Operations:
+ *    - ArrayMatrixMultiplication, ArrayMatrixMultiplication1
+ *    - ArrayEosInverseMatrix11, ArrayEosInverseMatrix22, ArrayEosInverseMatrix33
+ *    - ArrayEosMatrixMultiplication
+ *    - SmallMatrixSolve11, SmallMatrixSolve22, SmallMatrixSolve33, SmallMatrixSolve44, SmallMatrixSolve55
+ * 
+ * 3. Element/Face/Boundary Operations:
+ *    - GetElemNodes, PutElemNodes, GetFaceNodes, PutFaceNodes, GetBoudaryNodes, PutBoudaryNodes
+ *    - GetElementFaceNodes, PutElementFaceNodes, BlockJacobi, ElementalAdditiveSchwarz, PathAdditiveSchwarz
+ *    - AssembleBlockILU0, AssembleJacobianMatrix, ApplyFace2Face, GetBoundaryNodes, PutBoundaryNodes
+ * 
+ * 4. Schur Complement and Assembly Routines:
+ *    - assembleMatrixE, assembleRu, assembleMatrixBD, assembleMatrixGK, assembleMatrixF, assembleMatrixH
+ *    - assembleMatrixKint, assembleMatrixGint, assembleMatrixHint
+ *    - schurMatrixD, schurMatrixBMinvC, schurMatrixF, schurMatrixBMinvE, schurMatrixK, schurMatrixGMinvC
+ *    - schurMatrixH, schurMatrixGMinvE, schurMatrixGintMinvE, schurVectorRu, schurVectorRh
+ * 
+ * 5. Geometry and Transformation:
+ *    - ApplyXx4, ApplyXxJac, ApplyXx3, ApplyJacNormal, ApplyJacFhat, ApplyDtcoef, ApplyJac, ApplyJacInv
+ *    - ShapJac, ElemGeom1D, ElemGeom2D, ElemGeom3D, FaceGeom1D, FixNormal1D, FaceGeom2D, FaceGeom3D
+ * 
+ * Usage Notes:
+ * ------------
+ * - All functions are intended for use within Kokkos-enabled applications.
+ * - Atomic operations are used where necessary to ensure thread safety.
+ * - Functions are designed for flexibility in finite element and finite volume methods.
+ * - Some functions have multiple overloads for different data layouts or options.
+ * 
+ * Dependencies:
+ * -------------
+ * - Requires Kokkos library.
+ * - Assumes `dstype` is defined elsewhere.
+ * 
+ * Author: Exasim Project Contributors
+ * License: MIT or project-specific license
+ */
 #ifndef __KOKKOSIMPL_H__
 #define __KOKKOSIMPL_H__
 
@@ -334,6 +398,30 @@ void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype alpha, 
         for (int k=0; k<K; k++)
             sum += A[s+S*i+Q*k]*B[s+S*k+P*j];
         C[idx] = sum;     
+    });
+}
+
+void VisDG2CG(float* ucg, const dstype* udg, const int* cgent2dgent, const int* colent2elem, const int* rowent2elem, int ne1, const int ncg, int ndg, int na, int nb, int nc)
+{        
+    int N = nb * ncg * nc;
+    Kokkos::parallel_for("VisDG2CG", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i1 = idx%nb; 
+        int n  = idx/nb; 
+        int i  = n%ncg;
+        int i3 = n/ncg;
+        int ic = i1 + nb*i3;
+        // idx = i1 + nb*i + nb*ncg*i3
+
+        dstype sum = 0.0, n1 = 0.0;
+        int nelem = rowent2elem[i+1]-rowent2elem[i];               
+        for (int k=0; k<nelem; k++) {
+            int e = colent2elem[rowent2elem[i]+k];
+            if (e<ne1) {
+                sum += udg[cgent2dgent[rowent2elem[i]+k] + ndg*ic]; 
+                n1 += 1.0;
+            }
+        }
+        ucg[i1 + na*i + na*ncg*i3] = (float) (sum/n1);
     });
 }
 

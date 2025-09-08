@@ -1,3 +1,31 @@
+/*
+    updatesource.cpp
+
+    This file contains functions to update the source terms for time integration schemes
+    in the Exasim backend. The source terms are updated for both DIRK (Diagonally Implicit Runge-Kutta)
+    and BDF (Backward Differentiation Formula) schemes, including support for differential algebraic equations.
+
+    Functions:
+
+    - void UpdateSourceDIRK(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+        Updates the source term for the DIRK time integration scheme.
+        - Computes the time derivative contributions to the source term for each DIRK stage.
+        - Updates auxiliary vectors (fc_u, fc_q) and extracts the current stage solution.
+        - Handles differential algebraic equations if present.
+
+    - void UpdateSourceBDF(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+        Updates the source term for the BDF time integration scheme.
+        - Computes the time derivative contributions to the source term for BDF1, BDF2, and BDF3 orders.
+        - Updates auxiliary vectors (fc_u, fc_q).
+
+    - void UpdateSource(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+        Dispatches the source term update to either DIRK or BDF scheme based on the temporalScheme parameter.
+
+    Notes:
+    - The functions rely on helper routines (ArrayAXPB, ArrayAXPBY, ArrayAdd3Vectors, ArrayExtract) for vector operations.
+    - Error handling is provided for unsupported DIRK/BDF stages.
+    - The source term update is essential for accurate time integration in PDE solvers.
+*/
 #ifndef __UPDATESOURCE
 #define __UPDATESOURCE
 

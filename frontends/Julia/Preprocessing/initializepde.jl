@@ -22,6 +22,7 @@ mutable struct PDEStruct
 
     usecmake::IntP; 
     buildexec::IntP; 
+    Cxxpreprocessing::IntP; # preprocessing mode
     preprocessmode::IntP; # preprocessing mode
     mpiprocs::IntP; # number of MPI ranks
     nd::IntP; # physical dimension
@@ -34,6 +35,11 @@ mutable struct PDEStruct
     ncx::IntP;# number of compoments of (xdg)
     ncw::IntP;# number of compoments of (wdg)
     nce::IntP;# number of compoments of (output field)
+    nsca::IntP;# number of compoments of scalar fields
+    nvec::IntP;# number of components of (vector fields)
+    nten::IntP;# number of components of (tensor fields)
+    nbqoi::IntP;# number of components of (boundary quantities)
+    nvqoi::IntP;# number of components of (volume quantities)
     neb::IntP;# number of element blocks for parallel computation
     nfb::IntP;# number of face blocks for parallel computation
     elemtype::IntP; # type of elements
@@ -147,7 +153,7 @@ function initializepde(version)
     pde.mpirun = "mpirun";
     pde.gmsh = "gmsh";
     pde.metis = "mpmetis";
-    pde.paraview = "/Applications/ParaView-5.8.1.app/Contents/MacOS/paraview";
+    pde.paraview = "paraview";
     pde.enzyme = "";
     pde.codegenerator = "";
 
@@ -168,6 +174,7 @@ function initializepde(version)
     pde.cpulibflags = ""
     pde.gpulibflags = ""
     pde.modelfile = "";
+    pde.Cxxpreprocessing = 1;
     pde.preprocessmode = 1;
     pde.mpiprocs = 1;
     pde.nd = 1;
@@ -180,6 +187,11 @@ function initializepde(version)
     pde.ncx = 1;
     pde.ncw = 0;
     pde.nce = 0;
+    pde.nsca = 0;
+    pde.nbqoi = 0;
+    pde.nvqoi = 0;
+    pde.nvec = 0;
+    pde.nten = 0;
     pde.neb = 512*8;
     pde.nfb = 512*16;
     pde.elemtype = 1;

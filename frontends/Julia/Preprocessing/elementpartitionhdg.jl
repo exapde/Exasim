@@ -6,12 +6,19 @@ if nproc==1
     i = 1;
     dmd[i].elempart = reshape(1:ne,1,ne);
     dmd[i].elempartpts = reshape([ne],1,1);
-    dmd[i].nbsd = reshape([0],1,1);
+    # dmd[i].nbsd = reshape([0],1,1);
+    # #dmd[i].elem2cpu = reshape([0],1,1);
+    # dmd[i].elemrecv = reshape([0],1,1);
+    # dmd[i].elemsend = reshape([0],1,1);
+    # dmd[i].elemrecvpts = reshape([0],1,1);
+    # dmd[i].elemsendpts = reshape([0],1,1);
+
+    dmd[i].nbsd = reshape([],0,0);
     #dmd[i].elem2cpu = reshape([0],1,1);
-    dmd[i].elemrecv = reshape([0],1,1);
-    dmd[i].elemsend = reshape([0],1,1);
-    dmd[i].elemrecvpts = reshape([0],1,1);
-    dmd[i].elemsendpts = reshape([0],1,1);
+    dmd[i].elemrecv = reshape([],0,0);
+    dmd[i].elemsend = reshape([],0,0);
+    dmd[i].elemrecvpts = reshape([],0,0);
+    dmd[i].elemsendpts = reshape([],0,0);
     return dmd;
 end
 

@@ -74,9 +74,9 @@ def preprocessing(app,mesh):
 
     nuinf = len(app['uinf']);
     nparam = len(app['physicsparam']);
-    xdgsym = sympy.symbols("xdg1:" + str(app['ncx']+1));
-    uinfsym = sympy.symbols("uinf1:" + str(nuinf+1));
-    paramsym = sympy.symbols("param1:" + str(nparam+1));
+    xdgsym = array(sympy.symbols("xdg1:" + str(app['ncx']+1)));
+    uinfsym = array(sympy.symbols("uinf1:" + str(nuinf+1)));
+    paramsym = array(sympy.symbols("param1:" + str(nparam+1)));
     if hasattr(pdemodel, 'initu'):
         udgsym = pdemodel.initu(xdgsym,paramsym,uinfsym);
         app['ncu'] = len(udgsym);
@@ -112,6 +112,41 @@ def preprocessing(app,mesh):
     else:
         app['tdep'] = 0;
 
+    udgsym = array(sympy.symbols("udg1:" + str(app['ncu']+1)));
+    qdgsym = array(sympy.symbols("qdg1:" + str(app['ncq']+1)));
+    odgsym = array(sympy.symbols("odg1:" + str(app['nco']+1)));
+    wdgsym = array(sympy.symbols("wdg1:" + str(app['ncw']+1)));
+    time = array(sympy.symbols("time"));
+    uhatsym = array(sympy.symbols("uhg1:" + str(app['ncu']+1)));
+    nsym = array(sympy.symbols("nlg1:" + str(app['nd']+1)));
+    tausym = array(sympy.symbols("tau1:" + str(len(app['tau'])+1)));
+
+    if hasattr(pdemodel, 'visscalars'):
+        f = pdemodel.visscalars(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nsca'] = f.size;
+    else:
+        app['nsca'] = 0;
+    if hasattr(pdemodel, 'visvectors'):
+        f = pdemodel.visvectors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nvec'] = round(f.size/app['nd']);
+    else:
+        app['nvec'] = 0;
+    if hasattr(pdemodel, 'vistensors'):
+        f = pdemodel.vistensors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nten'] = round(f.size/(app['nd']*app['nd']));
+    else:
+        app['nten'] = 0;
+    if hasattr(pdemodel, 'qoivolume'):
+        f = pdemodel.qoivolume(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nvqoi'] = f.size;
+    else:
+        app['nvqoi'] = 0;
+    if hasattr(pdemodel, 'qoiboundary'):
+        f = pdemodel.qoiboundary(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym, uhatsym, nsym, tausym);       
+        app['nbqoi'] = f.size;
+    else:
+        app['nbqoi'] = 0;
+
     print("run facenumbering...");
     mesh['f'], mesh['tprd'], t2t = facenumbering(mesh['p'],mesh['t'],app['elemtype'],mesh['boundaryexpr'],mesh['periodicexpr'])[0:3];
 
@@ -121,9 +156,9 @@ def preprocessing(app,mesh):
     #dmd = meshpartition2(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
 
     if app['hybrid'] == 1:
-        dmd = meshpartitionhdg(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
+        dmd = meshpartitionhdg(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis'],app['Cxxpreprocessing']);
     else:
-        dmd = meshpartition2(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis']);
+        dmd = meshpartition2(dmd,mesh['tprd'],mesh['f'],t2t,app['boundaryconditions'],app['nd'],app['elemtype'],app['porder'],mpiprocs,app['metis'],app['Cxxpreprocessing']);
 
     for i in range(0,mpiprocs):
         ii = i + 1;
@@ -135,8 +170,7 @@ def preprocessing(app,mesh):
                     
         if mpiprocs == 1:
             mesh['dgnodes'] = xdg
-
-        cgelcon,rowent2elem,colent2elem,cgent2dgent = mkcgent2dgent(xdg,1e-8)[0:4];
+        
 
         if isinstance(mesh['udg'], list):
             udg = []
@@ -155,35 +189,41 @@ def preprocessing(app,mesh):
             
         if mpiprocs==1:
             writesol(filename + "/sol",0,xdg, udg, odg, wdg);
-            ne = size(dmd[i]['elempart']);
-            eblks,nbe = mkelemblocks(ne,app['neb'])[0:2];
-            eblks = concatenate([eblks, zeros((1, eblks.shape[1]))]);
-            mf = cumsum(concatenate([[0], dmd[i]['facepartpts'].flatten()]));
-            fblks,nbf = mkfaceblocks(mf,dmd[i]['facepartbnd'],app['nfb']);
-            neb = max(eblks[1,:]-eblks[0,:])+1;
-            nfb = max(fblks[1,:]-fblks[0,:])+1;
         else:
             writesol(filename + "/sol",i+1,xdg, udg, odg, wdg);
-            me = cumsum([0, dmd[i]['elempartpts'][0], dmd[i]['elempartpts'][1], dmd[i]['elempartpts'][2]]);
-            eblks,nbe = mkfaceblocks(me,[0, 1, 2],app['neb'])[0:2];
-            mf = cumsum(concatenate([[0], dmd[i]['facepartpts'].flatten('F')]));
-            fblks,nbf = mkfaceblocks(mf,dmd[i]['facepartbnd'],app['nfb']);
-            neb = max(eblks[1,:]-eblks[0,:])+1;
-            nfb = max(fblks[1,:]-fblks[0,:])+1;
 
-        npe = master['npe'];
-        nfe = master['perm'].shape[1];        
-        facecon1 = reshape(dmd[i]['facecon'][:,0,:], (dmd[i]['facecon'].shape[0], dmd[i]['facecon'].shape[2]), 'F');
-        facecon2 = reshape(dmd[i]['facecon'][:,1,:], (dmd[i]['facecon'].shape[0], dmd[i]['facecon'].shape[2]), 'F');
-        ind = [];
-        for ii in range (0,fblks.shape[1]):
-            if fblks[2,ii]>0:
-                ind = concatenate([ind, arange(fblks[0,ii]-1,fblks[1,ii])]);
+        if app['Cxxpreprocessing'] == 0:
+            cgelcon,rowent2elem,colent2elem,cgent2dgent = mkcgent2dgent(xdg,1e-8)[0:4];
 
-        if len(ind)>0:
-            facecon2 = facecon2[:, setdiff1d(arange(0,facecon1.shape[1]), ind).flatten('F')];
-        rowe2f1,cole2f1,ent2ind1 = mkdge2dgf(facecon1,master['npe']*size(dmd[i]['elempart']))[0:3];
-        rowe2f2,cole2f2,ent2ind2 = mkdge2dgf(facecon2,master['npe']*size(dmd[i]['elempart']))[0:3];
+            if mpiprocs==1:
+                ne = size(dmd[i]['elempart']);
+                eblks,nbe = mkelemblocks(ne,app['neb'])[0:2];
+                eblks = concatenate([eblks, zeros((1, eblks.shape[1]))]);
+                mf = cumsum(concatenate([[0], dmd[i]['facepartpts'].flatten()]));
+                fblks,nbf = mkfaceblocks(mf,dmd[i]['facepartbnd'],app['nfb']);
+                neb = max(eblks[1,:]-eblks[0,:])+1;
+                nfb = max(fblks[1,:]-fblks[0,:])+1;
+            else:
+                me = cumsum([0, dmd[i]['elempartpts'][0], dmd[i]['elempartpts'][1], dmd[i]['elempartpts'][2]]);
+                eblks,nbe = mkfaceblocks(me,[0, 1, 2],app['neb'])[0:2];
+                mf = cumsum(concatenate([[0], dmd[i]['facepartpts'].flatten('F')]));
+                fblks,nbf = mkfaceblocks(mf,dmd[i]['facepartbnd'],app['nfb']);
+                neb = max(eblks[1,:]-eblks[0,:])+1;
+                nfb = max(fblks[1,:]-fblks[0,:])+1;
+
+            npe = master['npe'];
+            nfe = master['perm'].shape[1];        
+            facecon1 = reshape(dmd[i]['facecon'][:,0,:], (dmd[i]['facecon'].shape[0], dmd[i]['facecon'].shape[2]), 'F');
+            facecon2 = reshape(dmd[i]['facecon'][:,1,:], (dmd[i]['facecon'].shape[0], dmd[i]['facecon'].shape[2]), 'F');
+            ind = [];
+            for ii in range (0,fblks.shape[1]):
+                if fblks[2,ii]>0:
+                    ind = concatenate([ind, arange(fblks[0,ii]-1,fblks[1,ii])]);
+
+            if len(ind)>0:
+                facecon2 = facecon2[:, setdiff1d(arange(0,facecon1.shape[1]), ind).flatten('F')];
+            rowe2f1,cole2f1,ent2ind1 = mkdge2dgf(facecon1,master['npe']*size(dmd[i]['elempart']))[0:3];
+            rowe2f2,cole2f2,ent2ind2 = mkdge2dgf(facecon2,master['npe']*size(dmd[i]['elempart']))[0:3];
 
         #dmd[i]['elempart'] = dmd[i]['elempart'] + 1;
         #dmd[i]['facecon'] = dmd[i]['facecon'] + 1;
@@ -195,19 +235,23 @@ def preprocessing(app,mesh):
         ndims = zeros(20);
         ndims[1-1] = mesh['p'].shape[0];
         ndims[2-1] = size(dmd[i]['elempart']);
-        ndims[3-1] = sum(dmd[i]['facepartpts']);
-        ndims[4-1] = max(mesh['t'].flatten())+1;
-        ndims[5-1] = nfe;
-        ndims[6-1] = nbe;
-        ndims[7-1] = neb;
-        ndims[8-1] = nbf;
-        ndims[9-1] = nfb;
+        if app['Cxxpreprocessing'] == 0:
+            ndims[3-1] = sum(dmd[i]['facepartpts']);
+            ndims[4-1] = max(mesh['t'].flatten())+1;
+            ndims[5-1] = nfe;
+            ndims[6-1] = nbe;
+            ndims[7-1] = neb;
+            ndims[8-1] = nbf;
+            ndims[9-1] = nfb;
 
-        nsize = zeros((25,1));
+        nsize = zeros((50,1));
         nsize[1-1] = size(ndims);
-        nsize[2-1] = size(dmd[i]['facecon']);
-        nsize[3-1] = size(eblks);
-        nsize[4-1] = size(fblks);
+
+        if app['Cxxpreprocessing'] == 0:
+            nsize[2-1] = size(dmd[i]['facecon']);
+            nsize[3-1] = size(eblks);
+            nsize[4-1] = size(fblks);
+
         nsize[5-1] = size(dmd[i]['nbsd']);
         nsize[6-1] = size(dmd[i]['elemsend']);
         nsize[7-1] = size(dmd[i]['elemrecv']);
@@ -215,21 +259,26 @@ def preprocessing(app,mesh):
         nsize[9-1] = size(dmd[i]['elemrecvpts']);
         nsize[10-1] = size(dmd[i]['elempart']);
         nsize[11-1] = size(dmd[i]['elempartpts']);
-        nsize[12-1] = size(cgelcon);
-        nsize[13-1] = size(rowent2elem);
-        nsize[14-1] = size(cgent2dgent);
-        nsize[15-1] = size(colent2elem);
-        nsize[16-1] = size(rowe2f1);
-        nsize[17-1] = size(cole2f1);
-        nsize[18-1] = size(ent2ind1);
-        nsize[19-1] = size(rowe2f2);
-        nsize[20-1] = size(cole2f2);
-        nsize[21-1] = size(ent2ind2);
-        if app['hybrid'] > 0:
+
+        if app['Cxxpreprocessing'] == 0:
+            nsize[12-1] = size(cgelcon);
+            nsize[13-1] = size(rowent2elem);
+            nsize[14-1] = size(cgent2dgent);
+            nsize[15-1] = size(colent2elem);
+            nsize[16-1] = size(rowe2f1);
+            nsize[17-1] = size(cole2f1);
+            nsize[18-1] = size(ent2ind1);
+            nsize[19-1] = size(rowe2f2);
+            nsize[20-1] = size(cole2f2);
+            nsize[21-1] = size(ent2ind2);        
             nsize[22-1] = len(dmd[i]['f2t'].flatten())
             nsize[23-1] = len(dmd[i]['elemcon'].flatten())
-            nsize[24-1] = len(master['perm'].flatten())
-            nsize[25-1] = len(dmd[i]['bf'].flatten())
+
+        nsize[24-1] = len(master['perm'].flatten())
+        nsize[25-1] = len(dmd[i]['bf'].flatten())
+        ti = mesh['tprd'][:,dmd[i]['elempart'].flatten()] - 1
+        nsize[27-1] = len(ti.flatten());         
+        nsize[28-1] = size(app['boundaryconditions']);         
 
         if (mpiprocs>1):
             print("Writing mesh into file " + str(i+1));
@@ -241,9 +290,12 @@ def preprocessing(app,mesh):
         array(size(nsize), dtype=float64).tofile(fileID);
         nsize.astype('float64').tofile(fileID);
         ndims.astype('float64').tofile(fileID);
-        dmd[i]['facecon'].transpose(1,0,2).flatten('F').astype(float64).tofile(fileID);
-        eblks.flatten('F').astype(float64).tofile(fileID);
-        fblks.flatten('F').astype(float64).tofile(fileID);
+
+        if app['Cxxpreprocessing'] == 0:
+            dmd[i]['facecon'].transpose(1,0,2).flatten('F').astype(float64).tofile(fileID);
+            eblks.flatten('F').astype(float64).tofile(fileID);
+            fblks.flatten('F').astype(float64).tofile(fileID);
+
         if len(dmd[i]['nbsd'])>0:
             dmd[i]['nbsd'].flatten('F').astype(float64).tofile(fileID);
         if len(dmd[i]['elemsend'])>0:
@@ -258,26 +310,29 @@ def preprocessing(app,mesh):
             dmd[i]['elempart'].flatten('F').astype(float64).tofile(fileID);
         if len(dmd[i]['elempartpts'])>0:
             dmd[i]['elempartpts'].flatten('F').astype(float64).tofile(fileID);
-        cgelcon.flatten('F').astype(float64).tofile(fileID);
-        rowent2elem.flatten('F').astype(float64).tofile(fileID);
-        cgent2dgent.flatten('F').astype(float64).tofile(fileID);
-        colent2elem.flatten('F').astype(float64).tofile(fileID);
-        rowe2f1.flatten('F').astype(float64).tofile(fileID);
-        cole2f1.flatten('F').astype(float64).tofile(fileID);
-        ent2ind1.flatten('F').astype(float64).tofile(fileID);
-        rowe2f2.flatten('F').astype(float64).tofile(fileID);
-        cole2f2.flatten('F').astype(float64).tofile(fileID);
-        ent2ind2.flatten('F').astype(float64).tofile(fileID);
-        if app['hybrid'] > 0:
+        
+        if app['Cxxpreprocessing'] == 0:        
+            cgelcon.flatten('F').astype(float64).tofile(fileID);
+            rowent2elem.flatten('F').astype(float64).tofile(fileID);
+            cgent2dgent.flatten('F').astype(float64).tofile(fileID);
+            colent2elem.flatten('F').astype(float64).tofile(fileID);
+            rowe2f1.flatten('F').astype(float64).tofile(fileID);
+            cole2f1.flatten('F').astype(float64).tofile(fileID);
+            ent2ind1.flatten('F').astype(float64).tofile(fileID);
+            rowe2f2.flatten('F').astype(float64).tofile(fileID);
+            cole2f2.flatten('F').astype(float64).tofile(fileID);
+            ent2ind2.flatten('F').astype(float64).tofile(fileID);        
             dmd[i]['f2t'] = dmd[i]['f2t'] - 1
             dmd[i]['elemcon'] = dmd[i]['elemcon'] - 1
-            perm = master['perm'] - 1
-
             dmd[i]['f2t'].flatten('F').astype(float64).tofile(fileID);
             dmd[i]['elemcon'].flatten('F').astype(float64).tofile(fileID);
-            perm.flatten('F').astype(float64).tofile(fileID);
-            dmd[i]['bf'].flatten('F').astype(float64).tofile(fileID);
-        
+
+        perm = master['perm'] - 1
+        perm.flatten('F').astype(float64).tofile(fileID);
+        dmd[i]['bf'].flatten('F').astype(float64).tofile(fileID);
+        ti.flatten('F').astype(float64).tofile(fileID);
+        app['boundaryconditions'].flatten('F').astype(float64).tofile(fileID);
+
         # savetxt(sys.stdout, dmd[i]['f2t'].transpose(), fmt='%d', delimiter=', ')
         # savetxt(sys.stdout, perm, fmt='%d', delimiter=', ')      
         # elcon = dmd[i]['elemcon'].reshape((16,64))

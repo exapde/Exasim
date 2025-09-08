@@ -56,10 +56,10 @@ struct ExecutionSpaceIdentifier {
   uint32_t instance_id;
 };
 
-constexpr const uint32_t num_type_bits     = 8;
-constexpr const uint32_t num_device_bits   = 7;
-constexpr const uint32_t num_instance_bits = 17;
-constexpr const uint32_t num_avail_bits    = sizeof(uint32_t) * CHAR_BIT;
+inline constexpr const uint32_t num_type_bits     = 8;
+inline constexpr const uint32_t num_device_bits   = 7;
+inline constexpr const uint32_t num_instance_bits = 17;
+inline constexpr const uint32_t num_avail_bits    = sizeof(uint32_t) * CHAR_BIT;
 
 inline DeviceType devicetype_from_uint32t(const uint32_t in) {
   switch (in) {
@@ -100,6 +100,15 @@ inline uint32_t device_id(ExecutionSpace const& space) noexcept {
          (DeviceTypeTraits<ExecutionSpace>::device_id(space)
           << num_instance_bits) +
          space.impl_instance_id();
+}
+
+inline uint32_t int_for_synchronization_reason(
+    Kokkos::Tools::Experimental::SpecialSynchronizationCases reason) {
+  switch (reason) {
+    case GlobalDeviceSynchronization: return 0;
+    case DeepCopyResourceSynchronization: return 0x00ffffff;
+  }
+  return 0;
 }
 }  // namespace Experimental
 }  // namespace Tools

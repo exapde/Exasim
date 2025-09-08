@@ -1,11 +1,55 @@
-ParsedSpec generateCppCode(PDE& pde)
-{    
-    std::cout << "\nGenerating the C++ code for this model file ("<< make_path(pde.datapath, pde.modelfile) << ") ... \n\n";
-  
-    ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
-    spec.exasimpath = pde.exasimpath;
-    spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
-    spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
+
+/*
+    CodeCompiler.cpp
+
+    This file provides functions for generating, compiling, and building dynamic libraries for C++ code
+    based on a parsed model specification. It is designed to support multiple platforms (Windows, macOS, Linux)
+    and toolchains (GCC, Clang, MSVC), as well as optional CUDA and HIP backends via Kokkos.
+
+    Main Components:
+
+    1. generateCppCode(PDE& pde)
+        - Parses a model file and generates corresponding C++ source files using SymEngine and custom code generators.
+        - Handles framework-specific code generation for CUDA and HIP.
+        - Generates empty source files for optional outputs if not specified.
+        - Outputs generated files to the model directory.
+
+    2. Compiler Detection and Toolchain Utilities
+        - Functions to detect available C++ compilers and their kind (GCC, Clang, MSVC).
+        - Utilities for quoting paths, running commands silently, and checking compiler support for flags.
+        - Toolchain struct encapsulates compiler executable, kind, and relevant flags.
+
+    3. executeCppCode(ParsedSpec& spec)
+        - Compiles the generated C++ source file into an executable using the detected toolchain.
+        - Links against SymEngine library.
+        - Runs the resulting executable to perform code generation tasks.
+
+    4. buildDynamicLibraries(ParsedSpec& spec)
+        - Builds shared libraries for the generated model code using Kokkos backends (serial, CUDA, HIP).
+        - Handles platform-specific shared library extensions and compiler flags.
+        - Compiles and links against Kokkos core and container libraries.
+        - Supports detection and usage of nvcc_wrapper and hipcc_wrapper for CUDA and HIP compilation.
+
+    5. Utility Functions
+        - getSharedLibExtension(): Returns the appropriate shared library extension for the current platform.
+        - with_exe_if_windows(): Appends ".exe" to executable names on Windows.
+        - join(): Joins vector of strings with a separator.
+
+    Notes:
+        - Error handling is performed via error() calls when compilation or execution fails.
+        - The code is designed to be robust across platforms and compilers, with careful quoting and flag selection.
+        - Some legacy code for building dynamic libraries is commented out for reference.
+
+*/
+
+void generateCppCode(ParsedSpec spec)
+{
+    std::cout << "\nGenerating the C++ code for this model file ("<< spec.modelfile << ") ... \n\n";
+
+    // ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
+    // spec.exasimpath = pde.exasimpath;
+    // spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
+    // spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
     
     // Generate SymEngine code
     CodeGenerator gen(spec);
@@ -34,6 +78,11 @@ ParsedSpec generateCppCode(PDE& pde)
     if (spec.isoutput[14]==false) gen.generateEmptyAvfieldCpp(spec.modelpath);
     if (spec.isoutput[15]==false) gen.generateEmptyFintCpp(spec.modelpath);
     if (spec.isoutput[16]==false) gen.generateEmptyEoSCpp(spec.modelpath);
+    if (spec.isoutput[17]==false) gen.generateEmptyVisScalarsCpp(spec.modelpath);
+    if (spec.isoutput[18]==false) gen.generateEmptyVisVectorsCpp(spec.modelpath);
+    if (spec.isoutput[19]==false) gen.generateEmptyVisTensorsCpp(spec.modelpath);
+    if (spec.isoutput[20]==false) gen.generateEmptyQoIvolumeCpp(spec.modelpath);
+    if (spec.isoutput[21]==false) gen.generateEmptyQoIboundaryCpp(spec.modelpath);
     gen.generateEmptyFhatCpp(spec.modelpath);
     gen.generateEmptyUhatCpp(spec.modelpath);
     gen.generateEmptyStabCpp(spec.modelpath);
@@ -43,7 +92,7 @@ ParsedSpec generateCppCode(PDE& pde)
     std::cout << "C++ source files are generated and located in this directory " << spec.modelpath << "\n";
     std::cout << "Finished generating code.\n";
     
-    return spec;
+    //return spec;
 }
 
 namespace fs = std::filesystem;
@@ -320,6 +369,7 @@ int buildDynamicLibraries(ParsedSpec& spec)
         if (fs::exists(nvccw)) cuda_cxx = nvccw;
 
         const std::string inc_dir = make_path(kokkos_cuda_path, "include");
+        const std::string lib_dir = make_path(kokkos_cuda_path, "lib");
         const std::string lib_core = make_path(kokkos_cuda_path, "lib/libkokkoscore.a");
         const std::string lib_cont = make_path(kokkos_cuda_path, "lib/libkokkoscontainers.a");
         const std::string src      = make_path(spec.modelpath, "libpdemodel.cpp");
@@ -327,11 +377,10 @@ int buildDynamicLibraries(ParsedSpec& spec)
 
         std::cout << "Compiling libpdemodelcuda\n";
         std::stringstream cmd;
-        cmd << quote(cuda_cxx) << " -shared -std=c++17 -fPIC "
+        cmd << quote(cuda_cxx) << " -shared -std=c++17 -Xcompiler -fPIC --expt-extended-lambda --expt-relaxed-constexpr "
             << inc(spec.modelpath) << " " << inc(inc_dir) << " "
-            << quote(src) << " "
-            << quote(lib_core) << " " << quote(lib_cont) << " "
-            << "-o " << quote(out);
+            << quote(src) << " -L" << quote(lib_dir) << " -lkokkoscore -lkokkoscontainers -Wl,-rpath,"
+            << quote(lib_dir) << " " << "-o " << quote(out);
 
         std::cout << cmd.str() << "\n";
         status = std::system(cmd.str().c_str());

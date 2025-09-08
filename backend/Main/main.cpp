@@ -1,11 +1,52 @@
+/**
+ * @file main.cpp
+ * @brief Main entry point for the Exasim backend solver.
+ *
+ * This file initializes the computational environment, sets up parallel backends (MPI, OpenMP, CUDA, HIP),
+ * parses command-line arguments, and manages the lifecycle of PDE model objects for simulation.
+ * It supports multi-physics and multi-domain problems, time-dependent and steady-state simulations,
+ * and various run modes for solution, evaluation, and output.
+ *
+ * Key Features:
+ * - MPI initialization and rank management for distributed computing.
+ * - Backend selection for CPU, multi-threading (OpenMP), and GPU (CUDA/HIP).
+ * - Kokkos initialization for performance portability.
+ * - Dynamic allocation and initialization of CSolution objects for each PDE model.
+ * - Flexible input/output file handling for multiple models.
+ * - Support for restart functionality and time-stepping schemes (DIRK).
+ * - Solution management including reading, writing, and updating solutions.
+ * - Specialized routines for AV distance function and pseudo-time stepping.
+ * - Clean resource deallocation and MPI finalization.
+ *
+ * Usage:
+ *   ./cppfile nummodels InputFile OutputFile [restart]
+ *
+ * Command-line Arguments:
+ *   nummodels   - Number of PDE models (or encoded for multi-domain problems).
+ *   InputFile   - Input file(s) for each model.
+ *   OutputFile  - Output file(s) for each model.
+ *   restart     - (Optional) Restart timestep.
+ *
+ * Dependencies:
+ *   - MPI, OpenMP, CUDA, HIP, Kokkos, and various custom headers/classes.
+ *
+ * Author: Exasim Team
+ * Date: 2024
+ */
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
+#include <numeric>
+#include <filesystem>
+
+// Use C++ header for C string utilities
+#include <cstdint>
 #include <cmath>
-#include <string.h>
-//#include <stdlib.h>
-//#include <chrono>
+#include <cstdlib>
+#include <cstring>
+
 //#include <sys/unistd.h>
 
 #ifdef _OPENMP
@@ -26,6 +67,7 @@
 
 #ifdef _TEXT2CODE
 #define HAVE_TEXT2CODE
+#define HAVE_METIS
 #endif
 
 #ifdef _ENZYME
@@ -65,6 +107,13 @@
 #include <mpi.h>
 #endif
 
+#ifdef HAVE_TEXT2CODE
+#include <array>
+#include <regex>
+#include <unordered_map>
+#include <unordered_set>
+#endif
+
 #ifdef TIMING
 #include <chrono>
 #endif
@@ -81,12 +130,17 @@ using namespace std;
 #include "../Discretization/discretization.cpp" // discretization class
 #include "../Preconditioning/preconditioner.cpp" // preconditioner class
 #include "../Solver/solver.cpp"                 // solver class
+#include "../Visualization/visualization.cpp"  //  visualization class
 #include "../Solution/solution.cpp"             // solution class
+
+#ifdef HAVE_TEXT2CODE
+#include "../../text2code/text2code/readpdeapp.cpp"
+#endif
 
 int main(int argc, char** argv) 
 {   
   
-    Int nummodels, restart, mpiprocs, mpirank, shmrank, backend;    
+    Int nummodels=1, mpiprocs=1, mpirank=0, shmrank=0, backend=0;    
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
@@ -109,11 +163,7 @@ int main(int argc, char** argv)
     mpirank = 0;
     shmrank = 0;
 #endif                
-  
-#ifdef HAVE_TEXT2CODE
-    if (mpirank==0) printf("TEXT2CODE ENABLED...\n");    
-#endif
-    
+      
 // #ifdef HAVE_OPENMP    
 //     // set OpenMP threads
 //     ncores = omp_get_num_procs();
@@ -151,7 +201,13 @@ int main(int argc, char** argv)
     
 #ifdef HAVE_CUDA            
     int device;    
-    cudaSetDevice(shmrank); 
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);
+    if (deviceCount <= 0) {
+        if (mpirank==0) std::cerr << "No CUDA devices available" << std::endl;
+        return 1;
+    }
+    cudaSetDevice(shmrank % deviceCount); 
     //gpuDeviceInfo(shmrank);
     cudaGetDevice( &device );
 //     char hostname[128];
@@ -161,7 +217,7 @@ int main(int argc, char** argv)
     size_t available, total;
     cudaMemGetInfo(&available, &total);
     
-    int deviceCount = 0;
+    // re-query in case runtime changed
     cudaGetDeviceCount(&deviceCount);
     
     std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", CUDA Device: " << device 
@@ -173,7 +229,13 @@ int main(int argc, char** argv)
 #ifdef HAVE_HIP
     int device;
     // Set the device based on the rank
-    CHECK(hipSetDevice(shmrank));
+    int deviceCount = 0;
+    hipGetDeviceCount(&deviceCount);
+    if (deviceCount <= 0) {
+        if (mpirank==0) std::cerr << "No HIP devices available" << std::endl;
+        return 1;
+    }
+    CHECK(hipSetDevice(shmrank % deviceCount));
 
     // Get the current device ID
     CHECK(hipGetDevice(&device));
@@ -182,7 +244,7 @@ int main(int argc, char** argv)
     size_t available, total;
     CHECK(hipMemGetInfo(&available, &total));
 
-    int deviceCount = 0;
+    // re-query in case runtime changed
     hipGetDeviceCount(&deviceCount);
     
     // Print memory information
@@ -194,21 +256,52 @@ int main(int argc, char** argv)
     
   Kokkos::initialize(argc, argv);
   {        
-    if( argc >= 4 ) {
-    }
-    else {      
-      printf("Usage: ./cppfile nummodels InputFile OutputFile\n");
-      return 1;
-    }                
-    
-    //Int nummodels, restart, mpiprocs, mpirank, shmrank, ncores, nthreads, backend;    
-    string mystr = string(argv[1]);
-    nummodels = stoi(mystr);  // number of pde models
+
     string filein[10]; 
     string fileout[10];
-    
-    // two-physics and two-domain problems  
     int mpiprocs0 = 0;
+    int restart = 0;
+
+#ifdef HAVE_TEXT2CODE
+    if (argc < 2) {
+        if (mpirank==0) std::cerr << "Usage: ./Exasim <pdeapp.txt>\n";
+        return 1;
+    }    
+
+    if (std::filesystem::exists(argv[1])) {
+        if (mpirank==0) std::cout << "Running Exasim with this text file ("<< argv[1] << ") ... \n\n";
+    } else {
+        error("Error: Input file does not exist.\n");        
+    }          
+           
+    InputParams params = parseInputFile(argv[1], mpirank);                           
+    PDE pde = initializePDE(params, mpirank);        
+    nummodels = 1;
+    filein[0] = pde.datainpath + "/";
+    fileout[0] = make_path(pde.dataoutpath, "out");      
+#else      
+    if (argc < 3) {
+      printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");
+      return 1;
+    }
+    
+    string mystr = string(argv[1]);
+    try {
+        nummodels = stoi(mystr);  // number of pde models
+    } catch (...) {
+        if (mpirank==0) std::cerr << "Invalid nummodels: " << mystr << std::endl;
+        return 1;
+    }
+          
+    // Validate argument count for file pairs
+    int required = 2*nummodels + 2; // exe, nummodels, then 2 per model
+    if (argc < required) {
+        if (mpirank==0) std::cerr << "Expected " << (2*nummodels) 
+                                   << " file arguments (in/out per model)" << std::endl;
+        return 1;
+    }
+      
+    // two-physics and two-domain problems      
     if (nummodels>100) {
       mpiprocs0 = nummodels - 100;
       nummodels = 2;
@@ -225,13 +318,17 @@ int main(int argc, char** argv)
         //cout<<filein[i]<<endl;
         //cout<<fileout[i]<<endl;
     }
-    
-    restart = 0;
-    if (argc>=(2*nummodels+3)) {
+        
+    if (argc >= (2*nummodels + 3)) {
         mystr = string(argv[2*nummodels+2]);
-        restart = stoi(mystr);
-    }             
-    
+        try { restart = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid restart value: " << mystr << std::endl;
+            return 1;
+        }
+    }
+#endif    
+
     // reset nummodels
     if (mpiprocs0 > 0) nummodels = 1;
                 
@@ -242,7 +339,7 @@ int main(int argc, char** argv)
     CSolution** pdemodel = new CSolution*[nummodels];     
     // initialize file streams
     ofstream* out = new ofstream[nummodels];    
-                
+            
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
           pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
@@ -357,6 +454,8 @@ int main(int argc, char** argv)
 
                 // save solutions into binary files                
                 pdemodel[i]->SaveSolutions(backend); 
+                pdemodel[i]->SaveQoI(backend); 
+                if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
                 pdemodel[i]->SaveSolutionsOnBoundary(backend); 
                 if (pdemodel[i]->disc.common.nce>0)
                     pdemodel[i]->SaveOutputCG(backend);                
@@ -398,6 +497,8 @@ int main(int argc, char** argv)
                     pdemodel[i]->disc.evalQ(backend);
                 pdemodel[i]->disc.common.saveSolOpt = 1;
                 pdemodel[i]->SaveSolutions(backend);      
+                pdemodel[i]->SaveQoI(backend);
+                if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
                 pdemodel[i]->SaveOutputCG(backend);            
             }
             else if (pdemodel[i]->disc.common.runmode==2){

@@ -1,3 +1,46 @@
+/**
+ * @file pblas.h
+ * @brief Parallel BLAS (Basic Linear Algebra Subprograms) interface for CPU, CUDA, HIP, and MPI backends.
+ *
+ * This header provides a unified interface for linear algebra operations across multiple hardware backends,
+ * including CPU (BLAS/LAPACK), CUDA (cuBLAS), HIP (hipBLAS), and distributed memory (MPI).
+ *
+ * Supported operations include:
+ *  - Matrix-vector and matrix-matrix multiplications (GEMM, GEMV)
+ *  - Dot products and norms
+ *  - Array copy, scaling, and AXPY/AXPBY operations
+ *  - Batched matrix inversion
+ *  - Node-to-Gauss and Gauss-to-Node transformations for finite element methods
+ *
+ * Backend selection:
+ *  - backend <= 1: CPU BLAS/LAPACK
+ *  - backend == 2: CUDA cuBLAS
+ *  - backend == 3: HIP hipBLAS
+ *
+ * Precision selection:
+ *  - USE_FLOAT: single precision (float)
+ *  - otherwise: double precision (double)
+ *
+ * MPI support:
+ *  - If HAVE_MPI is defined, global reductions are performed using MPI_Allreduce.
+ *
+ * CUDA/HIP support:
+ *  - If HAVE_CUDA or HAVE_HIP is defined, GPU routines are enabled.
+ *
+ * Function naming conventions:
+ *  - Functions prefixed with 'cpu' are CPU-specific.
+ *  - Functions prefixed with 'gpu' or 'hip' are CUDA/HIP-specific.
+ *  - Functions without prefix are generic and dispatch to the appropriate backend.
+ *
+ * Thread safety:
+ *  - Most functions are stateless and thread-safe, except for those using global handles.
+ *
+ * Error handling:
+ *  - CUDA/HIP routines use CHECK_CUBLAS or CHECK_HIPBLAS macros for error checking.
+ *
+ * @author Exasim project contributors
+ * @date 2024
+ */
 #ifndef __PBLAS_H__
 #define __PBLAS_H__
 
@@ -512,6 +555,12 @@ static void PGEMTV(cublasHandle_t handle, Int m, Int n, dstype *alpha, dstype* A
 #endif  
     
 #ifdef  HAVE_MPI          
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif        
 #ifdef USE_FLOAT         
     MPI_Allreduce(ylocal, y, n, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else            
@@ -627,6 +676,12 @@ static void PGEMTM(cublasHandle_t handle, Int m, Int n, Int k, dstype *alpha, ds
     Int p = m*n;
     
 #ifdef  HAVE_MPI          
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif            
 #ifdef USE_FLOAT         
     MPI_Allreduce(Clocal, C, p, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
 #else            

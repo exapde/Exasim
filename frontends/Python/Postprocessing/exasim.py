@@ -1,5 +1,6 @@
 import Preprocessing, Gencode
 from fetchsolution import fetchsolution
+from getsolutions import getsolutions
 from generatecode import generatecode
 
 def exasim(pde,mesh):
@@ -29,6 +30,7 @@ def exasim(pde,mesh):
         # get solution from output files in dataout folder
         pde['vistime'] = [];
         sol = fetchsolution(pde,master,dmd, pde['buildpath'] + "/dataout");
+        #sol, _, _ = getsolutions(pde, dmd);
         
         if pde['saveResNorm']:
             fn = "dataout/out_residualnorms0.bin";
@@ -59,6 +61,7 @@ def exasim(pde,mesh):
         # get solution from output files in dataout folder
         for m in range(0, nmodels):
             sol[m] = fetchsolution(pde[m],master[m],dmd[m], "dataout" + str(m+1));        
+            #sol[m], _, _ = getsolutions(pde[m], dmd[m]);
 
             if pde[m]['saveResNorm']:
                 fn = "dataout/out_residualnorms" + str(m) + ".bin";

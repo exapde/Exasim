@@ -1,3 +1,35 @@
+/*
+ * text2code.cpp
+ *
+ * This program generates input files and dynamic libraries for the EXASIM framework
+ * from a user-provided PDE application specification in a text file.
+ *
+ * Usage:
+ *   ./parseinput <pdeapp.txt>
+ *
+ * Main Steps:
+ *   1. Checks if the input file exists.
+ *   2. Parses the input file to extract PDE and mesh parameters.
+ *   3. Initializes PDE, mesh, and master structures.
+ *   4. Writes binary files required by EXASIM.
+ *   5. Generates C++ code for the PDE specification.
+ *   6. Optionally compiles and builds dynamic libraries for EXASIM.
+ *
+ * Dependencies:
+ *   - C++17 standard library
+ *   - BLAS and LAPACK libraries
+ *   - METIS and GKlib (optional, if HAVE_METIS is defined)
+ *   - Several local source files: tinyexpr.cpp, helpers.cpp, readpdeapp.cpp, readmesh.cpp,
+ *     makemesh.cpp, makemaster.cpp, domaindecomposition.cpp, connectivity.cpp,
+ *     writebinaryfiles.cpp, CodeGenerator.cpp, CodeCompiler.cpp
+ *
+ * Compilation Examples:
+ *   See commented lines at the top of the file for various compilation options.
+ *
+ * Author: Ngoc Cuong Nguyen
+ * Date: 07/07/2025
+ */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -6,6 +38,7 @@
 #include <vector>
 #include <array>
 #include <regex>
+#include <numeric>
 #include <unordered_map>
 #include <unordered_set>
 #include <cstdlib>
@@ -22,7 +55,9 @@
 // g++ -O2 -std=c++17 text2code.cpp -o text2code -lblas -llapack 
 
 using namespace std;
-        
+
+#include "TextParser.hpp"
+
 #include "tinyexpr.cpp"
 #include "helpers.cpp"
 #include "readpdeapp.cpp"
@@ -50,20 +85,28 @@ int main(int argc, char* argv[])
            
     InputParams params = parseInputFile(argv[1]);                           
     PDE pde = initializePDE(params);    
-        
+     
+    ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
+    spec.exasimpath = pde.exasimpath;
+    spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
+    spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
+    
     Mesh mesh = initializeMesh(params, pde);        
     Master master = initializeMaster(pde, mesh);                            
         
-    writeBinaryFiles(pde, mesh, master);
-
+    writeBinaryFiles(pde, mesh, master, spec);
+    
 #ifdef USE_CMAKE
-    ParsedSpec spec = generateCppCode(pde);
+    if (pde.gencode==1) generateCppCode(spec);
 #else    
-    ParsedSpec spec = generateCppCode(pde);
-    executeCppCode(spec); 
-    buildDynamicLibraries(spec);     
-    std::cout << "\n******** Done with generating input files and dynamic libraries for EXASIM ********\n";
+    if (pde.gencode==1) {
+        generateCppCode(spec);
+        executeCppCode(spec); 
+        buildDynamicLibraries(spec);     
+    }
 #endif        
     
+    std::cout << "\n******** Done with generating input files and dynamic libraries for EXASIM ********\n";
+
     return 0;
 }

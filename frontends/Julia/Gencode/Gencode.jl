@@ -127,6 +127,46 @@ if isdefined(pdemodel, Symbol("source"))
 else
     error("pde.Source is not defined");
 end
+if isdefined(pdemodel, Symbol("visscalars")) 
+    f = pdemodel.visscalars(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem("VisScalars" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);    
+else    
+    nocodeelem("VisScalars" * strn, foldername);
+end
+if isdefined(pdemodel, Symbol("visvectors")) 
+    f = pdemodel.visvectors(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem("VisVectors" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);    
+else    
+    nocodeelem("VisVectors" * strn, foldername);
+end
+if isdefined(pdemodel, Symbol("vistensors")) 
+    f = pdemodel.vistensors(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem("VisTensors" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);    
+else    
+    nocodeelem("VisTensors" * strn, foldername);
+end
+if isdefined(pdemodel, Symbol("qoivolume")) 
+    f = pdemodel.qoivolume(u, q, wdg, odg, xdg, time, param, uinf);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    gencodeelem("QoIvolume" * strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);    
+else    
+    nocodeelem("QoIvolume" * strn, foldername);
+end
 if isdefined(pdemodel, Symbol("eos"))
     f = pdemodel.eos(u, q, wdg, odg, xdg, time, param, uinf);
     if length(f)==1
@@ -288,6 +328,17 @@ if isdefined(pdemodel, Symbol("ubou"))
     gencodeface("Ubou" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
 else
   error("app.Ubou is empty");
+end
+if isdefined(pdemodel, Symbol("qoiboundary"))
+    f = pdemodel.qoiboundary(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    f = f[:];
+    f = reshape(f,length(f),1);
+    gencodeface("QoIboundary" * strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+else
+    nocodeface("QoIboundary" * strn, foldername);
 end
 if isdefined(pdemodel, Symbol("Fhat"))
     #f = pdemodel.fhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);

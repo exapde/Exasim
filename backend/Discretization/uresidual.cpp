@@ -1,3 +1,45 @@
+/*
+    uresidual.cpp
+
+    This file contains functions for computing element and face residuals in a LDG discretization framework, 
+    including support for time-dependent problems, source terms, and automatic differentiation via Enzyme.
+
+    Functions:
+
+    - RuElemBlock: Computes the element residuals for a block of elements, including source and flux contributions.
+    - RuElem: Loops over element blocks and calls RuElemBlock for each block.
+    - dRuElemBlock (HAVE_ENZYME): Computes the derivative of element residuals using Enzyme for automatic differentiation.
+    - dRuElem (HAVE_ENZYME): Loops over element blocks and calls dRuElemBlock for each block.
+
+    - RuFaceBlock: Computes the face residuals for a block of faces, handling both interior and boundary faces.
+    - RuFace: Loops over face blocks and calls RuFaceBlock for each block.
+    - dRuFaceBlock (HAVE_ENZYME): Computes the derivative of face residuals using Enzyme for automatic differentiation.
+    - dRuFace (HAVE_ENZYME): Loops over face blocks and calls dRuFaceBlock for each block.
+
+    Key Concepts:
+    - Element and face residuals are computed at Gauss points and projected to nodes.
+    - Supports time-dependent problems, source terms, and custom flux/source functions via driver routines.
+    - Uses temporary arrays for intermediate computations and supports CUDA/cuBLAS for backend acceleration.
+    - Optional debug output via EXADEBUG macro.
+    - Enzyme support for automatic differentiation (HAVE_ENZYME macro).
+
+    Arguments (common across functions):
+    - solstruct &sol: Solution data structure.
+    - resstruct &res: Residual data structure.
+    - appstruct &app: Application-specific data.
+    - masterstruct &master: Master element/face data.
+    - meshstruct &mesh: Mesh connectivity and geometry.
+    - tempstruct &tmp: Temporary storage for computations.
+    - commonstruct &common: Common parameters and settings.
+    - cublasHandle_t handle: cuBLAS handle for GPU computations.
+    - Int e1, e2, f1, f2: Element/face range indices.
+    - Int backend: Backend identifier (CPU/GPU).
+    - Int ib: Face type (interior/boundary).
+
+    Note:
+    - Functions with HAVE_ENZYME macro are only compiled when Enzyme AD is enabled.
+    - Debug output is controlled by the EXADEBUG macro.
+*/
 #ifndef __URESIDUAL
 #define __URESIDUAL
 

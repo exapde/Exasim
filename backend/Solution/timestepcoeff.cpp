@@ -1,3 +1,34 @@
+/*
+    timestepcoeff.cpp
+
+    This file provides functions to compute coefficients for time-stepping schemes
+    used in numerical integration, specifically Diagonally Implicit Runge-Kutta (DIRK)
+    and Backward Differentiation Formula (BDF) methods.
+
+    Functions:
+
+    - void DIRKcoeff(dstype * c, dstype * d, dstype * t, Int nstage, Int torder)
+        Computes the coefficients for DIRK schemes based on the number of stages (nstage)
+        and the temporal order (torder). The coefficients are stored in arrays c, d, and t.
+        Supported DIRK configurations:
+            - DIRK(1,1), DIRK(1,2), DIRK(2,2), DIRK(2,3), DIRK(3,3), DIRK(3,4)
+        If an unsupported configuration is requested, an error is raised.
+
+    - void BDFcoeff(dstype * c, dstype * t, Int torder)
+        Computes the coefficients for BDF schemes based on the temporal order (torder).
+        The coefficients are stored in arrays c and t.
+        Supported BDF orders: 1, 2, 3
+        If an unsupported order is requested, an error is raised.
+
+    - void TimestepCoefficents(commonstruct common)
+        Determines the temporal scheme (DIRK or BDF) from the 'common' structure and
+        computes the corresponding coefficients by calling DIRKcoeff or BDFcoeff.
+        For BDF schemes, the number of stages is set to 1.
+
+    Notes:
+    - The functions assume that the input arrays have sufficient size for the requested scheme.
+    - Error handling is performed for unsupported configurations.
+*/
 #ifndef __TIMESTEPCOEFF
 #define __TIMESTEPCOEFF
 

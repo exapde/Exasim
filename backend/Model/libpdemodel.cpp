@@ -45,3 +45,8 @@ using namespace std;
 #include "HdgSourcew.cpp"
 #include "HdgSourcewonly.cpp"
 #include "HdgEoS.cpp"
+#include "KokkosVisScalars.cpp"
+#include "KokkosVisVectors.cpp"
+#include "KokkosVisTensors.cpp"
+#include "KokkosQoIvolume.cpp"
+#include "KokkosQoIboundary.cpp"

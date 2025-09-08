@@ -1,3 +1,53 @@
+/*
+    preconditioner.cpp
+
+    This file implements the CPreconditioner class and related functions for preconditioning linear systems
+    in the Exasim backend. The preconditioner is used to accelerate the convergence of iterative solvers
+    by transforming the original system into a more favorable form.
+
+    Main Components:
+    ----------------
+    - CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
+        Constructor: Initializes the preconditioner structure and prints info if in debug mode.
+
+    - CPreconditioner::~CPreconditioner()
+        Destructor: Frees memory allocated for the preconditioner.
+
+    - CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)
+        Computes the initial guess and sets up the preconditioner using reduced basis techniques.
+        Involves matrix-vector multiplications and small matrix inversions.
+
+    - CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int backend)
+        Applies the preconditioner to the input vector x, storing the result in disc.res.Ru.
+
+    - CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend)
+        Variant of the initial guess and preconditioner computation supporting different spatial schemes.
+
+    - ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commonstruct& common)
+        Implements block ILU(0) factorization and solve for super-element additive Schwarz preconditioner.
+        Performs forward and backward solves with block matrices.
+
+    - CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int spatialScheme, Int backend)
+        Applies the preconditioner based on the spatial scheme and preconditioner type:
+            - Block Jacobi
+            - Elemental additive Schwarz
+            - Super-element additive Schwarz with block ILU(0)
+
+    Dependencies:
+    -------------
+    - setprecondstruct.cpp: Sets up the preconditioner structure.
+    - applymatrix.cpp: Applies matrix operations.
+    - Various BLAS-like routines (PGEMTV, PGEMTM, PGEMNV, PGEMNMStridedBached).
+    - Utility functions (ArrayCopy, ArraySetValue, SubtractColumns, etc.).
+
+    Notes:
+    ------
+    - The code supports both CPU and GPU backends.
+    - Uses Kokkos for synchronization and parallelism.
+    - Handles both sequential and non-sequential block solves for efficiency.
+    - Designed for high-performance scientific computing applications.
+
+*/
 #ifndef __PRECONDITIONER
 #define __PRECONDITIONER
 
@@ -12,6 +62,7 @@ CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
     mpiRank = disc.common.mpiRank;
     setprecondstruct(precond, disc, backend);    
     if ((disc.common.mpiRank==0) && (disc.common.debugMode==1)) precond.printinfo();
+    if (disc.common.mpiRank == 0) printf("finish CPreconditioner constructor... \n");    
 }
 
 // destructor

@@ -27,7 +27,7 @@ pde.visdt = 0.025; # visualization timestep size
 
 # Choose computing platform and set number of processors
 #pde.platform = "gpu";           # choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;                # number of MPI processors
+pde.mpiprocs = 4;                # number of MPI processors
 
 # create a linear mesh for a square domain
 mesh.p, mesh.t = Mesh.SquareMesh(20,20,1); # a mesh of 8 by 8 quadrilaterals

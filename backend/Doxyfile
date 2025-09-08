@@ -1,0 +1,93 @@
+# ===================== Exasim Backend — Doxyfile =====================
+
+# ---------- Project ----------
+PROJECT_NAME           = "Exasim Backend"
+PROJECT_BRIEF          = "HDG/DG backend with Kokkos portability"
+PROJECT_NUMBER         = 0.1
+OUTPUT_DIRECTORY       = docs
+CREATE_SUBDIRS         = NO
+OUTPUT_LANGUAGE        = English
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_OUTPUT_VHDL   = NO
+OPTIMIZE_OUTPUT_SLICE  = NO
+MARKDOWN_SUPPORT       = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+JAVADOC_AUTOBRIEF      = YES
+MULTILINE_CPP_IS_BRIEF = YES
+TAB_SIZE               = 2
+
+# ---------- Input ----------
+INPUT                  = \
+  README.md \
+  Common \
+  Discretization \
+  Main \
+  Model \
+  Preconditioning \
+  Solution \
+  Solver
+FILE_PATTERNS          = *.h *.hpp *.c *.cpp *.cc *.cxx *.md
+RECURSIVE              = YES
+EXCLUDE_SYMLINKS       = NO
+
+# Treat everything as documentable, but keep private members off by default
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_ANON_NSPACES   = YES
+
+# ---------- Source browsing ----------
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+VERBATIM_HEADERS       = NO
+STRIP_CODE_COMMENTS    = NO
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = .
+STRIP_FROM_INC_PATH    = .
+
+
+# ---------- Diagrams (Graphviz) ----------
+HAVE_DOT               = YES
+DOT_NUM_THREADS        = 4
+CLASS_DIAGRAMS         = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = NO
+DOT_IMAGE_FORMAT       = svg
+DOT_TRANSPARENT        = YES
+INTERACTIVE_SVG        = YES
+DOT_GRAPH_MAX_NODES    = 80
+UML_LOOK               = YES
+DOT_FONTNAME           = Helvetica
+
+# ---------- Warnings ----------
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+WARN_LOGFILE           = docs/doxygen-warnings.log
+QUIET                  = NO
+
+# ---------- HTML ----------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+SEARCHENGINE           = YES
+HTML_COLORSTYLE_HUE    = 220
+
+# ---------- LaTeX / PDF ----------
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+USE_PDFLATEX           = YES
+PDF_HYPERLINKS         = YES
+LATEX_BATCHMODE        = NO
+LATEX_SOURCE_CODE      = NO
+COMPACT_LATEX          = NO
+# If you ever want to add a custom title page, uncomment and point to a .tex file:
+# LATEX_EXTRA_FILES      = docs/latex/title.tex
+
+# ---------- Misc ----------
+ALIASES += "hdg=\par\textbf{HDG}: "
+ALIASES += "kokkos=\par\textbf{Kokkos}: "

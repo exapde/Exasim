@@ -1,0 +1,56 @@
+scalars t
+
+vectors x(2), uq(3), v(0), w(0), uhat(1), n(2), tau(1), mu(1), eta(0)
+
+jacobian uq, w, uhat 
+
+hessian 
+
+batch x, uq, v, w, uhat, n
+
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu
+
+function Flux(x, uq, v, w, eta, mu, t)  
+  output_size(f) = 1;
+  kappa = mu[0];
+  f[0] = kappa*uq[1];  
+end
+
+function Source(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 1;
+  x1 = x[0];
+  s[0] = -4*(x1-0.5)*(x1-0.5)+1;
+end
+
+function Tdfunc(x, uq, v, w, eta, mu, t)  
+  output_size(m) = 1;
+  ones(m);
+end
+
+function Fbou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 1;
+  fb[0] = 0.0;
+end
+
+function Ubou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(ub) = 1;
+  ub[0] = 0.0;
+end
+
+function FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 1;
+  x1 = x[0];
+  x2 = x1*x1;
+  x3 = x1*x2;
+  x4 = x2*x2;  
+  ue = x4/3-2*x3/3;  
+  fb[0] = tau[0]*(ue - uhat[0]);  
+end
+
+function Initu(x, eta, mu)
+  output_size(ui) = 1;
+  ui[0] = 0.0;
+end
+
+
+

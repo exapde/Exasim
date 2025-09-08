@@ -1,3 +1,32 @@
+/*
+    getpoly.cpp
+
+    This file contains functions for polynomial preconditioning, primarily used in Krylov subspace methods and eigenvalue computations. The key functionalities include Modified Gram-Schmidt orthogonalization, Hessenberg matrix construction, matrix multiplication, eigenvalue computation, and Leja ordering for polynomial interpolation.
+
+    Functions:
+
+    - MGS: Performs Modified Gram-Schmidt orthogonalization on a set of vectors, with overloads for handling subvector partitions.
+    - makeH: Constructs the Hessenberg matrix using the orthogonalized vectors and applies preconditioning.
+    - ArrayTranspose: Transposes a matrix from source to destination arrays.
+    - MatMul: Multiplies two matrices and stores the result in a third matrix.
+    - eigH: Computes the eigenvalues of the Hessenberg matrix and modifies it for polynomial generation.
+    - complexabs: Computes the magnitude of a complex number given its real and imaginary parts.
+    - LejaSort: Sorts eigenvalues using the Leja ordering for optimal polynomial interpolation points.
+    - getPoly: Main routine to generate the polynomial by constructing the Hessenberg matrix, computing its eigenvalues, and sorting them using Leja ordering.
+
+    Parameters:
+    - CDiscretization, CPreconditioner, sysstruct: Structures containing discretization, preconditioning, and system information.
+    - dstype: Data type for numerical values (typically double or float).
+    - Int, int: Integer types for sizes and indices.
+    - cublasHandle_t: CUDA BLAS handle for GPU operations.
+    - backend, spatialScheme: Flags for computational backend and spatial discretization scheme.
+    - lam, r, ipiv: Arrays for eigenvalues, residuals, and pivot indices.
+
+    Notes:
+    - Functions are designed to work with both CPU and GPU backends.
+    - The code assumes external definitions for functions such as PDOT, ArrayAXPY, ArrayMultiplyScalar, PNORM, cpuComputeInverse, DGEEV, etc.
+    - The LejaSort function is used to select interpolation points for polynomial approximation in Krylov methods.
+*/
 #ifndef __GETPOLY
 #define __GETPOLY
 

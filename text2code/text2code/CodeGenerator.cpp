@@ -1,3 +1,45 @@
+/*
+ * CodeGenerator.cpp
+ * 
+ * This file implements the CodeGenerator class, which is responsible for generating C++ source and header files
+ * for symbolic PDE models using SymEngine. The generator supports multiple frameworks (C++, CUDA, HIP, Kokkos)
+ * and produces code for model functions, their Jacobians, Hessians, and initialization routines.
+ * 
+ * Key functionalities:
+ * - Symbolic function code generation (headers and sources)
+ * - Automatic differentiation (Jacobian and Hessian code generation)
+ * - Common Subexpression Elimination (CSE) for efficient code
+ * - Support for vector and scalar symbolic inputs
+ * - Generation of empty stubs for model functions (for extensibility)
+ * - Framework-specific parallel loop emission (C++, CUDA, HIP, Kokkos)
+ * - Generation of libpdemodel.hpp/cpp for model interface aggregation
+ * 
+ * Main methods:
+ * - generateCode2Cpp: Generates main driver code for symbolic function evaluation.
+ * - generateCudaHipHpp: Emits GPU backend abstraction header for CUDA/HIP.
+ * - generateSymbolicFunctionsHpp/Cpp: Generates headers and sources for symbolic functions.
+ * - generateSymbolicScalarsVectorsHpp/Cpp: Generates headers and sources for symbolic input management.
+ * - generateEmpty*Cpp: Emits empty stubs for various model functions.
+ * - generateLibPDEModelHpp/Cpp: Aggregates all model function interfaces and sources.
+ * 
+ * Helper methods:
+ * - emitSymbolicScalarsVectors, emitevaluateSymbolicFunctions, emitfunc2cse, emitfuncjac2cse, emitfuncjachess2cse:
+ *   Emit code for symbolic input initialization, function evaluation, and CSE routines.
+ * - emitfunc2cppfiles, emitfuncjac2cppfiles, emitfuncjachess2cppfiles, emitinitfunc2cppfiles:
+ *   Emit code for function, Jacobian, Hessian, and initialization routines.
+ * - appendUbouFbou, appendFbouHdg: Emit code for boundary condition function aggregation.
+ * 
+ * Usage:
+ * 1. Construct CodeGenerator with a ParsedSpec describing the model.
+ * 2. Call the appropriate generate* methods to emit code files for the model.
+ * 
+ * Dependencies:
+ * - SymEngine (symbolic computation)
+ * - Standard C++ libraries (fstream, iostream, regex, etc.)
+ * 
+ * Author: [Your Name]
+ * Date: [Date]
+ */
 #include "CodeGenerator.hpp"
 
 std::string prefixSymEngineFunctions(const std::string& expr) {
@@ -34,8 +76,12 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "          fname = std::string(\"HdgSourcewonly\");\n";
     os << "          jname = std::string(\"HdgSourcew\");\n";
     os << "        }\n";    
+    os << "        if (funcname == \"QoIboundary\") { \n";
+    os << "            ssv.func2cppfiles(f, ssv.modelpath + fname, fname + std::to_string(1), i, false);\n";
+    os << "            ssv.appendUbouFbou(ssv.modelpath + fname, fname, 1);\n";
+    os << "        }\n";
     //os << "        std::cout<<funcname<<\", \"<<fname<<\", \"<<jname<<std::endl;\n";    
-    os << "        if ((funcname == \"Ubou\") || (funcname == \"Fbou\") || (funcname == \"FbouHdg\")) { \n";
+    os << "        else if ((funcname == \"Ubou\") || (funcname == \"Fbou\") || (funcname == \"FbouHdg\")) { \n";
     os << "          int szf = f.size();\n";
     os << "          int szuhat = ssv.szuhat;\n";
     os << "          int nbc = szf/szuhat;\n";
@@ -1395,15 +1441,16 @@ void emitinitfunc2cppfiles(std::ostream& os, const ParsedSpec& spec) {
     forloopstart(os, "Kokkos");    
     os << "       else if (framework==2) \n";      
     forloopstart(os, "Cuda");    
-    os << "       cppfile << \"    int j = i%npe; \\n\";\n";   
-    os << "       cppfile << \"    int k = i/npe; \\n\";\n";   
+    os << "       cppfile << \"    int p = i%npe; \\n\";\n";   
+    os << "       cppfile << \"    int e = i/npe; \\n\";\n";   
     os << "       \n";
     os << "       // Emit symbolic variable loads\n";
     os << "       for (const auto &[name, vec] : inputs) {\n";
     os << "           for (size_t j = 0; j < vec.size(); ++j) {\n";
     os << "               if (depends_on(vec[j])) { \n";
     os << "                 if (std::find(batch.begin(), batch.end(), name) != batch.end())\n";
-    os << "                   cppfile << \"    " << spec.datatype << " \" << name << j << \" = \" << name << \"[\" << j << \"*N+i];\\n\";\n";
+    //os << "                   cppfile << \"    " << spec.datatype << " \" << name << j << \" = \" << name << \"[\" << j << \"*N+i];\\n\";\n";
+    os << "                   cppfile << \"    " << spec.datatype << " \" << name << j << \" = \" << name << \"[\" << j << \"*npe+p+npe*ncx*e];\\n\";\n";
     os << "                 else \n";
     os << "                   cppfile << \"    " << spec.datatype << " \" << name << j << \" = \" << name << \"[\" << j << \"];\\n\";\n";
     os << "               }\n";    
@@ -1423,7 +1470,8 @@ void emitinitfunc2cppfiles(std::ostream& os, const ParsedSpec& spec) {
     os << "       \n";
     
     os << "       for (size_t n = 0; n < f.size(); ++n) {\n";    
-    os << "           cppfile << \"    f[j+npe*\" << n << \" +npe*nce*k] = \" << cpp.apply(*reduced_exprs[n]) << \";\\n\";\n";
+    os << "           cppfile << \"    f[p+npe*\" << n << \" +npe*nce*e] = \" << cpp.apply(*reduced_exprs[n]) << \";\\n\";\n";
+    //os << "           cppfile << \"    f[\" << n << \" * N + i] = \" << cpp.apply(*reduced_exprs[n]) << \";\\n\";\n";
     os << "       }\n";
     os << "       \n";   
     os << "       if (framework==0) \n";      
@@ -1751,6 +1799,57 @@ void CodeGenerator::generateEmptyEoSCpp(std::string modelpath) const {
     }
 }
 
+void CodeGenerator::generateEmptyVisScalarsCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosVisScalars.cpp"));
+    os << "void KokkosVisScalars(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
+    os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();      
+}
+
+void CodeGenerator::generateEmptyVisVectorsCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosVisVectors.cpp"));
+    os << "void KokkosVisVectors(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
+    os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();      
+}
+
+void CodeGenerator::generateEmptyVisTensorsCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosVisTensors.cpp"));
+    os << "void KokkosVisTensors(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
+    os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();      
+}
+
+void CodeGenerator::generateEmptyQoIvolumeCpp(std::string modelpath) const {  
+    std::ofstream os(make_path(modelpath,  "KokkosQoIvolume.cpp"));
+    os << "void KokkosQoIvolume(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "                 const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc,\n";
+    os << "                 const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();      
+}
+
+void CodeGenerator::generateEmptyQoIboundaryCpp(std::string modelpath) const {    
+    std::ofstream os(make_path(modelpath,  "KokkosQoIboundary.cpp"));
+    os << "void KokkosQoIboundary(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "             const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
+    os << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
+    os << "             const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();          
+}
+
 void CodeGenerator::generateLibPDEModelHpp(std::string modelpath) const {  
     std::ofstream os(make_path(modelpath, "libpdemodel.hpp"));
 
@@ -1794,6 +1893,12 @@ void CodeGenerator::generateLibPDEModelHpp(std::string modelpath) const {
     os << "void HdgSource(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void HdgSourcew(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void HdgSourcewonly(dstype* f, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+
+    os << "void KokkosVisScalars(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosVisVectors(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosVisTensors(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosQoIvolume(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosQoIboundary(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
 
     os.close(); 
 }
@@ -1848,6 +1953,12 @@ void CodeGenerator::generateLibPDEModelCpp(std::string modelpath) const {
     os << "#include \"HdgSourcew.cpp\"\n";
     os << "#include \"HdgSourcewonly.cpp\"\n";
     os << "#include \"HdgEoS.cpp\"\n";
+
+    os << "#include \"KokkosVisScalars.cpp\"\n";
+    os << "#include \"KokkosVisVectors.cpp\"\n";
+    os << "#include \"KokkosVisTensors.cpp\"\n";
+    os << "#include \"KokkosQoIvolume.cpp\"\n";
+    os << "#include \"KokkosQoIboundary.cpp\"\n";
 
     os.close(); 
 }

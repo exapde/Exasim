@@ -1,3 +1,53 @@
+/*
+================================================================================
+File: setsysstruct.cpp
+
+Description:
+------------
+This file contains functions for initializing and setting up system structures
+used in numerical solvers, particularly for finite element or DG methods.
+It includes routines for generating random fields, allocating memory for
+solution vectors, and handling parallel communication (MPI, CUDA, HIP).
+
+Functions:
+----------
+
+1. rand_normal(dstype mean, dstype stddev)
+    -------------------------------------------------
+    Generates a random number from a normal (Gaussian) distribution with
+    specified mean and standard deviation using the Box-Muller method.
+    Uses static variables to cache one of the generated values for efficiency.
+
+2. randomfield(dstype *randvect, commonstruct &common, resstruct res,
+                    meshstruct mesh, tempstruct tmp, Int backend)
+    -------------------------------------------------
+    Fills the provided vector with random values (normally distributed).
+    Handles parallel communication for distributed memory systems (MPI).
+    Synchronizes with GPU devices if applicable (CUDA/HIP).
+    Performs data exchange between subdomains and updates the random field
+    accordingly.
+
+3. setsysstruct(sysstruct &sys, commonstruct &common, resstruct res,
+                     meshstruct mesh, tempstruct tmp, Int backend)
+    -------------------------------------------------
+    Initializes the main system structure for the solver.
+    Allocates memory for solution vectors, temporary arrays, and previous
+    solution states depending on the temporal and spatial schemes.
+    Handles allocation for GPU/CPU backends.
+    Generates and normalizes a random vector for use in the solver.
+    Sets up additional structures if polynomial degree (ppdegree) > 1.
+
+Notes:
+------
+- The code is designed to be portable across CPU and GPU backends.
+- MPI is used for parallel communication between subdomains.
+- CUDA/HIP synchronization is included for GPU execution.
+- Memory allocation is handled via TemplateMalloc and standard malloc.
+- The code assumes the existence of several utility functions for array
+  operations and device management.
+
+================================================================================
+*/
 #ifndef __SETSYSSTRUCT
 #define __SETSYSSTRUCT
 
@@ -283,16 +333,18 @@ void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruc
     
     sys.szipiv = max(common.ppdegree, M*M);
     sys.sztempmem = (5*M + M*M);
-        
-    TemplateMalloc(&sys.randvect, common.npe*common.ncu*common.ne, backend);        
+                 
     if (common.spatialScheme==0) {
+      TemplateMalloc(&sys.randvect, common.npe*common.ncu*common.ne, backend);     
       randomfield(sys.randvect, common, res, mesh, tmp, backend);
     }
     else {
       dstype *randvectu;
-      TemplateMalloc(&randvectu, common.npe*common.ncu*common.ne, backend);    
+      TemplateMalloc(&randvectu, common.npe*common.ncu*common.ne, backend);            
       randomfield(randvectu, common, res, mesh, tmp, backend);      
+      TemplateMalloc(&sys.randvect, ndof, backend);     
       GetFaceNodes(sys.randvect, randvectu, mesh.f2e, mesh.perm, common.npf, ncu, npe, ncu, common.nf);
+      TemplateFree(randvectu, backend);  
     }    
     
     dstype normr = PNORM(common.cublasHandle, ndof, common.ndofuhatinterface, sys.randvect, backend);    

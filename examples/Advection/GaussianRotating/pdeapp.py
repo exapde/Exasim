@@ -17,7 +17,7 @@ pde['modelfile'] = "pdemodel"; # name of a file defining the PDE model
 
 # Choose computing platform and set number of processors
 #pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
-pde['mpiprocs'] = 1;        # number of MPI processors
+pde['mpiprocs'] = 4;        # number of MPI processors
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['porder'] = 4;         # polynomial degree
@@ -44,3 +44,5 @@ pde['visscalars'] = ["temperature", 0]; # list of scalar fields for visualizatio
 pde['visvectors'] = []; # list of vector fields for visualization
 Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
 print("Done!");
+
+

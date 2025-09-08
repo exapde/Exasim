@@ -1,7 +1,62 @@
+/*
+    readbinaryfiles.cpp
+
+    This file provides functions for reading and writing binary files containing the data structures
+    used in the Exasim backend for high-order finite element simulations. The main structures handled
+    are appstruct, masterstruct, meshstruct, and solstruct, which store application parameters, master
+    element data, mesh connectivity, and solution data, respectively.
+
+    Functions:
+
+    - void readappstruct(string filename, appstruct &app)
+        Reads application parameters from a binary file into an appstruct object. Handles initialization
+        of physics and solver parameters, and optionally initializes Mutation++ mixture options if enabled.
+
+    - void writeappstruct(string filename, appstruct &app)
+        Writes the contents of an appstruct object to a binary file.
+
+    - void readmasterstruct(string filename, masterstruct &master)
+        Reads master element data from a binary file into a masterstruct object.
+
+    - void writemasterstruct(string filename, masterstruct &master)
+        Writes the contents of a masterstruct object to a binary file.
+
+    - void readmeshstruct(string filename, meshstruct &mesh)
+        Reads mesh connectivity and partitioning data from a binary file into a meshstruct object.
+
+    - void writemeshstruct(string filename, meshstruct &mesh)
+        Writes the contents of a meshstruct object to a binary file.
+
+    - void readsolstruct(string filename, solstruct &sol)
+        Reads solution data (coordinates, unknowns, auxiliary variables) from a binary file into a solstruct object.
+
+    - void writesolstruct(string filename, solstruct &sol)
+        Writes the contents of a solstruct object to a binary file.
+
+    - void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, Int mpirank)
+        Reads solution data from a binary file, with additional logic for initializing solution arrays
+        based on the application, master, and mesh structures, and MPI rank.
+
+    - void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+        Reads all input data structures from binary files, handling both serial and parallel (MPI) cases.
+
+    - void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+        Writes all output data structures to binary files, handling both serial and parallel (MPI) cases.
+
+    Dependencies:
+        - Standard C++ libraries: <string>, <fstream>
+        - Optional: Mutation++ library (if HAVE_MPP is defined)
+        - Custom types: appstruct, masterstruct, meshstruct, solstruct, Int, dstype
+        - Utility functions: readiarrayfromdouble, readarray, writeiarraytodouble, writearray, error, NumberToString, cpuArraySetValue, cpuArrayInsert, cpuInituDriver, cpuInitudgDriver, cpuInitodgDriver, cpuInitwdgDriver, CPUFREE
+
+    Notes:
+        - All file operations are performed in binary mode for efficiency and compatibility.
+        - Error handling is performed via the error() function.
+        - MPI and OpenMP support is handled via function arguments and conditional logic.
+        - Some functions contain conditional compilation for Mutation++ and Enzyme support.
+*/
 #ifndef __READBINARYFILES
 #define __READBINARYFILES
-
-#include <string>
 
 #ifdef HAVE_MPP
 #include <mutation++.h>
@@ -262,22 +317,20 @@ void writemasterstruct(string filename, masterstruct &master)
 }
 
 
-void readmeshstruct(string filename, meshstruct &mesh)
+void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct &app, masterstruct &master, Int mpirank)
 {
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
 
     if (!in) 
         error("Unable to open file " + filename);
-    
-    //printf("Read mesh struct from files...\n");  
-    
+        
     mesh.lsize = readiarrayfromdouble(in, 1);
     mesh.nsize = readiarrayfromdouble(in, mesh.lsize[0]);
     mesh.ndims = readiarrayfromdouble(in, mesh.nsize[0]);
-    mesh.facecon = readiarrayfromdouble(in, mesh.nsize[1]);
-    mesh.eblks = readiarrayfromdouble(in, mesh.nsize[2]);
-    mesh.fblks = readiarrayfromdouble(in, mesh.nsize[3]);
+    mesh.facecon = readiarrayfromdouble(in, mesh.nsize[1]); //  
+    mesh.eblks = readiarrayfromdouble(in, mesh.nsize[2]);  //
+    mesh.fblks = readiarrayfromdouble(in, mesh.nsize[3]);  //
     mesh.nbsd = readiarrayfromdouble(in, mesh.nsize[4]);
     mesh.elemsend = readiarrayfromdouble(in, mesh.nsize[5]);
     mesh.elemrecv = readiarrayfromdouble(in, mesh.nsize[6]);
@@ -285,18 +338,18 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.elemrecvpts = readiarrayfromdouble(in, mesh.nsize[8]);
     mesh.elempart = readiarrayfromdouble(in, mesh.nsize[9]);
     mesh.elempartpts = readiarrayfromdouble(in, mesh.nsize[10]);    
-    mesh.cgelcon = readiarrayfromdouble(in, mesh.nsize[11]);
-    mesh.rowent2elem = readiarrayfromdouble(in, mesh.nsize[12]);
-    mesh.cgent2dgent = readiarrayfromdouble(in, mesh.nsize[13]);
-    mesh.colent2elem = readiarrayfromdouble(in, mesh.nsize[14]);
-    mesh.rowe2f1 = readiarrayfromdouble(in, mesh.nsize[15]);
-    mesh.cole2f1 = readiarrayfromdouble(in, mesh.nsize[16]);
-    mesh.ent2ind1 = readiarrayfromdouble(in, mesh.nsize[17]);
-    mesh.rowe2f2 = readiarrayfromdouble(in, mesh.nsize[18]);
-    mesh.cole2f2 = readiarrayfromdouble(in, mesh.nsize[19]);
-    mesh.ent2ind2 = readiarrayfromdouble(in, mesh.nsize[20]);
-    mesh.f2e = readiarrayfromdouble(in, mesh.nsize[21]);
-    mesh.elemcon = readiarrayfromdouble(in, mesh.nsize[22]);
+    mesh.cgelcon = readiarrayfromdouble(in, mesh.nsize[11]); //
+    mesh.rowent2elem = readiarrayfromdouble(in, mesh.nsize[12]); //
+    mesh.cgent2dgent = readiarrayfromdouble(in, mesh.nsize[13]); //
+    mesh.colent2elem = readiarrayfromdouble(in, mesh.nsize[14]); //
+    mesh.rowe2f1 = readiarrayfromdouble(in, mesh.nsize[15]);     //
+    mesh.cole2f1 = readiarrayfromdouble(in, mesh.nsize[16]);    //
+    mesh.ent2ind1 = readiarrayfromdouble(in, mesh.nsize[17]);   //
+    mesh.rowe2f2 = readiarrayfromdouble(in, mesh.nsize[18]);    //
+    mesh.cole2f2 = readiarrayfromdouble(in, mesh.nsize[19]);    //
+    mesh.ent2ind2 = readiarrayfromdouble(in, mesh.nsize[20]);   //
+    mesh.f2e = readiarrayfromdouble(in, mesh.nsize[21]);        //
+    mesh.elemcon = readiarrayfromdouble(in, mesh.nsize[22]);    //
     mesh.perm = readiarrayfromdouble(in, mesh.nsize[23]);
     mesh.bf = readiarrayfromdouble(in, mesh.nsize[24]);
     mesh.cartgridpart = readiarrayfromdouble(in, mesh.nsize[25]);
@@ -327,6 +380,16 @@ void readmeshstruct(string filename, meshstruct &mesh)
     mesh.szbf = mesh.nsize[24];
     mesh.szcartgridpart = mesh.nsize[25];
         
+    int *ti = readiarrayfromdouble(in, mesh.nsize[26]);
+    int *boundaryConditions = readiarrayfromdouble(in, mesh.nsize[27]);
+    int *intepartpts = readiarrayfromdouble(in, mesh.nsize[28]);
+    //checkConn(mesh, sol, app, master, ti, boundaryConditions, intepartpts, mesh.nsize[27]);
+    //printf("%d %d %d\n", mesh.nsize[26], mesh.nsize[27], mesh.nsize[28]);
+    if (mesh.nsize[26] > 0 && mesh.nsize[27] > 0) {
+        if (mpirank==0) printf("Building element and face connectivities \n");         
+        buildConn(mesh, sol, app, master, ti, boundaryConditions, intepartpts, mesh.nsize[27]);
+    }
+    
     mesh.faceperm = readiarrayfromdouble(in, mesh.nsize[39]);
     mesh.nbintf = readiarrayfromdouble(in, mesh.nsize[40]);
     mesh.facesend = readiarrayfromdouble(in, mesh.nsize[41]);
@@ -429,8 +492,17 @@ void writesolstruct(string filename, solstruct &sol)
     out.close();    
 }
 
-void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, Int mpirank)
+void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, string filemesh, Int mpirank)
 {
+    // Open file to read
+    ifstream inmesh(filemesh.c_str(), ios::in | ios::binary);
+    if (!inmesh) error("Unable to open file " + filemesh);    
+    int *lsize = readiarrayfromdouble(inmesh, 1);
+    int *nsize = readiarrayfromdouble(inmesh, lsize[0]);
+    int *ndims = readiarrayfromdouble(inmesh, nsize[0]);
+    Int ne = ndims[1];
+    inmesh.close();            
+    
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
 
@@ -441,15 +513,13 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
 
     //dstype *tmp; // = (dstype*) malloc (sizeof (dstype)*common.nge*common.nco*common.ne);
     Int npe = master.ndims[5];
+    Int npf = master.ndims[6];
     Int nc = app.ndims[5];
     Int ncu = app.ndims[6];
     Int nco = app.ndims[9];
     Int ncx = app.ndims[11];
     Int ncw = app.ndims[13];
-    Int ne = mesh.ndims[1];
-    Int npf = master.ndims[6];
-    Int nf = mesh.ndims[2];
-
+    
     sol.lsize = readiarrayfromdouble(in, 1);
     sol.nsize = readiarrayfromdouble(in, sol.lsize[0]);
     sol.ndims = readiarrayfromdouble(in, sol.nsize[0]);  
@@ -503,6 +573,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     #endif
 
     if ((sol.nsize[3] >0) && (sol.nsize[3] == npe*nco*ne)) {
+        if (mpirank==0) printf("Reading vdg from binary files \n");  
         readarray(in, &sol.odg, sol.nsize[3]);    
         sol.szodg = sol.nsize[3];
     }
@@ -518,6 +589,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     #endif
 
     if ((sol.nsize[4] >0) && (sol.nsize[4] == npe*ncw*ne)) {
+        if (mpirank==0) printf("Reading wdg from binary files \n");  
         readarray(in, &sol.wdg, sol.nsize[4]);    
         sol.szwdg = sol.nsize[4];
     }
@@ -527,15 +599,18 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         sol.nsize[4] = npe*ncw*ne;
         sol.szwdg = sol.nsize[4];
     }
-    if (sol.nsize[5] == npf*nf*ncu) {
-        //std::cout << "Reading in uh ..." << std::endl;
+    if (sol.nsize[5] >0) {
+        if (mpirank==0) printf("Reading uh from binary files \n");  
         readarray(in, &sol.uh, sol.nsize[5]);
-        //print2darray(sol.uh, npf*ncu*10, 2);
         app.read_uh = 1;
+        sol.szuh = sol.nsize[5];
     }
-    //std::cout << "====== read_uh after readarray: " << app.read_uh << std::endl;
+    if (sol.nsize[6] > 0) {
+        if (mpirank==0) printf("Reading xcg from binary files \n");  
+        readarray(in, &sol.xcg, sol.nsize[6]);
+        sol.szxcg = sol.nsize[6];
+    }    
         
-    // Close file:
     in.close();            
 }
 
@@ -563,25 +638,24 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
     // read meshsol structure
     if (mpiprocs>1) {     
         Int filenumber = mpirank+1-fileoffset; //file number     
+        string filesol = filein + "sol" + NumberToString(filenumber) + ".bin";                    
+        string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
+        
+        if (mpirank==0) printf("Reading initial solution from binary files \n");         
+        readsolstruct(filesol, sol, app, master, filemesh, mpirank);    
         
         if (mpirank==0) printf("Reading mesh from binary files \n");            
-        string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
-        readmeshstruct(filemesh, mesh);              
-                
-        if (mpirank==0) printf("Reading initial solution from binary files \n");         
-        string filesol = filein + "sol" + NumberToString(filenumber) + ".bin";                    
-        //readsolstruct(filesol, sol);    
-        readsolstruct(filesol, sol, app, master, mesh, mpirank);    
+        readmeshstruct(filemesh, mesh, sol, app, master, mpirank);                              
     }
     else {
-        if (mpirank==0) printf("Reading mesh from binary files \n");         
+        string filesol = filein + "sol.bin";              
         string filemesh = filein + "mesh.bin";                    
-        readmeshstruct(filemesh, mesh);              
+
+        if (mpirank==0) printf("Reading initial solution from binary files \n");                       
+        readsolstruct(filesol, sol, app, master, filemesh, mpirank);    
         
-        if (mpirank==0) printf("Reading initial solution from binary files \n");         
-        string filesol = filein + "sol.bin";                    
-        //readsolstruct(filesol, sol);              
-        readsolstruct(filesol, sol, app, master, mesh, mpirank);    
+        if (mpirank==0) printf("Reading mesh from binary files \n");         
+        readmeshstruct(filemesh, mesh, sol, app, master, mpirank);                      
     }    
 }
 

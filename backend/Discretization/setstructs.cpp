@@ -1,3 +1,42 @@
+/*
+    setstructs.cpp
+
+    This file contains functions for initializing and setting up various data structures used in the Exasim backend for high-order finite element/volume methods. The main structures initialized here are commonstruct, appstruct, masterstruct, meshstruct, solstruct, resstruct, and tempstruct. These structures store metadata, mesh information, solution variables, and temporary arrays required for numerical computations.
+
+    Functions:
+
+    - setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, string filein, string fileout, Int curvedMesh, Int fileoffset)
+        Initializes the commonstruct with parameters from app, master, and mesh structures, as well as input/output file names and mesh curvature information. Sets up MPI-related fields, problem flags, solver parameters, and allocates memory for time integration coefficients and communication buffers.
+
+    - setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
+        Allocates and initializes memory for residual arrays (Rq, Ru, Rh) and their sizes in the resstruct. Handles additional allocations if Enzyme AD is enabled.
+
+    - settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
+        Allocates temporary arrays for intermediate computations, communication buffers for MPI, and sets their sizes in tempstruct. Handles different spatial schemes and backend types.
+
+    - cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, tempstruct &tmp, commonstruct &common, string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+        Reads input data, initializes solution, residual, temporary, and common structures for CPU execution. Allocates memory for solution arrays, mesh permutation arrays, and sets up index arrays for communication. Handles mesh curvature and precomputes shape function products.
+
+    - devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
+        Allocates and copies appstruct arrays to device memory for GPU execution.
+
+    - devsolstruct(solstruct &dsol, solstruct &sol, commonstruct &common)
+        Allocates and copies solstruct arrays to device memory for GPU execution.
+
+    - devmasterstruct(masterstruct &dmaster, masterstruct &master, commonstruct &common)
+        Allocates and copies masterstruct arrays to device memory for GPU execution.
+
+    - devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
+        Allocates and copies meshstruct arrays to device memory for GPU execution. Handles additional arrays for HDG/EDG schemes.
+
+    - gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, tempstruct &tmp, commonstruct &common, solstruct &hsol, resstruct &hres, appstruct &happ, masterstruct &hmaster, meshstruct &hmesh, tempstruct &htmp, commonstruct &hcommon)
+        Initializes all structures for GPU execution, including device memory allocation and copying from host. Sets up CUDA/HIP handles and allocates solution arrays for source terms and auxiliary variables.
+
+    Notes:
+    - The file uses conditional compilation for MPI, CUDA, HIP, and Enzyme AD support.
+    - Memory allocation is performed using TemplateMalloc and TemplateCopytoDevice for portability across CPU and GPU backends.
+    - The code is designed for parallel execution and supports domain decomposition for distributed memory systems.
+*/
 #ifndef __SETSTRUCTS
 #define __SETSTRUCTS
 
@@ -5,12 +44,20 @@
 
 void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, 
         string filein, string fileout, Int curvedMesh, Int fileoffset)
-{               
+{                   
     common.filein = filein;
     common.fileout = fileout;
             
     common.mpiRank = app.comm[0];  // MPI rank      
     common.mpiProcs = app.comm[1]; // number of MPI ranks           
+    
+    common.exasimpath = trimToSubstringAtLastOccurence(common.exasimpath, "Exasim");     
+    if (common.exasimpath == "") {      
+      std::filesystem::path cwd = std::filesystem::current_path();
+      common.exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
+      if (common.exasimpath == "") common.exasimpath = trimToSubstringAtLastOccurence(common.fileout, "Exasim");       
+    }
+    if (common.mpiRank==0) std::cout << "exasimpath = "<<common.exasimpath<<std::endl;
     
 #ifdef HAVE_ENZYME    
     common.enzyme = 1;
@@ -25,6 +72,12 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.ncx = app.ndims[11];// number of compoments of (xdg)        
     common.nce = app.ndims[12];// number of compoments of (output)        
     common.ncw = app.ndims[13];//number of compoments of (w)
+    common.nsca = app.ndims[14];// number of components of scalar fields for visualization
+    common.nvec = app.ndims[15];// number of components of vector fields for visualization
+    common.nten = app.ndims[16];// number of components of tensor fields for visualization
+    common.nsurf = app.ndims[17];// number of components of surface fields for visualization, storage, and QoIs
+    common.nvqoi = app.ndims[18];// number of volume quantities of interest (QoIs)    
+
     common.ncm = 1;//number of components of monitor function    
     if (app.flag[1]==1)
         common.ncs = common.nc;  // wave problem
@@ -162,6 +215,9 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.cartgridpart = copyarray(mesh.cartgridpart,mesh.nsize[25]); 
     common.szcartgridpart = mesh.nsize[25];
     
+    common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));
+    common.qoisurface = (dstype*) malloc(common.nsurf*sizeof(dstype));
+
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
         Int f1 = common.fblks[3*j]-1;

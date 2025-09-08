@@ -1,3 +1,39 @@
+/**
+ * @file connectivity.cpp
+ * @brief Mesh connectivity routines for finite element/DG solvers.
+ *
+ * This file provides functions and structures for building and managing mesh connectivity,
+ * including element-to-node, face-to-element, and boundary condition mappings.
+ *
+ * Main components:
+ * - Conn struct: Holds all connectivity arrays and metadata for a mesh partition.
+ * - apply_bcm: Applies boundary condition map to mesh faces.
+ * - fix_f2t_consistency: Ensures face-to-element mapping consistency for parallel partitions.
+ * - build_connectivity: Constructs element and face connectivity arrays for DG/CG methods.
+ * - connectivity: Main routine to partition faces, apply boundary conditions, and build connectivity.
+ * - mkelconcg: Generates unique CG node coordinates and element-to-node mapping.
+ * - mkent2elem: Builds node-to-element connectivity in CRS format.
+ * - map_cgent2dgent: Maps CG nodes to DG nodes using CRS connectivity.
+ * - mkdge2dgf: Constructs CRS mapping from face connectivity to per-entity DOFs.
+ * - removeBoundaryFaces: Removes boundary faces from face connectivity based on block info.
+ * - divide_interval, mkfaceblocks: Utility routines for partitioning elements/faces into blocks.
+ * - buildConn: High-level routine to build all mesh connectivity for a PDE, mesh, and master element.
+ *
+ * Dependencies:
+ * - Requires PDE, Mesh, Master, DMD structures (not defined here).
+ * - Relies on utility functions: select_columns, find, permute_columns, simple_bubble_sort,
+ *   unique_count, unique_ints, print2iarray, print2darray, error, CPUFREE, etc.
+ *
+ * Usage:
+ * - Call buildConn to initialize a Conn object for a given mesh and PDE setup.
+ * - Use connectivity and related routines for custom mesh partitioning and connectivity construction.
+ *
+ * Notes:
+ * - Supports both serial and parallel (MPI) mesh partitions.
+ * - Handles both DG and CG node mappings.
+ * - Designed for high-order finite element/DG solvers.
+ */
+
 #ifndef __CONNECTIVITY
 #define __CONNECTIVITY
 
@@ -7,7 +43,7 @@ struct Conn
     vector<int> elemcon, facecon, bf, f2t, facepartpts, facepartbnd, eblks, fblks;
     vector<int> cgelcon, rowent2elem, colent2elem, cgent2dgent;
     vector<int> rowe2f1, cole2f1, ent2ind1, rowe2f2, cole2f2, ent2ind2;
-    int ncgnodes, ncgdof, nbe, nbf, neb, nfb, nf;
+    int ncgnodes=0, ncgdof=0, nbe=0, nbf=0, neb=0, nfb=0, nf=0;
 };
     
 void apply_bcm(int* bf, const int* fi, const int* bcm, int n, int nbcm) 
@@ -179,7 +215,7 @@ int connectivity(vector<int>& elemcon, vector<int>& facecon, vector<int>& bf, ve
       select_columns(ti, t, elempart, nve, ne); 
       
       int* f2t_tmp = (int*)malloc(4 * nfe * ne * sizeof(int));
-      int nf1 = mkf2e(f2t_tmp, ti, localfaces, ne, nve, nvf, nfe);       
+      int nf1 = mkf2e_hash(f2t_tmp, ti, localfaces, ne, nve, nvf, nfe);       
       
 //       print2iarray(elempart, 1, ne);
 //       print2iarray(ti, nve, ne);
@@ -282,12 +318,12 @@ void get_node_coord(double* out, const double* dgnodes, int npe, int dim, int e,
 /**
  * @param dgnodes   - [npe][dim][ne] in column-major layout
  * @param npe, dim, ne - mesh dimensions
- * @param cgnodes   - output array [max_nodes][dim], preallocated by user
+ * @param cgnodes   - output array [dim][max_nodes], preallocated by user
  * @param cgelcon   - output array [npe][ne], preallocated by user
  * @return number of unique CG nodes (i.e., used portion of cgnodes)
  */
 int mkelconcg(
-    double* cgnodes,        // [max_nodes][dim], user-allocated
+    double* cgnodes,        // [dim][max_nodes], user-allocated
     int* cgelcon,            // [npe][ne], user-allocated        
     const double* dgnodes,  // [npe][dim][ne]
     int npe, int dim, int ne) 
@@ -320,6 +356,161 @@ int mkelconcg(
     }
 
     return ncg;  // return number of unique CG nodes
+}
+
+// reuses your equal_row
+static inline int equal_row_tol(const double* a, const double* b, int dim, double tol) {
+    for (int i = 0; i < dim; ++i)
+        if (std::fabs(a[i] - b[i]) > tol) return 0;
+    return 1;
+}
+
+static inline void fetch_node(double* out,
+                              const double* dgnodes,
+                              int npe, int dim, int ne,  // dims
+                              int e, int a)              // element, local node
+{
+    // dgnodes is [npe][dim][ne] in column-major as in your routine
+    for (int d = 0; d < dim; ++d)
+        out[d] = dgnodes[a + npe * (d + dim * e)];
+}
+
+// Key for a grid cell: integer coordinates per dimension
+struct CellKey {
+    std::array<int64_t,3> c{{0,0,0}};
+    uint8_t dim{0};
+    bool operator==(const CellKey& o) const noexcept {
+        if (dim != o.dim) return false;
+        for (uint8_t i = 0; i < dim; ++i) if (c[i] != o.c[i]) return false;
+        return true;
+    }
+};
+struct CellKeyHash {
+    size_t operator()(const CellKey& k) const noexcept {
+        // 64-bit mix of 1..3 int64 coordinates + dim
+        uint64_t h = 0x9e3779b97f4a7c15ull ^ k.dim;
+        auto mix = [](uint64_t x)->uint64_t{
+            x += 0x9e3779b97f4a7c15ull;
+            x = (x ^ (x>>30)) * 0xbf58476d1ce4e5b9ull;
+            x = (x ^ (x>>27)) * 0x94d049bb133111ebull;
+            return x ^ (x>>31);
+        };
+        for (uint8_t i = 0; i < k.dim; ++i) {
+            h ^= mix(static_cast<uint64_t>(k.c[i])) + (h<<6) + (h>>2);
+        }
+        return static_cast<size_t>(h);
+    }
+};
+
+// Build a cell key from a point by snapping to a grid of size h (≈ tol)
+static inline CellKey make_cell_key(const double* p, int dim, double inv_h) {
+    CellKey key; key.dim = static_cast<uint8_t>(dim);
+    // Use floor(p/h) to avoid rounding-edge inconsistencies; we will still check neighbors.
+    for (int d = 0; d < dim; ++d) {
+        // avoid overflow by using floor(p * inv_h)
+        double s = std::floor(p[d] * inv_h);
+        key.c[d] = static_cast<int64_t>(s);
+    }
+    return key;
+}
+
+/**
+ * Spatial-hash version:
+ *  - Expected O(N) (N = ne*npe) since each point checks only a tiny local neighborhood.
+ *  - Exact tolerance test preserved.
+ *
+ * cgnodes   - [dim][max_nodes] (row-major per your use: consecutive dims for each node)
+ * cgelcon   - [npe][ne] indices into cgnodes
+ * returns number of unique CG nodes
+ */
+int mkelconcg_hashgrid(
+    double* cgnodes,       // [dim][max_nodes], user-allocated
+    int*    cgelcon,       // [npe][ne], user-allocated
+    const double* dgnodes, // [npe][dim][ne]
+    int npe, int dim, int ne,
+    double tol = 1e-8)
+{
+    // Grid cell size. Using h = tol ensures any two points within tol
+    // are in the same or neighboring cells (so we check neighbors).
+    const double h = tol;
+    const double inv_h = 1.0 / h;
+
+    // cell -> list of CG node indices (candidates for matching)
+    std::unordered_map<CellKey, std::vector<int>, CellKeyHash> grid;
+    // Reserve roughly number of points to reduce rehashing
+    grid.reserve(static_cast<size_t>(ne) * static_cast<size_t>(npe));
+
+    int ncg = 0;
+    double p[3]; // up to 3D
+
+    // Neighbor cell offsets: all combinations in {-1,0,1}^dim
+    std::array<int,27> off; // max 3^3
+    // We'll iterate via nested loops per dim, but generate on the fly.
+
+    for (int e = 0; e < ne; ++e) {
+        for (int a = 0; a < npe; ++a) {
+            fetch_node(p, dgnodes, npe, dim, ne, e, a);
+
+            // current cell
+            CellKey ck = make_cell_key(p, dim, inv_h);
+
+            int found = -1;
+
+            // Visit neighbor cells (3^dim):
+            if (dim == 1) {
+                for (int dx = -1; dx <= 1 && found < 0; ++dx) {
+                    CellKey q = ck; q.c[0] += dx;
+                    auto it = grid.find(q);
+                    if (it == grid.end()) continue;
+                    for (int idx : it->second) {
+                        if (equal_row_tol(&cgnodes[idx * dim], p, dim, tol)) { found = idx; break; }
+                    }
+                }
+            } else if (dim == 2) {
+                for (int dx = -1; dx <= 1 && found < 0; ++dx) {
+                    for (int dy = -1; dy <= 1 && found < 0; ++dy) {
+                        CellKey q = ck; q.c[0] += dx; q.c[1] += dy;
+                        auto it = grid.find(q);
+                        if (it == grid.end()) continue;
+                        for (int idx : it->second) {
+                            if (equal_row_tol(&cgnodes[idx * dim], p, dim, tol)) { found = idx; break; }
+                        }
+                    }
+                }
+            } else { // dim == 3
+                for (int dx = -1; dx <= 1 && found < 0; ++dx) {
+                    for (int dy = -1; dy <= 1 && found < 0; ++dy) {
+                        for (int dz = -1; dz <= 1 && found < 0; ++dz) {
+                            CellKey q = ck; q.c[0] += dx; q.c[1] += dy; q.c[2] += dz;
+                            auto it = grid.find(q);
+                            if (it == grid.end()) continue;
+                            for (int idx : it->second) {
+                                if (equal_row_tol(&cgnodes[idx * dim], p, dim, tol)) { found = idx; break; }
+                            }
+                        }
+                    }
+                }
+            }
+
+            const int aidx = a + npe * e;
+            if (found >= 0) {
+                // reuse existing CG node
+                cgelcon[aidx] = found;
+            } else {
+                // create new CG node
+                for (int d = 0; d < dim; ++d) cgnodes[ncg * dim + d] = p[d];
+                cgelcon[aidx] = ncg;
+
+                // insert into its cell’s list
+                auto& vec = grid[ck];
+                vec.push_back(ncg);
+
+                ++ncg;
+            }
+        }
+    }
+
+    return ncg;
 }
 
 // Converts element-to-node connectivity (cgelcon) to node-to-element connectivity (CRS format)
@@ -604,11 +795,13 @@ int mkfaceblocks(vector<int>& nm, const vector<int>& mf, const vector<int>& bcm,
 
 void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& master, const DMD& dmd)
 {                  
-    int ne = mesh.ne;
-    int ne1 = mesh.ne;    
-    if (pde.mpiprocs>1) {
-      ne = dmd.elempart.size();
+    //int ne = mesh.ne;
+    //int ne1 = mesh.ne;   
+    int ne = dmd.elempart.size(); 
+    int ne1 = ne;
+    if (pde.mpiprocs>1) {      
       ne1 = dmd.elempartpts[0] + dmd.elempartpts[1];
+      if (pde.hybrid==0) ne1 += dmd.elempartpts[2];        
     }
     
     conn.nf = connectivity(conn.elemcon, conn.facecon, conn.bf, conn.f2t, conn.facepartpts, conn.facepartbnd, 
@@ -616,6 +809,8 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
               master.permind.data(), mesh.boundaryConditions.data(), mesh.dim, mesh.elemtype, mesh.nve, 
               mesh.nvf, mesh.nfe, master.npf, master.npe, ne, ne1, mesh.nbcm);       
     
+    cout << "Finished connectivity" << endl;
+
     //writesol(pde, mesh, master, dmd.elempart, conn.facepartpts, 0, pde.datapath + "/sol.bin");        
     //print2iarray(conn.elemcon.data(), master.npf*mesh.nfe, ne);
 
@@ -680,21 +875,26 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
     mkdge2dgf(conn.rowe2f1, conn.cole2f1, conn.ent2ind1, facecon1, facecon1.size(), master.npe*ne); 
     mkdge2dgf(conn.rowe2f2, conn.cole2f2, conn.ent2ind2, facecon2, facecon2.size(), master.npe*ne); 
 
+    cout << "Finished mkdge2dgf" << endl;
+
     conn.cgnodes.resize(master.npe * mesh.dim * ne);
     conn.cgelcon.resize(master.npe * ne);
             
     if (pde.mpiprocs==1) {    
-      conn.ncgnodes = mkelconcg(conn.cgnodes.data(), conn.cgelcon.data(), mesh.xdg.data(), master.npe, mesh.dim, ne);
+      conn.ncgnodes = mkelconcg_hashgrid(conn.cgnodes.data(), conn.cgelcon.data(), mesh.xdg.data(), master.npe, mesh.dim, ne);
       conn.ncgdof = mkent2elem(conn.rowent2elem, conn.colent2elem, conn.cgelcon, master.npe, ne);
       map_cgent2dgent(conn.cgent2dgent, conn.rowent2elem, conn.colent2elem, conn.cgnodes, mesh.xdg,  master.npe, mesh.dim, conn.ncgdof);                                      
     } else {
       vector<double> tm (master.npe*mesh.dim*dmd.elempart.size());
       select_columns(tm.data(), mesh.xdg.data(), dmd.elempart.data(), master.npe*mesh.dim, dmd.elempart.size());
-      conn.ncgnodes = mkelconcg(conn.cgnodes.data(), conn.cgelcon.data(), tm.data(), master.npe, mesh.dim, ne);
+      conn.ncgnodes = mkelconcg_hashgrid(conn.cgnodes.data(), conn.cgelcon.data(), tm.data(), master.npe, mesh.dim, ne);
       conn.ncgdof = mkent2elem(conn.rowent2elem, conn.colent2elem, conn.cgelcon, master.npe, ne);
       map_cgent2dgent(conn.cgent2dgent, conn.rowent2elem, conn.colent2elem, conn.cgnodes, tm,  master.npe, mesh.dim, conn.ncgdof);                                      
-    }
-    
+    }    
+    conn.cgnodes.resize(mesh.dim * conn.ncgnodes);
+
+    cout << "Finished map_cgent2dgent" << endl;
+
 //     if (pde.debugmode==1 && pde.mpiprocs==1) {
 //       //mesh.t.data(), mesh.f.data(), dmd.elempart.data(),
 //       writearray2file(pde.datapath + "/t.bin", mesh.t.data(), mesh.t.size());

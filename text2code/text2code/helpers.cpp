@@ -1,3 +1,50 @@
+/*
+    helpers.cpp
+
+    Utility functions and macros for file I/O, array manipulation, and LAPACK bindings.
+
+    LAPACK Bindings:
+    - DGEMM, DGETRF, DGETRI: For matrix operations via Fortran LAPACK routines.
+
+    Macros:
+    - CPUFREE(x): Safely frees memory and sets pointer to nullptr.
+    - error(errmsg): Prints error message with file and line, then exits.
+
+    File and Path Utilities:
+    - trim_dir(s): Returns parent directory of a given path.
+    - ensure_dir(dir): Ensures a directory exists, creates if needed.
+    - make_path(str1, str2): Joins two paths, normalizes result.
+    - trimToSubstringAtFirstOccurence(fullPath, keyword): Trims string at first occurrence of keyword.
+    - trimToSubstringAtLastOccurence(fullPath, keyword): Trims string at last occurrence of keyword.
+
+    Array Printing:
+    - print2darray(a, m, n): Prints m x n double array in scientific format.
+    - print2iarray(a, m, n): Prints m x n int array.
+
+    Array File I/O:
+    - writearray2file(filename, a, N): Writes array to binary file.
+    - readarray(in, a, N): Reads array from binary stream into vector.
+    - readiarrayfromdouble(in, a, N): Reads N doubles from file, rounds and stores as ints.
+    - readfile(filename, ndims, data, m): Reads dimensions and data from binary file (int/double overloads).
+
+    Array Manipulation:
+    - xiny(out, A, B, m, n, dim, tol): Finds indices of A in B (row-wise, column-major).
+    - xiny2(out, A, B, m, n, dim, tol): Finds indices of A in B (row-wise, alternate layout).
+    - cumsum_int(in, out, n): Computes cumulative sum of int array.
+    - unique_ints(arr, n): Sorts array and removes duplicates, returns new size.
+    - extract_subset(b, a, ind, k): Extracts subset from array a using indices ind.
+    - find(a, b, m, n, k, opts): Counts occurrences or matches in array with options.
+    - find(indices, a, b, m, n, k, opts): Finds indices of matches in array with options.
+    - simple_bubble_sort(b, ind, a, n): Sorts array a, returns sorted array and indices.
+    - unique_count(b, c, a, n): Counts unique values and their occurrences.
+    - select_columns(a_new, a, ind, m, k): Selects columns from array a using indices ind (int/double overloads).
+    - permute_columns(a, ind, m, k): Permutes columns of array a according to ind.
+
+    Notes:
+    - Uses C++ STL (vector, string, filesystem).
+    - Some functions use raw pointers and manual memory management.
+    - Designed for scientific computing and data manipulation tasks.
+*/
 #ifndef __HELPERS
 #define __HELPERS
 
@@ -72,6 +119,17 @@ std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const s
     }
 }
 
+std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
+    const std::string s = fullPath.generic_string();
+    std::size_t pos = s.find(keyword);  // Use find to get the first occurrence
+    if (pos != std::string::npos) {
+        return s.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
 std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
     if (pos != std::string::npos) {
@@ -80,6 +138,17 @@ std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const st
     else {      
       return "";
     }
+}
+
+std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                           const std::string& keyword)
+{
+    // generic_string uses forward slashes on all platforms (nice for substring ops)
+    const std::string s = fullPath.generic_string();
+    const auto pos = s.rfind(keyword);
+    if (pos != std::string::npos)
+        return s.substr(0, pos + keyword.size());
+    return {};
 }
 
 void print2darray(const double* a, int m, int n)
@@ -235,25 +304,32 @@ void cumsum_int(const int* in, int* out, int n) {
 }
 
 // Sort and remove duplicates
+// int unique_ints(int* arr, int n) {
+//     // Simple insertion sort
+//     for (int i = 1; i < n; ++i) {
+//         int key = arr[i];
+//         int j = i - 1;
+//         while (j >= 0 && arr[j] > key) {
+//             arr[j + 1] = arr[j];
+//             j--;
+//         }
+//         arr[j + 1] = key;
+//     }
+//     // Remove duplicates
+//     int m = 0;
+//     for (int i = 0; i < n; ++i) {
+//         if (m == 0 || arr[i] != arr[m - 1]) {
+//             arr[m++] = arr[i];
+//         }
+//     }
+//     return m;
+// }
+
 int unique_ints(int* arr, int n) {
-    // Simple insertion sort
-    for (int i = 1; i < n; ++i) {
-        int key = arr[i];
-        int j = i - 1;
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-    // Remove duplicates
-    int m = 0;
-    for (int i = 0; i < n; ++i) {
-        if (m == 0 || arr[i] != arr[m - 1]) {
-            arr[m++] = arr[i];
-        }
-    }
-    return m;
+    if (n <= 1) return n;
+    std::sort(arr, arr + n);                       // introsort (quick+heap+insertion)
+    int* last = std::unique(arr, arr + n);         // compacts uniques to front
+    return int(last - arr);                        // new length m
 }
 
 void extract_subset(int* b, const int* a, const int* ind, size_t k) 

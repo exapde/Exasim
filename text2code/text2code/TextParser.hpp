@@ -28,7 +28,8 @@ struct ParsedSpec {
     std::vector<std::string> exasimfunctions = {
         "Flux", "Source", "Tdfunc", "Ubou", "Fbou", "FbouHdg",
         "Sourcew", "Output", "Monitor", "Initu", "Initq", "Inituq",
-        "Initw", "Initv", "Avfield", "Fint", "EoS"};
+        "Initw", "Initv", "Avfield", "Fint", "EoS", "VisScalars", 
+        "VisVectors", "VisTensors", "QoIvolume", "QoIboundary"};
     std::vector<bool> isoutput;     
     std::string datatype = "dstype";
     std::string framework = "kokkos";
@@ -36,6 +37,7 @@ struct ParsedSpec {
     std::string exasimpath = "";
     std::string modelpath = "";
     std::string symenginepath = "";
+    std::string modelfile = "";
     bool exasim;
     std::vector<FunctionDef> functions;
 };
@@ -45,6 +47,8 @@ public:
     static ParsedSpec parseFile(const std::string& filename) {
       
         ParsedSpec spec;
+        spec.modelfile = filename;
+        
         std::ifstream infile(filename);
         std::string line;
 
@@ -138,11 +142,17 @@ public:
         if ((spec.codeformat == "exasim") || (spec.codeformat == "Exasim") || (spec.codeformat == "EXASIM")) {
           spec.exasim = true;
           std::unordered_set<std::string> outputSet(spec.outputs.begin(), spec.outputs.end());
-          spec.isoutput.reserve(spec.exasimfunctions.size());
-          
+
+          spec.isoutput.reserve(spec.exasimfunctions.size());          
           for (const auto& name : spec.exasimfunctions) {
               spec.isoutput.push_back(outputSet.count(name) > 0);
           }
+
+          // spec.isoutput.resize(spec.exasimfunctions.size()); 
+          // for (int i=0; i < spec.exasimfunctions.size(); i++) {
+          //     std::string name = spec.exasimfunctions[i];
+          //     spec.isoutput[i] = (outputSet.count(name) > 0) ? true : false;
+          // }
 
           for (size_t i = 0; i < 6; ++i) {
             if (spec.isoutput[i] == false) {
@@ -154,6 +164,12 @@ public:
         } else {
           spec.exasim = false;                        
         }
+        
+        // for (const auto& vec : spec.vectors) {
+        //     const std::string& name = vec.first;
+        //     int size = vec.second;
+        //     std::cout<<name<<" : "<<size<<std::endl;
+        // }
         
         return spec;
     }

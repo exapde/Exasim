@@ -1,0 +1,46 @@
+# Makefile.builds - build Kokkos for different backends using relative install dirs
+
+# ---- Portable CPU core detection (Linux / macOS / Git Bash/MSYS2/WSL) ----
+NPROCS := $(strip $(shell \
+  (command -v nproc >/dev/null 2>&1 && nproc) || \
+  (command -v sysctl >/dev/null 2>&1 && sysctl -n hw.ncpu) || \
+  (command -v getconf >/dev/null 2>&1 && getconf _NPROCESSORS_ONLN) || \
+  (command -v cmd.exe >/dev/null 2>&1 && cmd.exe /C echo %NUMBER_OF_PROCESSORS%) || \
+  echo 1))
+
+.PHONY: all serial cuda hip clean
+
+all: serial cuda hip
+
+serial:
+	mkdir -p buildserial
+	cmake -S . -B buildserial \
+	  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	  -DCMAKE_INSTALL_PREFIX=buildserial
+	cmake --build buildserial -j$(NPROCS)
+	cmake --install buildserial
+
+cuda:
+	mkdir -p buildcuda
+	cmake -S . -B buildcuda \
+	  -DCMAKE_CXX_COMPILER=g++ \
+	  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	  -DKokkos_ENABLE_CUDA=ON \
+	  -DKokkos_ENABLE_CUDA_LAMBDA=ON \
+	  -DCMAKE_INSTALL_PREFIX=buildcuda
+	cmake --build buildcuda -j$(NPROCS)
+	cmake --install buildcuda
+
+hip:
+	mkdir -p buildhip
+	cmake -S . -B buildhip \
+	  -DCMAKE_CXX_COMPILER=hipcc \
+	  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+	  -DKokkos_ENABLE_HIP=ON \
+	  -DKokkos_ENABLE_ROCM=ON \
+	  -DCMAKE_INSTALL_PREFIX=buildhip
+	cmake --build buildhip -j$(NPROCS)
+	cmake --install buildhip
+
+clean:
+	rm -rf buildserial buildcuda buildhip

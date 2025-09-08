@@ -1,3 +1,30 @@
+/*
+  wequation.cpp
+
+  This file contains functions for solving the auxiliary variable equation (w-equation) in the context of a discontinuous Galerkin (DG) or hybridized DG (HDG) discretization. The w-equation is typically used for time-dependent or differential-algebraic equation (DAE) systems, where auxiliary variables are introduced to facilitate the solution process.
+
+  Functions:
+
+  1. void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
+    - Solves for the auxiliary variable w (wdg) given the solution variables (udg), coordinates (xdg), other variables (odg), and source term (wsrc).
+    - Handles both wave-type equations (explicit update) and general DAE systems (Newton iteration).
+    - Uses temporary storage (tempg) for intermediate calculations.
+    - Supports up to five auxiliary variables (ncw <= 5).
+
+  2. void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
+    - Extended version of wEquation that also computes the sensitivity of w with respect to udg (wdg_udg).
+    - Uses Newton iteration for nonlinear systems and computes the Jacobian of the source term.
+    - Supports up to five auxiliary variables (ncw <= 5).
+
+  3. void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
+    - Loops over element blocks and computes the auxiliary variable w for each element.
+    - Extracts element-wise data from global arrays, solves the w-equation, and writes the results back to the global array.
+
+  Notes:
+  - The functions rely on several utility routines for matrix operations, source term evaluation, and error handling.
+  - The Newton iteration in wEquation checks for convergence and throws an error if the solution does not converge within the specified tolerance.
+  - The code is designed for flexibility in the number of auxiliary variables and supports both explicit and implicit time integration schemes.
+*/
 #ifndef __WEQUATION
 #define __WEQUATION
 

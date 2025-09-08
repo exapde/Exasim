@@ -1,4 +1,5 @@
 from fetchsolution import fetchsolution
+from getsolutions import getsolutions
 from fetchresidual import fetchresidual
 from generatecode import generatecode
 from vis import vis

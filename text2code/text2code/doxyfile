@@ -1,0 +1,104 @@
+# ===================== text2code — Doxyfile =====================
+
+# ---------- Project ----------
+PROJECT_NAME           = "text2code"
+PROJECT_BRIEF          = "Generate high-performance C++ from PDE/text specs"
+PROJECT_NUMBER         = 0.1
+OUTPUT_DIRECTORY       = docs
+CREATE_SUBDIRS         = NO
+OUTPUT_LANGUAGE        = English
+MARKDOWN_SUPPORT       = YES
+USE_MDFILE_AS_MAINPAGE = README.md
+JAVADOC_AUTOBRIEF      = YES
+MULTILINE_CPP_IS_BRIEF = YES
+TAB_SIZE               = 2
+
+# ---------- Input ----------
+INPUT = \
+  README.md \
+  CMakeLists.txt \
+  text2code.cpp \
+  CodeGenerator.cpp \
+  CodeGenerator.hpp \
+  CodeCompiler.cpp \
+  TextParser.hpp \
+  tinyexpr.cpp \
+  tinyexpr.h \
+  readpdeapp.cpp \
+  pdemodel.txt \
+  pdeapp.txt \
+  readmesh.cpp \
+  makemesh.cpp \
+  makemaster.cpp \
+  connectivity.cpp \
+  domaindecomposition.cpp \
+  helpers.cpp \
+  writebinaryfiles.cpp
+
+FILE_PATTERNS          = *.h *.hpp *.c *.cc *.cxx *.cpp *.md *.txt
+RECURSIVE              = NO
+EXCLUDE_SYMLINKS       = NO
+
+# Document everything public by default
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_ANON_NSPACES   = YES
+
+# ---------- Source browsing ----------
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+VERBATIM_HEADERS       = NO
+STRIP_CODE_COMMENTS    = NO
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = .
+STRIP_FROM_INC_PATH    = .
+
+# ---------- Diagrams (Graphviz) ----------
+HAVE_DOT               = YES
+DOT_NUM_THREADS        = 4
+CLASS_DIAGRAMS         = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = NO
+DOT_IMAGE_FORMAT       = svg
+DOT_TRANSPARENT        = YES
+INTERACTIVE_SVG        = YES
+UML_LOOK               = YES
+DOT_GRAPH_MAX_NODES    = 80
+DOT_FONTNAME           = Helvetica
+
+# ---------- Warnings ----------
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+WARN_LOGFILE           = docs/doxygen-warnings.log
+QUIET                  = NO
+
+# ---------- HTML ----------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+SEARCHENGINE           = YES
+HTML_COLORSTYLE_HUE    = 220
+
+# ---------- LaTeX / PDF ----------
+GENERATE_LATEX         = YES
+LATEX_OUTPUT           = latex
+USE_PDFLATEX           = YES
+PDF_HYPERLINKS         = YES
+LATEX_BATCHMODE        = NO
+LATEX_SOURCE_CODE      = NO
+COMPACT_LATEX          = NO
+
+# ---------- Misc ----------
+OPTIMIZE_OUTPUT_FOR_C  = YES
+OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_OUTPUT_VHDL   = NO
+OPTIMIZE_OUTPUT_SLICE  = NO
+
+# Aliases
+ALIASES += "hdg=\par\textbf{HDG}: "
+ALIASES += "kokkos=\par\textbf{Kokkos}: "

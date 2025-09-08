@@ -21,7 +21,11 @@ int main()
           fname = std::string("HdgSourcewonly");
           jname = std::string("HdgSourcew");
         }
-        if ((funcname == "Ubou") || (funcname == "Fbou") || (funcname == "FbouHdg")) { 
+        if (funcname == "QoIboundary") { 
+            ssv.func2cppfiles(f, ssv.modelpath + fname, fname + std::to_string(1), i, false);
+            ssv.appendUbouFbou(ssv.modelpath + fname, fname, 1);
+        }
+        else if ((funcname == "Ubou") || (funcname == "Fbou") || (funcname == "FbouHdg")) { 
           int szf = f.size();
           int szuhat = ssv.szuhat;
           int nbc = szf/szuhat;

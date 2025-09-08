@@ -14,7 +14,14 @@
 //
 //@HEADER
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.std_algorithms;
+#else
 #include <Kokkos_StdAlgorithms.hpp>
+#endif
+#include <Kokkos_Core.hpp>
+#include <string>
 
 namespace Test {
 namespace stdalgos {
@@ -506,6 +513,20 @@ struct TestStruct {
 #endif
   }
 };
+
+#ifndef KOKKOS_ENABLE_CXX17
+template <typename ViewType>
+constexpr bool
+test_kokkos_iterator_satify_std_random_access_iterator_concept() {
+  return std::random_access_iterator<
+      Kokkos::Experimental::Impl::RandomAccessIterator<ViewType>>;
+}
+
+static_assert(test_kokkos_iterator_satify_std_random_access_iterator_concept<
+              Kokkos::View<int *>>());
+static_assert(test_kokkos_iterator_satify_std_random_access_iterator_concept<
+              Kokkos::View<const int *>>());
+#endif
 
 }  // namespace compileonly
 }  // namespace stdalgos

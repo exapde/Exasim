@@ -1,5 +1,50 @@
+/**
+ * @file common.h
+ * @brief Common definitions, macros, and data structures for Exasim backend.
+ *
+ * This header provides:
+ * - Precision and integer type selection via macros (`USE_FLOAT`, `USE_LONG`).
+ * - BLAS/LAPACK function name mappings for single/double precision.
+ * - CUDA/HIP/CPU backend abstraction macros and memory management templates.
+ * - Utility macros for error checking, memory allocation, and timing.
+ * - Bitwise NaN detection functions for float/double.
+ * - Data structures for application, master, mesh, solution, residual, temporary, system, preconditioner, and common simulation parameters.
+ * - Each struct contains pointers to simulation data, size information, printinfo and freememory methods.
+ * - MPI, Kokkos, and optional mutation++/enzyme support.
+ *
+ * Main structs:
+ * - appstruct: Application-level parameters and data arrays.
+ * - masterstruct: Master element/face shape functions and quadrature data.
+ * - meshstruct: Mesh connectivity and partitioning information.
+ * - solstruct: Solution vectors and auxiliary arrays.
+ * - resstruct: Residuals, matrices, and pivot arrays.
+ * - tempstruct: Temporary buffers for communication and computation.
+ * - sysstruct: System vectors for solvers and time-stepping.
+ * - precondstruct: Preconditioner matrices and pivots.
+ * - commonstruct: Global simulation parameters, arrays, and MPI/CUDA handles.
+ *
+ * Memory management:
+ * - TemplateMalloc/TemplateFree/TemplateCopytoDevice/TemplateCopytoHost for backend-agnostic allocation and transfer.
+ * - CPUFREE, GPUFREE, HIPFREE macros for safe pointer deallocation.
+ *
+ * Error handling:
+ * - CHECK, CHECK_CUBLAS, CHECK_HIPBLAS, CHECK_ROCBLAS macros for backend error reporting.
+ *
+ * Timing:
+ * - Macros for timing code blocks, optionally synchronized with CUDA.
+ *
+ * Usage:
+ * - Include this header in backend modules to access common types, macros, and data structures.
+ * - Select precision and backend via compile-time macros.
+ * - Use provided structs for organizing simulation data and managing memory.
+ */
 #ifndef __COMMON_H__
 #define __COMMON_H__
+
+// #include <cstdint>
+// #include <cstring>
+// #include <chrono>
+// #include <cmath>
 
 #define SCOPY scopy_
 #define SSCAL sscal_
@@ -89,7 +134,7 @@ extern "C" {
     float SNRM2(Int*,float*,Int*);  
     float SDOT(Int*,float*,Int*,float*,Int*);
     void SCOPY(Int*,float*,Int*,float*,Int*);
-    void SSCAL(Int*,double*,double*,Int*);
+    void SSCAL(Int*,float*,float*,Int*);
     void SAXPY(Int*,float*,float*,Int*,float*,Int*);
     void SGEMM(char*,char*,Int*,Int*,Int*,float*,float*,Int*,
              float*,Int*,float*,float*,Int*);  
@@ -98,9 +143,9 @@ extern "C" {
     void SGETRI(Int*,float*,Int*,Int*,float*,Int*,Int*);
     void STRSM(char *, char*, char*, char *, Int *, Int*, float*, float*, Int*,
              float*, Int*);        
-    void SGEEV( char* jobvl, char* jobvr, int* n, double* a,
-                int* lda, double* wr, double* wi, double* vl, int* ldvl,
-                double* vr, int* ldvr, double* work, int* lwork, int* info );    
+    void SGEEV( char* jobvl, char* jobvr, Int* n, float* a,
+                Int* lda, float* wr, float* wi, float* vl, Int* ldvl,
+                float* vr, Int* ldvr, float* work, Int* lwork, Int* info );    
 }
 
 template <typename T>
@@ -124,6 +169,10 @@ template <> bool is_nan_bitwise<float>(float x) {
 
 // Optional macro for quick usage
 #define IS_NAN(x) is_nan_bitwise<decltype(x)>(x)
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 // global variables for BLAS  
 dstype one = 1.0;
@@ -152,25 +201,25 @@ dstype cublasZero[1] = {zero};
 #endif                      
 
 #ifdef TIMING    
-    #define INIT_TIMING auto begin = chrono::high_resolution_clock::now(); auto end = chrono::high_resolution_clock::now();
+    #define INIT_TIMING auto begin = std::chrono::high_resolution_clock::now(); auto end = std::chrono::high_resolution_clock::now();
 #else
     #define INIT_TIMING
 #endif
 
 #ifdef TIMING
-   #define TIMING_START  begin = chrono::high_resolution_clock::now();   
+   #define TIMING_START  begin = std::chrono::high_resolution_clock::now();   
 #else 
    #define TIMING_START     
 #endif       
 
 #ifdef TIMING
-   #define TIMING_END    end = chrono::high_resolution_clock::now();   
+   #define TIMING_END    end = std::chrono::high_resolution_clock::now();   
 #else 
    #define TIMING_END     
 #endif       
 
 #ifdef TIMING       
-   #define TIMING_GET(num) common.timing[num] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+   #define TIMING_GET(num) common.timing[num] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
 #else 
    #define TIMING_GET(num)  
 #endif                      
@@ -188,7 +237,7 @@ dstype cublasZero[1] = {zero};
 #endif       
 
 #ifdef TIMING       
-   #define TIMING_GET1(num) disc.common.timing[num] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+   #define TIMING_GET1(num) disc.common.timing[num] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
 #else 
    #define TIMING_GET1(num)  
 #endif                      
@@ -400,6 +449,12 @@ template <typename T> static void TemplateFree(T *data,  Int backend)
 #endif                      
 }
 
+template <typename T> static void TemplateReallocate(T **data, Int n, Int backend)
+{
+    TemplateFree(*data,  backend);
+    TemplateMalloc(data, n, backend);
+}
+
 template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int n, Int backend)
 {
     if (backend <= 1)  {
@@ -438,6 +493,93 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
         CHECK( hipMemcpy(h_data, d_data, n * sizeof(T), hipMemcpyDeviceToHost) );
     }
 #endif    
+}
+
+static void PrintErrorAndExit(const char* errmsg, const char *file, int line ) 
+{    
+    printf( "%s in %s at line %d\n", errmsg, file, line );
+    
+#ifdef  HAVE_MPI       
+    MPI_Finalize();    
+#endif
+    
+    exit( 1 );    
+}
+
+static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
+{    
+    printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
+    
+#ifdef  HAVE_MPI       
+    MPI_Finalize();    
+#endif
+    
+    exit( 1 );    
+}
+
+#define error( errmsg ) (PrintErrorAndExit( errmsg, __FILE__, __LINE__ ))
+
+std::string trim_dir(const std::string& s) {
+    return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes
+}
+
+bool ensure_dir(const std::string& dir) {
+    std::filesystem::path p(dir);
+    if (std::filesystem::exists(p)) return std::filesystem::is_directory(p);  // false if it's a file
+    return std::filesystem::create_directories(p);               // creates parents as needed
+}
+
+std::string make_path(const std::string& str1, const std::string& str2) {
+    std::filesystem::path base = str1;
+    std::filesystem::path tail = str2;
+
+    // If tail is absolute, strip its root so it becomes relative    
+    tail = tail.relative_path();
+
+    std::filesystem::path full = base / tail;
+    return full.lexically_normal().string();
+}
+
+std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
+    std::size_t pos = fullPath.find(keyword);  // Use find to get the first occurrence
+    if (pos != std::string::npos) {
+        return fullPath.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
+std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
+    const std::string s = fullPath.generic_string();
+    std::size_t pos = s.find(keyword);  // Use find to get the first occurrence
+    if (pos != std::string::npos) {
+        return s.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
+std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
+    std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
+    if (pos != std::string::npos) {
+        return fullPath.substr(0, pos + keyword.length());
+    }
+    else {      
+      return "";
+    }
+}
+
+std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                           const std::string& keyword)
+{
+    // generic_string uses forward slashes on all platforms (nice for substring ops)
+    const std::string s = fullPath.generic_string();
+    const auto pos = s.rfind(keyword);
+    if (pos != std::string::npos)
+        return s.substr(0, pos + keyword.size());
+    return "";
 }
 
 struct appstruct {              
@@ -873,6 +1015,7 @@ struct solstruct {
     dstype *odg=nullptr; // auxilary term 
     dstype *wdg=nullptr; // dw/dt = u (wave problem)
     dstype *uh=nullptr;  // uhat      
+    dstype *xcg=nullptr;  // xcg      
 
     #ifdef HAVE_ENZYME
         dstype *dudg=nullptr; // solution (du, dq, dp) 
@@ -897,13 +1040,13 @@ struct solstruct {
     dstype *wdual=nullptr;   // source term due to the dual time derivative for DAE equations  
     dstype** udgarray;
     
-    Int szxdg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
+    Int szxdg=0, szxcg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
     Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
     Int szudgavg=0, szwsrc=0, szwdual=0, szxdgint=0;
 
     int sizeofint() {return 0;}
     int sizeoffloat() {
-      int sz = szxdg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
+      int sz = szxdg + szxcg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
                szelemfaceg + szsdgg + szodgg + szog1 + szog2 + szudgavg + 
                szwsrc + szwdual + szxdgint;
       return sz;
@@ -913,6 +1056,7 @@ struct solstruct {
     {
       printf("--------------- Solution Struct Information ----------------\n");
       printf("size of xdg: %d\n", szxdg);
+      printf("size of xcg: %d\n", szxcg);
       printf("size of udg: %d\n", szudg);
       printf("size of sdg: %d\n", szsdg);
       printf("size of odg: %d\n", szodg);
@@ -939,6 +1083,7 @@ struct solstruct {
         TemplateFree(nsize, backend);
         TemplateFree(ndims, backend);    
         TemplateFree(xdg, backend); // spatial coordinates
+        TemplateFree(xcg, 0);       // spatial coordinates
         TemplateFree(udg, backend); // solution (u, q, p) 
         TemplateFree(sdg, backend); // source term due to the previous solution
         TemplateFree(odg, backend); // auxilary term 
@@ -1039,6 +1184,7 @@ struct resstruct {
       printf("size of G: %d\n", szG);
       printf("size of K: %d\n", szK);
       printf("size of H: %d\n", szH);
+      printf("size of Ri: %d\n", szRi);  
       printf("size of Gi: %d\n", szGi);
       printf("size of Ki: %d\n", szKi);
       printf("size of Hi: %d\n", szHi);
@@ -1205,6 +1351,7 @@ struct sysstruct {
         TemplateFree(r, backend); 
         TemplateFree(b, backend); 
         if (szv>0) TemplateFree(v, backend); 
+        else v = nullptr;
         TemplateFree(q, backend); 
         TemplateFree(p, backend); 
         TemplateFree(randvect, backend);
@@ -1267,6 +1414,7 @@ struct precondstruct {
 };
 
 struct commonstruct {     
+    string exasimpath = "";  
     string filein;       // Name of binary file with input data
     string fileout;      // Name of binary file to write the solution            
     
@@ -1288,7 +1436,12 @@ struct commonstruct {
     Int ncs;// number of compoments of (sdg)
     Int nce;// number of compoments of (edg)
     Int ncm;// number of compoments of PTC monitor function
-    
+    Int nsca; // number of components of scalar fields for visualization
+    Int nvec; // number of components of vector fields for visualization
+    Int nten; // number of components of tensur fields for visualization
+    Int nsurf; // number of components of surface fields for visualization, storage, and QoIs
+    Int nvqoi;  // number of volume quantities of interest (QoIs)    
+
     Int nd; // spatial dimension    
     Int elemtype;
     Int nodetype;
@@ -1476,16 +1629,18 @@ struct commonstruct {
     Int* Lind_ji=nullptr;
     Int* Unum_ji=nullptr;
     Int* Uind_ji=nullptr;
-    
-    dstype timing[128];
+        
+    dstype  timing[128];
     dstype* dt=nullptr;
     dstype* dae_dt=nullptr;
     dstype* DIRKcoeff_c=nullptr;
     dstype* DIRKcoeff_d=nullptr;
     dstype* DIRKcoeff_t=nullptr;
     dstype* BDFcoeff_c=nullptr;
-    dstype* BDFcoeff_t=nullptr;
-    
+    dstype* BDFcoeff_t=nullptr;    
+    dstype* qoivolume=nullptr;
+    dstype* qoisurface=nullptr;
+
     cudaEvent_t eventHandle;
     cublasHandle_t cublasHandle;
     
@@ -1681,7 +1836,9 @@ struct commonstruct {
         CPUFREE(DIRKcoeff_d); 
         CPUFREE(DIRKcoeff_t); 
         CPUFREE(BDFcoeff_c); 
-        CPUFREE(BDFcoeff_t);         
+        CPUFREE(BDFcoeff_t);  
+        CPUFREE(qoivolume);  
+        CPUFREE(qoisurface);  
     }                         
 };
 

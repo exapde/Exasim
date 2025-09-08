@@ -19,11 +19,14 @@ ncw = 0;
 neb = 4096;
 nfb = 8192;
 
+saveSolBouFreq = 1;
+ibs = 1;
+
 NewtonIter = 20;
 NewtonTol = 1e-06;
 GMRESiter = 200;
 GMRESrestart = 50;
-GMREStol = 1e-06;
+GMREStol = 1e-08;
 GMRESortho = 0;
 ppdegree = 1;
 RBdim = 0;
@@ -47,3 +50,4 @@ periodicexprs1 = [];
 periodicboundaries2 = [];
 periodicexprs2 = [];
 interfaceconditions = [];
+

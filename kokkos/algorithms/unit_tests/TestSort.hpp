@@ -20,8 +20,14 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DynamicView.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.random;
+import kokkos.sort;
+#else
 #include <Kokkos_Random.hpp>
 #include <Kokkos_Sort.hpp>
+#endif
 
 namespace Test {
 namespace SortImpl {
@@ -99,6 +105,7 @@ void test_dynamic_view_sort_impl(unsigned int n) {
       Kokkos::Experimental::DynamicView<KeyType*, ExecutionSpace>;
   using KeyViewType = Kokkos::View<KeyType*, ExecutionSpace>;
 
+  // NOLINTNEXTLINE(bugprone-implicit-widening-of-multiplication-result)
   const size_t upper_bound    = 2 * n;
   const size_t min_chunk_size = 1024;
 
@@ -197,7 +204,7 @@ void test_sort_integer_overflow() {
   // array with two extrema in reverse order to expose integer overflow bug in
   // bin calculation
   T a[2]  = {Kokkos::Experimental::finite_max<T>::value,
-            Kokkos::Experimental::finite_min<T>::value};
+             Kokkos::Experimental::finite_min<T>::value};
   auto vd = Kokkos::create_mirror_view_and_copy(
       ExecutionSpace(), Kokkos::View<T[2], Kokkos::HostSpace>(a));
   Kokkos::sort(vd);
@@ -209,6 +216,10 @@ void test_sort_integer_overflow() {
 }  // namespace SortImpl
 
 TEST(TEST_CATEGORY, SortUnsignedValueType) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
   using ExecutionSpace = TEST_EXECSPACE;
   using key_type       = unsigned;
   constexpr int N      = 171;
@@ -224,14 +235,19 @@ TEST(TEST_CATEGORY, SortUnsignedValueType) {
 }
 
 TEST(TEST_CATEGORY, SortEmptyView) {
+  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
+#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
+  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
+#endif
   using ExecutionSpace = TEST_EXECSPACE;
 
   // does not matter if we use int or something else
   Kokkos::View<int*, ExecutionSpace> v("v", 0);
 
+  // checking that it does not throw
   // TODO check the synchronous behavior of the calls below
-  ASSERT_NO_THROW(Kokkos::sort(ExecutionSpace(), v));
-  ASSERT_NO_THROW(Kokkos::sort(v));
+  Kokkos::sort(ExecutionSpace(), v);
+  Kokkos::sort(v);
 }
 
 }  // namespace Test

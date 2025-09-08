@@ -15,7 +15,7 @@ end
 function s = source(u, q, w, v, x, t, mu, eta)
 x1 = x(1);
 x2 = x(2);
-s = x1*sin(5*pi*x2) + exp(-((x1-0.5)^2+(x2-0.5)^2)/0.02);
+s = x1*sin(5*pi*x2);
 end
 
 function fb = fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau)

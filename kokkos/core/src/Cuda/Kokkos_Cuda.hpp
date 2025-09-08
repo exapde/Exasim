@@ -35,7 +35,6 @@ static_assert(false,
 #include <Cuda/Kokkos_Cuda_Error.hpp>  // CUDA_SAFE_CALL
 
 #include <Kokkos_Parallel.hpp>
-#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
@@ -55,7 +54,6 @@ class CudaInternal;
 namespace Kokkos {
 
 namespace Impl {
-namespace Experimental {
 enum class CudaLaunchMechanism : unsigned {
   Default        = 0,
   ConstantMemory = 1,
@@ -73,12 +71,6 @@ constexpr inline CudaLaunchMechanism operator&(CudaLaunchMechanism p1,
   return static_cast<CudaLaunchMechanism>(static_cast<unsigned>(p1) &
                                           static_cast<unsigned>(p2));
 }
-
-template <CudaLaunchMechanism l>
-struct CudaDispatchProperties {
-  CudaLaunchMechanism launch_mechanism = l;
-};
-}  // namespace Experimental
 
 enum class ManageStream : bool { no, yes };
 
@@ -166,8 +158,17 @@ class Cuda {
 
   Cuda();
 
-  Cuda(cudaStream_t stream,
-       Impl::ManageStream manage_stream = Impl::ManageStream::no);
+  explicit Cuda(cudaStream_t stream) : Cuda(stream, Impl::ManageStream::no) {}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  template <typename T = void>
+  KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Cuda execution space should be constructed explicitly.")
+  Cuda(cudaStream_t stream)
+      : Cuda(stream) {}
+#endif
+
+  Cuda(cudaStream_t stream, Impl::ManageStream manage_stream);
 
   KOKKOS_DEPRECATED Cuda(cudaStream_t stream, bool manage_stream);
 
@@ -186,7 +187,7 @@ class Cuda {
   ///
   /// This matches the __CUDA_ARCH__ specification.
   KOKKOS_DEPRECATED static size_type device_arch() {
-    const cudaDeviceProp& cudaProp = Cuda().cuda_device_prop();
+    const cudaDeviceProp cudaProp = Cuda().cuda_device_prop();
     return cudaProp.major * 100 + cudaProp.minor;
   }
 

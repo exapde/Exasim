@@ -1,4 +1,50 @@
 
+/*
+  This file contains driver functions for various numerical operations in the Exasim backend,
+  including flux, source, output, monitor, boundary, initialization, and equation-of-state computations.
+  The drivers are designed to interface with both DG-based and HDG-based implementations.
+
+  Included Files:
+  - DG-based implementations: KokkosFlux.cpp, KokkosFhat.cpp, KokkosFbou.cpp, KokkosUbou.cpp, KokkosUhat.cpp,
+    KokkosStab.cpp, KokkosSource.cpp, KokkosSourcew.cpp, KokkosOutput.cpp, KokkosMonitor.cpp, KokkosInitu.cpp,
+    KokkosInitq.cpp, KokkosInitwdg.cpp, KokkosInitudg.cpp, KokkosInitodg.cpp, KokkosEoS.cpp, KokkosEoSdu.cpp,
+    KokkosEoSdw.cpp, KokkosAvfield.cpp, KokkosTdfunc.cpp
+  - CPU-based initialization: cpuInitu.cpp, cpuInitq.cpp, cpuInitwdg.cpp, cpuInitudg.cpp, cpuInitodg.cpp
+  - HDG-based implementations: HdgFlux.cpp, HdgFbou.cpp, HdgFbouonly.cpp, HdgFint.cpp, HdgFintonly.cpp,
+    HdgSource.cpp, HdgSourcew.cpp, HdgSourcewonly.cpp, HdgEoS.cpp
+
+  Driver Functions:
+  - FluxDriver: Computes fluxes using Kokkos or HDG implementations.
+  - SourceDriver: Computes source terms.
+  - SourcewDriver: Computes source terms related to w variables.
+  - OutputDriver: Computes output quantities.
+  - MonitorDriver: Computes monitoring quantities.
+  - AvfieldDriver: Computes artificial viscosity field.
+  - EosDriver, EosduDriver, EosdwDriver: Computes equation-of-state and its derivatives.
+  - TdfuncDriver: Computes time-dependent functions.
+  - FhatDriver: Computes numerical fluxes at element interfaces.
+  - FbouDriver: Computes boundary fluxes.
+  - UhatDriver: Computes numerical traces at interfaces.
+  - UbouDriver: Computes boundary traces.
+  - Initialization Drivers (InitodgDriver, InitqDriver, InitudgDriver, InituDriver, InitwdgDriver): 
+    Initialize solution variables.
+  - CPU Initialization Drivers (cpuInitodgDriver, cpuInitqDriver, cpuInitudgDriver, cpuInituDriver, cpuInitwdgDriver):
+    CPU-based initialization routines.
+
+  HDG-specific Drivers:
+  - HDG versions of FluxDriver, SourceDriver, SourcewDriver, EosDriver, FbouDriver, FintDriver, FhatDriver
+    provide additional outputs such as derivatives with respect to udg, wdg, and uhg.
+
+  Parameters:
+  - All drivers accept pointers to solution arrays, mesh, master, app, sol, temp, and common structures,
+    as well as integer parameters specifying grid sizes, element indices, and backend selection.
+
+  Notes:
+  - The drivers abstract away the details of the underlying numerical implementation, allowing for
+    flexible switching between Kokkos and HDG approaches.
+  - Some drivers are overloaded to provide additional outputs (e.g., derivatives).
+  - The file is intended for internal use within the Exasim backend and is not a standalone module.
+*/
 #include "KokkosFlux.cpp"
 #include "KokkosFhat.cpp"
 #include "KokkosFbou.cpp"
@@ -6,6 +52,11 @@
 #include "KokkosUhat.cpp"
 #include "KokkosStab.cpp"
 #include "KokkosSource.cpp"
+#include "KokkosVisScalars.cpp"
+#include "KokkosVisVectors.cpp"
+#include "KokkosVisTensors.cpp"
+#include "KokkosQoIvolume.cpp"
+#include "KokkosQoIboundary.cpp"
 #include "KokkosSourcew.cpp"
 #include "KokkosOutput.cpp"
 #include "KokkosMonitor.cpp"
@@ -57,6 +108,75 @@ void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* 
   dstype time = common.time;
             
   KokkosSource(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void QoIvolumeDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosQoIvolume(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void VisScalarsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisScalars(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+void VisVectorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisVectors(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+              common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
+}
+
+
+void VisTensorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int nge, Int e1, Int e2, Int backend)
+{ 
+  Int nc = common.nc; // number of compoments of (u, q)
+  Int ncu = common.ncu;// number of compoments of (u)
+  Int ncw = common.ncw;// number of compoments of (w)
+  Int nco = common.nco;// number of compoments of (o)
+  Int ncx = common.ncx;// number of compoments of (xdg)        
+  Int nd = common.nd;     // spatial dimension    
+  Int numPoints = nge*(e2-e1);              
+  dstype time = common.time;
+            
+  KokkosVisTensors(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
@@ -284,6 +404,23 @@ void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  
     dstype time = common.time;    
 
     KokkosFbou(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                      common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
+}
+
+void QoIboundaryDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
+        meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
+        commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
+{
+    Int nc = common.nc; // number of compoments of (u, q, p)
+    Int ncu = common.ncu;// number of compoments of (u)
+    Int ncw = common.ncw;// number of compoments of (w)
+    Int nco = common.nco;// number of compoments of (o)
+    Int ncx = common.ncx;// number of compoments of (xdg)        
+    Int nd = common.nd;     // spatial dimension        
+    Int numPoints = ngf*(f2-f1);
+    dstype time = common.time;    
+
+    KokkosQoIboundary(fb, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 

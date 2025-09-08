@@ -1,3 +1,65 @@
+/*
+  qequation.cpp
+
+  This file contains functions for assembling and solving the local equation for the auxiliary variable q in the HDG (Hybridizable Discontinuous Galerkin) method. The main functionalities include:
+
+  1. qEquationElem:
+    - Assembles element matrices (Mass, Minv, C) for each block of elements.
+    - Handles 1D, 2D, and 3D cases for spatial dimensions.
+    - Writes debug output if enabled.
+
+  2. qEquationFaceBlock:
+    - Assembles face matrices (E) for a block of faces.
+    - Handles 1D, 2D, and 3D cases for spatial dimensions.
+
+  3. qEquationFace:
+    - Loops over face blocks and calls qEquationFaceBlock.
+    - Allocates and initializes face matrix E.
+    - Writes debug output if enabled.
+
+  4. qEquationElemFaceBlock:
+    - Assembles element-face matrices (E) for a block of elements.
+    - Handles 1D, 2D, and 3D cases for spatial dimensions.
+
+  5. qEquationElemFace:
+    - Loops over element blocks and calls qEquationElemFaceBlock.
+    - Allocates and initializes element-face matrix E.
+    - Writes debug output if enabled.
+
+  6. qEquation:
+    - Main entry point for assembling q-equation matrices.
+    - Calls qEquationElem and qEquationElemFace.
+
+  7. hdgGetQ:
+    - Computes the auxiliary variable q for each element.
+    - Solves the local equation: dtfactor * M * q = C * u - E * uhat + M * s.
+    - Handles 1D, 2D, and 3D cases for spatial dimensions.
+    - Supports time-dependent problems (wave==1).
+    - Writes debug output if enabled.
+
+  Data Structures:
+    - solstruct, resstruct, appstruct, masterstruct, meshstruct, tempstruct, commonstruct: Custom structures holding solution, results, application, master element, mesh, temporary, and common data.
+    - dstype: Data type for floating-point arrays.
+    - Int: Integer type.
+
+  External Functions Used:
+    - TemplateMalloc, TemplateFree: Memory allocation and deallocation.
+    - ArrayCopy, ArraySetValue, ArrayAXY, ArrayAXPBY, ArrayExtract, ArrayInsert: Array operations.
+    - Gauss2Node, Gauss2Node1: Transformation from Gauss points to nodes.
+    - PGEMNMStridedBached: Batched matrix multiplication.
+    - Inverse: Matrix inversion.
+    - assembleMatrixE, GetElementFaceNodes: Matrix assembly and node extraction.
+    - writearray2file: Writes arrays to binary files for debugging.
+    - NumberToString: Converts numbers to strings.
+
+  Debugging:
+    - If common.debugMode==1, intermediate matrices and solution vectors are written to binary files for inspection.
+
+  Notes:
+    - The code is designed to work with both CPU and GPU backends.
+    - Handles parallel execution with MPI (common.mpiProcs, common.mpiRank).
+    - Assumes proper initialization of all input structures and arrays.
+*/
 #ifndef __QEQUATION
 #define __QEQUATION
 

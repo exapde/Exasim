@@ -6,7 +6,7 @@ def masternodes(porder,dim,elemtype):
     d0 = os.getcwd();
     ii = d0.find("Exasim");
     fn = d0[0:ii] + "Exasim/frontends/Python/Preprocessing/masternodes.bin";
-    print("Reading master nodes from " + fn);
+    #print("Reading master nodes from " + fn);
     tmp = numpy.fromfile(open(fn, "r"), dtype=numpy.float64);
 
     ndims = numpy.int_(tmp[0]);

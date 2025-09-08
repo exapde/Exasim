@@ -1,3 +1,49 @@
+/*
+ * Discretization Module
+ * =====================
+ * This file implements the core routines for initializing and managing the discretization structures
+ * used in the Exasim backend for both CPU and GPU architectures. It supports multiple spatial schemes
+ * (LDG, HDG) and various preconditioners, and is designed for parallel execution with MPI and GPU acceleration.
+
+ * Main Components:
+ * ----------------
+ * - crs_init: Initializes the compressed row storage (CRS) structures for superelement-based preconditioning.
+ * - CDiscretization: Main class encapsulating all discretization data and operations.
+ *   - Constructor: Initializes all data structures, allocates memory, and sets up geometry and solution fields.
+ *   - Destructor: Releases all allocated resources and handles for both CPU and GPU.
+ *   - compGeometry: Computes and stores geometric quantities for elements and faces.
+ *   - compMassInverse: Computes and stores the inverse of the mass matrix.
+ *   - hdgAssembleLinearSystem: Assembles the HDG linear system and applies the selected preconditioner.
+ *   - hdgAssembleResidual: Assembles the HDG residual vector.
+ *   - evalResidual: Evaluates the residual vector for the current solution.
+ *   - evalQ: Computes the flux q for the current solution.
+ *   - evalQSer: Serial evaluation of flux q for non-wave problems.
+ *   - evalMatVec: Computes matrix-vector products for Jacobian-vector operations.
+ *   - updateUDG/updateU: Updates the solution fields with new values.
+ *   - evalAVfield: Computes artificial viscosity fields, with MPI support for distributed domains.
+ *   - evalOutput: Computes output quantities, with MPI support for distributed domains.
+ *   - evalMonitor: Computes monitoring quantities for the solution.
+ *   - DG2CG/DG2CG2/DG2CG3: Converts DG fields to CG fields using various mapping strategies.
+
+ * Features:
+ * ---------
+ * - Supports both CPU and GPU backends (CUDA/HIP).
+ * - MPI parallelization for distributed memory architectures.
+ * - Flexible memory management for host and device.
+ * - Multiple preconditioners: Block Jacobi, Elemental Additive Schwarz, Superelement Additive Schwarz (ILU0).
+ * - Handles both LDG and HDG spatial schemes.
+ * - Modular design for geometry, solution, and output computations.
+
+ * Usage:
+ * ------
+ * Instantiate CDiscretization with appropriate input files and parallelization parameters.
+ * Use member functions to assemble systems, evaluate residuals, compute fluxes, and manage solution fields.
+
+ * Note:
+ * -----
+ * This file includes several implementation files (.cpp) directly for modularity and to support template-based
+ * memory management and device/host operations.
+ */
 #ifndef __DISCRETIZATION
 #define __DISCRETIZATION
 
@@ -6,7 +52,6 @@
 #endif
 
 #include "discretization.h"
-#include "errormsg.cpp"
 #include "ioutilities.cpp"
 
 #ifdef HAVE_TEXT2CODE
@@ -14,14 +59,14 @@
 #else
 #include "../Model/KokkosDrivers.cpp"
 #endif
-//#include "../Model/KokkosDrivers.cpp"
-//#include "../Model/ModelDrivers.cpp"
 
+#include "connectivity.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
 #include "residual.cpp"
 #include "matvec.cpp"
-      
+#include "qoicalculation.cpp"
+
 void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int nese)
 {            
     common.nse = nse;
@@ -169,7 +214,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     if (common.spatialScheme == 0) compMassInverse(backend);    
     
     // moved from InitSolution to here
-    if ((common.ncq>0) & (common.wave==0) & (common.spatialScheme == 0) ) evalQSer(backend); 
+    if ((common.ncq>0) && (common.wave==0) && (common.spatialScheme == 0)) evalQSer(backend); 
     
     if (common.spatialScheme > 0)  { // HDG
       Int neb = common.neb; // maximum number of elements per block
@@ -796,4 +841,3 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
 }
 
 #endif        
-

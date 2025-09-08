@@ -1,3 +1,61 @@
+/*
+    readpdeapp.cpp
+
+    This file provides functionality for parsing PDE application input files, extracting parameters, and initializing PDE data structures for use in numerical simulations.
+
+    Main Components:
+    ----------------
+
+    1. InputParams Struct:
+        - Holds all parsed input parameters from the PDE application file.
+        - Includes maps for string, double, and integer parameters.
+        - Contains vectors for boundary conditions, physics parameters, and other simulation-specific data.
+
+    2. Helper Functions:
+        - parseList<T>: Parses a list of numbers from a string buffer enclosed in square brackets.
+        - parseStringList: Parses a list of strings from a buffer, extracting quoted strings.
+        - trim: Removes leading and trailing whitespace from a string.
+        - tokenizeBraceList: Tokenizes a comma-separated list, respecting parentheses nesting.
+        - parseExpression: Parses a list of doubles, supporting "repeat(value, count)" syntax for repeated values.
+
+    3. parseInputFile:
+        - Reads and parses the input file, populating an InputParams struct.
+        - Checks for required keys and reports missing parameters.
+        - Supports assignment of various parameter types and lists.
+
+    4. printInputParams:
+        - Utility to print the contents of an InputParams struct for debugging.
+
+    5. PDE Struct:
+        - Represents the main PDE configuration, including file paths, model settings, solver options, and parameter vectors.
+        - Used to store all simulation configuration after parsing.
+
+    6. extractCoupledData:
+        - Extracts coupled interface, condition, and boundary condition data from input vectors.
+
+    7. initializePDE:
+        - Initializes a PDE struct from parsed InputParams.
+        - Sets default values, assigns parameters, and configures file paths.
+        - Handles logic for hybrid discretization, model selection, and coupled interface extraction.
+
+    8. writepde:
+        - Serializes the PDE struct to a binary file for use in downstream simulation components.
+        - Writes parameter vectors and configuration data in a specific order.
+
+    Usage:
+    ------
+    - Use parseInputFile to read and parse a PDE application input file.
+    - Use initializePDE to create a PDE struct from parsed parameters.
+    - Use writepde to serialize the PDE configuration for simulation.
+    - Use printInputParams for debugging and inspection of parsed parameters.
+
+    Notes:
+    ------
+    - The code expects certain required keys to be present in the input file.
+    - Error handling is performed for missing parameters and invalid paths.
+    - The code supports flexible input formats, including repeated values and nested lists.
+
+*/
 #ifndef __READPDEAPP
 #define __READPDEAPP
 
@@ -126,7 +184,7 @@ std::vector<double> parseExpression(const std::string& expr) {
     return result;
 }
 
-InputParams parseInputFile(const std::string& filename) 
+InputParams parseInputFile(const std::string& filename, int mpirank=0) 
 {
     InputParams params;
     
@@ -240,7 +298,7 @@ InputParams parseInputFile(const std::string& filename)
     }
 
     if (err) error("Input file is missing required parameters. Exiting.\n");    
-    else std::cout << "Finished parseInputFile.\n";
+    else if (mpirank==0) std::cout << "Finished parseInputFile.\n";
     
     return params;
 }
@@ -294,10 +352,13 @@ struct PDE {
     std::string uhatfile = "";
     std::string partitionfile = "";
 
+    int gencode = 1; // 1 for code generation, 0 for no code generation
+    int writemeshsol = 1; // 1 for writing mesh solution, 0 for no writing
     int modelnumber = 0;
     int mpiprocs = 1;
     int nd = 1, nc = 1, ncu = 1, ncq = 0, ncp = 0, ncv = 0;
     int nch = 1, ncx = 1, ncw = 0, nce = 0, np=0, nve=0, ne=0;
+    int nsca=0, nvec=0, nten=0, nsurf=0, nvqoi=0;
     int neb = 512 * 8;
     int nfb = 512 * 16;
     int elemtype = 1;
@@ -417,7 +478,7 @@ std::vector<double> makeDoubleVector(Args... args) {
     return { static_cast<double>(args)... };
 }
 
-PDE initializePDE(InputParams& params)
+PDE initializePDE(InputParams& params, int mpirank=0)
 {
     PDE pde;
     
@@ -460,7 +521,13 @@ PDE initializePDE(InputParams& params)
     if (params.stringParams.count("platform")) {
         pde.platform = params.stringParams["platform"];
     }
-        
+
+    if (params.intParams.count("gencode")) {
+        pde.gencode = params.intParams["gencode"];
+    }
+    if (params.intParams.count("writemeshsol")) {
+        pde.writemeshsol = params.intParams["writemeshsol"];
+    }
     if (params.intParams.count("mpiprocs")) {
         pde.mpiprocs = params.intParams["mpiprocs"];
     }
@@ -719,27 +786,27 @@ PDE initializePDE(InputParams& params)
         
     pde.exasimpath = trimToSubstringAtLastOccurence(pde.exasimpath, "Exasim");     
     if (pde.exasimpath == "") {      
-      std::cout<<"exasimpath is not set in "<< params.pdeappfile <<" file.\nWe use the working directory to define exasimpath.\n";
+      if (mpirank==0) std::cout<<"exasimpath is not set in "<< params.pdeappfile <<" file.\nWe use the working directory to define exasimpath.\n";
       std::filesystem::path cwd = std::filesystem::current_path();
       pde.exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
       if (pde.exasimpath == "") 
         error("exasimpath is not valid. Please set exasimpath to the correct path of the Exasim source code in pdeapp.txt file.");     
     }
-    std::cout << "exasimpath = "<<pde.exasimpath<<std::endl;
+    if (mpirank==0) std::cout << "exasimpath = "<<pde.exasimpath<<std::endl;
     
     pde.pdeappfile = params.pdeappfile;    
     if (pde.datapath == "") {      
       string dp = trim_dir(params.pdeappfile);
       if (dp == "") {
-        std::cout<<"datapath is not set in "<< params.pdeappfile <<" file.\nWe set datapath to the working directory.\n";
+        if (mpirank==0) std::cout<<"datapath is not set in "<< params.pdeappfile <<".\nWe set datapath to the working directory.\n";
         pde.datapath = std::filesystem::current_path();    
       }
       else {
-        std::cout<<"datapath is not set in the input file "<< params.pdeappfile <<" file.\nWe set datapath by using the path of the input file.\n";
+        if (mpirank==0) std::cout<<"datapath is not set in the input file "<< params.pdeappfile <<".\nWe set datapath by using the path of the input file.\n";
         pde.datapath = dp;    
       }
     }        
-    std::cout << "datapath = "<<pde.datapath<<std::endl;
+    if (mpirank==0) std::cout << "datapath = "<<pde.datapath<<std::endl;
         
     if (pde.modelnumber<=0) {
       //pde.datainpath = make_path(pde.exasimpath, "build/datain");
@@ -753,7 +820,7 @@ PDE initializePDE(InputParams& params)
       pde.dataoutpath = make_path(pde.datapath, "dataout" + std::to_string(pde.modelnumber));
     }
     
-    std::cout << "Finished initializePDE.\n";
+    if (mpirank==0) std::cout << "Finished initializePDE.\n";
     
     if (pde.debugmode==1) printInputParams(params);
     
@@ -778,6 +845,11 @@ void writepde(const PDE& pde, const std::string& filename)
     ndims[11] = pde.ncx;
     ndims[12] = pde.nce;
     ndims[13] = pde.ncw;
+    ndims[14] = pde.nsca;
+    ndims[15] = pde.nvec;
+    ndims[16] = pde.nten;
+    ndims[17] = pde.nsurf;
+    ndims[18] = pde.nvqoi;
 
     std::vector<double> nsize(30, 0.0);
     nsize[0] = ndims.size();
