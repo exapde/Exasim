@@ -70,7 +70,7 @@ mpirun -np $N /path/to/Exasim/build/cpumpit2cEXASIM pdeapp.txt    (if you run on
 mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM pdeapp.txt    (if you run on many GPUs) 
 ```
 
-where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system.
+where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system. If there are examples that do not have pdeapp.txt and pdemodel.txt, they can be made by making use of pdeapp.m and pdemodel.m.  
 
 To run any example with Julia, type the following line and hit return
 
