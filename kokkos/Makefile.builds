@@ -23,7 +23,7 @@ serial:
 cuda:
 	mkdir -p buildcuda
 	cmake -S . -B buildcuda \
-	  -DCMAKE_CXX_COMPILER=g++ \
+	  -DCMAKE_CXX_COMPILER=CC \
 	  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 	  -DKokkos_ENABLE_CUDA=ON \
 	  -DKokkos_ENABLE_CUDA_LAMBDA=ON \

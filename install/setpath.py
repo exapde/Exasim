@@ -12,9 +12,9 @@ sys.path.append(srcdir + '/Postprocessing');
 sys.path.append(cdir);
 
 # Set Python's PATH enviroment variable so that Exasim can call external programs
-os.environ['PATH'] = "/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin";
-# Add more paths if neccesary
-os.environ['PATH'] = os.environ['PATH'] + ":/Applications/ParaView-6.0.0.app/Contents/MacOS"
+# os.environ['PATH'] = "/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin";
+# # Add more paths if neccesary
+# os.environ['PATH'] = os.environ['PATH'] + ":/Applications/ParaView-6.0.0.app/Contents/MacOS"
 
 print('==> Exasim ' + src + ' ...\n');
 
