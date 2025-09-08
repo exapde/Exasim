@@ -5,7 +5,6 @@ pde.source = @source;
 pde.fbou = @fbou;
 pde.ubou = @ubou;
 pde.initu = @initu;
-% pde.avfield = @avfield;
 pde.fbouhdg = @fbouhdg;
 end
 

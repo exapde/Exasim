@@ -55,7 +55,8 @@ pde.NLtol = 1e-7;              % Newton tolerance
 pde.NLiter = 10;                % Newton iterations
 pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
 
-mesh = mkmesh_flatcase2d(pde.porder);
+%mesh = mkmesh_flatcase2d(pde.porder);
+mesh = mkmesh_flatcase2d(pde.porder, 131, 18, 71, 0.0008);
 % Inflow (left boundary), Wall (bottom boundary), Outflow (right boundary), Farfield (top boundary)
 mesh.boundarycondition = [1 4 3 2]; 
 
@@ -72,3 +73,5 @@ mesh.vdg(:,2:5,:) = sol1(:,1:4,:); % -> v(2:5) which is used to define the inflo
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[],2);
 figure(2); clf; scaplot(mesh, mesh.vdg(:,1,:),[],2);
+
+

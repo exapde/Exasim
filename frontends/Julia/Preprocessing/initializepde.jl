@@ -35,6 +35,11 @@ mutable struct PDEStruct
     ncx::IntP;# number of compoments of (xdg)
     ncw::IntP;# number of compoments of (wdg)
     nce::IntP;# number of compoments of (output field)
+    nsca::IntP;# number of compoments of scalar fields
+    nvec::IntP;# number of components of (vector fields)
+    nten::IntP;# number of components of (tensor fields)
+    nbqoi::IntP;# number of components of (boundary quantities)
+    nvqoi::IntP;# number of components of (volume quantities)
     neb::IntP;# number of element blocks for parallel computation
     nfb::IntP;# number of face blocks for parallel computation
     elemtype::IntP; # type of elements
@@ -182,6 +187,11 @@ function initializepde(version)
     pde.ncx = 1;
     pde.ncw = 0;
     pde.nce = 0;
+    pde.nsca = 0;
+    pde.nbqoi = 0;
+    pde.nvqoi = 0;
+    pde.nvec = 0;
+    pde.nten = 0;
     pde.neb = 512*8;
     pde.nfb = 512*16;
     pde.elemtype = 1;

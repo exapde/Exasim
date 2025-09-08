@@ -74,9 +74,9 @@ def preprocessing(app,mesh):
 
     nuinf = len(app['uinf']);
     nparam = len(app['physicsparam']);
-    xdgsym = sympy.symbols("xdg1:" + str(app['ncx']+1));
-    uinfsym = sympy.symbols("uinf1:" + str(nuinf+1));
-    paramsym = sympy.symbols("param1:" + str(nparam+1));
+    xdgsym = array(sympy.symbols("xdg1:" + str(app['ncx']+1)));
+    uinfsym = array(sympy.symbols("uinf1:" + str(nuinf+1)));
+    paramsym = array(sympy.symbols("param1:" + str(nparam+1)));
     if hasattr(pdemodel, 'initu'):
         udgsym = pdemodel.initu(xdgsym,paramsym,uinfsym);
         app['ncu'] = len(udgsym);
@@ -111,6 +111,41 @@ def preprocessing(app,mesh):
         app['tdep'] = 1;
     else:
         app['tdep'] = 0;
+
+    udgsym = array(sympy.symbols("udg1:" + str(app['ncu']+1)));
+    qdgsym = array(sympy.symbols("qdg1:" + str(app['ncq']+1)));
+    odgsym = array(sympy.symbols("odg1:" + str(app['nco']+1)));
+    wdgsym = array(sympy.symbols("wdg1:" + str(app['ncw']+1)));
+    time = array(sympy.symbols("time"));
+    uhatsym = array(sympy.symbols("uhg1:" + str(app['ncu']+1)));
+    nsym = array(sympy.symbols("nlg1:" + str(app['nd']+1)));
+    tausym = array(sympy.symbols("tau1:" + str(len(app['tau'])+1)));
+
+    if hasattr(pdemodel, 'visscalars'):
+        f = pdemodel.visscalars(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nsca'] = f.size;
+    else:
+        app['nsca'] = 0;
+    if hasattr(pdemodel, 'visvectors'):
+        f = pdemodel.visvectors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nvec'] = round(f.size/app['nd']);
+    else:
+        app['nvec'] = 0;
+    if hasattr(pdemodel, 'vistensors'):
+        f = pdemodel.vistensors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nten'] = round(f.size/(app['nd']*app['nd']));
+    else:
+        app['nten'] = 0;
+    if hasattr(pdemodel, 'qoivolume'):
+        f = pdemodel.qoivolume(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+        app['nvqoi'] = f.size;
+    else:
+        app['nvqoi'] = 0;
+    if hasattr(pdemodel, 'qoiboundary'):
+        f = pdemodel.qoiboundary(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym, uhatsym, nsym, tausym);       
+        app['nbqoi'] = f.size;
+    else:
+        app['nbqoi'] = 0;
 
     print("run facenumbering...");
     mesh['f'], mesh['tprd'], t2t = facenumbering(mesh['p'],mesh['t'],app['elemtype'],mesh['boundaryexpr'],mesh['periodicexpr'])[0:3];

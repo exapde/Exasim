@@ -130,10 +130,10 @@ else
     app.tdep = 0;
 end
 
-qdgsym = sym('udg',[app.ncq 1]); 
+udgsym = sym('udg',[app.ncu 1]); 
+qdgsym = sym('qdg',[app.ncq 1]); 
 wdgsym = sym('wdg',[app.ncw 1]); 
 odgsym = sym('odg',[app.nco 1]); 
-udgsym = sym('uhat',[app.ncu 1]); 
 time = sym('time');
 uhatsym = sym('uhg',[app.ncu 1]); 
 nsym = sym('nlg',[app.nd 1]); 

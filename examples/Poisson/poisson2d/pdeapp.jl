@@ -22,6 +22,8 @@ pde.tau = [1.0];                 # DG stabilization parameter
 pde.linearsolvertol = 1e-8;      # GMRES tolerance
 pde.ppdegree = 1;                # degree of polynomial preconditioner
 pde.RBdim = 0;
+pde.saveSolBouFreq = 1;
+pde.ibs = 1;
 
 # Choose computing platform and set number of processors
 #pde.platform = "gpu";           # choose this option if NVIDIA GPUs are available

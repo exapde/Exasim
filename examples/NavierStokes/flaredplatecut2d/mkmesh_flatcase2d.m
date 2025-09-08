@@ -30,6 +30,7 @@ thflare = acos(1 - s^2/(2*rflare^2));
 
 Href = 1;  % reference height
 yref = [0.8 0.4 0.15 0.06 0.015]*0.8; % locations to refine the mesh     
+yref = [];
 
 x2 = loginc(linspace(2,3,nx2), s2);
 [p2,t2,yv] = lesmesh2d_rect(Href, dwall, ny, x2, yref);

@@ -21,6 +21,12 @@ ndims[11] = app.nch;
 ndims[12] = app.ncx;
 ndims[13] = app.nce;
 ndims[14] = app.ncw;
+ndims[15] = app.nsca;
+ndims[16] = app.nvec;
+ndims[17] = app.nten;
+ndims[18] = app.nbqoi;
+ndims[19] = app.nvqoi;
+
 
 nsize = zeros(20,1);
 nsize[1] = length(ndims[:]);

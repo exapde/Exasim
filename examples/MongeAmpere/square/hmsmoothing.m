@@ -58,7 +58,7 @@ jac = dg2cg2(jac, cgelcon, colent2elem, rowent2elem);
 
 mesh.vdg = reshape(jac, size(mesh.dgnodes(:,1,:)));
 mesh.vdg(:,2,:) = sensor;
-mesh.vdg(:,1,:) = 1;
+%mesh.vdg(:,1,:) = 1;
 
 mesh.boundarycondition(:) = 1;
 

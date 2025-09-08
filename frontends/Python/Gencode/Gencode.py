@@ -102,6 +102,26 @@ def gencode(app):
     else:
         nocodeelem("Source" + strn, foldername);
         hdgnocodeelem("Source" + str(strn), foldername)    
+    if hasattr(pde, 'visscalars'):
+        f = pde.visscalars(u, q, wdg, odg, xdg, time, param, uinf);
+        gencodeelem("VisScalars" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else:
+        nocodeelem("VisScalars" + strn, foldername);    
+    if hasattr(pde, 'visvectors'):
+        f = pde.visvectors(u, q, wdg, odg, xdg, time, param, uinf);
+        gencodeelem("VisVectors" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else:
+        nocodeelem("VisVectors" + strn, foldername);        
+    if hasattr(pde, 'vistensors'):
+        f = pde.vistensors(u, q, wdg, odg, xdg, time, param, uinf);
+        gencodeelem("VisTensors" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else:
+        nocodeelem("VisTensors" + strn, foldername);        
+    if hasattr(pde, 'qoivolume'):
+        f = pde.qoivolume(u, q, wdg, odg, xdg, time, param, uinf);
+        gencodeelem("QoIvolume" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);
+    else:
+        nocodeelem("QoIvolume" + strn, foldername);        
     if hasattr(pde, 'eos'):
         f = pde.eos(u, q, wdg, odg, xdg, time, param, uinf);
         gencodeelem2("EoS" + strn, f, xdg, udg, odg, wdg, uinf, param, time, foldername);      
@@ -213,6 +233,12 @@ def gencode(app):
         gencodeface("Ubou" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
     else:
         sys.exit("pde.ubou is not defined");
+    if hasattr(pde, 'qoiboundary'):
+        f = pde.qoiboundary(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
+        f = numpy.reshape(f.flatten('F'),(app['ncu'],round(f.size/app['ncu'])),'F');
+        gencodeface("QoIboundary" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, foldername);
+    else:
+        nocodeface("QoIboundary" + strn, foldername);
     if hasattr(pde, 'fhat'):
         #f = pde.fhat(xdg, udg1, udg2, odg1, odg2, wdg1, wdg2, uhg, nlg, tau, uinf, param, time);
         f = pde.fhat(u1, q1, wdg1, odg1, xdg, time, param, uinf, uhg, nlg, tau, u2, q2, wdg2, odg2);

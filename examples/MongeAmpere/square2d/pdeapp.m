@@ -46,6 +46,26 @@ figure(4); clf; meshplot(mesh,1); axis on; axis equal; axis tight;
 % plot the adaptive mesh
 figure(5); clf; meshplot(mesh1,1); axis on; axis equal; axis tight;
 
+d = mesh1.dgnodes - mesh.dgnodes;
+% plot the adaptive mesh
+figure(6); clf; scaplot(mesh,d(:,1,:),[],1); axis on; axis equal; axis tight;
+figure(7); clf; scaplot(mesh,d(:,2,:),[],1); axis on; axis equal; axis tight;
+
+v1 = sol(:,2,:);
+v2 = sol(:,3,:);
+x1 = mesh.dgnodes(:,1,:);
+x2 = mesh.dgnodes(:,2,:);
+r = sqrt(x1.^2 + x2.^2);
+rho = 1 + a1*sech(a2*(r.^2 - a^2));
+F = rho/theta;
+t = 0;
+w1 = v1./(t + (1-t)*F);
+w2 = v2./(t + (1-t)*F);
+
+figure(6); clf; scaplot(mesh,w1,[],1); axis on; axis equal; axis tight;
+figure(7); clf; scaplot(mesh,w2,[],1); axis on; axis equal; axis tight;
+figure(8); clf; scaplot(mesh,F,[],1); axis on; axis equal; axis tight;
+
 % Compute rho, drhodx, and drhody
 % 0. Calculate rho from the flow field 
 % 0.a gradient of the flow density = sqrt(UDG(:,5,:).^2 + UDG(:,9,:).^2);

@@ -154,6 +154,51 @@ else
     app.tdep = 0;
 end
 
+
+udgsym = [SymPy.symbols("udg$i") for i=1:app.ncu];
+qdgsym = [SymPy.symbols("qdg$i") for i=1:app.ncq];
+wdgsym = [SymPy.symbols("wdg$i") for i=1:app.ncw];
+odgsym = [SymPy.symbols("odg$i") for i=1:app.nco];
+uhatsym = [SymPy.symbols("uhg$i") for i=1:app.ncu];
+nsym = [SymPy.symbols("nlg$i") for i=1:app.ncx];
+time = SymPy.symbols("time");
+tausym = [SymPy.symbols("tau$i") for i=1:length(app.tau)];
+if isdefined(pdemodel, Symbol("visscalars")) 
+    f = pdemodel.visscalars(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    app.nsca = length(f[:]);    
+end
+if isdefined(pdemodel, Symbol("visvectors")) 
+    f = pdemodel.visvectors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    app.nvec = length(f[:])/app.nd;    
+end
+if isdefined(pdemodel, Symbol("vistensors")) 
+    f = pdemodel.vistensors(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    app.nten = length(f[:])/(app.nd*app.nd);    
+end
+if isdefined(pdemodel, Symbol("qoivolume")) 
+    f = pdemodel.qoivolume(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym);         
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    app.nvqoi = length(f[:]);    
+end
+if isdefined(pdemodel, Symbol("qoiboundary")) 
+    f = pdemodel.qoiboundary(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym, uhatsym, nsym, tausym);             
+    if length(f)==1
+        f = reshape([f],1,1);
+    end
+    app.nbqoi = length(f[:]);    
+end
+
 print("run facenumbering...\n");
 mesh.f, mesh.tprd, t2t = facenumbering(mesh.p,mesh.t,app.elemtype,mesh.boundaryexpr,mesh.periodicexpr);
 

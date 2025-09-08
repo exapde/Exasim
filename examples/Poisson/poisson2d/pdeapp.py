@@ -17,13 +17,15 @@ pde['modelfile'] = "pdemodel"; # name of a file defining the PDE model
 
 # Choose computing platform and set number of processors
 #pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
-pde['mpiprocs'] = 4;        # number of MPI processors
+pde['mpiprocs'] = 2;        # number of MPI processors
 pde['hybrid'] = 1;          # 0 -> LDG, 1 -> HDG
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['porder'] = 3;         # polynomial degree
 pde['physicsparam'] = numpy.array([1.0]);   # unit thermal conductivity
 pde['tau'] = numpy.array([1.0]);            # DG stabilization parameter
+pde['saveSolBouFreq'] = 1;
+pde['ibs'] = 1;
 
 # create a mesh of 8 by 8 quads on a square domain
 mesh['p'], mesh['t'] = Mesh.SquareMesh(16,16,1)[0:2];

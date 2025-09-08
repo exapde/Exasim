@@ -48,6 +48,11 @@ def initializepde(version):
     pde['ncx'] = 1;
     pde['ncw'] = 0;
     pde['nce'] = 0;
+    pde['nsca'] = 0;
+    pde['nvec'] = 0;
+    pde['nten'] = 0;
+    pde['nvqoi'] = 0;
+    pde['nbqoi'] = 0;
     pde['neb'] = 512*8;
     pde['nfb'] = 512*32;
     pde['elemtype'] = 1;
