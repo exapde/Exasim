@@ -115,6 +115,14 @@ backend/Model/KokkosTdfunc.cpp
 backend/Model/KokkosUhat.cpp
 backend/Model/KokkosVisScalars.cpp
 backend/Model/KokkosVisVectors.cpp
+backend/Model/cpuInitu.cpp
+backend/Model/HdgFbou.cpp
+backend/Model/HdgFbouonly.cpp
+backend/Model/HdgFlux.cpp
+backend/Model/HdgSource.cpp
+backend/Model/KokkosFbou.cpp
+backend/Model/KokkosFlux.cpp
+backend/Model/KokkosFhat.cpp
 backend/Model/*.cpp
 /examples/MongeAmpere/square/tmp
 /examples/NavierStokes/hypersoniccylinder_mach8/ns
