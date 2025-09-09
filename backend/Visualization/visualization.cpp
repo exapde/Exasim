@@ -27,6 +27,10 @@ public:
     std::vector<std::string> tensor_names;   // ntensors (ntc comps each, ntc=nd*nd)
     std::vector<std::string> surface_names;   // nsurfaces
 
+    // how fields were allocated: 0=CPU malloc/free, 2=CUDA host (cudaHostAlloc),
+    // 3=HIP  host (hipHostMalloc), anything else => unknown/none
+    int host_alloc_backend = 0;
+
     // Sizes / meta
     int nd      = 0;   // spatial dimension (2 or 3)
     int ntc     = 0;   // tensor components = nd*nd (4 or 9)
@@ -117,6 +121,7 @@ public:
                 cudaTemplateHostAlloc(&scafields, npoints*nsca, cudaHostAllocMapped); // zero copy
                 cudaTemplateHostAlloc(&vecfields, 3*npoints*nvec, cudaHostAllocMapped); // zero copy
                 cudaTemplateHostAlloc(&tenfields, ntc*npoints*nten, cudaHostAllocMapped); // zero copy
+                host_alloc_backend = 2;
             #endif                  
             }
             else if (backend==3) { // GPU
@@ -124,17 +129,56 @@ public:
                 hipTemplateHostMalloc(&scafields, npoints*nsca, cudaHostAllocMapped); // zero copy
                 hipTemplateHostMalloc(&vecfields, 3*npoints*nvec, cudaHostAllocMapped); // zero copy
                 hipTemplateHostMalloc(&tenfields, ntc*npoints*nten, cudaHostAllocMapped); // zero copy                
+                host_alloc_backend = 3;
             #endif                  
             }    
             else { // CPU
                 scafields = (float *) malloc(npoints*nsca*sizeof(float));
                 vecfields = (float *) malloc(3*npoints*nvec*sizeof(float));
                 tenfields = (float *) malloc(ntc*npoints*nten*sizeof(float));
+                host_alloc_backend = 0;
             }
             
             //cout<<ne<<"  "<<npoints<<endl;
             if (disc.common.mpiRank == 0) printf("finish CVisualization constructor... \n");    
         }        
+    }
+
+    ~CVisualization() {
+        // Free scafields / vecfields / tenfields / srffields according to how they were allocated.
+        auto free_field = [this](float*& p) {
+            if (!p) return;
+            switch (host_alloc_backend) {
+                case 2:  // CUDA pinned host
+                #ifdef HAVE_CUDA
+                    cudaFreeHost(p);
+                    p = nullptr;
+                    break;
+                #endif
+    
+                case 3:  // HIP pinned host
+                #ifdef HAVE_HIP
+                    hipHostFree(p);
+                    p = nullptr;
+                    break;
+                #endif
+    
+                case 0:  // CPU malloc
+                     std::free(p);
+                     p = nullptr;
+                     break;
+
+                default:
+                    std::free(p);
+                    p = nullptr;
+                    break;
+            }
+        };
+
+        free_field(scafields);
+        free_field(vecfields);
+        free_field(tenfields);
+        free_field(srffields); // in case you allocate this later
     }
 
     // ============================ Writers ============================

@@ -14,6 +14,7 @@ addpath(char(srcdir + "/HDG"));
 addpath(char(srcdir + "/Preprocessing"));
 addpath(char(srcdir + "/Postprocessing"));
 addpath(char(srcdir + "/Utilities"));
+addpath(char(srcdir + "/STG"));
 
 % Set Matlab's PATH enviroment variable so that Exasim can call external packages    
 setenv('PATH', '/usr/local/bin:/usr/bin:/opt/local/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/opt/llvm@11/bin/:/usr/local/cuda-11.7/bin/');
