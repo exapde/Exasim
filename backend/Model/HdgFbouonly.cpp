@@ -1,9 +1,9 @@
 void HdgFbouonly1(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
 {
 	Kokkos::parallel_for("Fbouonly1", ng, KOKKOS_LAMBDA(const size_t i) {
-		dstype udg1 = udg[0*ng+i];
+		dstype tau1 = tau[0];
 		dstype uhg1 = uhg[0*ng+i];
-		f[0*ng+i] = udg1-uhg1;
+		f[0*ng+i] = -tau1*uhg1;
 	});
 }
 

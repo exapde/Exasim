@@ -110,6 +110,7 @@ end
 function ub = ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     ub = 0*uhat; 
 end
+
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
     gam = mu(1);
@@ -121,7 +122,7 @@ function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     uinf = sym(mu(5:8)); % freestream flow
     uinf = uinf(:);
 
-    f_out = u - uhat;
+    f_outflow = u - uhat;
     f_farfield = uinf - uhat;
     f_inflow = v(2:5) - uhat;
 
@@ -134,7 +135,7 @@ function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     % f = flux(uhat, q, w, v, x, t, mu, eta);
     % f_wall(4) = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4)); % zero heat flux
     
-    fb = [f_inflow f_farfield f_out f_wall];
+    fb = [f_inflow f_farfield f_outflow f_wall];
 end
 
 function u0 = initu(x, mu, eta)

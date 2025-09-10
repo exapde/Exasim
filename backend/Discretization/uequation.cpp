@@ -386,9 +386,14 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         ArraySetValue(fhb, 0.0, ngb*ncu);
         ArraySetValue(fhb_uq, 0.0, ngb*ncu*nc);
         ArraySetValue(fhb_uh, 0.0, ngb*ncu*ncu);
-        if (ncw > 0) ArraySetValue(fhb_w, 0.0, ngb*ncu*ncw);        
-        FbouDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
-             mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
+        if (ncw > 0) ArraySetValue(fhb_w, 0.0, ngb*ncu*ncw);      
+        if (ibc+1 == 1000) 
+            StgInflowHDG(fhb, fhb_uq, fhb_w, fhb_uh, res.K, xgb, ogb, uhb, 
+                         app.physicsparam, app.stgdata, app.stgparam, common.time, 
+                         ngb, common.stgNmode, nd, ncu, nc, ncw);
+         else
+            FbouDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
+                 mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
 
         if ((ncw>0) & (common.wave==0)) {      
           // void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype alpha, const int I, const int J, const int K, const int S)
@@ -985,7 +990,10 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
           //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
-        FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
+        if (ibc+1 == 1000) StgInflowHDG(fhb, &tmp.tempg[n8], xgb, ogb, uhb, app.physicsparam, app.stgdata, 
+                                 app.stgparam, common.time, ngb, common.stgNmode, nd);          
+        else
+            FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
 
         dstype *jacb = &tmp.tempg[n8];
