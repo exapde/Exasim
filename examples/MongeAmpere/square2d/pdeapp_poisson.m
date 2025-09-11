@@ -54,7 +54,6 @@ theta = sum(L(:).*rho(:))/sum(L(:));
 pde.physicsparam = [1 theta a1 a2 a];  
 
 % L_i = int phi_i dx
-
 % rho ->  theta = int rho dx / |Omega| 
 % F = rho/theta
 % int F dx =  int rho/theta dx = int rho dx/ int rho dx / |Omega| = |Omega|
