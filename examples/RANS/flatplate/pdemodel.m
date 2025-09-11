@@ -19,10 +19,10 @@ gam = mu(1);
 gam1 = gam - 1.0;
 Re = mu(2);
 Pr = mu(3);
-Minf = mu(4);
-Tref = mu(10);
+%Minf = mu(4);
+%Tref = mu(10);
 muRef = 1/Re;
-Tinf = 1/(gam*gam1*Minf^2);
+%Tinf = 1/(gam*gam1*Minf^2);
 c23 = 2.0/3.0;
 
 % regularization mueters
@@ -92,9 +92,10 @@ Ty = 1/gam1*(py*r - p*ry)*r1^2;
 Ny = (rNy - ry*N)*r1;
 
 % molecular viscosity
-T = p/(gam1*r);
-Tphys = Tref/Tinf * T;
-muM = getViscosity(muRef,Tref,Tphys,1);
+% T = p/(gam1*r);
+% Tphys = Tref/Tinf * T;
+% muM = getViscosity(muRef,Tref,Tphys,1);
+muM = muRef;
 
 % turbulent eddy viscocity
 cv1  = 7.1;
@@ -141,6 +142,8 @@ cw1   = cb1/kappa^2 + (1+cb2)/sigma;
 cw2   = 0.3;
 cw3   = 2.0;
 rlim  = 10;
+
+d = v(2);
 
 r = u(1);
 ru = u(2);
@@ -246,10 +249,9 @@ L = simplify(Tinv * K);
 R = simplify(Kinv * T);
 An = simplify(L * Lambda * R);
 
-% inflow boundary condition
+% farfield boundary condition
 uinf = mu(5:8);      % freestream flow variables   
-u = u(1:4);          % state variables 
-fns = 0.5*((u(:)+uinf(:)) + An*(u(:)-uinf(:))) - uhat(:);     
+fns = 0.5*((u(1:4)+uinf(:)) + An*(u(1:4)-uinf(:))) - uhat(1:4);     
 fb1 = [fns; mu(9)-uhat(5)];
 
 % wall boundary condition    
@@ -261,29 +263,18 @@ f = flux(uhat, q, w, v, x, t, mu, eta);
 fb2(4) = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4)); % zero heat flux
 fb2(5) = 0.0  - uhat(5); % zero eddy viscosity
 
-% slip wall condition                
-ru = u(2);
-rv = u(3);
-nx = n(1);
-ny = n(2);   
-run = ru*nx + rv*ny;        
-uinf = u;
-uinf(2) = uinf(2) - nx.*run;
-uinf(3) = uinf(3) - ny.*run;
-fb3 = tau*(uinf - uhat);    
-
 % outflow boundary condition  
 pinf = 1/(gam*Minf^2); 
 uinf = [u(1), u(2), u(3), pinf/(gam-1) + 0.5*u(2)*u(2)/u(1) + 0.5*u(3)*u(3)/u(1)];
-u = u(1:4);          % state variables 
-fns = 0.5*((u(:)+uinf(:)) + An*(u(:)-uinf(:))) - uhat(:);     
-fb4 = [fns; u(5)-uhat(5)];
+uinf = uinf(:);
+fns = 0.5*((u(1:4)+uinf(1:4)) + An*(u(1:4)-uinf(1:4))) - uhat(1:4);     
+fb3 = [fns; u(5)-uhat(5)];
 
-fb = [fb1 fb2 fb3 fb4];    
+fb = [fb1 fb2 fb3];    
 end
 
 function u0 = initu(x, mu, eta)
-    u0 = sym(mu(5:8)); % freestream flow   
+    u0 = sym(mu(5:9)); % freestream flow   
 end
 
 
