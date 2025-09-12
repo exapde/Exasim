@@ -41,7 +41,7 @@ if sum(abs(k(:,4) - k(1,4))) ~= 0
     error("Number of timesteps in binary files do not match.");
 end
 
-if nargout > 2 
+if nargout > 1 
     ne = sum(k(:,3));
     sol = zeros(n1,n2,ne,nsteps);    
 
