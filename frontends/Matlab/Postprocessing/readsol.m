@@ -1,4 +1,4 @@
-function [n1, n2, n3, timesteps, sol] = readsol(fname, nsteps, stepoffsets)
+function [n1, n2, n3, timesteps, sol] = readsol(base, nsteps, stepoffsets)
 
 if nargin < 2
     nsteps = 1;
@@ -6,6 +6,8 @@ end
 if nargin < 3
     stepoffsets = 0;
 end
+
+fname = rankfile(base, 0);
 
 fid = fopen(fname, 'r');
 if fid < 0, error('Cannot open file: %s', fname); end
