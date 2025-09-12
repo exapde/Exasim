@@ -1,4 +1,4 @@
-function [n1, n2, n3, sol] = readsol(fname, nsteps, stepoffsets)
+function [n1, n2, n3, timesteps, sol] = readsol(fname, nsteps, stepoffsets)
 
 if nargin < 2
     nsteps = 1;
@@ -17,7 +17,11 @@ end
 n1 = hdr(1); n2 = hdr(2); n3 = hdr(3);
 N  = n1 * n2 * n3;
 
-if nargout > 3 
+info = dir(fname); 
+L = info.bytes/8;
+timesteps = (L-3)/N;
+
+if nargout > 4 
     if (stepoffsets > 0) 
         fseek(fid, stepoffsets*N*8, 'cof');
     end
