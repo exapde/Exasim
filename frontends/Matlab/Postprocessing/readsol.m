@@ -32,4 +32,6 @@ if nargout > 4
     end
 end
 
+fclose(fid);
+
 end
