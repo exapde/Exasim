@@ -8,7 +8,7 @@ pde.model = "ModelD";
 pde.modelfile = "pdemodel";
 
 % Choose computing platform and set number of processors
-pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
+pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;             % number of MPI processors
 pde.porder = 3;          % polynomial degree
 pde.pgauss = 2*pde.porder;
