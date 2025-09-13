@@ -7,10 +7,12 @@ void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype*
 		dstype param6 = param[5];
 		dstype param7 = param[6];
 		dstype param8 = param[7];
+		dstype param9 = param[8];
 		f[j+npe*0+npe*nce*k] = param5;
 		f[j+npe*1+npe*nce*k] = param6;
 		f[j+npe*2+npe*nce*k] = param7;
 		f[j+npe*3+npe*nce*k] = param8;
+		f[j+npe*4+npe*nce*k] = param9;
 	});
 }
 
