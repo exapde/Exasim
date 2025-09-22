@@ -1,99 +1,135 @@
-from numpy import array
-from sympy import sqrt
-
-# mu = [m, kB, e, g]
-# v = [E1, E2, E3, B1, B2, B3, vn1, vn2, vn3, nu, P, L, H, C]
+from numpy import array, reshape, hstack, zeros
+from sympy import sqrt, exp, log
 
 def mass(u, q, w, v, x, t, mu, eta):
-    m = array([1, 1, 1, 1, 1])
+    m = array([1.0, 1.0, 1.0, 1.0, 1.0])
     return m
 
 def flux(u, q, w, v, x, t, mu, eta):
-    m = mu[0]
-    kB = mu[1]
-    u1 = u[0]
-    u2 = u[1:4]
-    u3 = u[4]
-    kappa = 1.24e4*(u3/(kB*u1))**2.5
-    q1 = array([q[0], q[5], q[10]])
-    q3 = array([q[4], q[9], q[14]])
-    f1 = u2/m
-    f21 = [u2[0]**2/(m*u1) + u3, u2[0]*u2[1]/(m*u1)  , u2[0]*u2[2]/(m*u1)  ]
-    f22 = [u2[1]*u2[0]/(m*u1)  , u2[1]**2/(m*u1) + u3, u2[1]*u2[2]/(m*u1)  ]
-    f23 = [u2[2]*u2[0]/(m*u1)  , u2[2]*u2[1]/(m*u1)  , u2[2]**2/(m*u1) + u3]
-    f3 = u3*u2/(m*u1) - 2*kappa*(u3*q1 - u1*q3)/(3*kB*u1**2)
-    f = array([f1[0], f21[0], f22[0], f23[0], f3[0],
-               f1[1], f21[1], f22[1], f23[1], f3[1],
-               f1[2], f21[2], f22[2], f23[2], f3[2]])
+    gam = mu[0]
+    
+    ln = u[0]
+    u1 = u[1]
+    u2 = u[2]
+    u3 = u[3]
+    T  = u[4]
+    p = T/gam
+
+    lnx = -q[0]
+    u1x = -q[1]
+    u2x = -q[2]
+    u3x = -q[3]
+    Tx  = -q[4]
+
+    lny = -q[5]
+    u1y = -q[6]
+    u2y = -q[7]
+    u3y = -q[8]
+    Ty  = -q[9]
+
+    lnz = -q[10]
+    u1z = -q[11]
+    u2z = -q[12]
+    u3z = -q[13]
+    Tz  = -q[14]
+
+    fi = array([ln*u1, u1*u1+p, u1*u2, u1*u3, T*u1,
+                ln*u2, u1*u2, u2*u2+p, u2*u3, T*u2,
+                ln*u3, u1*u3, u2*u3, u3*u3+p, T*u3])
+    
+    f = fi
+    f = reshape(f,(5,3),'F');
     return f
 
 def source(u, q, w, v, x, t, mu, eta):
-    m = mu[0]
-    e = mu[2]
-    g = mu[3]
-    E = v[0:3]
-    B = v[3:6]
-    vn = v[6:9]
-    nu = v[9]
-    P = v[10]
-    L = v[11]
-    H = v[12]
-    C = v[13]
-    u1 = u[0]
-    u2 = u[1:4]
-    u3 = u[4]
-    q1 = [q[0], q[5], q[10]]
-    trq2 = q[1] + q[7] + q[13]
-    r = sqrt(x[0]**2 + x[1]**2 + x[2]**2)
+    gam = mu[0]
+    x1 = x[0]
+    x2 = x[1]
+    x3 = x[2]
+    r  = sqrt(x1**2 + x2**2 + x3**2)
+    g = 1.0/gam
 
-# start with a simple case
-    nu = 0
-    P = 0
-    L = 0
-    H = 0
-    C = 0
+    ln = u[0]
+    u1 = u[1]
+    u2 = u[2]
+    u3 = u[3]
+    T  = u[4]
+    p = T/gam
 
-    s1 = P - L*u1
-    s21 = (P/u1-L)*u2[0] + u1*m*g*x[0]/r + u1*e*E[0] + e*(u2[1]*B[2]-u2[2]*B[1])/m + nu*(u1*m*vn[0]-u2[0])
-    s22 = (P/u1-L)*u2[1] + u1*m*g*x[1]/r + u1*e*E[1] + e*(u2[2]*B[0]-u2[0]*B[2])/m + nu*(u1*m*vn[1]-u2[1])
-    s23 = (P/u1-L)*u2[2] + u1*m*g*x[2]/r + u1*e*E[2] + e*(u2[0]*B[1]-u2[1]*B[0])/m + nu*(u1*m*vn[2]-u2[2])
-    s3 = 2*u3*(u1*trq2 - (u2[0]*q1[0]+u2[1]*q1[1]+u2[2]*q1[2]))/(3*m*u1) + u3*(P/u1 - L) + 2*(H - C*u3)/3
+    lnx = -q[0]
+    u1x = -q[1]
+    u2x = -q[2]
+    u3x = -q[3]
+    Tx  = -q[4]
 
-    s = array([s1, s21, s22, s23, s3])
+    lny = -q[5]
+    u1y = -q[6]
+    u2y = -q[7]
+    u3y = -q[8]
+    Ty  = -q[9]
+
+    lnz = -q[10]
+    u1z = -q[11]
+    u2z = -q[12]
+    u3z = -q[13]
+    Tz  = -q[14]
+
+
+    divV = u1x + u2y + u3z
+
+    sln = (ln-1)*divV
+    su1 = -g*x1/r + divV*u1 - p*lnx
+    su2 = -g*x2/r + divV*u2 - p*lny
+    su3 = -g*x3/r + divV*u3 - p*lnz
+    sT  = (2 - gam)*T*divV
+
+    s = array([sln, su1, su2, su3, sT])
     return s
 
 def ubou(u, q, w, v, x, t, mu, eta, uhat, n, tau):
-    m = mu[0]
-    vn = v[6:9]
-    P = v[10]
-    L = v[11]
-    H = v[12]
-    C = v[13]
-    ub = array([P/L, m*P*vn[0]/L, m*P*vn[1]/L, m*P*vn[2]/L, H/C])
-    return [ub, u]
+    ub = zeros((5,2));
+    return ub
 
 def fbou(u, q, w, v, x, t, mu, eta, uhat, n, tau):
-    f = flux(u, q, w, v, x, t, mu, eta)
-    fb = array([f[:, 0]*n[0] + f[:, 1]*n[1] + f[:, 2]*n[2] + tau*(u-uhat)])
-
-    fbu = array([0, 0, 0, 0, 0])
-    return [fb, fbu]
+    fb = zeros((5,2));
+    return fb
 
 def fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau):
-    f = flux(u, q, w, v, x, t, mu, eta)
-    fb = array([f[:, 0]*n[0] + f[:, 1]*n[1] + f[:, 2]*n[2] + tau*(u-uhat)])
+    fl = 0*u
+    fl[0] = 0.0 - uhat[0]
+    fl[1] = 0.0 - uhat[1]
+    fl[2] = 0.0 - uhat[2]
+    fl[3] = 0.0 - uhat[3]
+    fl[4] = 1.0 - uhat[4]
 
-    m = mu[0]
-    vn = v[6:9]
-    P = v[10]
-    L = v[11]
-    H = v[12]
-    C = v[13]
-    ub = array([P/L, m*P*vn[0]/L, m*P*vn[1]/L, m*P*vn[2]/L, H/C])
-    fl = tau*(ub - uhat)
+    fu = 0*u
+    fu[0] = u[0] - uhat[0]
+    fu[1] = 0.0 - uhat[1]
+    fu[2] = 0.0 - uhat[2]
+    fu[3] = 0.0 - uhat[3]
+    fu[4] = 5.0 - uhat[4]
 
-    return [fl, fb]
+    fb = hstack((fl, fu)); # wall and freestream boundary conditions
+    fb = reshape(fb,(5,2),'F');
+    return fb
 
 def initu(x, mu, eta):
-    u0 = array([0, 0, 0, 0, 0])
+    x1 = x[0]
+    x2 = x[1]
+    x3 = x[2]
+    r = sqrt(x1**2 + x2**2 + x3**2)
+
+    Tbot = 1.0
+    Ttop = 5.0
+    R0 = mu[1]
+    H0 = mu[3]
+    h0 = 40000.0/H0
+    a0 = -1
+
+    T = Ttop - (Ttop-Tbot)*exp(-(r-R0)/h0)
+    logp_p0 = a0*h0/Ttop*log(1+Ttop/Tbot*(exp((r-R0)/h0)-1))
+    ln = logp_p0 - log(T)
+
+
+    u0 = array([ln, 0.0, 0.0, 0.0, T])
     return u0
