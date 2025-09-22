@@ -2,6 +2,10 @@ void KokkosTdfunc(dstype* f, const dstype* xdg, const dstype* udg, const dstype*
 {
 	Kokkos::parallel_for("Tdfunc", ng, KOKKOS_LAMBDA(const size_t i) {
 		f[0*ng+i] = 1.0;
+		f[1*ng+i] = 1.0;
+		f[2*ng+i] = 1.0;
+		f[3*ng+i] = 1.0;
+		f[4*ng+i] = 1.0;
 	});
 }
 

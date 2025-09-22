@@ -7,6 +7,8 @@ __global__ void gpuTemplateStgHomoTurb2D(T *up, T *xdg, T *stgdata, T *uc, T t, 
     // loop over each grid point
     int m = threadIdx.x + blockIdx.x * blockDim.x;
     while (m < M) {  
+
+    // for m = 1:M    
         
         T un = 0.0;
         T vn = 0.0;

@@ -2414,6 +2414,164 @@ void FaceGeom3D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
     });
 }
 
+void StgHomoTurb2D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+{	
+    Kokkos::parallel_for("StgHomoTurb2D", M, KOKKOS_LAMBDA(const size_t m) {
+        dstype un = 0.0;
+        dstype vn = 0.0;
+        dstype x0 = xdg[0*M+m];
+        dstype x1 = xdg[1*M+m];
+
+        // loop over wavenumbers
+        for (int n=0; n<N; n++) {
+            // wavenumber at mode n
+            dstype kn  = stgdata[0*N+n];
+            dstype amp = stgdata[1*N+n];
+
+            // random numbers
+            dstype phi = stgdata[2*N+n]; 
+            dstype dx = stgdata[3*N+n];
+            dstype dy = stgdata[4*N+n]; 
+            dstype sigmax  = stgdata[6*N+n];
+            dstype sigmay  = stgdata[7*N+n]; 
+            dstype omega = stgdata[9*N+n];
+            
+            // angle
+            dstype an = kn*(dx*(x0-uc[0]*t) + dy*(x1-uc[1]*t)) + phi + omega*t;
+            // Fourier mode
+            dstype bn = amp*cos(an);
+
+            // fluctuating velocity field
+            un = un + sigmax*bn;
+            vn = vn + sigmay*bn;
+        }
+
+        up[0*M+m] = un;
+        up[1*M+m] = vn;                           
+    });
+}
+
+void StgInflow2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+{
+    StgHomoTurb2D(up, xdg, stgdata, uc, t, M, N);
+
+    Kokkos::parallel_for("StgInflow2D", M, KOKKOS_LAMBDA(const size_t m) {
+        dstype gamma = param[0];
+        dstype rin = vdg[m+M*0];
+        dstype uin = vdg[m+M*1]/rin;
+        dstype vin = vdg[m+M*2]/rin;
+        dstype uan = sqrt(uin*uin+vin*vin);
+        dstype pin = (gamma-1)*(vdg[m+M*3]-rin*0.5*uan*uan);        
+
+        dstype ujn = uin + uan*up[m+M*0];
+        dstype vjn = vin + uan*up[m+M*1];
+        dstype rjn = rin - 2*rin*uan*up[m+M*0]/uin;
+        
+        fb[m+M*0] = rjn - uhg[m+M*0];
+        fb[m+M*1] = rjn*ujn - uhg[m+M*1]; 
+        fb[m+M*2] = rjn*vjn - uhg[m+M*2]; 
+        fb[m+M*3] = pin/(gamma-1) + 0.5*rjn*(ujn*ujn + vjn*vjn) - uhg[m+M*3];        
+    });
+}
+
+void StgHomoTurb3D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+{	
+    Kokkos::parallel_for("StgHomoTurb3D", M, KOKKOS_LAMBDA(const size_t m) {
+        dstype un = 0.0;
+        dstype vn = 0.0;
+        dstype wn = 0.0;
+        dstype x0 = xdg[0*M+m];
+        dstype x1 = xdg[1*M+m];
+        dstype x2 = xdg[2*M+m];
+
+        // loop over wavenumbers
+        for (int n=0; n<N; n++) {
+            // wavenumber at mode n
+            dstype kn  = stgdata[0*N+n];
+            dstype amp = stgdata[1*N+n];
+
+            // random numbers
+            dstype phi = stgdata[2*N+n]; 
+            dstype dx = stgdata[3*N+n];
+            dstype dy = stgdata[4*N+n]; 
+            dstype dz = stgdata[5*N+n];
+            dstype sigmax  = stgdata[6*N+n];
+            dstype sigmay  = stgdata[7*N+n]; 
+            dstype sigmaz = stgdata[8*N+n];
+            dstype omega = stgdata[9*N+n];
+            
+            // angle
+            dstype an = kn*(dx*(x0-uc[0]*t) + dy*(x1-uc[1]*t) + dz*(x2-uc[2]*t)) + phi + omega*t;
+            // Fourier mode
+            dstype bn = amp*cos(an);
+
+            // fluctuating velocity field
+            un = un + sigmax*bn;
+            vn = vn + sigmay*bn;
+            wn = wn + sigmaz*bn;                    
+        }
+
+        up[0*M+m] = un;
+        up[1*M+m] = vn;
+        up[2*M+m] = wn;         
+    });
+}
+
+void StgInflow3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+{
+    StgHomoTurb3D(up, xdg, stgdata, uc, t, M, N);
+
+    Kokkos::parallel_for("StgInflow3D", M, KOKKOS_LAMBDA(const size_t m) {
+        dstype gamma = param[0];
+        dstype rin = vdg[m+M*0];
+        dstype uin = vdg[m+M*1]/rin;
+        dstype vin = vdg[m+M*2]/rin;
+        dstype win = vdg[m+M*3]/rin;
+        dstype uan = sqrt(uin*uin+vin*vin+win*win);
+        dstype pin = (gamma-1)*(vdg[m+M*4]-rin*0.5*uan*uan);        
+
+        dstype ujn = uin + uan*up[m+M*0];
+        dstype vjn = vin + uan*up[m+M*1];
+        dstype wjn = win + uan*up[m+M*2];
+        dstype rjn = rin - 2*rin*uan*up[m+M*0]/uin;
+        
+        fb[m+M*0] = rjn - uhg[m+M*0];
+        fb[m+M*1] = rjn*ujn - uhg[m+M*1]; 
+        fb[m+M*2] = rjn*vjn - uhg[m+M*2]; 
+        fb[m+M*3] = rjn*wjn - uhg[m+M*3]; 
+        fb[m+M*4] = pin/(gamma-1) + 0.5*rjn*(ujn*ujn + vjn*vjn + wjn*wjn) - uhg[m+M*4];        
+    });
+}
+
+void StgInflowHDG(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd)
+{
+	if (nd == 1) {
+	}
+	else if (nd == 2) {
+        StgInflow2D(fb, up, xdg, vdg, uhg, param, stgdata, uc, t, M, N);
+    }
+    else {
+        StgInflow3D(fb, up, xdg, vdg, uhg, param, stgdata, uc, t, M, N);
+    }
+}
+
+void StgInflowHDG(dstype *fb, dstype *fb_uq, dstype *fb_w, dstype* fb_uh, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd, int ncu, int nc, int ncw)
+{
+	if (nd == 1) {
+	}
+	else if (nd == 2) {
+        StgInflow2D(fb, up, xdg, vdg, uhg, param, stgdata, uc, t, M, N);
+    }
+    else {
+        StgInflow3D(fb, up, xdg, vdg, uhg, param, stgdata, uc, t, M, N);
+    }
+
+    ArraySetValue(fb_uq, 0.0, M*ncu*nc);        
+    ArraySetValue(fb_uh, 0.0, M*ncu*ncu);
+    for (int i=0; i<ncu; i++) ArraySetValue(&fb_uh[M*(i+ncu*i)], -1.0, M);
+    if (ncw > 0) ArraySetValue(fb_w, 0.0, M*ncu*ncw);    
+}
+
 #endif  
 
 

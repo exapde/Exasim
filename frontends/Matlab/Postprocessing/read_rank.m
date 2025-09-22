@@ -22,4 +22,6 @@ if nargout > 3
     payload = reshape(payload, [n1, n2, n3, nsteps]);
 end
 
+fclose(fid);
+
 end

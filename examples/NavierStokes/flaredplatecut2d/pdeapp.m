@@ -3,7 +3,7 @@
 % Next, uncomment and run the below lines to obtain sol1 and av1
 
 % porder = 3;
-% mesh1 = mkmesh_flatcase2d(porder);
+% mesh1 = mkmesh_flatcase2d(porder, 131, 18, 71, 0.0008);
 % sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
 % av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
 
