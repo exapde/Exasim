@@ -11,7 +11,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;             % number of MPI processors
+pde.mpiprocs = 2;             % number of MPI processors
 pde.hybrid = 1;               % 0 -> LDG, 1 -> HDG
 pde.debugmode = 0;
 pde.nd = 2;
@@ -29,7 +29,7 @@ pde.saveSolBouFreq = 1;
 pde.ibs = 1;
 
 % create a grid of 8 by 8 on the unit square
-[mesh.p,mesh.t] = squaremesh(8,8,1,1);
+[mesh.p,mesh.t] = squaremesh(16,16,1,1);
 % mesht = mkmesh_square(8,8,pde.porder,0,1,1,1,1);
 % mesh.dgnodes = mesht.dgnodes;
 % expressions for domain boundaries
