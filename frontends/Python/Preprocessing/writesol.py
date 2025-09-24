@@ -1,21 +1,21 @@
 from numpy import *
 
-def writesol(filename,ifile,xdg, udg, odg, wdg):
+def writesol(filename,ifile,xdg, udg, vdg, wdg):
 
     
     ncx = xdg.shape[1];
 
-    if udg == []:
+    if isinstance(udg, list) and udg == []:
         ncu = 0;
     else:
         ncu = udg.shape[1];
     
-    if odg == []:
+    if isinstance(vdg, list) and vdg == []:
         nco = 0;
     else:
-        nco = odg.shape[1];
+        nco = vdg.shape[1];
     
-    if wdg == []:
+    if isinstance(wdg, list) and wdg == []:
         ncw = 0;
     else:
         ncw = wdg.shape[1];
@@ -30,7 +30,7 @@ def writesol(filename,ifile,xdg, udg, odg, wdg):
     nsize[1-1] = size(ndims);
     nsize[2-1] = size(xdg);
     nsize[3-1] = size(udg);
-    nsize[4-1] = size(odg);
+    nsize[4-1] = size(vdg);
     nsize[5-1] = size(wdg);
 
     if (ifile>0):
@@ -50,8 +50,8 @@ def writesol(filename,ifile,xdg, udg, odg, wdg):
         udg = array(udg).flatten(order = 'F');
         udg.astype('float64').tofile(fileID);
     if nsize[3]>0:
-        odg = array(odg).flatten(order = 'F');
-        odg.astype('float64').tofile(fileID);
+        vdg = array(vdg).flatten(order = 'F');
+        vdg.astype('float64').tofile(fileID);
     if nsize[4]>0:
         wdg = array(wdg).flatten(order = 'F');
         wdg.astype('float64').tofile(fileID);

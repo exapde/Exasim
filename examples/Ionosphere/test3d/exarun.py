@@ -89,11 +89,13 @@ mesh['boundaryexpr'] = [
 mesh['boundarycondition'] = numpy.array([1, 2]); # Set boundary condition for each boundary
 
 # Defining dipole magnetic field (test)
+npe, nd, ne = mesh['dgnodes'].shape
 x1 = mesh['dgnodes'][:,0,:]; x2 = mesh['dgnodes'][:,1,:]; x3 = mesh['dgnodes'][:,2,:]
 r = numpy.sqrt(x1**2 + x2**2 + x3**2)
 Bx = 3*x1*x3/r**2; By = 3*x2*x3/r**2; Bz = (3*x3**2 - r**2)/r**2
 Bx = Bx*(R0/r)**3; By = By*(R0/r)**3; Bz = Bz*(R0/r)**3
 
+mesh['vdg'] = numpy.zeros((npe,6,ne))
 mesh['vdg'][:,0,:] = Bx
 mesh['vdg'][:,1,:] = By
 mesh['vdg'][:,2,:] = Bz
