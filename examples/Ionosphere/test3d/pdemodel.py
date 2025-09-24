@@ -43,11 +43,15 @@ def flux(u, q, w, v, x, t, mu, eta):
 
 def source(u, q, w, v, x, t, mu, eta):
     gam = mu[0]
+    Ro = mu[1]
+
+    R0 = mu[8]
     x1 = x[0]
     x2 = x[1]
     x3 = x[2]
     r  = sqrt(x1**2 + x2**2 + x3**2)
-    g = 1.0/gam
+    g0 = 1/gam
+    g = g0*(R0/r)**2
 
     ln = u[0]
     u1 = u[1]
@@ -74,13 +78,32 @@ def source(u, q, w, v, x, t, mu, eta):
     u3z = -q[13]
     Tz  = -q[14]
 
+    # acceleration
+    ax = -g*x1/r + x1/Ro**2 + 2*u2/Ro
+    ay = -g*x2/r + x2/Ro**2 - 2*u1/Ro
+    az = -g*x3/r
 
+    # divergence of velocity
     divV = u1x + u2y + u3z
 
+    # Lorentz force: E + vxB
+    piE = mu[2]
+    piB = mu[3]
+    Bx = v[0]
+    By = v[1]
+    Bz = v[2]
+    Ex = v[3]
+    Ey = v[4]
+    Ez = v[5]
+    fLx = piE*Ex + piB*(u2*Bz - u3*By)
+    fLy = piE*Ey + piB*(u3*Bx - u1*Bz)
+    fLz = piE*Ez + piB*(u1*By - u2*Bx)
+
+    # source terms
     sln = (ln-1)*divV
-    su1 = -g*x1/r + divV*u1 - p*lnx
-    su2 = -g*x2/r + divV*u2 - p*lny
-    su3 = -g*x3/r + divV*u3 - p*lnz
+    su1 = ax + divV*u1 - p*lnx + fLx
+    su2 = ay + divV*u2 - p*lny + fLy
+    su3 = az + divV*u3 - p*lnz + fLz
     sT  = (2 - gam)*T*divV
 
     s = array([sln, su1, su2, su3, sT])
@@ -121,8 +144,8 @@ def initu(x, mu, eta):
 
     Tbot = 1.0
     Ttop = 5.0
-    R0 = mu[1]
-    H0 = mu[3]
+    R0 = mu[8]
+    H0 = mu[10]
     h0 = 40000.0/H0
     a0 = -1
 
