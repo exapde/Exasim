@@ -220,8 +220,11 @@ int main(int argc, char** argv)
     // re-query in case runtime changed
     cudaGetDeviceCount(&deviceCount);
     
+    char busid[64] = {0};
+    CHECK( cudaDeviceGetPCIBusId(busid, sizeof(busid), device) );
+
     std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", CUDA Device: " << device 
-              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+              << ", PCI: " << busid << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
 #endif                           
@@ -247,11 +250,16 @@ int main(int argc, char** argv)
     // re-query in case runtime changed
     hipGetDeviceCount(&deviceCount);
     
+    // Debug: print PCI bus ID + visibility masks to prove distinct physical GPUs
+    char busid[64] = {0};
+    CHECK( hipDeviceGetPCIBusId(busid, sizeof(busid), device) );
+
     // Print memory information
     std::cout << "MPI Rank: " << mpirank << ", Device Count: " << deviceCount << ", HIP Device: " << device 
-              << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
+              << ", PCI: " << busid << ", Available Memory: " << available / (1024.0 * 1024.0) << " MB"
               << ", Total Memory: " << total / (1024.0 * 1024.0) << " MB" 
               << std::endl;
+
 #endif
     
   Kokkos::initialize(argc, argv);

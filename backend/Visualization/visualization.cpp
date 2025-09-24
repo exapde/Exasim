@@ -1,9 +1,9 @@
 class CVisualization {
 public:
-    float* scafields;
-    float* vecfields;
-    float* tenfields;
-    float* srffields;
+    float* scafields=nullptr;
+    float* vecfields=nullptr;
+    float* tenfields=nullptr;
+    float* srffields=nullptr;
 
     // Geometry (owned; always 3D padded: [3 x npoints], column-major)
     std::vector<float>  cgnodes;
@@ -126,9 +126,9 @@ public:
             }
             else if (backend==3) { // GPU
             #ifdef HAVE_HIP        
-                hipTemplateHostMalloc(&scafields, npoints*nsca, cudaHostAllocMapped); // zero copy
-                hipTemplateHostMalloc(&vecfields, 3*npoints*nvec, cudaHostAllocMapped); // zero copy
-                hipTemplateHostMalloc(&tenfields, ntc*npoints*nten, cudaHostAllocMapped); // zero copy                
+                hipTemplateHostMalloc(&scafields, npoints*nsca, hipHostMallocMapped); // zero copy
+                hipTemplateHostMalloc(&vecfields, 3*npoints*nvec, hipHostMallocMapped); // zero copy
+                hipTemplateHostMalloc(&tenfields, ntc*npoints*nten, hipHostMallocMapped); // zero copy                
                 host_alloc_backend = 3;
             #endif                  
             }    
