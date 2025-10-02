@@ -249,6 +249,8 @@ L = simplify(Tinv * K);
 R = simplify(Kinv * T);
 An = simplify(L * Lambda * R);
 
+% An = |partial F_inv(uhat)/partial uhat x n| = L * |Lambda| * R
+
 % farfield boundary condition
 uinf = mu(5:8);      % freestream flow variables   
 fns = 0.5*((u(1:4)+uinf(:)) + An*(u(1:4)-uinf(:))) - uhat(1:4);     

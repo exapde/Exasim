@@ -2,10 +2,12 @@
 % First, you need to run /examples/NavierStokes/flaredplate2d/pdeapp.m
 % Next, uncomment and run the below lines to obtain sol1 and av1
 
-% porder = 3;
-% mesh1 = mkmesh_flatcase2d(porder, 131, 18, 71, 0.0008);
-% sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
-% av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
+nx2 = 111; nx3 = 15; nx4 = 61; dy = 0.0008;
+
+porder = 3;
+mesh1 = mkmesh_flatcase2d(porder, nx2, nx3, nx4, dy);
+sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
+av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
 
 % Finally, you run this script
 
@@ -56,7 +58,8 @@ pde.NLiter = 10;                % Newton iterations
 pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
 
 %mesh = mkmesh_flatcase2d(pde.porder);
-mesh = mkmesh_flatcase2d(pde.porder, 131, 18, 71, 0.0008);
+%mesh = mkmesh_flatcase2d(pde.porder, 131, 18, 71, 0.0008);
+mesh = mkmesh_flatcase2d(pde.porder, nx2, nx3, nx4, dy);
 % Inflow (left boundary), Wall (bottom boundary), Outflow (right boundary), Farfield (top boundary)
 mesh.boundarycondition = [1 4 3 2]; 
 

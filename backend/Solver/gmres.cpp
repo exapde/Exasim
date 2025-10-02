@@ -460,6 +460,14 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             // compute v[m] = A*v[i]
             disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, spatialScheme, backend);                        
             
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+            
             end = chrono::high_resolution_clock::now();   
             tm[0] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
             
@@ -474,6 +482,14 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
                 prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, spatialScheme, backend);   
             }
             
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+            
             end = chrono::high_resolution_clock::now();   
             tm[1] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
                         
@@ -485,6 +501,14 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             else
                 CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+            
             end = chrono::high_resolution_clock::now();   
             tm[2] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
             
@@ -495,6 +519,14 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             // compute relative error
             disc.common.linearSolverRelError = fabs(s[i+1])/nrmb;           
 
+#ifdef HAVE_CUDA
+    cudaDeviceSynchronize();
+#endif
+    
+#ifdef HAVE_HIP
+    hipDeviceSynchronize();
+#endif
+            
             //cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<endl;                         
             end = chrono::high_resolution_clock::now();   
             tm[3] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;                                

@@ -74,6 +74,21 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
         GetFaceNodes(tmp.tempn, sol.udg, mesh.facecon, npf, ncu, npe, nc, f1, f2, 0);
         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2);
     }
+    else if (ib == 1000) {
+        dstype *xgb = &tmp.tempg[0];
+        dstype *ogb = &tmp.tempg[nga*ncx];
+        
+        //GetFaceNodes(xgb, sol.xdg, mesh.facecon, npf, ncx, npe, ncx, f1, f2, 1);  
+        GetArrayAtIndex(xgb, sol.xdg, &mesh.findxdg1[npf*ncx*f1], nn*ncx);
+        if (nco>0) {
+            GetFaceNodes(ogb, sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1);       
+        }
+        
+        StgInflowLDG(tmp.tempn, xgb, ogb, app.physicsparam, app.stgdata, 
+                          app.stgparam, common.time, nga, common.stgNmode, common.nd);          
+
+        PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2);
+    }
     //else if (isin(ib, common.stgib, common.nstgib)) {        
 //     else if (ib <= 2) {        
 //         // synthetic turbulence generation    

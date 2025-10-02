@@ -320,7 +320,7 @@ int main(int argc, char** argv)
       return 1;
     }
     
-    printf("%d %d %d\n", mpirank, nummodels, mpiprocs0);
+    //printf("%d %d %d\n", mpirank, nummodels, mpiprocs0);
 
     for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files

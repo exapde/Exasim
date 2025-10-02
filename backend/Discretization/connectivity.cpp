@@ -1223,7 +1223,11 @@ void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const mas
 
     int ne = mesh.ndims[1];
     int nebmax = 4096; //mesh.ndims[6]; // maximum number of elements per block    
-    int nfbmax = 8192; //mesh.ndims[8]; // maximum number of faces per block     
+    int nfbmax = 8192; //mesh.ndims[8]; // maximum number of faces per block         
+    if (dim == 3) {
+        nebmax = 1024;
+        nfbmax = 2048;
+    }
 
     int hybrid = app.problem[0];
     int mpiprocs = app.comm[1];
