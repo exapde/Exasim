@@ -3,9 +3,9 @@
 % Next, uncomment and run the below lines to obtain sol1 and av1
 
 porder = 3;
-% mesh1 = mkmesh_flatcase2d(porder);
-% sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
-% av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
+mesh1 = mkmesh_flatcase2d(porder);
+sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
+av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
 
 % Finally, you run this script
 
@@ -58,7 +58,7 @@ pde.NLiter = 10;                % Newton iterations
 pde.matvectol=1e-6;             % tolerance for matrix-vector multiplication
 
 %temporal discretization 
-pde.dt = 5e-5*ones(1,2000);   % time step sizes
+pde.dt = 5e-5*ones(1,20000);   % time step sizes
 pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 %pde.visdt = 0.1; % visualization timestep size
 pde.nstage = 2;

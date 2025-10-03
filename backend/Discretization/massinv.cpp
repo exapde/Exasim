@@ -43,6 +43,8 @@ void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     Int nbe = common.nbe; // number of blocks for elements   
     Int neb = common.neb; // maximum number of elements per block
             
+    printf("common.curvedMesh = %d\n", common.curvedMesh);
+
     if (common.curvedMesh==0) { //straight mesh                        
         TemplateMalloc(&res.Mass, npe*npe+ne, backend);        
         TemplateMalloc(&res.Minv, npe*npe+ne, backend);
@@ -110,7 +112,7 @@ void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
             ArrayCopy(&res.Mass[npe*npe+mm], &res.Minv[npe*npe+mm], ns);
         }
         else {       
-            ShapJac(work, master.shapegt, &tmp.tempg[n2], nge, npe, ne); // fixed bug here                           
+            ShapJac(work, master.shapegt, &tmp.tempg[n2], nge, npe, ns); // fixed bug here                           
             Gauss2Node(handle, &res.Minv[npe*npe*mm], work, master.shapegw, nge, npe, npe*ns, backend);           
             ArrayCopy(&res.Mass[npe*npe*mm], &res.Minv[npe*npe*mm], npe*npe*ns);
             Inverse(handle, &res.Minv[npe*npe*mm], work, ipiv, npe, ns, backend);

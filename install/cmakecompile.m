@@ -49,7 +49,7 @@ else
 end
 
 eval(comstr);  
-eval("!cmake --build .");
+eval("!cmake --build . --verbose");
 
 cd(char(cdir));
 
