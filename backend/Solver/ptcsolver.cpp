@@ -244,6 +244,12 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
     if (disc.common.mpiRank==0)
         cout<<"PTC Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                    
     
+    // compute both the residual vector and sol.udg  
+    disc.evalResidual(sys.r, sys.u, backend);
+    nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
+    if (disc.common.mpiRank==0)
+        cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
+    
     // use PTC to solve the system: R(u) = 0
     for (it=1; it<maxit; it++) {                        
         //nrmrold = nrmr;
@@ -259,8 +265,8 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
 //        cudaDeviceSynchronize();
 // #endif         
        
-        if (status==1)
-           return it;
+        // if (status==1)
+        //    return it;
        
         // compute both the residual vector and sol.udg  
         disc.evalResidual(sys.r, sys.u, backend);

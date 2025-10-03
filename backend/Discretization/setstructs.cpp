@@ -1008,6 +1008,9 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     setcommonstruct(common, happ, hmaster, hmesh, 
             hcommon.filein, hcommon.fileout, hcommon.curvedMesh, hcommon.fileoffset);        
     
+    int mpirank = hcommon.mpiRank;
+    if (mpirank==0) printf("Finish setting common struct... \n");
+
     if (common.spatialScheme > 0) {
 //       if (common.nelemsend > 0) {
 //         TemplateMalloc(&mesh.interfacefaces, common.nelemsend, common.backend);       

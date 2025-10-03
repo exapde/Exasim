@@ -43,13 +43,16 @@
 #ifndef __GETUHAT
 #define __GETUHAT
 
-int isin(Int ib, Int *a, Int n)
+bool isin(Int ib, Int *a, Int n)
 {
-    Int in = 0;
-    for (int i=0; i<n; i++)        
-        if (ib == a[i])
-            in = 1;
-        
+    bool in = false;
+    for (int i=0; i<n; i++) {        
+        if (ib == a[i]) {
+            in = true;
+            break;
+        }
+    }
+
     return in;
 }        
 
@@ -74,14 +77,15 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
         GetFaceNodes(tmp.tempn, sol.udg, mesh.facecon, npf, ncu, npe, nc, f1, f2, 0);
         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2);
     }
-    else if (ib == 1000) {
+    else if (isin(ib, common.stgib, common.nstgib)) {        
+        //if (common.mpiRank==0 && ib > 0) printf("ib = %d \n", ib);
         dstype *xgb = &tmp.tempg[0];
         dstype *ogb = &tmp.tempg[nga*ncx];
-        
+
         //GetFaceNodes(xgb, sol.xdg, mesh.facecon, npf, ncx, npe, ncx, f1, f2, 1);  
         GetArrayAtIndex(xgb, sol.xdg, &mesh.findxdg1[npf*ncx*f1], nn*ncx);
         if (nco>0) {
-            GetFaceNodes(ogb, sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1);       
+            GetFaceNodes(ogb, sol.odg, mesh.facecon, npf, ncu, npe, nco, f1, f2, 1);      
         }
         
         StgInflowLDG(tmp.tempn, xgb, ogb, app.physicsparam, app.stgdata, 
@@ -142,7 +146,7 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
 // //         cout<<common.stgNmode<<endl;
 // //         error("here");        
 //     }
-    else {
+    else {        
         //GetFaceNodes(tmp.tempn, sol.xdg, mesh.facecon, npf, ncx, npe, ncx, f1, f2, 1, backend);            
         //Node2Gauss(handle, &tmp.tempg[n0], tmp.tempn, master.shapfnt, npf, npf, nf*ncx, backend);    
         GetArrayAtIndex(tmp.tempn, sol.xdg, &mesh.findxdg1[npf*ncx*f1], nn*ncx);
@@ -165,9 +169,9 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
         //GetFaceNodes(&tmp.tempg[n4], sol.udg, mesh.facecon, npf, nc, npe, nc, f1, f2, 1, backend);
         GetArrayAtIndex(&tmp.tempg[n4], sol.udg, &mesh.findudg1[npf*nc*f1], nn*nc);
         
-        //if (nco>0) {
-        //    GetFaceNodes(&tmp.tempg[n5], sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1,backend);       
-        //}
+        if (nco>0) {
+            GetFaceNodes(&tmp.tempg[n5], sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1);       
+        }
                 
         UbouDriver(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n3], 
                  &tmp.tempg[n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
