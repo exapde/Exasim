@@ -118,7 +118,7 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, o
     begin = chrono::high_resolution_clock::now();      
 #endif    
     disc.common.linearSolverIter = GMRES(sys, disc, prec, backend);  
-    if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
+    if (disc.common.mpiRank==0)             
         printf("GMRES converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);        
     
 #ifdef TIMING        
@@ -381,10 +381,13 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
     auto end = chrono::high_resolution_clock::now();
     double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
     
-    if (disc.common.mpiRank==0)  printf("GMRES time: %g miliseconds\n", t1);
-    
-    if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
+    if (disc.common.mpiRank==0)  {
+        printf("GMRES time: %g miliseconds\n", t1);
         printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
+    }
+    
+    //if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
+    //    printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
 }
 
 Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
