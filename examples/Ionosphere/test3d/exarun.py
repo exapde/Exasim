@@ -21,7 +21,7 @@ pde['platform'] = "gpu"
 pde['mpiprocs'] = 4
 pde['cpucompiler']  = "CC"
 pde['mpicompiler'] = "CC"
-pde['gpucompiler'] = "nvcc_wrapper"
+pde['gpucompiler'] = cdir[0:(ii+6)] + "/kokkos/bin/nvcc_wrapper" # e.g. /path_to_kokkos/bin/nvcc_wrapper
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['nd'] = 3
