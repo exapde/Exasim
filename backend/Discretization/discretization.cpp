@@ -358,16 +358,16 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
 
       // compute uhat by getting u on faces
         // std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh<<endl;
-        if (!common.read_uh){
-            if (common.mpiRank==0) 
-                printf("===============================Constructing uh==========================\n");
-            GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
-        }
-        else {
-            if (common.mpiRank==0) 
-                printf("================================Reading uh==============================\n");
-            // print2darray(sol.uh, npf*ncu*10, 2);
-        }
+      if (!common.read_uh){
+          if (common.mpiRank==0) 
+              printf("===============================Constructing uh==========================\n");
+          GetFaceNodes(sol.uh, sol.udg, mesh.f2e, mesh.perm, npf, ncu, npe, nc, nf);
+      }
+      else {
+          if (common.mpiRank==0) 
+              printf("================================Reading uh==============================\n");
+          // print2darray(sol.uh, npf*ncu*10, 2);
+      }
 
       if (common.mpiRank==0) 
         printf("Finish GetFaceNodes ... \n");        

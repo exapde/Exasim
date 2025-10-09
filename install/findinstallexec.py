@@ -60,7 +60,7 @@ def findinstallexec(filename, appname, brew, searchopt):
 
         elif platform == "linux" or platform == "linux2":
             print("Installing " +  appname +  " via apt.\n");
-            os.system("sudo apt install " +  appname);
+            os.system("conda install " +  appname);
         elif platform == "win32":
             print("Installing " +  appname +  " via apt.\n");
             os.system("sudo apt install " +  appname);

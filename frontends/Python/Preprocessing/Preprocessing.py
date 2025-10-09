@@ -82,14 +82,30 @@ def preprocessing(app,mesh):
         app['ncu'] = len(udgsym);
     else:
         sys.exit('pdemodel.initu is not defined')
+    
     if hasattr(pdemodel, 'initv'):
         vdgsym = pdemodel.initv(xdgsym,paramsym,uinfsym);
         app['nco'] = len(vdgsym);
+    elif 'vdg' in mesh and mesh['vdg'] is not None and len(mesh['vdg']) > 0:
+        if isinstance(mesh['vdg'], ndarray):
+            app['nco'] = mesh['vdg'].shape[1]
+        elif isinstance(mesh['vdg'], list):
+            app['nco'] = len(mesh['vdg'])
+        else:
+            app['nco'] = 0
     else:
         app['nco'] = 0;
+    
     if hasattr(pdemodel, 'initw'):
         wdgsym = pdemodel.initw(xdgsym,paramsym,uinfsym);
         app['ncw'] = len(wdgsym);
+    elif 'wdg' in mesh and mesh['wdg'] is not None and len(mesh['wdg']) > 0:
+        if isinstance(mesh['wdg'], ndarray):
+            app['ncw'] = mesh['wdg'].shape[1]
+        elif isinstance(mesh['wdg'], list):
+            app['ncw'] = len(mesh['wdg'])
+        else:
+            app['ncw'] = 0
     else:
         app['ncw'] = 0;
 
@@ -177,10 +193,10 @@ def preprocessing(app,mesh):
         else:
             udg = mesh['udg'][:, :, dmd[i]['elempart']]   
             
-        if isinstance(mesh['odg'], list):
-            odg = []   
+        if isinstance(mesh['vdg'], list):
+            vdg = []   
         else:
-            odg = mesh['odg'][:, :, dmd[i]['elempart']]   
+            vdg = mesh['vdg'][:, :, dmd[i]['elempart']]   
             
         if isinstance(mesh['wdg'], list):
             wdg = []
@@ -188,9 +204,9 @@ def preprocessing(app,mesh):
             wdg = mesh['wdg'][:, :, dmd[i]['elempart']]   
             
         if mpiprocs==1:
-            writesol(filename + "/sol",0,xdg, udg, odg, wdg);
+            writesol(filename + "/sol",0,xdg, udg, vdg, wdg);
         else:
-            writesol(filename + "/sol",i+1,xdg, udg, odg, wdg);
+            writesol(filename + "/sol",i+1,xdg, udg, vdg, wdg);
 
         if app['Cxxpreprocessing'] == 0:
             cgelcon,rowent2elem,colent2elem,cgent2dgent = mkcgent2dgent(xdg,1e-8)[0:4];
