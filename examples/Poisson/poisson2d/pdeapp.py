@@ -39,7 +39,7 @@ sol, pde, mesh  = Postprocessing.exasim(pde,mesh)[0:3];
 # visualize the numerical solution of the PDE model using Paraview
 pde['visscalars'] = ["temperature", 0]; # list of scalar fields for visualization
 pde['visvectors'] = ["temperature gradient", numpy.array([1, 2]).astype(int)]; # list of vector fields for visualization
-# Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
+Postprocessing.vis(sol,pde,mesh); # visualize the numerical solution
 print("Done!");
 
 
