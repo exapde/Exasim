@@ -21,7 +21,7 @@ pde['platform'] = "gpu"
 pde['mpiprocs'] = 4
 pde['cpucompiler']  = "CC"
 pde['mpicompiler'] = "CC"
-pde['gpucompiler'] = "/glade/work/jvilap/Exasim/kokkos/bin/nvcc_wrapper"
+pde['gpucompiler'] = "nvcc_wrapper"
 
 # Set discretization parameters, physical parameters, and solver parameters
 pde['nd'] = 3

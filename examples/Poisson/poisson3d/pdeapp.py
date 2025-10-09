@@ -28,12 +28,9 @@ pde['linearsolveriter'] = 1000;
 pde['preconditioner'] = 1; 
 
 # Choose computing platform and set number of processors
-pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
-pde['mpiprocs'] = 4;        # number of MPI processors
+# pde['platform'] = "gpu";   # choose this option if NVIDIA GPUs are available
+pde['mpiprocs'] = 1;        # number of MPI processors
 pde['hybrid'] = 1;          # 0 -> LDG, 1 -> HDG
-pde['cpucompiler']  = "CC"
-pde['mpicompiler'] = "CC"
-pde['gpucompiler'] = "/glade/work/jvilap/Exasim/kokkos/bin/nvcc_wrapper"
 
 # create a mesh of 8 by 8 by 8 hexes for a unit cube
 mesh['p'], mesh['t'] = Mesh.cubemesh(16,16,16,1)[0:2];
@@ -42,27 +39,7 @@ mesh['boundaryexpr'] = [lambda p: (p[1,:] < 1e-3), lambda p: (p[0,:] > 1-1e-3), 
 mesh['boundarycondition'] = numpy.array([1, 1, 1, 1, 1, 1]); # Set boundary condition for each boundary
 
 # call exasim to generate and run C++ code to solve the PDE model
-# sol, pde, mesh  = Postprocessing.exasim(pde,mesh)[0:3];
-
-# search compilers and set options
-pde = Gencode.setcompilers(pde)
-
-# generate input files and store them in datain folder
-pde, mesh, master, dmd = Preprocessing.preprocessing(pde,mesh)
-
-# generate source codes and store them in app folder
-Gencode.gencode(pde)
-
-# compile source codes to build an executable file and store it in build folder
-compilerstr = Gencode.cmakecompile(pde)
-
-# Run code
-pde['mpirun'] = "mpirun"; # command to run MPI programs
-runstr = Gencode.runcode(pde, 1)
-
-# get solution from output files in dataout folder
-pde['vistime'] = [];
-sol = Postprocessing.fetchsolution(pde,master,dmd, pde['buildpath'] + "/dataout");
+sol, pde, mesh  = Postprocessing.exasim(pde,mesh)[0:3];
 
 # visualize the numerical solution of the PDE model using Paraview
 #pde['paraview'] = "/Applications/ParaView-5.8.1.app/Contents/MacOS/paraview"; # Set the path to Paraview executable
