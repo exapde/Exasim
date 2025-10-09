@@ -310,7 +310,7 @@ template <typename T> void writearray(ofstream &out, T *a, Int N, Int backend)
             a_host = (T*) malloc (sizeof (T)*N);            
             
             // transfer data from GPU to CPU to save in a file
-            cudaMemcpy(&a_host[0], &a[0], N*sizeof(T), cudaMemcpyDeviceToHost);    
+            cudaMemcpy(a_host, a, N*sizeof(T), cudaMemcpyDeviceToHost);    
             
             out.write( reinterpret_cast<char*>( &a_host[0] ), sizeof(T) * N );
             
@@ -323,7 +323,7 @@ template <typename T> void writearray(ofstream &out, T *a, Int N, Int backend)
             a_host = (T *)malloc(sizeof(T) * N);
 
             // Transfer data from GPU to CPU to save in a file
-            CHECK(hipMemcpy(&a_host[0], &a[0], N * sizeof(T), hipMemcpyDeviceToHost));
+            hipMemcpy(a_host, a, N * sizeof(T), hipMemcpyDeviceToHost);
 
             // Write to file
             out.write(reinterpret_cast<char *>(&a_host[0]), sizeof(T) * N);
@@ -464,7 +464,7 @@ template <typename T> void writearray2file(string filename, T *a, Int N, Int bac
             a_host = (T *)malloc(sizeof(T) * N);
 
             // Transfer data from GPU to CPU to save in a file
-            CHECK(hipMemcpy(&a_host[0], &a[0], N * sizeof(T), hipMemcpyDeviceToHost));
+            hipMemcpy(a_host, a, N * sizeof(T), hipMemcpyDeviceToHost);
 
             // Write to file
             out.write(reinterpret_cast<char *>(&a_host[0]), sizeof(T) * N);

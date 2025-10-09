@@ -3,15 +3,14 @@ function dmd = facepartition2(dmd,t,f,bcm,dim,elemtype,porder,nproc)
 
 for i = 1:nproc
     disp(['face partition ' num2str(i)]); 
-    dmd{i}.bf = f(:,dmd{i}.elempart);
+    fi = f(:,dmd{i}.elempart); % fix bug here
+    dmd{i}.bf = 0*f(:,dmd{i}.elempart);
     for j=1:length(bcm)
-      ind = dmd{i}.bf==j;
+      ind = fi==j;
       dmd{i}.bf(ind) = bcm(j);
-    end
-    
-    fi = f(:,dmd{i}.elempart);
-    f2t = mkf2t(t(:,dmd{i}.elempart),elemtype,dim);
-    
+    end      
+        
+    f2t = mkf2t(t(:,dmd{i}.elempart),elemtype,dim);    
     % only on [intelem bndelem extelem]
     nelem = dmd{i}.elempartpts;
     if numel(nelem)>=3
@@ -23,19 +22,19 @@ for i = 1:nproc
     % reorder so that boundary faces are last
     ina = find(f2t(3,:)>0); % interior faces
     inb = find(f2t(3,:)==0); % boundary faces
-    % inc = sub2ind(size(fi), f2t(2,inb), f2t(1,inb));
-    % fb = fi(inc); % list of boundary indices
-    % 
-    % % for i = 1:length(inb)
-    % %   b = inb(i);
-    % %   e1 = f2t(1,b);
-    % %   l1 = f2t(2,b);
-    % %   fb(i) = fi(l1, e1);
-    % % end
-    % % bcn = bcm(fb);
-    % % [b,ind]=sort(bcn);
-    % % f2t = f2t(:,[ina inb(ind)]);
-    % 
+    %inc = sub2ind(size(fi), f2t(2,inb), f2t(1,inb));
+    %fb = fi(inc); % list of boundary indices
+    
+    % for i = 1:length(inb)
+    %   b = inb(i);
+    %   e1 = f2t(1,b);
+    %   l1 = f2t(2,b);
+    %   fb(i) = fi(l1, e1);
+    % end
+    % bcn = bcm(fb);
+    % [b,ind]=sort(bcn);
+    % f2t = f2t(:,[ina inb(ind)]);
+
     % fa = unique(fb); % boundary indices    
     % bcn = unique(bcm(fa)); % a list of boundary conditions
     % nbc = length(bcn);

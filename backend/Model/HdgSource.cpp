@@ -3,13 +3,15 @@ void HdgSource(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const
 	Kokkos::parallel_for("Source", ng, KOKKOS_LAMBDA(const size_t i) {
 		dstype xdg1 = xdg[0*ng+i];
 		dstype xdg2 = xdg[1*ng+i];
+		dstype xdg3 = xdg[2*ng+i];
 		{
-		f[0*ng+i] = sin(xdg1*3.141592653589793)*sin(xdg2*3.141592653589793)*1.973920880217872E+1;
+		f[0*ng+i] = sin(xdg1*3.141592653589793)*sin(xdg2*3.141592653589793)*sin(xdg3*3.141592653589793)*2.960881320326807E+1;
 		}
 		{
 		f_udg[0*ng+i] = 0.0;
 		f_udg[1*ng+i] = 0.0;
 		f_udg[2*ng+i] = 0.0;
+		f_udg[3*ng+i] = 0.0;
 		}
 	});
 }

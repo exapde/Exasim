@@ -1223,7 +1223,11 @@ void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const mas
 
     int ne = mesh.ndims[1];
     int nebmax = 4096; //mesh.ndims[6]; // maximum number of elements per block    
-    int nfbmax = 8192; //mesh.ndims[8]; // maximum number of faces per block     
+    int nfbmax = 8192; //mesh.ndims[8]; // maximum number of faces per block         
+    if (dim == 3) {
+        nebmax = 1024;
+        nfbmax = 2048;
+    }
 
     int hybrid = app.problem[0];
     int mpiprocs = app.comm[1];
@@ -1397,7 +1401,8 @@ void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstruct& ap
     int nfbmax = mesh.ndims[8]; // maximum number of faces per block     
 
     int hybrid = app.problem[0];
-    int mpiprocs = app.comm[1];
+    //int mpiprocs = app.comm[1];
+    int mpiprocs = app.ndims[1];
     int coupledinterface = app.problem[28];
 
     int ne1 = ne;    
@@ -1421,7 +1426,8 @@ void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstruct& ap
               permind, boundaryConditions, dim, elemtype, nve, nvf, nfe, 
               npf, npe, ne, ne1, nbcm);       
 
-    //print2iarray(conn.f2e, nfe, nf);
+    // print2iarray(conn.f2e, nfe, nf);
+    // printf("%d %d %d %d\n", nfe, nf, mpiprocs, coupledinterface);
 
     int nbe = 0;
     if (mpiprocs==1) {

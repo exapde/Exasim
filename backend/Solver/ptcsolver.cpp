@@ -118,7 +118,7 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, o
     begin = chrono::high_resolution_clock::now();      
 #endif    
     disc.common.linearSolverIter = GMRES(sys, disc, prec, backend);  
-    if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
+    if (disc.common.mpiRank==0)             
         printf("GMRES converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);        
     
 #ifdef TIMING        
@@ -244,6 +244,12 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
     if (disc.common.mpiRank==0)
         cout<<"PTC Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                    
     
+    // compute both the residual vector and sol.udg  
+    disc.evalResidual(sys.r, sys.u, backend);
+    nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
+    if (disc.common.mpiRank==0)
+        cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
+    
     // use PTC to solve the system: R(u) = 0
     for (it=1; it<maxit; it++) {                        
         //nrmrold = nrmr;
@@ -259,8 +265,8 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
 //        cudaDeviceSynchronize();
 // #endif         
        
-        if (status==1)
-           return it;
+        // if (status==1)
+        //    return it;
        
         // compute both the residual vector and sol.udg  
         disc.evalResidual(sys.r, sys.u, backend);
@@ -375,10 +381,13 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
     auto end = chrono::high_resolution_clock::now();
     double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
     
-    if (disc.common.mpiRank==0)  printf("GMRES time: %g miliseconds\n", t1);
-    
-    if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
+    if (disc.common.mpiRank==0)  {
+        printf("GMRES time: %g miliseconds\n", t1);
         printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
+    }
+    
+    //if ((disc.common.linearSolverRelError <= disc.common.linearSolverTol*disc.common.linearSolverTolFactor) && (disc.common.mpiRank==0))             
+    //    printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
 }
 
 Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       

@@ -43,8 +43,8 @@ if isstruct(BE)
     b = b(:);
   elseif isfield(BE,'row_ptr')
     [neb, nfeb] = size(BE.face);
-    ncf = size(BE.A,1);
-    b1 = faceextract(reshape(b,ncf,[]), BE.face);
+    ncf = size(BE.A,1);   
+    b1 = faceextract(reshape(b,ncf,[]), BE.face); % ncf * nb * nfb
 %     for i = 1:neb
 %       tm = block_ilu0_solve(BE.row_ptr, BE.col_ind, BE.A(:,:,:,i), reshape(b1(:,i,:), [ncf*nfeb 1]));
 %       b1(:,i,:) = reshape(tm, [ncf 1 nfeb]);

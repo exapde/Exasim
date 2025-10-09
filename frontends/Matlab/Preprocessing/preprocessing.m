@@ -1,5 +1,7 @@
 function [app,mesh,master,dmd] = preprocessing(app,mesh)
 
+%app.Cxxpreprocessing = 0;
+
 coupledinterface = 0;
 coupledcondition = 0;
 coupledboundarycondition = 0;
@@ -370,7 +372,7 @@ for i = 1:mpiprocs
     ti = mesh.tprd(:,dmd{i}.elempart)-1;
     nsize(27) = length(ti(:));         
     nsize(28) = length(app.boundaryconditions(:));         
-    if coupledinterface>0 && isfield(app, 'intepartpts')    
+    if coupledinterface>0 && isfield(dmd{i}, 'intepartpts')    
         nsize(29) = length(dmd{i}.intepartpts(:));    
     end
     
@@ -420,7 +422,7 @@ for i = 1:mpiprocs
     end                
     fwrite(fileID2,ti(:),'double',endian);         
     fwrite(fileID2,app.boundaryconditions(:),'double',endian);             
-    if coupledinterface>0 && isfield(app, 'intepartpts')    
+    if coupledinterface>0 && isfield(dmd{i}, 'intepartpts')    
         fwrite(fileID2,dmd{i}.intepartpts(:),'double',endian);       
     end    
     fclose(fileID2);             

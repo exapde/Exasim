@@ -146,3 +146,4 @@ backend/Model/KokkosFlux.cpp
 examples/NavierStokes/flaredplatecut2d/sol.mat
 *.mat
 /examples/MongeAmpere/squarestokes
+/examples/NavierStokes/flaredplatecut3d

@@ -16,13 +16,13 @@ pde.hybrid = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;          % polynomial degree
-pde.physicsparam = [0.01 0 1 0.5 0];    % unit thermal conductivity
+pde.physicsparam = [0.005 0 1 0.5 0];    % unit thermal conductivity
 pde.tau = 1.0;           % DG stabilization parameter
 pde.linearsolvertol = 1e-4;
 pde.ppdegree = 10;
 
 % create a grid of 8 by 8 on the unit square
-[mesh.p,mesh.t] = squaremesh(32,32,1,1);
+[mesh.p,mesh.t] = squaremesh(16,16,1,1);
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-1)<1e-8, @(p) abs(p(2,:)-1)<1e-8, @(p) abs(p(1,:))<1e-8};
 mesh.boundarycondition = [1;1;2;1]; % Set boundary condition for each boundary

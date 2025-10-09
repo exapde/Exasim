@@ -211,7 +211,11 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     if (common.mpiRank==0) printf("finish compGeometry... \n");        
 
     // compute the inverse of the mass matrix
-    if (common.spatialScheme == 0) compMassInverse(backend);    
+    if (common.spatialScheme == 0) {
+        if (common.mpiRank==0) printf("start compMassInverse... \n");
+        compMassInverse(backend);    
+        if (common.mpiRank==0) printf("finish compMassInverse... \n");        
+    }
     
     // moved from InitSolution to here
     if ((common.ncq>0) && (common.wave==0) && (common.spatialScheme == 0)) evalQSer(backend); 
@@ -395,6 +399,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
           printf("Finish hdgGetQ ... \n");        
       }
     }
+
     if (common.mpiRank==0) {
       if (common.debugMode==1) {
         common.printinfo();

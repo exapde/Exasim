@@ -1271,7 +1271,7 @@ void AssembleBlockILU0(dstype* BE, const dstype* AE, const int* f2e, const int* 
     int R = ncf*ncf;
     int S = R*nb;
     int N = S*nf;
-    Kokkos::parallel_for("AssembleCRSMatrix", N, KOKKOS_LAMBDA(const size_t idx) {
+    Kokkos::parallel_for("AssembleBlockILU0", N, KOKKOS_LAMBDA(const size_t idx) {
         int m = idx%ncf; // [0, ncf] 
         int k = idx/ncf; // [0, ncf*nb*nf)
         int n = k%ncf;   // [0, ncf)
@@ -2570,6 +2570,67 @@ void StgInflowHDG(dstype *fb, dstype *fb_uq, dstype *fb_w, dstype* fb_uh, dstype
     ArraySetValue(fb_uh, 0.0, M*ncu*ncu);
     for (int i=0; i<ncu; i++) ArraySetValue(&fb_uh[M*(i+ncu*i)], -1.0, M);
     if (ncw > 0) ArraySetValue(fb_w, 0.0, M*ncu*ncw);    
+}
+
+void StgInflowLDG2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+{
+    StgHomoTurb2D(up, xdg, stgdata, uc, t, M, N);
+
+    Kokkos::parallel_for("StgInflowLDG2D", M, KOKKOS_LAMBDA(const size_t m) {
+        dstype gamma = param[0];
+        dstype rin = vdg[m+M*0];
+        dstype uin = vdg[m+M*1]/rin;
+        dstype vin = vdg[m+M*2]/rin;
+        dstype uan = sqrt(uin*uin+vin*vin);
+        dstype pin = (gamma-1)*(vdg[m+M*3]-rin*0.5*uan*uan);        
+
+        dstype ujn = uin + uan*up[m+M*0];
+        dstype vjn = vin + uan*up[m+M*1];
+        dstype rjn = rin - 2*rin*uan*up[m+M*0]/uin;
+        
+        fb[m+M*0] = rjn;
+        fb[m+M*1] = rjn*ujn; 
+        fb[m+M*2] = rjn*vjn; 
+        fb[m+M*3] = pin/(gamma-1) + 0.5*rjn*(ujn*ujn + vjn*vjn);        
+    });
+}
+
+void StgInflowLDG3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+{
+    StgHomoTurb3D(up, xdg, stgdata, uc, t, M, N);
+
+    Kokkos::parallel_for("StgInflowLDG3D", M, KOKKOS_LAMBDA(const size_t m) {
+        dstype gamma = param[0];
+        dstype rin = vdg[m+M*0];
+        dstype uin = vdg[m+M*1]/rin;
+        dstype vin = vdg[m+M*2]/rin;
+        dstype win = vdg[m+M*3]/rin;
+        dstype uan = sqrt(uin*uin+vin*vin+win*win);
+        dstype pin = (gamma-1)*(vdg[m+M*4]-rin*0.5*uan*uan);        
+
+        dstype ujn = uin + uan*up[m+M*0];
+        dstype vjn = vin + uan*up[m+M*1];
+        dstype wjn = win + uan*up[m+M*2];
+        dstype rjn = rin - 2*rin*uan*up[m+M*0]/uin;
+        
+        fb[m+M*0] = rjn;
+        fb[m+M*1] = rjn*ujn; 
+        fb[m+M*2] = rjn*vjn; 
+        fb[m+M*3] = rjn*wjn; 
+        fb[m+M*4] = pin/(gamma-1) + 0.5*rjn*(ujn*ujn + vjn*vjn + wjn*wjn);        
+    });
+}
+
+void StgInflowLDG(dstype *fb, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd)
+{
+	if (nd == 1) {
+	}
+	else if (nd == 2) {
+        StgInflowLDG2D(fb, xdg, xdg, vdg, param, stgdata, uc, t, M, N);
+    }
+    else {
+        StgInflowLDG3D(fb, xdg, xdg, vdg, param, stgdata, uc, t, M, N);
+    }
 }
 
 #endif  

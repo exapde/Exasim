@@ -165,6 +165,8 @@ else()
     target_link_directories(cpuEXASIM PRIVATE ${Model_LIB_DIR})
     target_link_libraries(cpuEXASIM PRIVATE Kokkos::kokkos ${lapackblas_libraries})
     target_compile_options(cpuEXASIM PRIVATE -std=c++17 -w -O2)
+    #target_compile_options(cpuEXASIM PRIVATE -std=c++17 -fsanitize=address,undefined -fno-omit-frame-pointer -g)
+    #target_link_options(cpuEXASIM PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
 
     if(WITH_TEXT2CODE)
       add_executable(cput2cEXASIM ${MAIN_SOURCES})

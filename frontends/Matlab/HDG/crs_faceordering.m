@@ -9,6 +9,9 @@ nfe = max(nfe1, nfe2);
 
 e2f = mke2f(f2e, nfe, ne);
 nfe = size(e2f,1);
+
+% nb = number of subdomains
+% ne = number of elements per subdomain
 [nb, ne] = size(elem);
 
 [felem, nfelem] = mkfelem(e2f, elem(1,:), nfe, ne);
@@ -19,6 +22,9 @@ f2eelem = facereorder(f2eelem);
 
 [row_ptr, col_ind] = crs_array(f2eelem, nfe, ne, nfelem);
 
+% nb = number of subdomains
+% nfelem = number of faces per subdmain 
+% face = global faces for each subdomain
 face = mkface(e2f, elem, f2eelem, nb, nfelem);
 
 % e2felem = e2f(:,elem(1,:));

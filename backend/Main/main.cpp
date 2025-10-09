@@ -28,10 +28,10 @@
  *   restart     - (Optional) Restart timestep.
  *
  * Dependencies:
- *   - MPI, OpenMP, CUDA, HIP, Kokkos, and various custom headers/classes.
+ *   - MPI, CUDA, HIP, Kokkos, and various custom headers/classes.
  *
  * Author: Exasim Team
- * Date: 2024
+ * Date: 2025
  */
 #include <string>
 #include <fstream>
@@ -302,12 +302,12 @@ int main(int argc, char** argv)
     }
           
     // Validate argument count for file pairs
-    int required = 2*nummodels + 2; // exe, nummodels, then 2 per model
-    if (argc < required) {
-        if (mpirank==0) std::cerr << "Expected " << (2*nummodels) 
-                                   << " file arguments (in/out per model)" << std::endl;
-        return 1;
-    }
+    // int required = 2*nummodels + 2; // exe, nummodels, then 2 per model
+    // if (argc < required) {
+    //     if (mpirank==0) std::cerr << "Expected " << (2*nummodels) 
+    //                                << " file arguments (in/out per model)" << std::endl;
+    //     return 1;
+    // }
       
     // two-physics and two-domain problems      
     if (nummodels>100) {
@@ -320,6 +320,8 @@ int main(int argc, char** argv)
       return 1;
     }
     
+    //printf("%d %d %d\n", mpirank, nummodels, mpiprocs0);
+
     for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files
         fileout[i]  = string(argv[2*i+3]); // output files        

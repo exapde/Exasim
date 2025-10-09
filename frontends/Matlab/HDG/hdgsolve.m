@@ -98,7 +98,7 @@ else
 %     end
     BE.A = crs_fullassembly(AE, reshape(mesh.elcon, [npf nfe ne]), mesh.f2t, BE.face, BE.row_ptr, BE.col_ind, ncu, npf, nfe);      
     %BE.A = crs_blockilu0(BE.row_ptr, BE.col_ind, BE.A);       
-    BE.A = crs_parblockilu0(ind_ii, ind_ji, ind_jl, ind_il, num_ji, num_jl, BE.A);
+    BE.A = crs_parblockilu0(ind_ii, ind_ji, ind_jl, ind_il, num_ji, num_jl, BE.A); % ncf * ncf * nb * nilublocks
   elseif pde.denseblock==7
     [BE.row_ptr, BE.col_ind, BE.face, ~, BE.row_ptr2, BE.col_ind2, ~, BE.color, BE.idr1, BE.idr2, BE.idr3, BE.idx1, BE.idx2, BE.idx3] = facereordering(mesh.elem, mesh.t, mesh.t2f, mesh.elemtype, size(mesh.p,1));    
     count1 = size(BE.idr1,2);

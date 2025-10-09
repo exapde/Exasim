@@ -17,7 +17,7 @@ pde.debugmode = 0;
 
 lambda  = 400889.806/100;
 mu      = 80.194;
-tau     = 10000; 
+tau     = 20000; 
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;             % polynomial degree
@@ -33,7 +33,7 @@ pde.preconditioner = 1;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
 elemtype = 1;
-[mesh.p,mesh.t] = squaremesh(16,16,1,elemtype);
+[mesh.p,mesh.t] = squaremesh(32,32,1,elemtype);
 mesh.p(1,:) = 20*mesh.p(1,:);
 mesh.p(2,:) = 10*mesh.p(2,:);
 
