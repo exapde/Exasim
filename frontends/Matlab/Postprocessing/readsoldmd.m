@@ -10,7 +10,8 @@ end
 nproc = length(dmd);
 k = zeros(nproc, 4);
 for i = 1:nproc
-    fname = rankfile(base, i-1);
+    %fname = rankfile(base, i-1);
+    fname = base + "_np" + string(i-1) + ".bin";
     
     fid = fopen(fname, 'r');
     if fid < 0, error('Cannot open file: %s', fname); end
@@ -46,7 +47,8 @@ if nargout > 1
     sol = zeros(n1,n2,ne,nsteps);    
 
     for n = 1:nproc
-        fname = rankfile(base, n-1);
+        %fname = rankfile(base, n-1);
+        fname = base + "_np" + string(n-1) + ".bin";
         
         fid = fopen(fname, 'r');
         if fid < 0, error('Cannot open file: %s', fname); end

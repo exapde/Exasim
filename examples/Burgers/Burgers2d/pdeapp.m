@@ -18,8 +18,14 @@ pde.hybrid = 1;
 pde.porder = 3;          % polynomial degree
 pde.physicsparam = [0.005 0 1 0.5 0];    % unit thermal conductivity
 pde.tau = 1.0;           % DG stabilization parameter
-pde.linearsolvertol = 1e-4;
-pde.ppdegree = 10;
+pde.linearsolvertol = 1e-6;
+pde.RBdim = 0;
+pde.NLtol = 1e-8;
+pde.linearsolveriter = 1000;
+pde.GMRESortho = 1;
+pde.GMRESrestart = 50;
+pde.preconditioner = 0;
+pde.ppdegree = 0;
 
 % create a grid of 8 by 8 on the unit square
 [mesh.p,mesh.t] = squaremesh(16,16,1,1);

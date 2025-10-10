@@ -16,7 +16,7 @@ pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 3;             % polynomial degree
+pde.porder = 4;             % polynomial degree
 pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.physicsparam = [1 0.0]; % unit thermal conductivity and zero boundary data
 pde.tau = 1.0;              % DG stabilization parameter
@@ -28,7 +28,7 @@ pde.linearsolveriter = 1000;
 pde.preconditioner = 1;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
-[mesh.p,mesh.t] = cubemesh(16,16,16,0);
+[mesh.p,mesh.t] = cubemesh(32,32,32,0);
 % mesh.p = mesh2.p';
 % mesh.t = mesh2.t';
 % expressions for domain boundaries

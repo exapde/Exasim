@@ -20,17 +20,18 @@ pde.porder = 3;             % polynomial degree
 pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.physicsparam = [1 1 0 0 0.01]; 
 pde.tau = 2.0;              % DG stabilization parameter
-pde.linearsolvertol = 1e-6; % GMRES tolerance
-pde.ppdegree = 1;           % degree of polynomial preconditioner
 pde.RBdim = 0;              % reduced basis dimension for preconditioner
-pde.GMRESrestart = 200;
-pde.linearsolveriter = 400;
-pde.nd = 3;
+pde.linearsolvertol = 1e-6; % GMRES tolerance
+pde.NLtol = 1e-8; % GMRES tolerance
+pde.GMRESortho = 1;
+pde.GMRESrestart = 100;
+pde.linearsolveriter = 1000;
 pde.preconditioner = 1;
+pde.ppdegree = 0;           % degree of polynomial preconditioner
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
-[mesh.p,mesh.t] = cubemesh(20,5,5,1);
-mesh.p(1,:) = 4*mesh.p(1,:);
+[mesh.p,mesh.t] = cubemesh(20,4,4,1);
+mesh.p(1,:) = 5*mesh.p(1,:);
 
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-6, @(p) abs(p(1,:)-4)<1e-6, @(p) abs(p(2,:)-1)<1e-6, @(p) abs(p(1,:))<1e-6, @(p) abs(p(3,:))<1e-6, @(p) abs(p(3,:)-1)<1e-6};
