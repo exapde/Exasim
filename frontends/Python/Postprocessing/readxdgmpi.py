@@ -80,8 +80,8 @@ def readxdgmpi(base, nprocs, ne):
         if not Path(filesol).exists():
             raise FileNotFoundError(f"Cannot open file: {filesol}")
         xdgi = readxdg(filesol)
-        idx = np.array(ne[i - 1]) - 1  
-        xdgi = xdgi[:, :, idx]
+        ni = ne[i-1]
+        xdgi = xdgi[:, :, :int(ni)]
 
         if xdg is None:
             xdg = xdgi;
