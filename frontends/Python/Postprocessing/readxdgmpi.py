@@ -50,7 +50,7 @@ def readxdg(filesol):
     xdg = np.reshape(xdg, (npe, ncx, ne), order='F')
     return xdg
 
-def readxdgmpi(base, nprocs):
+def readxdgmpi(base, nprocs, ne):
     """
     Python equivalent of MATLAB readxdgmpi.m
 
@@ -80,10 +80,13 @@ def readxdgmpi(base, nprocs):
         if not Path(filesol).exists():
             raise FileNotFoundError(f"Cannot open file: {filesol}")
         xdgi = readxdg(filesol)
+        idx = np.array(ne[i - 1]) - 1  
+        xdgi = xdgi[:, :, idx]
 
         if xdg is None:
-            xdg = xdgi
+            xdg = xdgi;
         else:
             xdg = np.concatenate((xdg, xdgi), axis=2)
 
     return xdg
+
