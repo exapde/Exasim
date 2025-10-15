@@ -28,7 +28,7 @@ pde.NLtol = 1e-8;
 pde.linearsolveriter = 100;
 pde.GMRESortho = 1;
 pde.GMRESrestart = 50;
-pde.preconditioner = 1;
+pde.preconditioner = 0;
 pde.ppdegree = 0;
 
 gam = 1.4;                      % specific heat ratio
@@ -37,7 +37,7 @@ pde.physicsparam = [gam M_ref];
 pde.tau = 1+1/M_ref;            % DG stabilization parameter
 
 % create a grid of 10 by 10 on the unit square
-[mesh.p,mesh.t] = squaremesh(10,10,1,1);
+[mesh.p,mesh.t] = squaremesh(32,32,1,1);
 mesh.p = 10.0*mesh.p - 5.0;
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(2,:)+5)<1e-8, @(p) abs(p(1,:)-5)<1e-8, @(p) abs(p(2,:)-5)<1e-8, @(p) abs(p(1,:)+5)<1e-8};
