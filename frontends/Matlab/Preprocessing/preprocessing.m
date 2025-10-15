@@ -45,14 +45,6 @@ fileapp = filename + "app.bin";
 filemaster = filename + "master.bin";
 endian = 'native';
 
-if app.preprocessmode==0    
-    % update app structure    
-    writeapp(app,fileapp,endian);       
-    master = [];
-    dmd = [];
-    return;
-end
-
 app.nd  = size(mesh.p,1);
 app.ncx = app.nd;
 [app.nve,app.ne] = size(mesh.t);
@@ -161,6 +153,14 @@ end
 if isfield(pde, 'qoiboundary')        
     sdgsym = pde.qoiboundary(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym, uhatsym, nsym, tausym);         
     app.nbqoi = length(sdgsym(:));
+end
+
+if app.preprocessmode==0    
+    % update app structure    
+    writeapp(app,fileapp,endian);       
+    master = [];
+    dmd = [];
+    return;
 end
 
 disp('run facenumbering...');  
