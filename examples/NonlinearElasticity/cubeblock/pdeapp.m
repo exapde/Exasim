@@ -15,27 +15,37 @@ pde.mpiprocs = 1;           % number of MPI processors
 pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
 
+% E=1.25;
+% nu=0.25;
+% mu=E/(2*(1+nu));
+% lambda=nu*E/((1+nu)*(1-2*nu));
+
+mu = 1;
+lambda = 1;
+
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;             % polynomial degree
 pde.pgauss = 2*pde.porder;  % gauss quad order
-pde.physicsparam = [1 1 0 0 0.01]; 
-pde.tau = 2.0;              % DG stabilization parameter
+pde.physicsparam = [mu lambda 3 0 0]; 
+pde.tau = 1e3;              % DG stabilization parameter
 pde.RBdim = 0;              % reduced basis dimension for preconditioner
 pde.linearsolvertol = 1e-6; % GMRES tolerance
 pde.NLtol = 1e-8; % GMRES tolerance
+pde.NLiter = 10;
 pde.GMRESortho = 1;
-pde.GMRESrestart = 100;
+pde.GMRESrestart = 50;
 pde.linearsolveriter = 1000;
 pde.preconditioner = 1;
-pde.ppdegree = 0;           % degree of polynomial preconditioner
+pde.ppdegree = 10;           % degree of polynomial preconditioner
+pde.gencode = 0;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
-[mesh.p,mesh.t] = cubemesh(20,4,4,1);
-mesh.p(1,:) = 5*mesh.p(1,:);
+[mesh.p,mesh.t] = cubemesh(16,4,4,1);
+%[mesh.p,mesh.t] = cubemesh(32,8,8,1);
 
-% expressions for domain boundaries
-mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-6, @(p) abs(p(1,:)-5)<1e-6, @(p) abs(p(2,:)-1)<1e-6, @(p) abs(p(1,:))<1e-6, @(p) abs(p(3,:))<1e-6, @(p) abs(p(3,:)-1)<1e-6};
-mesh.boundarycondition = [1;1;1;2;1;3]; % Set boundary condition for each boundary
+mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-6, @(p) abs(p(1,:)-1)<1e-6, @(p) abs(p(2,:)-1)<1e-6, @(p) abs(p(1,:))<1e-6, @(p) abs(p(3,:))<1e-6, @(p) abs(p(3,:)-1)<1e-6};
+mesh.boundarycondition = [1;3;1;2;1;1]; % Set boundary condition for each boundary
+ % Set boundary condition for each boundary
 
 % call exasim to generate and run C++ code to solve the PDE model
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
@@ -47,7 +57,7 @@ mesh1 = mkmesh(mesh.p',mesh.t',pde.porder,bndexpr,1,1);
 mesh1.p = mesh1.p';
 mesh1.t = mesh1.t';
 figure(1);clf;meshplot(mesh1,1); axis on;
-mesh1.dgnodes = mesh1.dgnodes + sol(:,1:3,:); 
+mesh1.dgnodes = sol(:,1:3,:); 
 figure(2);clf;meshplot(mesh1,1); axis on;
 xlabel('x');
 ylabel('y');

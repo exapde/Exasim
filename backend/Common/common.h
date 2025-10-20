@@ -844,6 +844,8 @@ struct meshstruct {
     Int *col_ind=nullptr;
     Int *face=nullptr;
     Int *cartgridpart=nullptr;
+    Int *boundaryConditions=nullptr;
+    Int *intepartpts=nullptr;
     
     Int *faceperm=nullptr;
     Int *nbintf=nullptr;
@@ -981,6 +983,9 @@ struct meshstruct {
         TemplateFree(rowe2f2, backend);
         TemplateFree(cole2f2, backend);
         TemplateFree(ent2ind2, backend);
+        TemplateFree(col_ind, backend);
+        TemplateFree(row_ptr, backend);
+        TemplateFree(face, backend);
         
         TemplateFree(findxdg1, backend);   
         TemplateFree(findxdgp, backend);   
@@ -1457,6 +1462,7 @@ struct commonstruct {
     Int coupledinterface;
     Int coupledcondition;
     Int coupledboundarycondition;
+    Int isd=0; 
             
     Int ne; // number of elements
     Int nf; // number of faces
@@ -1609,6 +1615,8 @@ struct commonstruct {
     Int *vindx=nullptr;
     Int *interfacefluxmap=nullptr;
     Int *cartgridpart=nullptr;
+    Int *boundaryConditions=nullptr;
+    Int *intepartpts=nullptr;
     
     Int nnbintf;
     Int nfacesend;
@@ -1830,6 +1838,9 @@ struct commonstruct {
         CPUFREE(stgib); 
         CPUFREE(vindx); 
         CPUFREE(interfacefluxmap); 
+        CPUFREE(cartgridpart); 
+        CPUFREE(boundaryConditions); 
+        CPUFREE(intepartpts);         
         CPUFREE(dt); 
         CPUFREE(dae_dt); 
         CPUFREE(DIRKcoeff_c); 
