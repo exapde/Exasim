@@ -1,9 +1,174 @@
 void HdgFbouonly1(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
 {
 	Kokkos::parallel_for("Fbouonly1", ng, KOKKOS_LAMBDA(const size_t i) {
+		dstype param1 = param[0];
+		dstype param2 = param[1];
 		dstype tau1 = tau[0];
+		dstype udg1 = udg[0*ng+i];
+		dstype udg2 = udg[1*ng+i];
+		dstype udg3 = udg[2*ng+i];
+		dstype udg4 = udg[3*ng+i];
+		dstype udg5 = udg[4*ng+i];
+		dstype udg6 = udg[5*ng+i];
+		dstype udg7 = udg[6*ng+i];
+		dstype udg8 = udg[7*ng+i];
+		dstype udg9 = udg[8*ng+i];
+		dstype udg10 = udg[9*ng+i];
+		dstype udg11 = udg[10*ng+i];
+		dstype udg12 = udg[11*ng+i];
 		dstype uhg1 = uhg[0*ng+i];
-		f[0*ng+i] = -tau1*uhg1;
+		dstype uhg2 = uhg[1*ng+i];
+		dstype uhg3 = uhg[2*ng+i];
+		dstype nlg1 = nlg[0*ng+i];
+		dstype nlg2 = nlg[1*ng+i];
+		dstype nlg3 = nlg[2*ng+i];
+		dstype t2 = udg4*udg8;
+		dstype t3 = udg5*udg7;
+		dstype t4 = udg4*udg9;
+		dstype t5 = udg6*udg7;
+		dstype t6 = udg5*udg9;
+		dstype t7 = udg6*udg8;
+		dstype t8 = udg4*udg11;
+		dstype t9 = udg5*udg10;
+		dstype t10 = udg4*udg12;
+		dstype t11 = udg6*udg10;
+		dstype t12 = udg5*udg12;
+		dstype t13 = udg6*udg11;
+		dstype t14 = udg7*udg11;
+		dstype t15 = udg8*udg10;
+		dstype t16 = udg7*udg12;
+		dstype t17 = udg9*udg10;
+		dstype t18 = udg8*udg12;
+		dstype t19 = udg9*udg11;
+		dstype t20 = t2*udg12;
+		dstype t21 = t4*udg11;
+		dstype t22 = t3*udg12;
+		dstype t23 = t6*udg10;
+		dstype t24 = t5*udg11;
+		dstype t25 = t7*udg10;
+		dstype t26 = -t3;
+		dstype t27 = -t5;
+		dstype t28 = -t7;
+		dstype t29 = -t9;
+		dstype t30 = -t11;
+		dstype t31 = -t13;
+		dstype t32 = -t15;
+		dstype t33 = -t17;
+		dstype t34 = -t19;
+		dstype t35 = -t21;
+		dstype t36 = -t22;
+		dstype t37 = -t25;
+		dstype t38 = t2+t26;
+		dstype t39 = t4+t27;
+		dstype t40 = t6+t28;
+		dstype t41 = t8+t29;
+		dstype t42 = t10+t30;
+		dstype t43 = t12+t31;
+		dstype t44 = t14+t32;
+		dstype t45 = t16+t33;
+		dstype t46 = t18+t34;
+		dstype t47 = t20+t23+t24+t35+t36+t37;
+		dstype t48 = t47+1.0;
+		dstype t49 = 1.0/t47;
+		f[0*ng+i] = tau1*(udg1-uhg1)+nlg3*(param1*udg10-param1*t40*t49+param2*t40*t48)+nlg2*(param1*udg7+param1*t43*t49-param2*t43*t48)+nlg1*(param1*udg4-param1*t46*t49+param2*t46*t48);
+		f[1*ng+i] = tau1*(udg2-uhg2)+nlg3*(param1*udg11+param1*t39*t49-param2*t39*t48)+nlg2*(param1*udg8-param1*t42*t49+param2*t42*t48)+nlg1*(param1*udg5+param1*t45*t49-param2*t45*t48);
+		f[2*ng+i] = tau1*(udg3-uhg3)+nlg3*(param1*udg12-param1*t38*t49+param2*t38*t48)+nlg2*(param1*udg9+param1*t41*t49-param2*t41*t48)+nlg1*(param1*udg6-param1*t44*t49+param2*t44*t48);
+	});
+}
+
+void HdgFbouonly2(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+{
+	Kokkos::parallel_for("Fbouonly2", ng, KOKKOS_LAMBDA(const size_t i) {
+		dstype xdg1 = xdg[0*ng+i];
+		dstype xdg2 = xdg[1*ng+i];
+		dstype xdg3 = xdg[2*ng+i];
+		dstype uhg1 = uhg[0*ng+i];
+		dstype uhg2 = uhg[1*ng+i];
+		dstype uhg3 = uhg[2*ng+i];
+		f[0*ng+i] = -uhg1+xdg1;
+		f[1*ng+i] = -uhg2+xdg2;
+		f[2*ng+i] = -uhg3+xdg3;
+	});
+}
+
+void HdgFbouonly3(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+{
+	Kokkos::parallel_for("Fbouonly3", ng, KOKKOS_LAMBDA(const size_t i) {
+		dstype param1 = param[0];
+		dstype param2 = param[1];
+		dstype param3 = param[2];
+		dstype param4 = param[3];
+		dstype param5 = param[4];
+		dstype tau1 = tau[0];
+		dstype udg1 = udg[0*ng+i];
+		dstype udg2 = udg[1*ng+i];
+		dstype udg3 = udg[2*ng+i];
+		dstype udg4 = udg[3*ng+i];
+		dstype udg5 = udg[4*ng+i];
+		dstype udg6 = udg[5*ng+i];
+		dstype udg7 = udg[6*ng+i];
+		dstype udg8 = udg[7*ng+i];
+		dstype udg9 = udg[8*ng+i];
+		dstype udg10 = udg[9*ng+i];
+		dstype udg11 = udg[10*ng+i];
+		dstype udg12 = udg[11*ng+i];
+		dstype uhg1 = uhg[0*ng+i];
+		dstype uhg2 = uhg[1*ng+i];
+		dstype uhg3 = uhg[2*ng+i];
+		dstype nlg1 = nlg[0*ng+i];
+		dstype nlg2 = nlg[1*ng+i];
+		dstype nlg3 = nlg[2*ng+i];
+		dstype t2 = udg4*udg8;
+		dstype t3 = udg5*udg7;
+		dstype t4 = udg4*udg9;
+		dstype t5 = udg6*udg7;
+		dstype t6 = udg5*udg9;
+		dstype t7 = udg6*udg8;
+		dstype t8 = udg4*udg11;
+		dstype t9 = udg5*udg10;
+		dstype t10 = udg4*udg12;
+		dstype t11 = udg6*udg10;
+		dstype t12 = udg5*udg12;
+		dstype t13 = udg6*udg11;
+		dstype t14 = udg7*udg11;
+		dstype t15 = udg8*udg10;
+		dstype t16 = udg7*udg12;
+		dstype t17 = udg9*udg10;
+		dstype t18 = udg8*udg12;
+		dstype t19 = udg9*udg11;
+		dstype t20 = t2*udg12;
+		dstype t21 = t4*udg11;
+		dstype t22 = t3*udg12;
+		dstype t23 = t6*udg10;
+		dstype t24 = t5*udg11;
+		dstype t25 = t7*udg10;
+		dstype t26 = -t3;
+		dstype t27 = -t5;
+		dstype t28 = -t7;
+		dstype t29 = -t9;
+		dstype t30 = -t11;
+		dstype t31 = -t13;
+		dstype t32 = -t15;
+		dstype t33 = -t17;
+		dstype t34 = -t19;
+		dstype t35 = -t21;
+		dstype t36 = -t22;
+		dstype t37 = -t25;
+		dstype t38 = t2+t26;
+		dstype t39 = t4+t27;
+		dstype t40 = t6+t28;
+		dstype t41 = t8+t29;
+		dstype t42 = t10+t30;
+		dstype t43 = t12+t31;
+		dstype t44 = t14+t32;
+		dstype t45 = t16+t33;
+		dstype t46 = t18+t34;
+		dstype t47 = t20+t23+t24+t35+t36+t37;
+		dstype t48 = t47+1.0;
+		dstype t49 = 1.0/t47;
+		f[0*ng+i] = param3+tau1*(udg1-uhg1)+nlg3*(param1*udg10-param1*t40*t49+param2*t40*t48)+nlg2*(param1*udg7+param1*t43*t49-param2*t43*t48)+nlg1*(param1*udg4-param1*t46*t49+param2*t46*t48);
+		f[1*ng+i] = param4+tau1*(udg2-uhg2)+nlg3*(param1*udg11+param1*t39*t49-param2*t39*t48)+nlg2*(param1*udg8-param1*t42*t49+param2*t42*t48)+nlg1*(param1*udg5+param1*t45*t49-param2*t45*t48);
+		f[2*ng+i] = param5+tau1*(udg3-uhg3)+nlg3*(param1*udg12-param1*t38*t49+param2*t38*t48)+nlg2*(param1*udg9+param1*t41*t49-param2*t41*t48)+nlg1*(param1*udg6-param1*t44*t49+param2*t44*t48);
 	});
 }
 
@@ -11,5 +176,9 @@ void HdgFbouonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* 
 {
 	if (ib == 1)
 		HdgFbouonly1(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
+	else if (ib == 2)
+		HdgFbouonly2(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
+	else if (ib == 3)
+		HdgFbouonly3(f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
 }
 

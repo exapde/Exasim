@@ -317,13 +317,13 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateMalloc(&res.F, res.szF, backend);
       TemplateMalloc(&res.ipiv, res.szipiv, backend); // fix big here     
       
-      tmp.tempg = nullptr;  
-      TemplateFree(tmp.tempn, backend);                    
-      tmp.tempn = nullptr;
-      tmp.tempn = &res.K[szQ];
-      tmp.tempg = &tmp.tempn[tmp.sztempn];
-      tmp.sztempn = 0;  
-      tmp.sztempg = 0;             
+      // tmp.tempg = nullptr;  
+      // TemplateFree(tmp.tempn, backend);                    
+      // tmp.tempn = nullptr;
+      // tmp.tempn = &res.K[szQ];
+      // tmp.tempg = &tmp.tempn[tmp.sztempn];
+      // tmp.sztempn = 0;  
+      // tmp.sztempg = 0;             
 
       // B, D, G, K share the same memmory block 
       // It is also used for storing both the preconditioner matrix and sys.v

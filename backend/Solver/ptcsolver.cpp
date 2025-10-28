@@ -446,7 +446,8 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         else if (spatialScheme == 1) {      
           ArrayCopy(disc.sol.uh, sys.u, N);
           hdgGetDUDG(disc.res.Ru, disc.res.F, sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
-          ArrayCopy(sys.v, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
+          //ArrayCopy(sys.v, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
+          ArrayCopy(disc.res.Rq, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
           UpdateUDG(disc.sol.udg, disc.res.Ru, sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
                     
           if (disc.common.debugMode==1) {
@@ -474,7 +475,8 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             sys.alpha = sys.alpha/2.0;             
             ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, -sys.alpha, N, backend); 
             ArrayCopy(disc.sol.uh, sys.u, N);
-            UpdateUDG(disc.sol.udg, sys.v, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+            //UpdateUDG(disc.sol.udg, sys.v, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+            UpdateUDG(disc.sol.udg, disc.res.Rq, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
             if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
             if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
             disc.hdgAssembleResidual(sys.b, backend);
