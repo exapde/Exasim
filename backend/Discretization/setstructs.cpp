@@ -325,6 +325,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
 
 void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
 {
+    Int nc = app.ndims[5];    // number of compoments of (u,q)
     Int ncu = app.ndims[6];    // number of compoments of (u)
     Int ncq = app.ndims[7];    // number of compoments of (q)
     //Int ncp = app.ndims[8];    // number of compoments of (p)
@@ -336,8 +337,8 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     Int nfe = mesh.ndims[4]; // number of faces per element            
    
     if (app.problem[0] > 0) {
-        TemplateMalloc(&res.Rq, max(npe*ncu*nd*ne, npf*nfe*ncu*ne), backend);   
-        res.szRq = max(npe*ncu*nd*ne, npf*nfe*ncu*ne);
+        TemplateMalloc(&res.Rq, max(npe*nc*ne, npf*nfe*ncu*ne), backend);   
+        res.szRq = max(npe*nc*ne, npf*nfe*ncu*ne);
     } else {
         TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
         res.szRq = 2*npe*ncu*nd*ne;

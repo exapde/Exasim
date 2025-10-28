@@ -101,9 +101,11 @@ public:
             disc.res.Mass2 = nullptr;
             disc.res.szMass2 = 0;
 
-            TemplateFree(disc.sol.faceg, disc.common.backend);                    
-            disc.sol.faceg = nullptr;
-            disc.sol.szfaceg = 0;
+            if (disc.common.nsurf == 0) {
+                TemplateFree(disc.sol.faceg, disc.common.backend);                    
+                disc.sol.faceg = nullptr;
+                disc.sol.szfaceg = 0;
+            }
 
             if  (disc.common.ppdegree <= 1) {
                 TemplateFree(solv.sys.randvect, disc.common.backend);                    

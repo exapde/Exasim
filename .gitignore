@@ -147,3 +147,22 @@ examples/NavierStokes/flaredplatecut2d/sol.mat
 *.mat
 /examples/MongeAmpere/squarestokes
 /examples/NavierStokes/flaredplatecut3d
+doc/curvedmesh.png
+doc/exasim workflow.pptx
+doc/Exasim.bbl
+doc/Exasim.blg
+doc/exasim.png
+doc/Exasim.tex
+doc/exasim2.png
+doc/exasim3.png
+doc/exasimworkflow.png
+doc/faceint.png
+doc/lshape.png
+doc/nvidiadriverfix.txt
+doc/paraview.png
+doc/paraview.txt
+doc/scaling.m
+doc/strongscaling.png
+doc/tiogatuolumne.txt
+doc/tuolumne.sh
+doc/weakscaling.png
