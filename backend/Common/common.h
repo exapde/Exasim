@@ -391,21 +391,45 @@ template <typename T> static void cudaCopytoHost(T *h_data, T *d_data, Int n)
     CHECK( cudaMemcpy( h_data, d_data, n * sizeof(T), cudaMemcpyDeviceToHost ) );    
 }
 
-void checkCudaMemory() {
-    size_t free_bytes, total_bytes;
-    cudaError_t status = cudaMemGetInfo(&free_bytes, &total_bytes);
+void checkCudaMemory(int rank, int device_id = 0)
+{
+    cudaError_t status;
+
+    // --- Select device --------------------------------------------------------
+    status = cudaSetDevice(device_id);
     if (status != cudaSuccess) {
-        std::cerr << "cudaMemGetInfo failed: " << cudaGetErrorString(status) << std::endl;
+        std::cerr << "[Rank " << rank << "] CUDA error: cudaSetDevice(" << device_id
+                  << ") failed: " << cudaGetErrorString(status) << std::endl;
         return;
     }
-    double free_gb = static_cast<double>(free_bytes) / (1024.0 * 1024.0 * 1024.0);
-    double total_gb = static_cast<double>(total_bytes) / (1024.0 * 1024.0 * 1024.0);
-    double used_gb = total_gb - free_gb;
 
-    std::cout << "GPU Memory Usage:" << std::endl;
-    std::cout << "  Total: " << total_gb << " GB" << std::endl;
-    std::cout << "  Used : " << used_gb << " GB" << std::endl;
-    std::cout << "  Free : " << free_gb << " GB" << std::endl;
+    // --- Query memory --------------------------------------------------------
+    size_t free_bytes = 0, total_bytes = 0;
+    status = cudaMemGetInfo(&free_bytes, &total_bytes);
+    if (status != cudaSuccess) {
+        std::cerr << "[Rank " << rank << "] CUDA error: cudaMemGetInfo failed: "
+                  << cudaGetErrorString(status) << std::endl;
+        return;
+    }
+
+    // --- Convert to GB and compute usage -------------------------------------
+    constexpr double kGB = 1024.0 * 1024.0 * 1024.0;
+    double total_gb = static_cast<double>(total_bytes) / kGB;
+    double free_gb  = static_cast<double>(free_bytes)  / kGB;
+    double used_gb  = total_gb - free_gb;
+    double used_pct = (used_gb / total_gb) * 100.0;
+
+    // --- Print formatted report ----------------------------------------------
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2)
+        << "[Rank " << std::setw(3) << rank << "] "
+        << "CUDA Device " << device_id << " Memory: "
+        << "Total " << std::setw(6) << total_gb << " GB, "
+        << "Used "  << std::setw(6) << used_gb  << " GB ("
+        << std::setw(5) << used_pct << "%), "
+        << "Free "  << std::setw(6) << free_gb  << " GB";
+
+    std::cout << oss.str() << std::endl;
 }
 
 #endif
@@ -489,33 +513,44 @@ template <typename T> static void hipTemplateHostMalloc(T **h_data, Int n, unsig
     CHECK(hipHostMalloc((void **)h_data, n * sizeof(T), flags));                
 }
 
-void checkHipMemory(int device_id = 0) {
+void checkHipMemory(int rank, int device_id = 0) {
     hipError_t status;
 
-    // Select the target device
+    // --- Select device --------------------------------------------------------
     status = hipSetDevice(device_id);
     if (status != hipSuccess) {
-        std::cerr << "hipSetDevice(" << device_id << ") failed: "
-                  << hipGetErrorString(status) << std::endl;
+        std::cerr << "[Rank " << rank << "] HIP error: hipSetDevice(" << device_id
+                  << ") failed: " << hipGetErrorString(status) << std::endl;
         return;
     }
 
+    // --- Query memory --------------------------------------------------------
     size_t free_bytes = 0, total_bytes = 0;
     status = hipMemGetInfo(&free_bytes, &total_bytes);
     if (status != hipSuccess) {
-        std::cerr << "hipMemGetInfo failed: "
+        std::cerr << "[Rank " << rank << "] HIP error: hipMemGetInfo failed: "
                   << hipGetErrorString(status) << std::endl;
         return;
     }
 
-    double free_gb = static_cast<double>(free_bytes) / (1024.0 * 1024.0 * 1024.0);
-    double total_gb = static_cast<double>(total_bytes) / (1024.0 * 1024.0 * 1024.0);
-    double used_gb = total_gb - free_gb;
+    // --- Convert to GB and compute usage -------------------------------------
+    constexpr double kGB = 1024.0 * 1024.0 * 1024.0;
+    double total_gb = static_cast<double>(total_bytes) / kGB;
+    double free_gb  = static_cast<double>(free_bytes)  / kGB;
+    double used_gb  = total_gb - free_gb;
+    double used_pct = (used_gb / total_gb) * 100.0;
 
-    std::cout << "HIP GPU " << device_id << " Memory Usage:\n"
-              << "  Total: " << total_gb << " GB\n"
-              << "  Used : " << used_gb << " GB\n"
-              << "  Free : " << free_gb << " GB\n";
+    // --- Print formatted table line ------------------------------------------
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2)
+        << "[Rank " << std::setw(3) << rank << "] "
+        << "HIP Device " << device_id << " Memory: "
+        << "Total " << std::setw(6) << total_gb << " GB, "
+        << "Used "  << std::setw(6) << used_gb  << " GB ("
+        << std::setw(5) << used_pct << "%), "
+        << "Free "  << std::setw(6) << free_gb  << " GB";
+
+    std::cout << oss.str() << std::endl;
 }
 
 #endif

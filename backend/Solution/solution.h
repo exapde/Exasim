@@ -129,14 +129,15 @@ public:
             disc.res.printinfo();
             disc.sol.printinfo();
             solv.sys.printinfo();
-            prec.precond.printinfo();
-            #ifdef HAVE_HIP
-            checkHipMemory();  
-            #endif
-            #ifdef HAVE_CUDA
-            checkCudaMemory();  
-            #endif                      
+            prec.precond.printinfo();                  
         }
+
+        #ifdef HAVE_HIP
+            checkHipMemory(disc.common.mpiRank);  
+        #endif
+        #ifdef HAVE_CUDA
+            checkCudaMemory(disc.common.mpiRank);  
+        #endif          
 
         if (mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
             outqoi.open(base + "qoi.txt", std::ios::out);                         
