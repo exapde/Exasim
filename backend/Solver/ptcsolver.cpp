@@ -322,21 +322,21 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
 
 void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int N, Int backend)
 {                       
-    // dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
-    // if (nrmr>zero) {
-    //   // update the reduced basis        
-    //   ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N);  
-    //   //ArrayCopy(disc.common.cublasHandle, &prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);  
-    // 
-    //   // update the current dimension of the RB dimension
-    //   if (disc.common.RBcurrentdim<disc.common.RBdim) 
-    //       disc.common.RBcurrentdim += 1;                    
-    // 
-    //   // update the position of the RB vector to be replaced  
-    //   disc.common.RBremovedind += 1;
-    //   if (disc.common.RBremovedind==disc.common.RBdim) 
-    //       disc.common.RBremovedind = 0;                
-    // }
+    dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
+    if (nrmr>zero) {
+      // update the reduced basis        
+      ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N);  
+      //ArrayCopy(disc.common.cublasHandle, &prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);  
+
+      // update the current dimension of the RB dimension
+      if (disc.common.RBcurrentdim<disc.common.RBdim) 
+          disc.common.RBcurrentdim += 1;                    
+
+      // update the position of the RB vector to be replaced  
+      disc.common.RBremovedind += 1;
+      if (disc.common.RBremovedind==disc.common.RBdim) 
+          disc.common.RBremovedind = 0;                
+    }
 }
 
 void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)

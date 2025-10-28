@@ -144,9 +144,7 @@ void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDisc
     //Int i = RBdim-1;
     int i = disc.common.RBremovedind - 1;
     if (disc.common.RBremovedind==0) i = RBdim-1;
-    //disc.evalMatVec(&precond.U[i*N], &precond.W[i*N], sys.u, sys.b, spatialScheme, backend);
-    dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
-    if (nrmr > 1e-8) disc.evalMatVec(&precond.U[i*N], sys.x, sys.u, sys.b, spatialScheme, backend);
+    disc.evalMatVec(&precond.U[i*N], &precond.W[i*N], sys.u, sys.b, spatialScheme, backend);
     
     //disc.evalMatVec(view_1d Jv, view_1d v, view_1d u, view_1d Ru, Int backend);
     

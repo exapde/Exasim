@@ -112,12 +112,6 @@ public:
                 solv.sys.randvect = nullptr;
                 solv.sys.szrandvect = 0;
             }
-
-            if (disc.common.RBdim > 0)  {
-                TemplateFree(prec.precond.W, disc.common.backend);                    
-                prec.precond.W = nullptr;
-                prec.precond.szW = 0;                
-            }
         }
 
         if (disc.common.mpiRank==0) {     
