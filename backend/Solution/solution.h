@@ -138,7 +138,7 @@ public:
             checkHipMemory();  
             #endif
             #ifdef HAVE_CUDA
-            checkHipMemory();  
+            checkCudaMemory();  
             #endif                      
         }
 
