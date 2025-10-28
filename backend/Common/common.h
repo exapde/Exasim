@@ -282,17 +282,47 @@ dstype cublasZero[1] = {zero};
 #define cublasTRSM cublasDtrsm 
 #endif
 
-#define CHECK(call)                                                            \
-{                                                                              \
-    const cudaError_t error = call;                                            \
-    if (error != cudaSuccess)                                                  \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                cudaGetErrorString(error));                                    \
-        exit(1);                                                               \
-    }                                                                          \
+// #define CHECK(call)                                                            \
+// {                                                                              \
+//     const cudaError_t error = call;                                            \
+//     if (error != cudaSuccess)                                                  \
+//     {                                                                          \
+//         fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
+//         fprintf(stderr, "code: %d, reason: %s\n", error,                       \
+//                 cudaGetErrorString(error));                                    \
+//         exit(1);                                                               \
+//     }                                                                          \
+// }
+
+inline void handleCudaError(cudaError_t err,
+                            const char* call,
+                            const char* file,
+                            int line)
+{
+    int rank = 0;
+#ifdef HAVE_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+    fprintf(stderr, "\n==============================================\n");
+    fprintf(stderr, "[Rank %d] CUDA error in %s at %s:%d\n",
+            rank, call, file, line);
+    fprintf(stderr, "  code: %d, reason: %s\n",
+            (int)err, cudaGetErrorString(err));
+    fprintf(stderr, "==============================================\n\n");
+    fflush(stderr);
+#ifdef HAVE_MPI
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+#else
+    exit(EXIT_FAILURE);
+#endif
 }
+
+#define CHECK(call) \
+    do { \
+        cudaError_t err = (call); \
+        if (err != cudaSuccess) \
+            handleCudaError(err, #call, __FILE__, __LINE__); \
+    } while (0)
 
 #define CHECK_CUBLAS(call)                                                     \
 {                                                                              \
@@ -361,21 +391,66 @@ template <typename T> static void cudaCopytoHost(T *h_data, T *d_data, Int n)
     CHECK( cudaMemcpy( h_data, d_data, n * sizeof(T), cudaMemcpyDeviceToHost ) );    
 }
 
+void checkCudaMemory() {
+    size_t free_bytes, total_bytes;
+    cudaError_t status = cudaMemGetInfo(&free_bytes, &total_bytes);
+    if (status != cudaSuccess) {
+        std::cerr << "cudaMemGetInfo failed: " << cudaGetErrorString(status) << std::endl;
+        return;
+    }
+    double free_gb = static_cast<double>(free_bytes) / (1024.0 * 1024.0 * 1024.0);
+    double total_gb = static_cast<double>(total_bytes) / (1024.0 * 1024.0 * 1024.0);
+    double used_gb = total_gb - free_gb;
+
+    std::cout << "GPU Memory Usage:" << std::endl;
+    std::cout << "  Total: " << total_gb << " GB" << std::endl;
+    std::cout << "  Used : " << used_gb << " GB" << std::endl;
+    std::cout << "  Free : " << free_gb << " GB" << std::endl;
+}
+
 #endif
 
 #ifdef HAVE_HIP
 
-#define CHECK(call)                                                            \
-{                                                                              \
-    const hipError_t error = call;                                             \
-    if (error != hipSuccess)                                                   \
-    {                                                                          \
-        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
-        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
-                hipGetErrorString(error));                                     \
-        exit(1);                                                               \
-    }                                                                          \
+// #define CHECK(call)                                                            \
+// {                                                                              \
+//     const hipError_t error = call;                                             \
+//     if (error != hipSuccess)                                                   \
+//     {                                                                          \
+//         fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
+//         fprintf(stderr, "code: %d, reason: %s\n", error,                       \
+//                 hipGetErrorString(error));                                     \
+//         exit(1);                                                               \
+//     }                                                                          \
+// }
+
+
+inline void handleHipError(hipError_t err, const char* call,
+                           const char* file, int line) {
+    int rank = 0;
+#ifdef HAVE_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif
+    fprintf(stderr, "\n==============================================\n");
+    fprintf(stderr, "[Rank %d] HIP error in %s at %s:%d\n",
+            rank, call, file, line);
+    fprintf(stderr, "  code: %d, reason: %s\n",
+            (int)err, hipGetErrorString(err));
+    fprintf(stderr, "==============================================\n\n");
+    fflush(stderr);
+#ifdef HAVE_MPI
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+#else
+    exit(EXIT_FAILURE);
+#endif
 }
+
+#define CHECK(call) \
+    do { \
+        hipError_t err = (call); \
+        if (err != hipSuccess) \
+            handleHipError(err, #call, __FILE__, __LINE__); \
+    } while (0)
 
 #define CHECK_HIPBLAS(call)                                                    \
 {                                                                              \
@@ -412,6 +487,35 @@ template <typename T> static void hipTemplateHostMalloc(T **h_data, Int n, unsig
 {
     // allocate zero-copy memory on host    
     CHECK(hipHostMalloc((void **)h_data, n * sizeof(T), flags));                
+}
+
+void checkHipMemory(int device_id = 0) {
+    hipError_t status;
+
+    // Select the target device
+    status = hipSetDevice(device_id);
+    if (status != hipSuccess) {
+        std::cerr << "hipSetDevice(" << device_id << ") failed: "
+                  << hipGetErrorString(status) << std::endl;
+        return;
+    }
+
+    size_t free_bytes = 0, total_bytes = 0;
+    status = hipMemGetInfo(&free_bytes, &total_bytes);
+    if (status != hipSuccess) {
+        std::cerr << "hipMemGetInfo failed: "
+                  << hipGetErrorString(status) << std::endl;
+        return;
+    }
+
+    double free_gb = static_cast<double>(free_bytes) / (1024.0 * 1024.0 * 1024.0);
+    double total_gb = static_cast<double>(total_bytes) / (1024.0 * 1024.0 * 1024.0);
+    double used_gb = total_gb - free_gb;
+
+    std::cout << "HIP GPU " << device_id << " Memory Usage:\n"
+              << "  Total: " << total_gb << " GB\n"
+              << "  Used : " << used_gb << " GB\n"
+              << "  Free : " << free_gb << " GB\n";
 }
 
 #endif
@@ -493,31 +597,67 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
         CHECK( hipMemcpy(h_data, d_data, n * sizeof(T), hipMemcpyDeviceToHost) );
     }
 #endif    
+    
 }
 
-static void PrintErrorAndExit(const char* errmsg, const char *file, int line ) 
-{    
-    printf( "%s in %s at line %d\n", errmsg, file, line );
-    
-#ifdef  HAVE_MPI       
-    MPI_Finalize();    
+// static void PrintErrorAndExit(const char* errmsg, const char *file, int line ) 
+// {    
+//     printf( "%s in %s at line %d\n", errmsg, file, line );
+// 
+// #ifdef  HAVE_MPI       
+//     MPI_Finalize();    
+// #endif
+// 
+//     exit( 1 );    
+// }
+// 
+// static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
+// {    
+//     printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
+// 
+// #ifdef  HAVE_MPI       
+//     MPI_Finalize();    
+// #endif
+// 
+//     exit( 1 );    
+// }
+// 
+// #define error( errmsg ) (PrintErrorAndExit( errmsg, __FILE__, __LINE__ ))
+
+// -----------------------------------------------------------------------------
+// Print an error message (with file/line info) and terminate the program.
+// If MPI is enabled, aborts all ranks immediately using MPI_Abort().
+// -----------------------------------------------------------------------------
+
+static inline void PrintErrorAndExit(const std::string& errmsg, const char* file, int line)
+{
+    int rank = 0;
+
+#ifdef HAVE_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-    
-    exit( 1 );    
-}
 
-static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
-{    
-    printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
-    
-#ifdef  HAVE_MPI       
-    MPI_Finalize();    
+    fprintf(stderr,
+            "\n==============================================\n"
+            "[Rank %d] ERROR: %s\n"
+            "  Location: %s:%d\n"
+            "==============================================\n\n",
+            rank, errmsg.c_str(), file, line);
+    fflush(stderr);
+
+#ifdef HAVE_MPI
+    // Abort the entire MPI job instead of trying to finalize gracefully.
+    // MPI_Finalize() is unsafe after a runtime error and can hang.
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+#else
+    exit(EXIT_FAILURE);
 #endif
-    
-    exit( 1 );    
 }
 
-#define error( errmsg ) (PrintErrorAndExit( errmsg, __FILE__, __LINE__ ))
+// -----------------------------------------------------------------------------
+// Macro for convenient error reporting
+// -----------------------------------------------------------------------------
+#define error(msg)  PrintErrorAndExit((msg), __FILE__, __LINE__)
 
 std::string trim_dir(const std::string& s) {
     return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes
@@ -1256,7 +1396,9 @@ struct tempstruct {
 
     void freememory(Int backend)
     {
-        TemplateFree(tempn, backend); 
+        if (sztempn>0) TemplateFree(tempn, backend); 
+        else tempn = nullptr;        
+        //TemplateFree(tempn, backend); 
         //TemplateFree(tempg, backend); 
         TemplateFree(buffrecv, backend); 
         TemplateFree(buffsend, backend); 
@@ -1425,9 +1567,19 @@ struct commonstruct {
     
     Int backend;   // 0: Serial; 1: OpenMP; 2: CUDA  
     Int maxnbc;    // maximum number of boundary conditions
+    Int totaldstype = 0;
+    Int totalintmemory=0;
     
+#ifdef HAVE_MPI    
+    MPI_Comm comm_exasim;   // intra-Code A communicator
+    MPI_Comm comm_coupling; // cross-code communicator (optional)
+    MPI_Comm comm_shared;   // per-node communicator (optional)
+#endif      
+
     Int mpiRank;  // MPI rank      
     Int mpiProcs;    // number of MPI ranks
+    Int shmRank;
+    Int shmSize;
     Int nomodels; // number of models
     Int enzyme=0;
     

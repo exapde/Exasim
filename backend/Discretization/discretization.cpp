@@ -303,9 +303,12 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       else if (common.preconditioner==1) // Elemental additive Schwarz preconditioner
         res.szP = npf*nfe*ncu*npf*nfe*ncu*common.ne;        
       else if (common.preconditioner==2) // Superelement additive Schwarz preconditioner
-        res.szP = npf*ncu*npf*ncu*common.nse*common.nnz;        
+        res.szP = npf*ncu*npf*ncu*common.nse*common.nnz;     
+
+      int szT = tmp.sztempn + tmp.sztempg;
       res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES
-      res.szK = max(res.szK, res.szP + res.szV);              
+      int szQ = max(res.szK, res.szP);
+      res.szK = szQ + max(res.szV, szT);              
       res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
       res.szipiv = max(max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
             
@@ -313,7 +316,15 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateMalloc(&res.K, res.szK, backend);      
       TemplateMalloc(&res.F, res.szF, backend);
       TemplateMalloc(&res.ipiv, res.szipiv, backend); // fix big here     
-            
+      
+      tmp.tempg = nullptr;  
+      TemplateFree(tmp.tempn, backend);                    
+      tmp.tempn = nullptr;
+      tmp.tempn = &res.K[szQ];
+      tmp.tempg = &tmp.tempn[tmp.sztempn];
+      tmp.sztempn = 0;  
+      tmp.sztempg = 0;             
+
       // B, D, G, K share the same memmory block 
       // It is also used for storing both the preconditioner matrix and sys.v
       res.D = &res.K[npf*nfe*ncu*npe*ncu*neb];

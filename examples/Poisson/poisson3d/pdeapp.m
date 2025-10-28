@@ -16,7 +16,7 @@ pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 4;             % polynomial degree
+pde.porder = 2;             % polynomial degree
 pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.physicsparam = [1 0.0]; % unit thermal conductivity and zero boundary data
 pde.tau = 1.0;              % DG stabilization parameter
@@ -28,7 +28,7 @@ pde.linearsolveriter = 1000;
 pde.preconditioner = 1;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
-[mesh.p,mesh.t] = cubemesh(32,32,32,0);
+[mesh.p,mesh.t] = cubemesh(16,16,16,0);
 % mesh.p = mesh2.p';
 % mesh.t = mesh2.t';
 % expressions for domain boundaries
@@ -39,9 +39,9 @@ mesh.boundarycondition = [1;1;1;1;1;1]; % Set boundary condition for each bounda
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
 % visualize the numerical solution of the PDE model using Paraview
-pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
-pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
-dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
+% pde.visscalars = {"temperature", 1};                % list of scalar fields for visualization
+% pde.visvectors = {"temperature gradient", [2 3 4]}; % list of vector fields for visualization
+% dgnodes = vis(sol,pde,mesh);                        % visualize the numerical solution
 dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);    
 x = dgnodes(:,1,:); y = dgnodes(:,2,:); z = dgnodes(:,3,:);
 uexact = sin(pi*x).*sin(pi*y).*sin(pi*z);           % exact solution

@@ -101,42 +101,45 @@ public:
             std::vector<std::string> surfaces(nsurf);
             for (int i = 0; i < nsurf; i++) surfaces[i] = "Surface Field " + std::to_string(i);
             
-            int* cgelcon;
-            if (backend==0) cgelcon = &disc.mesh.cgelcon[0];
-            else {
-                TemplateMalloc(&cgelcon, npe*ne, 0);
-                TemplateCopytoHost(cgelcon, disc.mesh.cgelcon, npe*ne, backend);
-            }            
-            
-            Init(disc.sol.xcg, nd_in, npoints_in, cgelcon, npe, ne,
-                 telem.data(), nce, nve_in, elemtype,
-                 scalars, vectors, tensors, surfaces);
-
-            if (backend != 0) CPUFREE(cgelcon);    
-
             savemode = (nsca + nvec + nten > 0); 
-        
-            if (backend==2) { // GPU
-            #ifdef HAVE_CUDA        
-                cudaTemplateHostAlloc(&scafields, npoints*nsca, cudaHostAllocMapped); // zero copy
-                cudaTemplateHostAlloc(&vecfields, 3*npoints*nvec, cudaHostAllocMapped); // zero copy
-                cudaTemplateHostAlloc(&tenfields, ntc*npoints*nten, cudaHostAllocMapped); // zero copy
-                host_alloc_backend = 2;
-            #endif                  
-            }
-            else if (backend==3) { // GPU
-            #ifdef HAVE_HIP        
-                hipTemplateHostMalloc(&scafields, npoints*nsca, hipHostMallocMapped); // zero copy
-                hipTemplateHostMalloc(&vecfields, 3*npoints*nvec, hipHostMallocMapped); // zero copy
-                hipTemplateHostMalloc(&tenfields, ntc*npoints*nten, hipHostMallocMapped); // zero copy                
-                host_alloc_backend = 3;
-            #endif                  
-            }    
-            else { // CPU
-                scafields = (float *) malloc(npoints*nsca*sizeof(float));
-                vecfields = (float *) malloc(3*npoints*nvec*sizeof(float));
-                tenfields = (float *) malloc(ntc*npoints*nten*sizeof(float));
-                host_alloc_backend = 0;
+
+            if (savemode > 0) {
+                int* cgelcon;
+                if (backend==0) cgelcon = &disc.mesh.cgelcon[0];
+                else {
+                    TemplateMalloc(&cgelcon, npe*ne, 0);
+                    TemplateCopytoHost(cgelcon, disc.mesh.cgelcon, npe*ne, backend);
+                }            
+                
+                Init(disc.sol.xcg, nd_in, npoints_in, cgelcon, npe, ne,
+                     telem.data(), nce, nve_in, elemtype,
+                     scalars, vectors, tensors, surfaces);
+    
+                if (backend != 0) CPUFREE(cgelcon);    
+                
+            
+                if (backend==2) { // GPU
+                #ifdef HAVE_CUDA        
+                    cudaTemplateHostAlloc(&scafields, npoints*nsca, cudaHostAllocMapped); // zero copy
+                    cudaTemplateHostAlloc(&vecfields, 3*npoints*nvec, cudaHostAllocMapped); // zero copy
+                    cudaTemplateHostAlloc(&tenfields, ntc*npoints*nten, cudaHostAllocMapped); // zero copy
+                    host_alloc_backend = 2;
+                #endif                  
+                }
+                else if (backend==3) { // GPU
+                #ifdef HAVE_HIP        
+                    hipTemplateHostMalloc(&scafields, npoints*nsca, hipHostMallocMapped); // zero copy
+                    hipTemplateHostMalloc(&vecfields, 3*npoints*nvec, hipHostMallocMapped); // zero copy
+                    hipTemplateHostMalloc(&tenfields, ntc*npoints*nten, hipHostMallocMapped); // zero copy                
+                    host_alloc_backend = 3;
+                #endif                  
+                }    
+                else { // CPU
+                    scafields = (float *) malloc(npoints*nsca*sizeof(float));
+                    vecfields = (float *) malloc(3*npoints*nvec*sizeof(float));
+                    tenfields = (float *) malloc(ntc*npoints*nten*sizeof(float));
+                    host_alloc_backend = 0;
+                }
             }
             
             //cout<<ne<<"  "<<npoints<<endl;

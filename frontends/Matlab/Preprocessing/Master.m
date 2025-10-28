@@ -1,5 +1,12 @@
 function master = Master(app)
 
+% pde1.nd = 2;
+% pde1.porder = 2;
+% pde1.pgauss = 4;
+% pde1.elemtype = 1;
+% pde1.nodetype = 1;
+% master1 = Master(pde1);
+
 dim = app.nd;
 porder = app.porder;
 pgauss = app.pgauss;

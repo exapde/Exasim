@@ -11,7 +11,7 @@ pde.modelfile = "pdemodel"; % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde.platform = "cpu";       % choose this option if you want to run the C++ code on Nvidia GPUs
-pde.mpiprocs = 1;           % number of MPI processors
+pde.mpiprocs = 2;           % number of MPI processors
 pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
 
@@ -24,7 +24,7 @@ mu = 1;
 lambda = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 3;             % polynomial degree
+pde.porder = 2;             % polynomial degree
 pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.physicsparam = [mu lambda 3 0 0]; 
 pde.tau = 1e3;              % DG stabilization parameter
@@ -37,7 +37,7 @@ pde.GMRESrestart = 50;
 pde.linearsolveriter = 1000;
 pde.preconditioner = 1;
 pde.ppdegree = 10;           % degree of polynomial preconditioner
-pde.gencode = 0;
+pde.gencode = 1;
 
 % create a grid of 8 by 8 by 8 hexes on the unit cube
 [mesh.p,mesh.t] = cubemesh(16,4,4,1);

@@ -218,7 +218,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     nrmb = PNORM(disc.common.cublasHandle, N, sys.r, backend);
     nrmr = nrmb;
         
-    j = 1;
+    j = 0;
     while (j < maxit) {
         // v = r/||r||
         ArrayAXPB(sys.v, sys.r, one/nrmr, zero, N);
@@ -440,7 +440,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
     nrmb = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.r, backend);    
     nrmr = nrmb;
                 
-    //printf("%d %d %d %d %g\n", N, disc.common.nf, disc.common.ne, disc.common.ninterfacefaces, nrmr);
+    //if (disc.common.mpiRank==0) printf("%d %d %d %g\n", N, disc.common.nf, disc.common.ne, nrmr);
     
     j = 0;
     while (j < maxit) {
@@ -460,13 +460,13 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             // compute v[m] = A*v[i]
             disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, spatialScheme, backend);                        
             
-#ifdef HAVE_CUDA
-    cudaDeviceSynchronize();
-#endif
-    
-#ifdef HAVE_HIP
-    hipDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
+// 
+// #ifdef HAVE_HIP
+//     hipDeviceSynchronize();
+// #endif
             
             end = chrono::high_resolution_clock::now();   
             tm[0] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
@@ -482,13 +482,13 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
                 prec.ApplyPreconditioner(&sys.v[m*N], sys, disc, spatialScheme, backend);   
             }
             
-#ifdef HAVE_CUDA
-    cudaDeviceSynchronize();
-#endif
-    
-#ifdef HAVE_HIP
-    hipDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
+// 
+// #ifdef HAVE_HIP
+//     hipDeviceSynchronize();
+// #endif
             
             end = chrono::high_resolution_clock::now();   
             tm[1] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
@@ -501,13 +501,13 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             else
                 CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             
-#ifdef HAVE_CUDA
-    cudaDeviceSynchronize();
-#endif
-    
-#ifdef HAVE_HIP
-    hipDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
+// 
+// #ifdef HAVE_HIP
+//     hipDeviceSynchronize();
+// #endif
             
             end = chrono::high_resolution_clock::now();   
             tm[2] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
@@ -519,15 +519,16 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             // compute relative error
             disc.common.linearSolverRelError = fabs(s[i+1])/nrmb;           
 
-#ifdef HAVE_CUDA
-    cudaDeviceSynchronize();
-#endif
-    
-#ifdef HAVE_HIP
-    hipDeviceSynchronize();
-#endif
+// #ifdef HAVE_CUDA
+//     cudaDeviceSynchronize();
+// #endif
+// 
+// #ifdef HAVE_HIP
+//     hipDeviceSynchronize();
+// #endif
             
-            //cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<endl;                         
+            //if (disc.common.mpiRank==0) cout<<i<<",  "<<j<<",  "<<disc.common.linearSolverRelError<<endl;     
+
             end = chrono::high_resolution_clock::now();   
             tm[3] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;                                
                         

@@ -239,7 +239,7 @@ int main(int argc, char** argv)
         return 1;
     }
     CHECK(hipSetDevice(shmrank % deviceCount));
-
+        
     // Get the current device ID
     CHECK(hipGetDevice(&device));
 
@@ -343,7 +343,7 @@ int main(int argc, char** argv)
     if (mpiprocs0 > 0) nummodels = 1;
                 
     Int fileoffset = 0;
-    Int gpuid = 0;            
+    Int gpuid = shmrank;            
       
     // initialize PDE models
     CSolution** pdemodel = new CSolution*[nummodels];     

@@ -335,10 +335,16 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     Int nf = mesh.ndims[2];    // number of elements in this subdomain 
     Int nfe = mesh.ndims[4]; // number of faces per element            
    
-    TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
+    if (app.problem[0] > 0) {
+        TemplateMalloc(&res.Rq, max(npe*ncu*nd*ne, npf*nfe*ncu*ne), backend);   
+        res.szRq = max(npe*ncu*nd*ne, npf*nfe*ncu*ne);
+    } else {
+        TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
+        res.szRq = 2*npe*ncu*nd*ne;
+    }
+
     TemplateMalloc(&res.Ru, npe*ncu*ne, backend);
-    TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
-    res.szRq = 2*npe*ncu*nd*ne;
+    TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);    
     res.szRu = npe*ncu*ne;
     res.szRh = max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne);
     

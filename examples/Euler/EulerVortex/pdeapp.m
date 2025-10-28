@@ -12,24 +12,28 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
-pde.hybrid = 1;
+pde.hybrid = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 4;          % polynomial degree
 pde.torder = 3;          % time-stepping order of accuracy
 pde.nstage = 3;          % time-stepping number of stages
-pde.dt = 0.1*ones(1,200);   % time step sizes
+pde.dt = 0.01*ones(1,200);   % time step sizes
 pde.soltime = 1:10:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.1; % visualization timestep size
 
-pde.linearsolvertol = 1e-6;
-pde.RBdim = 0;
-pde.NLtol = 1e-8;
-pde.linearsolveriter = 100;
-pde.GMRESortho = 1;
+pde.linearsolveriter = 50;
 pde.GMRESrestart = 50;
-pde.preconditioner = 0;
-pde.ppdegree = 0;
+pde.NLiter = 2;
+
+% pde.linearsolvertol = 1e-6;
+% pde.RBdim = 0;
+% pde.NLtol = 1e-8;
+% pde.linearsolveriter = 100;
+% pde.GMRESortho = 1;
+% pde.GMRESrestart = 50;
+% pde.preconditioner = 0;
+% pde.ppdegree = 0;
 
 gam = 1.4;                      % specific heat ratio
 M_ref = sqrt(1/gam);            % Mach number

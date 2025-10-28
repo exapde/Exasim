@@ -251,7 +251,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
     
     // use PTC to solve the system: R(u) = 0
-    for (it=1; it<maxit; it++) {                        
+    for (it=0; it<maxit; it++) {                        
         //nrmrold = nrmr;
         
         // solve the linear system: (lambda*B + J(u))x = -R(u)
@@ -272,7 +272,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         disc.evalResidual(sys.r, sys.u, backend);
         nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
 
-        if (nrmr > 1.0e6) {                        
+        if (nrmr > 0.1) {                        
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             if (disc.common.saveSolOpt==0)
                 writearray2file(filename, sys.u, disc.common.ndof1, backend);
@@ -280,14 +280,14 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
                 writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
 
             if (disc.common.mpiRank==0)
-                cout<<"Residual is NaN in file ptcsolver.cpp at line 301"<<endl;                           
+                cout<<"Residual is NaN in file ptcsolver.cpp at line 281"<<endl;                           
             
             #ifdef  HAVE_MPI       
                 MPI_Finalize();    
             #endif
             
-            exit(1);
-            //error("\nResidual norm in nonlinear solver is NaN.\n");
+            //exit(1);
+            error("\nResidual norm in nonlinear solver is NaN.\n");
         }
         
         if (disc.common.mpiRank==0 && disc.common.saveResNorm==1) {
@@ -322,21 +322,21 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
 
 void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int N, Int backend)
 {                       
-    dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
-    if (nrmr>zero) {
-      // update the reduced basis        
-      ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N);  
-      //ArrayCopy(disc.common.cublasHandle, &prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);  
-
-      // update the current dimension of the RB dimension
-      if (disc.common.RBcurrentdim<disc.common.RBdim) 
-          disc.common.RBcurrentdim += 1;                    
-
-      // update the position of the RB vector to be replaced  
-      disc.common.RBremovedind += 1;
-      if (disc.common.RBremovedind==disc.common.RBdim) 
-          disc.common.RBremovedind = 0;                
-    }
+    // dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
+    // if (nrmr>zero) {
+    //   // update the reduced basis        
+    //   ArrayCopy(&prec.precond.W[disc.common.RBremovedind*N], sys.x, N);  
+    //   //ArrayCopy(disc.common.cublasHandle, &prec.precond.W[disc.common.RBremovedind*N], sys.x, N, backend);  
+    // 
+    //   // update the current dimension of the RB dimension
+    //   if (disc.common.RBcurrentdim<disc.common.RBdim) 
+    //       disc.common.RBcurrentdim += 1;                    
+    // 
+    //   // update the position of the RB vector to be replaced  
+    //   disc.common.RBremovedind += 1;
+    //   if (disc.common.RBremovedind==disc.common.RBdim) 
+    //       disc.common.RBremovedind = 0;                
+    // }
 }
 
 void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
