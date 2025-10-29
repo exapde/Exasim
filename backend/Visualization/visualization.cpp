@@ -41,6 +41,7 @@ public:
     int nfaces  = 0;
     int nvf     = 0;    
     int savemode = 0;
+    int rank = 0;
     
     // Precomputed appended-data offsets for VTU metadata
     std::vector<std::uint64_t> scalar_offsets; // size = nscalars
@@ -68,9 +69,11 @@ public:
         }
     }
 
-    CVisualization(CDiscretization& disc, int backend) {        
+    CVisualization(CDiscretization& disc, int backend) {      
+        int rank = disc.common.mpiRank;
         int nd_in   = disc.common.nd;
         int npoints_in = disc.sol.szxcg / nd_in;
+        
         if (npoints_in > 0) {            
             int porder  = disc.common.porder;        
             int nsca    = disc.common.nsca;
@@ -179,6 +182,7 @@ public:
         free_field(vecfields);
         free_field(tenfields);
         free_field(srffields); // in case you allocate this later
+        if (rank==0) printf("CVisualization is freed successfully.\n");
     }
 
     // ============================ Writers ============================
