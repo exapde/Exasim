@@ -277,7 +277,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       mesh.szboufaces = nboufaces;
 
       CPUFREE(boufaces);
-      CPUFREE(mesh.bf);            
+      //CPUFREE(mesh.bf);            
                           
       if ((common.preconditioner==2) && (common.szcartgridpart > 0)) {              
         if (common.cartgridpart[0]==2) {          

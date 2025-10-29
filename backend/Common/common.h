@@ -961,6 +961,7 @@ struct meshstruct {
         TemplateFree(f2e, backend);    // face-to-element connectivities 
         TemplateFree(f2f, backend); 
         TemplateFree(f2l, backend); 
+        CPUFREE(bf); 
         TemplateFree(elemcon, backend);    // element-to-face connectivities
         TemplateFree(perm, backend);       // indices of element nodes on faces
         TemplateFree(boufaces, backend);   // boundary faces
