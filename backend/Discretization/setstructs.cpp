@@ -199,7 +199,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.dae_epsilon = app.factor[4];
     
     common.nstgib = app.nsize[11];
-    common.stgib = copyarray(app.stgib,app.nsize[11]); 
+    if (common.nstgib > 0) common.stgib = copyarray(app.stgib,app.nsize[11]); 
 
     //common.eblks = &mesh.eblks[0]; // element blocks
     //common.fblks = &mesh.fblks[0]; // face blocks        
@@ -224,8 +224,8 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         TemplateFree(mesh.intepartpts, 0);        
     }
     
-    common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));
-    common.qoisurface = (dstype*) malloc(common.nsurf*sizeof(dstype));
+    if (common.nvqoi > 0) common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));
+    if (common.nsurf > 0) common.qoisurface = (dstype*) malloc(common.nsurf*sizeof(dstype));
 
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {

@@ -1837,7 +1837,7 @@ struct commonstruct {
         CPUFREE(elemrecv); 
         CPUFREE(elemsendpts); 
         CPUFREE(elemrecvpts); 
-        CPUFREE(stgib); 
+        if (nstgib > 0) CPUFREE(stgib); 
         CPUFREE(vindx); 
         CPUFREE(interfacefluxmap); 
         CPUFREE(cartgridpart); 
@@ -1850,8 +1850,8 @@ struct commonstruct {
         CPUFREE(DIRKcoeff_t); 
         CPUFREE(BDFcoeff_c); 
         CPUFREE(BDFcoeff_t);  
-        CPUFREE(qoivolume);  
-        CPUFREE(qoisurface);  
+        if (nvqoi > 0) CPUFREE(qoivolume);  
+        if (nsurf > 0) CPUFREE(qoisurface);  
     }                         
 };
 
