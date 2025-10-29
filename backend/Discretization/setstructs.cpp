@@ -199,14 +199,13 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.dae_epsilon = app.factor[4];
     
     common.nstgib = app.nsize[11];
-    if (common.nstgib > 0) common.stgib = copyarray(app.stgib,app.nsize[11]); 
+    common.stgib = copyarray(app.stgib,app.nsize[11]); 
 
     //common.eblks = &mesh.eblks[0]; // element blocks
     //common.fblks = &mesh.fblks[0]; // face blocks        
     //common.dt = &app.dt[0]; // face blocks     
     common.eblks = copyarray(mesh.eblks,mesh.nsize[2]); // element blocks
-    common.fblks = copyarray(mesh.fblks,mesh.nsize[3]); // face blocks     
-
+    common.fblks = copyarray(mesh.fblks,mesh.nsize[3]); // face blocks            
     common.dt = copyarray(app.dt,app.nsize[4]); // timestep sizes       
     common.nvindx = app.nsize[12];
     common.vindx = copyarray(app.vindx,app.nsize[12]); 
@@ -225,8 +224,8 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         TemplateFree(mesh.intepartpts, 0);        
     }
     
-    if (common.nvqoi > 0 ) common.qoivolume = (dstype*) malloc((common.nvqoi+1)*sizeof(dstype));
-    if (common.nsurf > 0 ) common.qoisurface = (dstype*) malloc((common.nsurf+1)*sizeof(dstype));
+    common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));
+    common.qoisurface = (dstype*) malloc(common.nsurf*sizeof(dstype));
 
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
@@ -326,7 +325,6 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
 
 void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
 {
-    Int nc = app.ndims[5];    // number of compoments of (u,q)
     Int ncu = app.ndims[6];    // number of compoments of (u)
     Int ncq = app.ndims[7];    // number of compoments of (q)
     //Int ncp = app.ndims[8];    // number of compoments of (p)
@@ -337,16 +335,10 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
     Int nf = mesh.ndims[2];    // number of elements in this subdomain 
     Int nfe = mesh.ndims[4]; // number of faces per element            
    
-    if (app.problem[0] > 0) {
-        TemplateMalloc(&res.Rq, max(npe*nc*ne, npf*nfe*ncu*ne), backend);   
-        res.szRq = max(npe*nc*ne, npf*nfe*ncu*ne);
-    } else {
-        TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
-        res.szRq = 2*npe*ncu*nd*ne;
-    }
-
+    TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.Ru, npe*ncu*ne, backend);
-    TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);    
+    TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
+    res.szRq = 2*npe*ncu*nd*ne;
     res.szRu = npe*ncu*ne;
     res.szRh = max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne);
     

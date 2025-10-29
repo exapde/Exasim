@@ -251,7 +251,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
     
     // use PTC to solve the system: R(u) = 0
-    for (it=0; it<maxit; it++) {                        
+    for (it=1; it<maxit; it++) {                        
         //nrmrold = nrmr;
         
         // solve the linear system: (lambda*B + J(u))x = -R(u)
@@ -272,7 +272,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         disc.evalResidual(sys.r, sys.u, backend);
         nrmr = PNORM(disc.common.cublasHandle, N, sys.r, backend);
 
-        if (nrmr > 0.1) {                        
+        if (nrmr > 1.0e6) {                        
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             if (disc.common.saveSolOpt==0)
                 writearray2file(filename, sys.u, disc.common.ndof1, backend);
@@ -280,14 +280,14 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
                 writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
 
             if (disc.common.mpiRank==0)
-                cout<<"Residual is NaN in file ptcsolver.cpp at line 281"<<endl;                           
+                cout<<"Residual is NaN in file ptcsolver.cpp at line 301"<<endl;                           
             
             #ifdef  HAVE_MPI       
                 MPI_Finalize();    
             #endif
             
-            //exit(1);
-            error("\nResidual norm in nonlinear solver is NaN.\n");
+            exit(1);
+            //error("\nResidual norm in nonlinear solver is NaN.\n");
         }
         
         if (disc.common.mpiRank==0 && disc.common.saveResNorm==1) {
@@ -446,8 +446,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
         else if (spatialScheme == 1) {      
           ArrayCopy(disc.sol.uh, sys.u, N);
           hdgGetDUDG(disc.res.Ru, disc.res.F, sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
-          //ArrayCopy(sys.v, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
-          ArrayCopy(disc.res.Rq, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
+          ArrayCopy(sys.v, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
           UpdateUDG(disc.sol.udg, disc.res.Ru, sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
                     
           if (disc.common.debugMode==1) {
@@ -475,8 +474,7 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
             sys.alpha = sys.alpha/2.0;             
             ArrayAXPY(disc.common.cublasHandle, sys.u, sys.x, -sys.alpha, N, backend); 
             ArrayCopy(disc.sol.uh, sys.u, N);
-            //UpdateUDG(disc.sol.udg, sys.v, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
-            UpdateUDG(disc.sol.udg, disc.res.Rq, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+            UpdateUDG(disc.sol.udg, sys.v, -sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
             if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
             if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
             disc.hdgAssembleResidual(sys.b, backend);

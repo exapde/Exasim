@@ -92,52 +92,6 @@ public:
         int offset = disc.common.fileoffset;
         std::string base = disc.common.fileout;
 
-        if (disc.common.spatialScheme > 0) {     
-            TemplateFree(disc.res.Minv2, disc.common.backend);
-            disc.res.Minv2 = nullptr;
-            disc.res.szMinv2 = 0;
-
-            TemplateFree(disc.res.Mass2, disc.common.backend);     
-            disc.res.Mass2 = nullptr;
-            disc.res.szMass2 = 0;
-
-            if (disc.common.nsurf == 0) {
-                TemplateFree(disc.sol.faceg, disc.common.backend);                    
-                disc.sol.faceg = nullptr;
-                disc.sol.szfaceg = 0;
-            }
-
-            if  (disc.common.ppdegree <= 1) {
-                TemplateFree(solv.sys.randvect, disc.common.backend);                    
-                solv.sys.randvect = nullptr;
-                solv.sys.szrandvect = 0;
-            }
-        }
-
-        if (disc.common.mpiRank==0) {     
-            int n1 = disc.app.sizeoffloat();
-            int n2 = disc.master.sizeoffloat();
-            int n4 = disc.tmp.sizeoffloat();  
-            int n5 = disc.res.sizeoffloat();        
-            int n6 = disc.sol.sizeoffloat();        
-            int n7 = solv.sys.sizeoffloat();   
-            int n8 = prec.precond.sizeoffloat();   
-            cout<<"Number of doubles for each data structure on rank 0\n";      
-            cout<<"app     master     tmp    res    sol    sys     prec\n";             
-            printf("%d   %d    %d    %d    %d     %d    %d\n", n1, n2, n4, n5, n6, n7, n8);
-            disc.tmp.printinfo();
-            disc.res.printinfo();
-            disc.sol.printinfo();
-            solv.sys.printinfo();
-            prec.precond.printinfo();                  
-        }
-
-        #ifdef HAVE_HIP
-            checkHipMemory(disc.common.mpiRank);  
-        #endif
-        #ifdef HAVE_CUDA
-            checkCudaMemory(disc.common.mpiRank);  
-        #endif          
 
         if (mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
             outqoi.open(base + "qoi.txt", std::ios::out);                         
