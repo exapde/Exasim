@@ -503,6 +503,9 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     int *nsize = readiarrayfromdouble(inmesh, lsize[0]);
     int *ndims = readiarrayfromdouble(inmesh, nsize[0]);
     Int ne = ndims[1];
+    free(lsize);
+    free(nsize);
+    free(ndims);
     inmesh.close();            
     
     // Open file to read

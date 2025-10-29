@@ -991,6 +991,7 @@ int mkfaceblocks(int*& nm, const int* mf, const int* bcm, int nmf_len, int ns)
             nm[3 * count + 2] = bcm[i];  // boundary code
             count++;
         }
+        free(intervals);
     }
 
     return count; 

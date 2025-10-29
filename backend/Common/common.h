@@ -957,6 +957,7 @@ struct meshstruct {
         TemplateFree(nsize, backend);
         TemplateFree(ndims, backend);    
         TemplateFree(facecon, backend);    // face-to-element connectivities 
+        TemplateFree(e2f, backend); 
         TemplateFree(f2e, backend);    // face-to-element connectivities 
         TemplateFree(f2f, backend); 
         TemplateFree(f2l, backend); 
