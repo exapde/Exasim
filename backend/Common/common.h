@@ -1285,9 +1285,6 @@ struct sysstruct {
     dstype *lam=nullptr;
     //dstype *normcu=nullptr;    
     
-    // store PTC matrix
-    dstype *PTCmatrix=nullptr;    
-
     // for DIRK schemes
     dstype *utmp=nullptr;
     dstype *wtmp=nullptr;
@@ -1384,7 +1381,6 @@ struct sysstruct {
         TemplateFree(wprev1, backend);  
         TemplateFree(wprev2, backend);  
         TemplateFree(wprev3, backend);  
-        TemplateFree(PTCmatrix, backend);  
     }                
 };
 

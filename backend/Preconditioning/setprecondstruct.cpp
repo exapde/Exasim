@@ -22,7 +22,7 @@
 
 void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend)
 {    
-    Int N = disc.common.ndof1;
+    Int N = max(disc.common.ndof1, disc.common.ndofuhat);
     Int M = disc.common.RBdim;    
     
     TemplateMalloc(&precond.W, N*M, backend); 
