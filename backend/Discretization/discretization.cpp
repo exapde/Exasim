@@ -297,21 +297,35 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       }
       
       res.szH = npf*nfe*ncu*npf*nfe*ncu*common.ne; // HDG elemental matrices     
-      res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;          
-      if (common.preconditioner==0)      // Block Jacobition preconditioner
+      res.szK = (npe*ncu*npe*ncu + npe*ncu*npe*ncq + npf*nfe*ncu*npe*ncq + npf*nfe*ncu*npe*ncu)*neb;   
+      int szS;  
+      if (common.preconditioner==0) {     // Block Jacobition preconditioner
+        szS = ncu*npf*ncu*npf*common.nfb;    
         res.szP = ncu*npf*ncu*npf*nf;
-      else if (common.preconditioner==1) // Elemental additive Schwarz preconditioner
-        res.szP = npf*nfe*ncu*npf*nfe*ncu*common.ne;        
-      else if (common.preconditioner==2) // Superelement additive Schwarz preconditioner
-        res.szP = npf*ncu*npf*ncu*common.nse*common.nnz;     
+      }
+      else if (common.preconditioner==1) {// Elemental additive Schwarz preconditioner
+        szS = npf*nfe*ncu*npf*nfe*ncu*neb;  
+        res.szP = npf*nfe*ncu*npf*nfe*ncu*common.ne;    
+      }
+      else if (common.preconditioner==2) { // Superelement additive Schwarz preconditioner
+        szS = ncu*npf*ncu*npf*common.nfb;   
+        res.szP = npf*ncu*npf*ncu*common.nse*common.nnz;      
+      }
 
+      // int szT = tmp.sztempn + tmp.sztempg;
+      // res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES
+      // int szQ = max(res.szK, res.szP);
+      // res.szK = szQ + max(res.szV, szT);              
+      // res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
+      // res.szipiv = max(max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
+      
+      res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES  
       int szT = tmp.sztempn + tmp.sztempg;
-      res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES
-      int szQ = max(res.szK, res.szP);
-      res.szK = szQ + max(res.szV, szT);              
+      int szQ = res.szK;
+      res.szK = max(res.szP + max(res.szV, szS), szQ + szT);  
       res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
       res.szipiv = max(max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
-            
+
       TemplateMalloc(&res.H, res.szH, backend);
       TemplateMalloc(&res.K, res.szK, backend);      
       TemplateMalloc(&res.F, res.szF, backend);
@@ -321,9 +335,9 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
       TemplateFree(tmp.tempn, backend);                    
       tmp.tempn = nullptr;
       tmp.tempn = &res.K[szQ];
-      tmp.tempg = &tmp.tempn[tmp.sztempn];
+      tmp.tempg = &res.K[szQ + tmp.sztempn];
       tmp.sztempn = 0;  
-      tmp.sztempg = 0;             
+      tmp.sztempg = 0;         
 
       // B, D, G, K share the same memmory block 
       // It is also used for storing both the preconditioner matrix and sys.v

@@ -137,7 +137,7 @@ void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, temp
       
       // Invert all diagonal blocks at diag_idx, in-place (batched)
       double *diag_blocks = &BE[diag_idx * N];
-      Inverse(handle, diag_blocks, tmp.tempn, res.ipiv, ncf, nse, backend); 
+      Inverse(handle, diag_blocks, &res.K[res.szP], res.ipiv, ncf, nse, backend); 
             
       int nj = common.num_ji[i];
       for (int j = 0; j < nj; ++j) {          
@@ -145,8 +145,8 @@ void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, temp
           
           // Multiply all nse blocks: block_ji = block_ji * block_diag, in-place
           double *block_ji = &BE[idx_ji * N];
-          PGEMNMStridedBached(handle, ncf, ncf, ncf, one, block_ji, ncf, diag_blocks, ncf, zero, tmp.tempn, ncf, nse, backend);             
-          ArrayCopy(block_ji, tmp.tempn, N);
+          PGEMNMStridedBached(handle, ncf, ncf, ncf, one, block_ji, ncf, diag_blocks, ncf, zero, &res.K[res.szP], ncf, nse, backend);             
+          ArrayCopy(block_ji, &res.K[res.szP], N);
 
           int nl = common.num_jl[j + i * nn];
           for (int l = 0; l < nl; ++l) {
@@ -178,7 +178,7 @@ void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstr
     for (Int j=0; j<common.nbe; j++) {              
       Int e1 = common.eblks[3*j]-1;
       Int e2 = common.eblks[3*j+1];          
-      Inverse(handle, &BE[ncf*nfe*ncf*nfe*e1], tmp.tempn, res.ipiv, ncf*nfe, e2-e1, backend); 
+      Inverse(handle, &BE[ncf*nfe*ncf*nfe*e1], &res.K[res.szP], res.ipiv, ncf*nfe, e2-e1, backend); 
     }
     
     if (common.debugMode == 1) {
@@ -202,7 +202,7 @@ void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, te
     for (Int j=0; j<common.nbf; j++) {              
       Int f1 = common.fblks[3*j]-1;
       Int f2 = common.fblks[3*j+1];          
-      Inverse(handle, &BE[ncf*ncf*f1], tmp.tempn, res.ipiv, ncf, f2-f1, backend); 
+      Inverse(handle, &BE[ncf*ncf*f1], &res.K[res.szP], res.ipiv, ncf, f2-f1, backend); 
     }
     
 //     ArraySetValue(BEtmp, 0.0, ncf*ncf*(2*nfe-1)*nf);
