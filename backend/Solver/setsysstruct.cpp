@@ -91,8 +91,8 @@ void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstru
     //TemplateMalloc(&randvect, N, backend);   
     TemplateCopytoDevice(randvect, rvec, N, common.backend );   
             
-    free(vec);
-    
+    free(rvec);
+
 #ifdef HAVE_MPI         
     int bsz = common.npe*common.ncu;
     
