@@ -466,11 +466,11 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
           nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.b, backend);           
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
                                     
-         if (nrmr > nrm0 && nrmr > 1.0e2) {                        
+          if (nrmr > nrm0 && nrmr > 1.0e2) {                        
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
             error("Residual norm increases more than 100. Save and exit.");                                    
-         }
+          }
             
           // damped Newton loop to determine alpha
           while ((nrmr>nrm0 && sys.alpha > 0.1) || IS_NAN(nrmr)) 
