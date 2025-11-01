@@ -251,7 +251,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
     
     // use PTC to solve the system: R(u) = 0
-    for (it=1; it<maxit; it++) {                        
+    for (it=0; it<maxit; it++) {                        
         //nrmrold = nrmr;
         
         // solve the linear system: (lambda*B + J(u))x = -R(u)

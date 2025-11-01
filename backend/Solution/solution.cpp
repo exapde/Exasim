@@ -522,12 +522,18 @@ void CSolution::SaveSolutions(Int backend)
     else 
         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0) save = true;             
 
-    if (save == true) {
-        if (disc.common.saveSolOpt==0) 
-            writearray(outsol, solv.sys.u, disc.common.ndof1, backend);    
+    if (save == true) {        
+        if (disc.common.saveSolOpt==0) {
+            if (disc.common.spatialScheme > 0) {
+                ArrayExtract(disc.res.Rq, disc.sol.udg, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                                                  
+                writearray(outsol, disc.res.Rq, disc.common.ndof1, backend);    
+            }
+            else
+                writearray(outsol, solv.sys.u, disc.common.ndof1, backend);    
+        }
         else
             writearray(outsol, disc.sol.udg, disc.common.ndofudg1, backend);    
-
+        
         if (disc.common.ncw>0)
             writearray(outwdg, disc.sol.wdg, disc.common.ndofw1, backend);
 
@@ -539,6 +545,8 @@ void CSolution::SaveSolutions(Int backend)
             writearray2file(fn1, disc.sol.udgavg, disc.common.ndofudg1+1, backend);
         }        
     }
+
+    
 
    // if (disc.common.tdep==1) { 
    //      if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
