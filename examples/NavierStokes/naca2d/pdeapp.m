@@ -2,10 +2,10 @@
 cdir = pwd(); ii = strfind(cdir, "Exasim");
 run(cdir(1:(ii+5)) + "/install/setpath.m");
 
-porder = 4;                     % polynomial degree
-tau = 3.0;                      % stabilization parameter
+porder = 3;                     % polynomial degree
 gam = 1.4;                      % gas constant
-Minf = 0.2;                     % freestream mach number
+Minf = 0.025;                   % freestream mach number
+tau = 0.6/Minf;                 % stabilization parameter
 alpha = 0*pi/180;               % angle of attack
 rinf = 1.0;                     % freestream density
 ruinf = cos(alpha);             % freestream horizontal velocity
@@ -23,7 +23,7 @@ pde.model = "ModelD";          % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-%pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
+pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 pde.debugmode = 0;
@@ -32,17 +32,18 @@ pde.pgauss = 2*porder;
 
 pde.physicsparam = [gam Re Pr Minf rinf ruinf rvinf rEinf];
 pde.tau = tau;              % DG stabilization parameter
-pde.GMRESrestart = 400;
-pde.linearsolvertol = 1e-7; % GMRES tolerance
-pde.linearsolveriter = 400;
+pde.GMRESrestart = 100;
+pde.GMRESortho = 1;
+pde.linearsolvertol = 1e-6; % GMRES tolerance
+pde.linearsolveriter = 1000;
 pde.preconditioner = 1;
-pde.ppdegree = 0;
+pde.NLtol = 1e-8;
+pde.ppdegree = 10;
 pde.RBdim = 0;
-pde.neb = 512;
 pde.gencode = 1;
 
 % naca mesh
-mesh = mkmesh_naca0012(porder,1,1);
+mesh = mkmesh_naca0012(porder,1,2);
 
 % call exasim to generate and run C++ code to solve the PDE model
 [sol,pde,mesh] = exasim(pde,mesh);
@@ -50,8 +51,12 @@ mesh = mkmesh_naca0012(porder,1,1);
 % plot solution
 mesh.porder = porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,porder);    
-figure(1); clf; scaplot(mesh,eulereval(sol(:,1:4,:),'M',gam),[],2); axis off; axis equal; axis tight;
 
+figure(1); clf; scaplot(mesh,eulereval(sol(:,1:4,:),'M',gam),[],2); 
+axis on; axis equal; axis tight;
+axis([-0.5 2 -0.62 0.62])
+set(gca,'fontsize', 16);
+%exportgraphics(gca,"nacap3M0025.png",'Resolution',200);
 
 
 

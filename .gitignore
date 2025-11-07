@@ -166,3 +166,13 @@ doc/strongscaling.png
 doc/tiogatuolumne.txt
 doc/tuolumne.sh
 doc/weakscaling.png
+examples/NonlinearElasticity/cubeblock/nle3dp3n1644.png
+examples/NavierStokes/naca2d/nle3dp3n1644.png
+examples/NavierStokes/naca2d/nacap3M04Re100.png
+examples/NavierStokes/naca2d/nacap3M04.png
+examples/NavierStokes/naca2d/nacap3M0025Re100.png
+examples/NavierStokes/naca2d/nacap3M0025.png
+examples/Burgers/Burgers2d/bg2d.png
+examples/Burgers/Burgers2d/bg2dp1n32.png
+examples/Burgers/Burgers2d/bg2dp3n32.png
+examples/LinearElasticity/beam3d/le3dp3n2044.png

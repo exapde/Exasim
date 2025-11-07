@@ -24,7 +24,7 @@ mu = 1;
 lambda = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
-pde.porder = 2;             % polynomial degree
+pde.porder = 3;             % polynomial degree
 pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.physicsparam = [mu lambda 3 0 0]; 
 pde.tau = 1e3;              % DG stabilization parameter
@@ -59,6 +59,9 @@ mesh1.t = mesh1.t';
 figure(1);clf;meshplot(mesh1,1); axis on;
 mesh1.dgnodes = sol(:,1:3,:); 
 figure(2);clf;meshplot(mesh1,1); axis on;
+axis equal; axis on; box on; 
+set(gca,'fontsize', 16);
+
 xlabel('x');
 ylabel('y');
 zlabel('z');
