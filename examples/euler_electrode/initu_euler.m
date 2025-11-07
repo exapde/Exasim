@@ -17,6 +17,7 @@ function UDG = initu_streamer(mesh,param, physparam)
         if isa(param{i},'double') 
             UDG(:,i,:) = param{i};
         else
+            
             UDG(:,i,:) = param{i}(mesh.dgnodes, physparam);
         end
     end

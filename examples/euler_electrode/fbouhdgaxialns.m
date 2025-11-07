@@ -101,7 +101,7 @@ function fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fwall(4) = u(4) - uhat(4); % extrapolate energy      Different from NS
 
     % Outflow boundary condition  
-    pinf=1;     % Outlet pressure = reference pressure by construction of the nondimensionalization
+    pinf=1.225853658536585;     % Outlet pressure = reference pressure by construction of the nondimensionalization
     uinf = [u(1), u(2), u(3), pinf/(gam-1) + 0.5*u(2)*u(2)/u(1) + 0.5*u(3)*u(3)/u(1)];
     uinf = uinf(:);
     foutflow = 0.5*((u(1:4)+uinf(1:4)) + An*(u(1:4)-uinf(1:4))) - uhat(1:4);     

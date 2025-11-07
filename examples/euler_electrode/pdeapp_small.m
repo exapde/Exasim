@@ -24,7 +24,7 @@ pde.porder = 2;          % polynomial degree
 pde.GMRESortho = 0;   % 0 is MGS, 1 is CGS. numerical instability of CGS only kicks in around 800 and above GMRES vectors.
 % pde.GMRESortho = 1;
 % pde.ppdegree = 5; % only use if > 1000 gmres iterations
-pde.ppdegree = 1; % only use if > 1000 gmres iterations -- polynomial preconditioner isn't that good. if you have a good preconditioner you don't really need it.
+pde.ppdegree = 0; % only use if > 1000 gmres iterations -- polynomial preconditioner isn't that good. if you have a good preconditioner you don't really need it.
 pde.linearsolvertol = 1e-4; % GMRES tolerance  -- don't need that much accuracy at the beginning of the newton iteration -- 10e-3 or 10e-4
 pde.NLiter = 5;
 pde.RBdim = 0;              % reduced basis dimension for preconditioner -- 5 is good
@@ -36,10 +36,11 @@ pde.NLtol = 1e-7;
 pde.precMatrixType = 2; % 2 is good for tdep problems, can be [0,1,2]. 0=nothing, 1=use mass matrix, 2=inv(mass matrix), good for tdep problems
 pde.preconditioner = 1; % Additive Schwarz
 
+pde.gencode=0;
 % Timestepping
 pde.torder = 2;          % time-stepping order of accuracy
 pde.nstage = 2;          % time-stepping number of stages
-pde.dt = 5e-3*ones(1,100);   % time step sizes
+pde.dt = 1e-8*ones(1,100);   % time step sizes
 pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.05; % visualization timestep size
 
@@ -80,27 +81,28 @@ cv = 718;   % Perfect gas: constant specific heats
 Rsp = 287;      
 p0 = rho0*Rsp*T0;    % For thermodynamic consistency, we have to use the equation of state to compmute T0 from rho0 and p0; we can't specify it separately.
 rE0 = rho0*cv*T0/(p0/rho0);   % Nondimensional initial rho*E is rho_0*cv(T_0)*T_0/(p_ref/rho_ref)
-initu_func_set = {rho0;0;0;rE0};
+% initu_func_set = {rho0;0;0;rE0;};
+initu_func_set = {rho0;0;0;@initu_func_rE;};
 UDG0 = initu_euler(mesh,initu_func_set,pde.physicsparam);
 
 % Print out inital condition and boundary values for a verification
 fig = figure(1); clf; scaplot(mesh,UDG0(:,1,:),[],1); axis on; axis equal; axis tight;
 saveas(fig, "u0/U1.png")
-fig = figure(1); clf; scaplot(mesh,UDG0(:,2,:),[],1); axis on; axis equal; axis tight;
+fig = figure(2); clf; scaplot(mesh,UDG0(:,2,:),[],1); axis on; axis equal; axis tight;
 saveas(fig, "u0/U2.png")
-fig = figure(1); clf; scaplot(mesh,UDG0(:,3,:),[],1); axis on; axis equal; axis tight;
+fig = figure(3); clf; scaplot(mesh,UDG0(:,3,:),[],1); axis on; axis equal; axis tight;
 saveas(fig, "u0/U3.png")
-fig = figure(1); clf; scaplot(mesh,UDG0(:,4,:),[],1); axis on; axis equal; axis tight;
+fig = figure(4); clf; scaplot(mesh,UDG0(:,4,:),[],1); axis on; axis equal; axis tight;
 saveas(fig, "u0/U4.png")
 
-fig = figure(1); clf; boundaryplot(mesh,1);
-saveas(fig, "u0/B1.png")
-fig = figure(1); clf; boundaryplot(mesh,2);
-saveas(fig, "u0/B2.png")
-fig = figure(1); clf; boundaryplot(mesh,3);
-saveas(fig, "u0/B3.png")
-fig = figure(1); clf; boundaryplot(mesh,4);
-saveas(fig, "u0/B4.png")
+% fig = figure(5); clf; boundaryplot(mesh,1);
+% saveas(fig, "u0/B1.png")
+% fig = figure(7); clf; boundaryplot(mesh,2);
+% saveas(fig, "u0/B2.png")
+% fig = figure(7); clf; boundaryplot(mesh,3);
+% saveas(fig, "u0/B3.png")
+% fig = figure(8); clf; boundaryplot(mesh,4);
+% saveas(fig, "u0/B4.png")
 
 %%%%%%%%%%%%
 
