@@ -30,7 +30,7 @@ rNinf = 0.25/Re;
 
 pde.physicsparam = [gam Re Pr Minf rinf ruinf rvinf rEinf rNinf];
 pde.tau = 2.0;                  % DG stabilization parameter
-pde.GMRESrestart = 100;         %try 50
+pde.GMRESrestart = 250;         %try 50
 pde.GMRESortho = 1;
 pde.linearsolvertol = 1e-6; % GMRES tolerance
 pde.linearsolveriter = 1000; %try 100
@@ -38,18 +38,19 @@ pde.preconditioner = 1;
 pde.RBdim = 0;
 pde.ppdegree = 0;
 pde.NLtol = 1e-8;              % Newton tolerance
-pde.NLiter = 1;                % Newton iterations
-pde.gencode = 1;
+pde.NLiter = 3;                % Newton iterations
+pde.gencode = 0;
 
-% ntime = 10;
-% dt=1e-2*2.^(0:ntime);
-% dt=repmat(dt,[2 1]);
-
-% BJ, ASM, ASM-PP(5), ASM-PP(10)
-ntime = 200;
-% [1e-3 2e-3 4e-3 8e-3 16e-3 32e-3]
-dt = 32e-6*ones(ntime,1);
+ntime = 11;
+dt=1e-2*2.^(0:ntime);
+dt=repmat(dt,[2 1]);
 pde.dt=dt(:);
+
+% % BJ, ASM, ASM-PP(5), ASM-PP(10)
+% ntime = 200;
+% % [1e-3 2e-3 4e-3 8e-3 16e-3 32e-3]
+% dt = 16e-3*ones(ntime,1);
+% pde.dt=dt(:);
 
 mesh = mkmesh_flatplate(1.5,1,1,pde.porder);
 
@@ -75,7 +76,23 @@ mesh.udg = UDG;
 
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
-figure(1); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'M',gam,Minf),[],2);
-figure(2); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'u',gam,Minf),[],2);
-figure(3); clf; scaplot(mesh, sol(:,5,:,end),[],2);
+% figure(1); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'M',gam,Minf),[],2);
+% figure(2); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'u',gam,Minf),[],2);
+% figure(3); clf; scaplot(mesh, sol(:,5,:,end),[],2);
+
+figure(1); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'M',gam,Minf),[],2); 
+colormap("jet"); axis on; axis tight; axis normal; set(gca,'fontsize', 18);
+colorbar("Location", "NorthOutside");
+
+exportgraphics(gca,"ransnacap3mach.png",'Resolution',200);
+
+figure(3); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'u',gam,Minf),[0 1],2); 
+colormap("jet"); axis on; axis tight; axis normal; set(gca,'fontsize', 18);
+colorbar("Location", "NorthOutside");
+exportgraphics(gca,"ransfpp3uvel.png",'Resolution',200);
+ 
+figure(3); clf; scaplot(mesh, sol(:,5,:,end)*Re,[0 1.8e-4*Re],2);
+colormap("jet"); axis on; axis tight; axis normal; set(gca,'fontsize', 18);
+colorbar("Location", "NorthOutside");
+exportgraphics(gca,"ransfpp3visc.png",'Resolution',200);
 

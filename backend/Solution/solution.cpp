@@ -92,7 +92,7 @@ void CSolution::SteadyProblem(ofstream &out, Int backend)
 
         for (Int iav = 0; iav<disc.common.AVsmoothingIter; iav++){
             // printf("Solution AV smoothing iter: %i\n", iav);
-            disc.DG2CG2(avField, avField, utm, disc.common.nco, disc.common.nco, disc.common.ncAV, backend);
+            disc.DG2CG2(avField, avField, utm, disc.common.ncAV, disc.common.ncAV, disc.common.ncAV, backend);
 
 #ifdef  HAVE_MPI    
             Int bsz = disc.common.npe*disc.common.ncAV;

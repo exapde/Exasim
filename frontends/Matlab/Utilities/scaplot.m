@@ -75,7 +75,7 @@ if nargin>=5 && ~isempty(pltmesh) && pltmesh
 end
 
 set(gcf,'rend','z');
-colorbar; axis equal; drawnow
+axis equal; drawnow
 if nargin>=6 && ~isempty(surf)
    cameramenu;
 end

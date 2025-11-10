@@ -56,7 +56,18 @@ mesh.vdg(:,2,:) = dist;
 
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 
-figure(1); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'M',gam,Minf),[],2); colormap("jet");
-figure(2); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'u',gam,Minf),[],2); colormap("jet");
-figure(3); clf; scaplot(mesh, sol(:,5,:,end),[],2);
+figure(1); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'M',gam,Minf),[],2); 
+colormap("jet"); axis on; axis tight; axis equal; set(gca,'fontsize', 18);
+axis([-0.2 1.5 -0.4 0.4]); colorbar("Location", "NorthOutside");
+exportgraphics(gca,"ransnacap3mach.png",'Resolution',200);
+
+figure(2); clf; scaplot(mesh, eulereval(sol(:,:,:,end), 'u',gam,Minf),[],2); 
+colormap("jet"); axis on; axis tight; axis equal; set(gca,'fontsize', 18);
+axis([-0.2 1.5 -0.4 0.4]); colorbar("Location", "NorthOutside");
+exportgraphics(gca,"ransnacap3uvel.png",'Resolution',200);
+
+figure(3); clf; scaplot(mesh, sol(:,5,:,end)*Re,[0 2e-4*Re],2);
+colormap("jet"); axis on; axis tight; axis equal; set(gca,'fontsize', 18);
+axis([-0.2 1.5 -0.4 0.4]); colorbar("Location", "NorthOutside");
+exportgraphics(gca,"ransnacap3visc.png",'Resolution',200);
 

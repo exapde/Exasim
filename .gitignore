@@ -176,3 +176,10 @@ examples/Burgers/Burgers2d/bg2d.png
 examples/Burgers/Burgers2d/bg2dp1n32.png
 examples/Burgers/Burgers2d/bg2dp3n32.png
 examples/LinearElasticity/beam3d/le3dp3n2044.png
+examples/RANS/naca0012/ransnacap3mach.png
+examples/RANS/naca0012/ransnacap3uvel.png
+examples/RANS/naca0012/ransnacap3visc.png
+examples/RANS/flatplate/ransfpp3uvel.png
+examples/RANS/flatplate/ransfpp3visc.png
+examples/RANS/flatplate/ransnacap3uvel.png
+examples/RANS/naca0012/nacap3M04Re100.png
