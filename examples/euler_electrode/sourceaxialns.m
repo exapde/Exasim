@@ -20,9 +20,9 @@ rvy = q(7);
 rEy = q(8);
 
 % Regularization of rho (cannot be smaller than rmin)
-r = rmin + lmax(r-rmin,alpha);
-% Density sensor
-dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
+% r = rmin + lmax(r-rmin,alpha);
+% % Density sensor
+% dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
 r1 = 1/r;
 uv = ru*r1;
 vv = rv*r1;
@@ -39,7 +39,7 @@ H = E + T;
 % Inviscid fluxes
 fi = [rv, ru*vv, rv*vv, rv*H];
 
-f = -fi/x(2);  % For axisymmetric, radial coordinate is x(2)
+f = -fi/(x(2));  % For axisymmetric, radial coordinate is x(2)
 
 f = reshape(f,[4,1]);        
 

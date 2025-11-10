@@ -15,7 +15,7 @@ pde.debugmode = 0;
 
 % Choose computing platform and set number of processors
 pde.platform = "cpu";
-pde.mpiprocs = 1;              % number of MPI processors
+pde.mpiprocs = 8;              % number of MPI processors
 
 % Discretization parameters
 pde.porder = 2;          % polynomial degree
@@ -25,11 +25,11 @@ pde.GMRESortho = 0;   % 0 is MGS, 1 is CGS. numerical instability of CGS only ki
 % pde.GMRESortho = 1;
 % pde.ppdegree = 5; % only use if > 1000 gmres iterations
 pde.ppdegree = 0; % only use if > 1000 gmres iterations -- polynomial preconditioner isn't that good. if you have a good preconditioner you don't really need it.
-pde.linearsolvertol = 1e-4; % GMRES tolerance  -- don't need that much accuracy at the beginning of the newton iteration -- 10e-3 or 10e-4
+pde.linearsolvertol = 1e-6; % GMRES tolerance  -- don't need that much accuracy at the beginning of the newton iteration -- 10e-3 or 10e-4
 pde.NLiter = 5;
 pde.RBdim = 0;              % reduced basis dimension for preconditioner -- 5 is good
 pde.linearsolveriter = 400; % tdep solver is more efficient -> fewer GMRES iterations. was 100. 200-500 for steady problems. no restarts if you can handle it
-pde.GMRESrestart = 150; % larger gmres for steady problems. was 20 -- make this as high as possible, memory limited
+pde.GMRESrestart = 200; % larger gmres for steady problems. was 20 -- make this as high as possible, memory limited
 % pde.linearsolveriter = 100; % tdep solver is more efficient -> fewer GMRES iterations. was 100
 % pde.GMRESrestart = 40; % larger gmres for steady problems. was 20
 pde.NLtol = 1e-7;
@@ -40,14 +40,14 @@ pde.gencode=0;
 % Timestepping
 pde.torder = 2;          % time-stepping order of accuracy
 pde.nstage = 2;          % time-stepping number of stages
-pde.dt = 1e-8*ones(1,100);   % time step sizes
+pde.dt = 5e-3*ones(1000,1);   % time step sizes
 pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.05; % visualization timestep size
 
 % Pysics param
 pde.physicsparam = [1.4];     % Physics param loaded in a separate script
-pde.tau = 1;
-% pde.gencode = 0;
+pde.tau = 0.001;
+pde.gencode = 0;
 
 % Mesh
 [p,t] = gmshcall_sam("./streamer2_39k.msh", 2, 0);
@@ -60,7 +60,7 @@ p = [p(2,:); p(1,:)];
 mesh.p = p;
 mesh.t = t;
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-3, @(p) and(p(2,:)<8, p(1,:)<0) , @(p) and(p(2,:)<8, p(1,:)>0), @(p) abs(p(2,:)-7.94)>0}; %@(p) p(2,:)>7.5};
-mesh.boundarycondition = [1;2;3;4]; % Set boundary condition for each boundary
+mesh.boundarycondition = [2;2;3;4]; % Set boundary condition for each boundary
 mesh.f = facenumbering(mesh.p,mesh.t,0,mesh.boundaryexpr,[]);
 mesh.porder = pde.porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
@@ -108,7 +108,7 @@ saveas(fig, "u0/U4.png")
 
 mesh.udg = UDG0;            % Load initial condition
 
-pde.saveSolFreq = 1;
+pde.saveSolFreq = 10;
 
 % search compilers and set options
 pde = setcompilers(pde);       

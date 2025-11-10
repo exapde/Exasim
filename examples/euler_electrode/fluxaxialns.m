@@ -20,9 +20,9 @@ rvy = q(7);
 rEy = q(8);
 
 % Regularization of rho (cannot be smaller than rmin)
-r = rmin + lmax(r-rmin,alpha);
-% Density sensor
-dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
+% r = rmin + lmax(r-rmin,alpha);
+% % Density sensor
+% dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
 r1 = 1/r;
 uv = ru*r1;
 vv = rv*r1;
@@ -34,7 +34,7 @@ T = e*(gam-1);
 p = r*T;
 H = E + T;
 
-p = pmin + lmax(p-pmin,alpha);
+%p = pmin + lmax(p-pmin,alpha);
 
 % Inviscid fluxes only -- Euler
 fi = [ru, ru*uv+p, rv*uv, ru*H, ...

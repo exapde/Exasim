@@ -67,13 +67,13 @@ N  = n1 * n2 * n3;
 payload = fread(fid, 'double');
 fclose(fid);
 
-if mod(numel(payload), N) ~= 0
-    error('Payload size is not a multiple of n1*n2*n3 in %s', fname);
-end
-nsteps = numel(payload) / N;
+% if mod(numel(payload), N) ~= 0
+%     error('Payload size is not a multiple of n1*n2*n3 in %s', fname);
+% end
+nsteps = floor(numel(payload) / N);
 
 % reshape to [n1 n2 n3 nsteps]
-data4d = reshape(payload, [n1, n2, n3, nsteps]);
+data4d = reshape(payload(1:N*nsteps), [n1, n2, n3, nsteps]);
 end
 
 % function sol = getsolutions(basename, dmd)
