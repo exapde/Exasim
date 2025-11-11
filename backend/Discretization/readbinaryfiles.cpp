@@ -386,7 +386,7 @@ void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct
 
     //printf("%d %d %d\n", mesh.nsize[26], mesh.nsize[27], mesh.nsize[28]);
     //checkConn(mesh, sol, app, master, ti, boundaryConditions, intepartpts, mesh.nsize[27]);    
-    if (mesh.nsize[26] > 0 && mesh.nsize[27] > 0) {
+    if (mesh.nsize[26] > 0 && mesh.nsize[27] > 0 && mesh.szfacecon == 0) {
         if (mpirank==0) printf("Building element and face connectivities \n");         
         buildConn(mesh, sol, app, master, ti, mesh.boundaryConditions, mesh.intepartpts, mesh.nsize[27]);
         CPUFREE(ti);
