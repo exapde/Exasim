@@ -154,6 +154,15 @@ if isfield(pde, 'qoiboundary')
     sdgsym = pde.qoiboundary(udgsym, qdgsym, wdgsym, odgsym, xdgsym, time, paramsym, uinfsym, uhatsym, nsym, tausym);         
     app.nbqoi = length(sdgsym(:));
 end
+if isfield(pde, 'fhat') || isfield(pde, 'fhathdg')               
+    app.extFhat = 1;
+end
+if isfield(pde, 'uhat') 
+    app.extUhat = 1;
+end
+if isfield(pde, 'stab') || isfield(pde, 'stabhdg')               
+    app.extStab = 1;
+end
 
 if app.preprocessmode==0    
     % update app structure    
