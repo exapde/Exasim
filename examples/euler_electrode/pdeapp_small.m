@@ -25,14 +25,14 @@ pde.GMRESortho = 0;   % 0 is MGS, 1 is CGS. numerical instability of CGS only ki
 % pde.GMRESortho = 1;
 % pde.ppdegree = 5; % only use if > 1000 gmres iterations
 pde.ppdegree = 0; % only use if > 1000 gmres iterations -- polynomial preconditioner isn't that good. if you have a good preconditioner you don't really need it.
-pde.linearsolvertol = 1e-6; % GMRES tolerance  -- don't need that much accuracy at the beginning of the newton iteration -- 10e-3 or 10e-4
+pde.linearsolvertol = 1e-7; % GMRES tolerance  -- don't need that much accuracy at the beginning of the newton iteration -- 10e-3 or 10e-4
 pde.NLiter = 5;
 pde.RBdim = 0;              % reduced basis dimension for preconditioner -- 5 is good
 pde.linearsolveriter = 400; % tdep solver is more efficient -> fewer GMRES iterations. was 100. 200-500 for steady problems. no restarts if you can handle it
 pde.GMRESrestart = 200; % larger gmres for steady problems. was 20 -- make this as high as possible, memory limited
 % pde.linearsolveriter = 100; % tdep solver is more efficient -> fewer GMRES iterations. was 100
 % pde.GMRESrestart = 40; % larger gmres for steady problems. was 20
-pde.NLtol = 1e-7;
+pde.NLtol = 1e-8;
 pde.precMatrixType = 2; % 2 is good for tdep problems, can be [0,1,2]. 0=nothing, 1=use mass matrix, 2=inv(mass matrix), good for tdep problems
 pde.preconditioner = 1; % Additive Schwarz
 
@@ -45,8 +45,13 @@ pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.05; % visualization timestep size
 
 % Pysics param
-pde.physicsparam = [1.4];     % Physics param loaded in a separate script
-pde.tau = 0.001;
+pde.physicsparam = [1.4, 0e-7];     % Physics param loaded in a separate script
+pde.tau = 0.01;
+pde.tau = 1e-3*ones(4,1);
+% pde.tau(1) = 1e-4;
+% pde.tau(2) = 1e-4;
+% pde.tau(3) = 1e-4;
+% pde.tau(4) = 1e-4;
 pde.gencode = 0;
 
 % Mesh
@@ -66,13 +71,14 @@ mesh.porder = pde.porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
 
 % generate input files and store them in datain folder
-[pde,mesh,master,dmd] = preprocessing(pde,mesh);
+% [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
 % save("dmd.mat", "dmd");
 % disp("Saved dmd, exiting")
 % return;
+%mesh.plocal = mesh.xpe;
+[mesh.xpe,mesh.telem,xpf,tface,perm] = masternodes(pde.porder,2,0);
 mesh.plocal = mesh.xpe;
-
 
 %%%%%%%%%%%% Initial condition: specify rho0 and T0
 rho0 = 1.225;
@@ -106,6 +112,7 @@ saveas(fig, "u0/U4.png")
 
 %%%%%%%%%%%%
 
+%UDG0 = sol0(:,:,:,50);
 mesh.udg = UDG0;            % Load initial condition
 
 pde.saveSolFreq = 10;
@@ -113,5 +120,20 @@ pde.saveSolFreq = 10;
 % search compilers and set options
 pde = setcompilers(pde);       
 
+mesh.f = facenumbering(mesh.p,mesh.t,0,mesh.boundaryexpr,mesh.periodicexpr);
+dist = meshdist3(mesh.f,mesh.dgnodes,master.perm,[1 2 3]); % distance to the wall
+mesh.vdg = zeros(size(mesh.dgnodes,1),1,size(mesh.dgnodes,3));
+mesh.vdg(:,1,:) = 0; %0e-6*tanh(dist);
+
 % return;    
 [sol,pde,mesh] = exasim(pde,mesh);
+
+%[k,sol] = readsoldmd("/Users/cuongnguyen/Documents/GitHub/Exasim/build/dataout/outudg", dmd, 1, 45);
+%figure(4); clf; scaplot(mesh,sol(:,1,:),[],1); axis on; axis equal; axis tight;
+
+figure(2); clf; scaplot(mesh,sol(:,2,:,end)./sol(:,1,:,end),[],1); 
+axis on; axis equal; axis tight;
+figure(3); clf; scaplot(mesh,sol(:,3,:,end)./sol(:,1,:,end),[],1); 
+axis on; axis equal; axis tight;
+figure(4); clf; scaplot(mesh,sol(:,1,:,end),[],1);
+axis on; axis equal; axis tight;

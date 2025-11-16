@@ -58,7 +58,7 @@ else
       hdgnocodeelem2("Sourcewonly" + strn, kkdir);
   end
   if isfield(pde, 'fhathdg')    
-      f = pde.fbouhdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
+      f = pde.fhathdg(u, q, wdg, odg, xdg, time, param, uinf, uhg, nlg, tau);
       f = reshape(f,ncu,[]);
       hdggencodeface("Fhat" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);
       hdggencodeface2("Fhatonly" + strn, f, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, kkdir);

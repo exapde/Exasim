@@ -7,6 +7,7 @@ pde.ubou = @ubou;
 pde.initu = @initu;
 % pde.avfield = @avfield;
 pde.fbouhdg = @fbouhdg;
+pde.fhathdg = @fhathdg;
 end
 
 function m = mass(u, q, w, v, x, t, mu, eta)
@@ -41,6 +42,30 @@ end
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
 fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau);
+
+end
+
+function fh = fhathdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
+
+f = flux(uhat, q, w, v, x, t, mu, eta);
+
+r = uhat(1);
+ru = uhat(2);
+rv = uhat(3);
+nx = n(1);
+ny = n(2);    
+run = ru*nx + rv*ny;
+r1 = 1/r;
+un = run*r1;
+
+s = (u - uhat);
+for i = 1:4
+    s(i) = r*tau(i)*(u(i) - uhat(i));
+end
+% s(2) = sqrt(un*un + 1e-10)*(u(2) - uhat(2)); 
+% s(3) = sqrt(un*un + 1e-10)*(u(3) - uhat(3)); 
+
+fh = f(:,1)*n(1) + f(:,2)*n(2) + s;
 
 end
 

@@ -1,7 +1,7 @@
 function fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
-    tau = 1.0;
-    
+    tau = tau(1);
+
     % symmetry boundary condition    
     r = uhat(1);
     ru = uhat(2);
@@ -13,12 +13,12 @@ function fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     rEy = q(8);  
 
     % regularization mueters
-    % alpha = 4.0e3;
-    % rmin = 5.0e-2;
+    alpha = 1.0e2;
+    rmin = 5.0e-2;
     % pmin = 2.0e-3;
 
     % Regularization of rho (cannot be smaller than rmin)
-    % r = rmin + lmax(r-rmin,alpha);
+    r = rmin + lmax(r-rmin,alpha);
     % % Density sensor
     % dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
     r1 = 1/r;
@@ -59,9 +59,9 @@ function fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau)
 
     % Other possible boundary conditions to try
     f_sym(1) = ry + tau*(u(1) - uhat(1));  % dr/dy = 0
-    f_sym(2) = uy + tau*(u(2) - uhat(2));  % du/dy = 0
-    f_sym(3) = tau*(0.0 - uhat(3));   % u = 0
-    f_sym(4) = Ty + tau*(u(4) - uhat(4));  % dT/dy = 0
+    f_sym(2) = ruy + tau*(u(2) - uhat(2));  % du/dy = 0
+    f_sym(3) = 0 + tau*(0.0 - uhat(3));   % u = 0
+    f_sym(4) = rEy + tau*(u(4) - uhat(4));  % dT/dy = 0
 
     % Outflow boundary
     gam1 = gam-1;
@@ -101,7 +101,8 @@ function fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     fwall(1) = u(1) - uhat(1); % extrapolate density
     fwall(2) = ny*(u(2) - uhat(2)) - nx*(u(3) - uhat(3)); % zero velocity component in y
     fwall(3) = 0.0  - nx*uhat(2) - ny*uhat(3); % zero velocity component in x
-    fwall(4) = u(4) - uhat(4); % extrapolate energy      Different from NS
+    fwall(4) = (u(4) - uhat(4)); % extrapolate energy      Different from NS
+    fwall = 0.01*fwall;
 
     % Outflow boundary condition  
     pinf=1.225853658536585;     % Outlet pressure = reference pressure by construction of the nondimensionalization

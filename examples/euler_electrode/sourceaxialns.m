@@ -2,7 +2,7 @@ function f = sourceaxialns(u, q, w, v, x, t, mu, eta)
    % pde.physicsmu = [gam Re Pr Minf rinf ruinf rvinf rEinf Tref avk avs];
 
 % regularization mueters
-alpha = 4.0e3;
+alpha = 1.0e2;
 rmin = 5.0e-2;
 pmin = 2.0e-3;
 
@@ -20,7 +20,7 @@ rvy = q(7);
 rEy = q(8);
 
 % Regularization of rho (cannot be smaller than rmin)
-% r = rmin + lmax(r-rmin,alpha);
+r = rmin + lmax(r-rmin,alpha);
 % % Density sensor
 % dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
 r1 = 1/r;
@@ -39,7 +39,7 @@ H = E + T;
 % Inviscid fluxes
 fi = [rv, ru*vv, rv*vv, rv*H];
 
-f = -fi/(x(2));  % For axisymmetric, radial coordinate is x(2)
+f = -fi/(0.1+x(2));  % For axisymmetric, radial coordinate is x(2)
 
 f = reshape(f,[4,1]);        
 

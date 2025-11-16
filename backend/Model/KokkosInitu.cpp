@@ -4,6 +4,9 @@ void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype*
 		int j = i%npe;
 		int k = i/npe;
 		f[j+npe*0+npe*nce*k] = 0.0;
+		f[j+npe*1+npe*nce*k] = 0.0;
+		f[j+npe*2+npe*nce*k] = 0.0;
+		f[j+npe*3+npe*nce*k] = 0.0;
 	});
 }
 

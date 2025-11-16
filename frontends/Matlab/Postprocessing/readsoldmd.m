@@ -32,6 +32,8 @@ for i = 1:nproc
     fclose(fid);
 end
 
+k = round(k);
+
 if sum(abs(k(:,1) - k(1,1))) ~= 0
     error("First dimension in binary files do not match.");
 end

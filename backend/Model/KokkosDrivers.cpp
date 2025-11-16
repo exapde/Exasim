@@ -552,6 +552,8 @@ void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int 
 #include "HdgFbouonly.cpp"
 #include "HdgFint.cpp"
 #include "HdgFintonly.cpp"
+#include "HdgFhat.cpp"
+#include "HdgFhatonly.cpp"
 #include "HdgSource.cpp"
 #include "HdgSourcew.cpp"
 #include "HdgSourcewonly.cpp"
@@ -729,44 +731,51 @@ void FhatDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const d
 
     dstype time = common.time;    
     
-    // copy u-compoment of udg to f_uhg
-    ArrayCopy(f_uhg, udg, numPoints*ncu);
-
-    // copy uhg to udg, so udg = (uh, q)  
-    ArrayCopy(udg, uhg, numPoints*ncu);
-
-    // f = ng * ncu * nd 
-    // f_udg = ng * ncu * nd * nc
-    // f_wdg = ng * ncu * nd * ncw
-    HdgFlux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
-                common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                      
-
-    // copy f_uhg to u-compoment of udg 
-    ArrayCopy(udg, f_uhg, numPoints*ncu);
-
-    // f = ng * ncu  
-    FluxDotNormal(f, f, nl, M, numPoints, nd);         
-
-    // f_udg = ng * ncu * nc
-    for (int n=0; n< nc; n++) {
-      FluxDotNormal(&f_udg[M*n], &f_udg[N*n], nl, M, numPoints, nd);        
+    if (common.extFhat==1) { 
+        HdgFhat(f, f_udg, f_wdg, f_uhg, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                  common.modelnumber, 1, numPoints, nc, ncu, nd, ncx, nco, ncw);
     }
-
-    // f_wdg = ng * ncu * ncw
-    if ((ncw>0) & (common.wave==0)) {
-      for (int n=0; n< ncw; n++) {
-        FluxDotNormal(&f_wdg[M*n], &f_wdg[N*n], nl, M, numPoints, nd);    
-      }      
-    }  
-
-    // f_uhg = ng * ncu * ncu
-    ArrayCopy(f_uhg, f_udg, numPoints*ncu*ncu); // copy f_u to f_uhg
-
-    // reset f_u to zero
-    ArraySetValue(f_udg, zero, numPoints*ncu*ncu);        
-
-    // add tau*(u - uh) to f
-    AddStabilization1(f, f_udg, f_uhg, udg, uhg, app.tau, M, numPoints);  
+    else {         
+        
+        // copy u-compoment of udg to f_uhg
+        ArrayCopy(f_uhg, udg, numPoints*ncu);
+    
+        // copy uhg to udg, so udg = (uh, q)  
+        ArrayCopy(udg, uhg, numPoints*ncu);
+    
+        // f = ng * ncu * nd 
+        // f_udg = ng * ncu * nd * nc
+        // f_wdg = ng * ncu * nd * ncw
+        HdgFlux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
+                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                      
+    
+        // copy f_uhg to u-compoment of udg 
+        ArrayCopy(udg, f_uhg, numPoints*ncu);
+    
+        // f = ng * ncu  
+        FluxDotNormal(f, f, nl, M, numPoints, nd);         
+    
+        // f_udg = ng * ncu * nc
+        for (int n=0; n< nc; n++) {
+          FluxDotNormal(&f_udg[M*n], &f_udg[N*n], nl, M, numPoints, nd);        
+        }
+    
+        // f_wdg = ng * ncu * ncw
+        if ((ncw>0) & (common.wave==0)) {
+          for (int n=0; n< ncw; n++) {
+            FluxDotNormal(&f_wdg[M*n], &f_wdg[N*n], nl, M, numPoints, nd);    
+          }      
+        }  
+    
+        // f_uhg = ng * ncu * ncu
+        ArrayCopy(f_uhg, f_udg, numPoints*ncu*ncu); // copy f_u to f_uhg
+    
+        // reset f_u to zero
+        ArraySetValue(f_udg, zero, numPoints*ncu*ncu);        
+    
+        // add tau*(u - uh) to f
+        AddStabilization1(f, f_udg, f_uhg, udg, uhg, app.tau, M, numPoints);  
+    }
 }
 
 void FhatDriver(dstype* f, dstype* u, const dstype* xg, dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg,  
@@ -785,23 +794,29 @@ void FhatDriver(dstype* f, dstype* u, const dstype* xg, dstype* udg, const dstyp
 
     dstype time = common.time;    
 
-    // copy u-compoment of udg to u
-    ArrayCopy(u, udg, numPoints*ncu);
-
-    // copy uhg to udg, so udg = (uh, q)  
-    ArrayCopy(udg, uhg, numPoints*ncu);
-
-    // f = ng * ncu * nd 
-    KokkosFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
-                common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                      
-
-    // copy u to u-compoment of udg 
-    ArrayCopy(udg, u, numPoints*ncu);
-
-    // f = ng * ncu  
-    FluxDotNormal(f, f, nl, M, numPoints, nd);         
-
-    // add tau*(u - uh) to f
-    AddStabilization1(f, udg, uhg, app.tau, M);      
+    if (common.extFhat==1) { 
+        HdgFhatonly(f, xg, udg, odg, wdg, uhg, nl, app.tau, app.uinf, app.physicsparam, time, 
+                          common.modelnumber, 1, numPoints, nc, ncu, nd, ncx, nco, ncw);    
+    }
+    else {         
+        // copy u-compoment of udg to u
+        ArrayCopy(u, udg, numPoints*ncu);
+        
+        // copy uhg to udg, so udg = (uh, q)  
+        ArrayCopy(udg, uhg, numPoints*ncu);
+        
+        // f = ng * ncu * nd 
+        KokkosFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
+                    common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                      
+        
+        // copy u to u-compoment of udg 
+        ArrayCopy(udg, u, numPoints*ncu);
+        
+        // f = ng * ncu  
+        FluxDotNormal(f, f, nl, M, numPoints, nd);         
+        
+        // add tau*(u - uh) to f
+        AddStabilization1(f, udg, uhg, app.tau, M);      
+  }
 }
 
