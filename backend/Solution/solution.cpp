@@ -52,6 +52,192 @@
 #include <sys/time.h>
 #endif
 
+Int CSolution::PTCsolver(ofstream &out, Int backend)       
+{
+    Int N = disc.common.ndof1;     
+    Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
+    dstype nrmr, tol;
+    tol = disc.common.nonlinearSolverTol; // tolerance for the residual
+    
+    nrmr = PNORM(disc.common.cublasHandle, N, solv.sys.u, backend);
+    if (disc.common.mpiRank==0)
+        cout<<"PTC Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                    
+    
+    // compute both the residual vector and sol.udg  
+    disc.evalResidual(solv.sys.r, solv.sys.u, backend);
+    nrmr = PNORM(disc.common.cublasHandle, N, solv.sys.r, backend);
+    if (disc.common.mpiRank==0)
+        cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
+    
+    // use PTC to solve the system: R(u) = 0
+    for (it=0; it<maxit; it++) {                        
+
+        // solve the linear system: (lambda*B + J(u))x = -R(u)
+        int status;
+        status = LinearSolver(solv.sys, disc, prec, out, it, backend);
+                                
+        // update the solution: u = u + x
+        ArrayAXPY(disc.common.cublasHandle, solv.sys.u, solv.sys.x, one, N, backend); 
+
+        // compute both the residual vector and sol.udg  
+        disc.evalResidual(solv.sys.r, solv.sys.u, backend);
+        nrmr = PNORM(disc.common.cublasHandle, N, solv.sys.r, backend);
+
+        if (nrmr > 1.0e6) {   
+            string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+            writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
+            if (outsol.is_open()) { outsol.close(); }
+            if (outwdg.is_open()) { outwdg.close(); }
+            if (outuhat.is_open()) { outuhat.close(); }
+            if (outbouxdg.is_open()) { outbouxdg.close(); }
+            if (outboundg.is_open()) { outboundg.close(); }
+            if (outbouudg.is_open()) { outbouudg.close(); }
+            if (outbouwdg.is_open()) { outbouwdg.close(); }
+            if (outbouuhat.is_open()) { outbouuhat.close(); }
+            if (outqoi.is_open()) { outqoi.close(); }              
+            error("Residual norm increases more than 1e6. Save and exit.");                                                
+        }
+        
+        if (disc.common.mpiRank==0 && disc.common.saveResNorm==1) {
+            disc.common.timing[122] = it + 0.0; 
+            disc.common.timing[123] = nrmr;        
+            writearray(out, &disc.common.timing[120], 4);    
+        }
+        
+        if (disc.common.mpiRank==0)
+            cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
+                        
+        // update the reduced basis
+        if ((status==0) && (disc.common.RBdim > 0)) // fix bug here 
+            UpdateRB(solv.sys, disc, prec, backend);      
+        
+        // check convergence
+        if (nrmr < tol) {            
+            return it;   
+        }
+    }
+        
+    return it;
+}
+
+Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend)       
+{
+    Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
+    dstype nrmr, nrm0, tol;
+    tol = disc.common.nonlinearSolverTol; // tolerance for the residual
+                
+    nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.u, backend);
+//     if (disc.common.mpiProcs>1 && disc.common.spatialScheme==1) {
+//       dstype nrm = PNORM(disc.common.cublasHandle, disc.common.ncu*disc.common.npf*disc.common.ninterfacefaces, sys.u, backend);
+//       nrmr = sqrt(nrmr*nrmr - 0.5*nrm*nrm);
+//     }                
+    
+    if (disc.common.mpiRank==0)
+      cout<<"Newton Iteration: "<<it<<",  Solution Norm: "<<nrmr<<endl;                                                        
+
+    if (disc.common.debugMode==1) {
+      writearray2file(disc.common.fileout + NumberToString(it) + "newton_uh.bin", disc.sol.uh, N, backend);
+      writearray2file(disc.common.fileout + NumberToString(it) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
+    }
+
+    if (spatialScheme == 1) { 
+            
+      if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+              
+      // compute the residual vector R = [Ru; Rh]
+      disc.hdgAssembleResidual(solv.sys.b, backend);
+            
+      nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.b, backend);       
+      nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);                 
+      if (disc.common.mpiRank==0)
+        cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;          
+    }                
+    
+    // use PTC to solve the system: R(u) = 0
+    for (it=0; it<maxit; it++) {              
+                      
+        // solve the linear system:  J(u) x = -R(u)        
+        LinearSolver(solv.sys, disc, prec, out, N, spatialScheme, it, backend);
+        
+        solv.sys.alpha = 1.0;        
+        // update the solution: u = u + alpha*x
+        ArrayAXPY(disc.common.cublasHandle, solv.sys.u, solv.sys.x, solv.sys.alpha, N, backend); 
+                
+        if (spatialScheme == 0) {          
+          // compute both the residual vector and sol.udg  
+          disc.evalResidual(solv.sys.r, solv.sys.u, backend);          
+          nrmr = PNORM(disc.common.cublasHandle, N, solv.sys.r, backend);          
+        } 
+        else if (spatialScheme == 1) {      
+          ArrayCopy(disc.sol.uh, solv.sys.u, N);
+          hdgGetDUDG(disc.res.Ru, disc.res.F, solv.sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
+          ArrayCopy(solv.sys.v, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
+          UpdateUDG(disc.sol.udg, disc.res.Ru, solv.sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+                    
+          if (disc.common.debugMode==1) {
+            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_x.bin", solv.sys.x, N, backend);
+            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_u.bin", solv.sys.u, N, backend);
+            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_uh.bin", disc.sol.uh, N, backend);
+            writearray2file(disc.common.fileout + NumberToString(it+1) + "newton_udg.bin", disc.sol.udg, disc.common.npe*disc.common.nc*disc.common.ne1, backend);
+            error("stop for debugging...");
+          }          
+                    
+          if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+          if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
+                              
+          nrm0 = nrmr; // original norm          
+          // compute the updated residual norm |[Ru; Rh]|
+          disc.hdgAssembleResidual(solv.sys.b, backend);          
+          nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.b, backend);           
+          nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
+                                    
+          if (nrmr > nrm0 && nrmr > 1.0e6) {                        
+            string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+            writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
+            if (outsol.is_open()) { outsol.close(); }
+            if (outwdg.is_open()) { outwdg.close(); }
+            if (outuhat.is_open()) { outuhat.close(); }
+            if (outbouxdg.is_open()) { outbouxdg.close(); }
+            if (outboundg.is_open()) { outboundg.close(); }
+            if (outbouudg.is_open()) { outbouudg.close(); }
+            if (outbouwdg.is_open()) { outbouwdg.close(); }
+            if (outbouuhat.is_open()) { outbouuhat.close(); }
+            if (outqoi.is_open()) { outqoi.close(); }              
+            error("Residual norm increases more than 1e6. Save and exit.");                                    
+          }
+            
+          // damped Newton loop to determine alpha
+          while ((nrmr>nrm0 && solv.sys.alpha > 0.1) || IS_NAN(nrmr)) 
+          {
+            if (disc.common.mpiRank==0)
+              printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, solv.sys.alpha, nrm0, nrmr);
+            solv.sys.alpha = solv.sys.alpha/2.0;             
+            ArrayAXPY(disc.common.cublasHandle, solv.sys.u, solv.sys.x, -solv.sys.alpha, N, backend); 
+            ArrayCopy(disc.sol.uh, solv.sys.u, N);
+            UpdateUDG(disc.sol.udg, solv.sys.v, -solv.sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
+            if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+            if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
+            disc.hdgAssembleResidual(solv.sys.b, backend);
+            nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.b, backend); 
+            nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);                       
+          }          
+        }
+
+        // update the reduced basis space
+        ArrayMultiplyScalar(disc.common.cublasHandle, solv.sys.x, solv.sys.alpha, N, backend);   
+                        
+        if (disc.common.RBdim > 0) UpdateRB(solv.sys, disc, prec, N, backend);         
+                
+        if (disc.common.mpiRank==0)
+          printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, solv.sys.alpha, nrm0, nrmr);
+        
+        // check convergence
+        if (nrmr < tol) return (it+1);           
+    }
+    
+    return it;
+}
+
 void CSolution::SteadyProblem(ofstream &out, Int backend) 
 {   
     INIT_TIMING;        
@@ -184,10 +370,10 @@ void CSolution::SteadyProblem(ofstream &out, Int backend)
     
     // use PTC to solve steady problem
     if (disc.common.spatialScheme==0) {
-      solv.PseudoTransientContinuation(disc, prec, out, backend);           
+      this->PTCsolver(out, backend);           
     }
     else if (disc.common.spatialScheme==1) {      
-      solv.NewtonSolver(disc, prec, out, disc.common.ndofuhat, disc.common.spatialScheme, backend);           
+      this->NewtonSolver(out, disc.common.ndofuhat, disc.common.spatialScheme, backend);           
     }
     else
       error("Spatial discretization scheme is not implemented");
