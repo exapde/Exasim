@@ -14,7 +14,7 @@ Tinf = pinf/(gam-1);
 c23 = 2.0/3.0;
 
 % regularization mueters
-alpha = 4.0e3;
+alpha = 1.0e3;
 rmin = 5.0e-2;
 pmin = 2.0e-3;
 
@@ -34,10 +34,10 @@ rvy = q(7);
 rEy = q(8);
 
 % Regularization of rho (cannot be smaller than rmin)
-r = rmin + lmax(r-rmin,alpha);
-% Density sensor
-dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
-%dr=1;
+% r = rmin + lmax(r-rmin,alpha);
+% % Density sensor
+% dr = atan(alpha*(r - rmin))/pi + (alpha*(r - rmin))/(pi*(alpha^2*(r - rmin)^2 + 1)) + 1/2;
+dr=1;
 rx = rx*dr;
 ry = ry*dr;
 r1 = 1/r;
@@ -47,10 +47,10 @@ E = rE*r1;
 q = 0.5*(uv*uv+vv*vv);
 p = gam1*(rE-r*q);
 % Regularization of pressure p (cannot be smaller than pmin)
-p = pmin + lmax(p-pmin,alpha);
-% Pressure sensor
-dp = atan(alpha*(p - pmin))/pi + (alpha*(p - pmin))/(pi*(alpha^2*(p - pmin)^2 + 1)) + 1/2;
-%dp=1;
+% p = pmin + lmax(p-pmin,alpha);
+% % Pressure sensor
+% dp = atan(alpha*(p - pmin))/pi + (alpha*(p - pmin))/(pi*(alpha^2*(p - pmin)^2 + 1)) + 1/2;
+dp=1;
 % Total enthalpy
 h = E+p*r1;
 % Inviscid fluxes

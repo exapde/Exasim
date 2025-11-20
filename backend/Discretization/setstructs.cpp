@@ -217,11 +217,11 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
 
     common.boundaryConditions = copyarray(mesh.boundaryConditions, mesh.nsize[27]);
     common.intepartpts = copyarray(mesh.intepartpts, mesh.nsize[28]);
-    if (mesh.nsize[25] > 0) TemplateFree(mesh.cartgridpart, 0);
-    if (mesh.nsize[27] > 0) TemplateFree(mesh.boundaryConditions, 0);
+    // if (mesh.nsize[25] > 0) TemplateFree(mesh.cartgridpart, 0);
+    // if (mesh.nsize[27] > 0) TemplateFree(mesh.boundaryConditions, 0);
     if (mesh.nsize[28] > 0) {
         if (common.intepartpts[1] > 0) common.isd = 1;
-        TemplateFree(mesh.intepartpts, 0);        
+        //TemplateFree(mesh.intepartpts, 0);        
     }
     
     if (common.nvqoi > 0) common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));

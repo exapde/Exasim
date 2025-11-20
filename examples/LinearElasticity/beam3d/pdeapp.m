@@ -48,7 +48,10 @@ mesh1.p = mesh1.p';
 mesh1.t = mesh1.t';
 figure(1);clf;meshplot(mesh1,1); axis on;
 mesh1.dgnodes = mesh1.dgnodes + sol(:,1:3,:); 
-figure(2);clf;meshplot(mesh1,1); axis on;
+figure(2);clf;meshplot(mesh1,1); 
+axis equal; axis on; box on; 
+set(gca,'fontsize', 16);
+
 xlabel('x');
 ylabel('y');
 zlabel('z');

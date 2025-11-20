@@ -951,12 +951,30 @@ Mesh initializeMesh(InputParams& params, PDE& pde)
 {    
     Mesh mesh;
     readMeshFromFile(make_path(pde.datapath, pde.meshfile), mesh);                 
-    if (pde.xdgfile != "") readFieldFromBinaryFile(make_path(pde.datapath, pde.xdgfile), mesh.xdg, mesh.xdgdims);
-    if (pde.udgfile != "") readFieldFromBinaryFile(make_path(pde.datapath, pde.udgfile), mesh.udg, mesh.udgdims);
-    if (pde.vdgfile != "") readFieldFromBinaryFile(make_path(pde.datapath, pde.vdgfile), mesh.vdg, mesh.vdgdims);
-    if (pde.wdgfile != "") readFieldFromBinaryFile(make_path(pde.datapath, pde.wdgfile), mesh.wdg, mesh.wdgdims);    
-    if (pde.uhatfile != "") readFieldFromBinaryFile(make_path(pde.datapath, pde.uhatfile), mesh.uhat, mesh.uhatdims);    
-    if (pde.partitionfile != "") readPartitionFromFile(make_path(pde.datapath, pde.partitionfile), mesh.elem2cpu, mesh.ne);    
+    if (pde.xdgfile != "") {
+        std::cout << "Reading xdg file.\n";
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.xdgfile), mesh.xdg, mesh.xdgdims);
+    }
+    if (pde.udgfile != "") {
+        std::cout << "Reading udg file.\n";
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.udgfile), mesh.udg, mesh.udgdims);
+    }
+    if (pde.vdgfile != "") {
+        std::cout << "Reading vdg file.\n";
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.vdgfile), mesh.vdg, mesh.vdgdims);
+    }
+    if (pde.wdgfile != "") {
+        std::cout << "Reading wdg file.\n";
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.wdgfile), mesh.wdg, mesh.wdgdims);    
+    }
+    if (pde.uhatfile != "") {
+        std::cout << "Reading uhat file.\n";
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.uhatfile), mesh.uhat, mesh.uhatdims);    
+    }
+    if (pde.partitionfile != "") {
+        std::cout << "Reading partition file.\n";
+        readPartitionFromFile(make_path(pde.datapath, pde.partitionfile), mesh.elem2cpu, mesh.ne);    
+    }
     
     mesh.boundaryConditions = params.boundaryConditions;
     mesh.curvedBoundaries = params.curvedBoundaries;

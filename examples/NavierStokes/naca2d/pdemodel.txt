@@ -88,10 +88,68 @@ function Ubou(x, uq, v, w, uhat, n, tau, eta, mu, t)
   zeros(ub);
 end
 
+function CustomFlux(x, uhat, uq, v, w, eta, mu, t)  
+    output_size(f) = 8;
+
+    gam = mu[0];
+    gam1 = gam - 1.0;
+    Re = mu[1];
+    Pr = mu[2];
+    Minf = mu[3];
+    Re1 = 1/Re;
+    M2 = Minf*Minf;
+    c23 = 2.0/3.0;
+    fc = 1/(gam1*M2*Re*Pr);
+
+    r = uhat[0];
+    ru = uhat[1];
+    rv = uhat[2];
+    rE = uhat[3];
+    rx = uq[4];
+    rux = uq[5];
+    rvx = uq[6];
+    rEx = uq[7];
+    ry = uq[8];
+    ruy = uq[9];
+    rvy = uq[10];
+    rEy = uq[11];
+
+    r1 = 1/r;
+    uv = ru*r1;
+    vv = rv*r1;
+    E = rE*r1;
+    ke = 0.5*(uv*uv+vv*vv);
+    p = gam1*(rE-r*ke);
+    h = E+p*r1;    
+
+    ux = (rux - rx*uv)*r1;
+    vx = (rvx - rx*vv)*r1;
+    kex = uv*ux + vv*vx;
+    px = gam1*(rEx - rx*ke - r*kex);
+    Tx = gam*M2*(px*r - p*rx)*r1*r1;
+    uy = (ruy - ry*uv)*r1;
+    vy = (rvy - ry*vv)*r1;
+    key = uv*uy + vv*vy;
+    py = gam1*(rEy - ry*ke - r*key);
+    Ty = gam*M2*(py*r - p*ry)*r1*r1;
+    txx = Re1*c23*(2*ux - vy);
+    txy = Re1*(uy + vx);
+    tyy = Re1*c23*(2*vy - ux);
+
+    f[0] = ru;
+    f[1] = ru*uv+p + txx;
+    f[2] = rv*uv + txy;
+    f[3] = ru*h + uv*txx + vv*txy + fc*Tx;
+    f[4] = rv;
+    f[5] = ru*vv + txy;
+    f[6] = rv*vv+p + tyy;
+    f[7] = rv*h + uv*txy + vv*tyy + fc*Ty;
+end
+
 function FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t)
   output_size(fb) = 8;
 
-  f = Flux(x, uq, v, w, eta, mu, t);  
+  f = CustomFlux(x, uhat, uq, v, w, eta, mu, t);  
   fb[0] = uq[0] - uhat[0]; 
   fb[1] = 0.0  - uhat[1]; 
   fb[2] = 0.0  - uhat[2]; 

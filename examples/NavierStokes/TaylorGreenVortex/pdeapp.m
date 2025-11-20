@@ -11,14 +11,14 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
+pde.mpiprocs = 8;              % number of MPI processors
 pde.hybrid = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 2;          % polynomial degree
 pde.torder = 3;          % time-stepping order of accuracy
 pde.nstage = 3;          % time-stepping number of stages
-pde.dt = 0.02*ones(1,2);   % time step sizes
+pde.dt = 0.16*ones(1,200);   % time step sizes
 pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.05; % visualization timestep size
 
@@ -29,7 +29,7 @@ Minf = 0.2;                     % Mach number
 pde.physicsparam = [gam Re Pr Minf];
 pde.tau = 2.0;                  % DG stabilization parameter
 pde.GMRESrestart=50;
-pde.linearsolvertol=0.0001;
+pde.linearsolvertol=1e-6;
 pde.linearsolveriter=51;
 pde.preconditioner=1;
 pde.precMatrixType=2;
@@ -37,7 +37,7 @@ pde.NLiter=2;
 pde.ppdegree = 0;
 
 % create a grid of 10 by 10 on the unit square
-[mesh.p,mesh.t] = cubemesh(20,20,20,1);
+[mesh.p,mesh.t] = cubemesh(24,24,24,1);
 mesh.p = 2*pi*mesh.p;
 % expressions for domain boundaries
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-2*pi)<1e-8, @(p) abs(p(2,:)-2*pi)<1e-8, @(p) abs(p(1,:))<1e-8, @(p) abs(p(3,:))<1e-8, @(p) abs(p(3,:)-2*pi)<1e-8};

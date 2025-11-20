@@ -391,12 +391,10 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
           printf("Finish qEquation ... \n");        
 
         // compute the flux q = -nabla u and store it in sol.udg
-        if (common.wave == 0) hdgGetQ(sol.udg, sol.uh, sol, res, mesh, tmp, common, backend);
-        //print3darray(sol.udg, npe, nc, common.ne);        
-        //error("stop");
-
-        if (common.mpiRank==0) 
-          printf("Finish hdgGetQ ... \n");        
+        if (common.wave == 0 && sol.szudg != npe*nc*ne) {
+            hdgGetQ(sol.udg, sol.uh, sol, res, mesh, tmp, common, backend);
+            if (common.mpiRank==0) printf("Finish hdgGetQ ... \n");     
+        }        
       }
     }
 

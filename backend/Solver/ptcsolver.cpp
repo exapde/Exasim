@@ -251,7 +251,7 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
         cout<<"PTC Iteration: "<<it<<",  Residual Norm: "<<nrmr<<endl;                           
     
     // use PTC to solve the system: R(u) = 0
-    for (it=1; it<maxit; it++) {                        
+    for (it=0; it<maxit; it++) {                        
         //nrmrold = nrmr;
         
         // solve the linear system: (lambda*B + J(u))x = -R(u)
@@ -466,6 +466,12 @@ Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& pre
           nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, sys.b, backend);           
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
                                     
+          // if (nrmr > nrm0 && nrmr > 1.0e6) {                        
+          //   string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+          //   writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
+          //   error("Residual norm increases more than 1e6. Save and exit.");                                    
+          // }
+            
           // damped Newton loop to determine alpha
           while ((nrmr>nrm0 && sys.alpha > 0.1) || IS_NAN(nrmr)) 
           {

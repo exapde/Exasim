@@ -44,7 +44,7 @@ if gridNum==1
    n1=28*porder+1; n2=14*porder+1; n3=30*porder+1; 
    [x,y] = cmeshparam6(n1, n2, n2, n2, n2, n3, ...
                         [5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], ...
-                        [10, 10, 10, 10, 10, 20, 20]*50);   
+                        [10, 10, 10, 10, 10, 20, 20]*40);   
 elseif gridNum==2
    %n1=14*porder+1; n2=14*porder+1; n3=20*porder+1;
    n1=22*porder+1; n2=23*porder+1; n3=30*porder+1;

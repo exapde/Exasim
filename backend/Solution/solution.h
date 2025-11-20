@@ -213,7 +213,10 @@ public:
     void SaveOutputDG(Int backend);        
     
     // save output in binary files
-    void SaveOutputCG(Int backend);        
+    void SaveOutputCG(Int backend);   
+
+    Int PTCsolver(ofstream &out, Int backend);
+    Int NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend);       
 };
 
 #endif        

@@ -218,7 +218,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     nrmb = PNORM(disc.common.cublasHandle, N, sys.r, backend);
     nrmr = nrmb;
         
-    j = 1;
+    j = 0;
     while (j < maxit) {
         // v = r/||r||
         ArrayAXPB(sys.v, sys.r, one/nrmr, zero, N);

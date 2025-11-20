@@ -495,29 +495,64 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
 #endif    
 }
 
-static void PrintErrorAndExit(const char* errmsg, const char *file, int line ) 
-{    
-    printf( "%s in %s at line %d\n", errmsg, file, line );
-    
-#ifdef  HAVE_MPI       
-    MPI_Finalize();    
+// static void PrintErrorAndExit(const char* errmsg, const char *file, int line ) 
+// {    
+//     printf( "%s in %s at line %d\n", errmsg, file, line );
+// 
+// #ifdef  HAVE_MPI       
+//     MPI_Finalize();    
+// #endif
+// 
+//     exit( 1 );    
+// }
+// 
+// static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
+// {    
+//     printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
+// 
+// #ifdef  HAVE_MPI       
+//     MPI_Finalize();    
+// #endif
+// 
+//     exit( 1 );    
+// }
+// 
+// #define error( errmsg ) (PrintErrorAndExit( errmsg, __FILE__, __LINE__ ))
+
+// -----------------------------------------------------------------------------
+// Print an error message (with file/line info) and terminate the program.
+// If MPI is enabled, aborts all ranks immediately using MPI_Abort().
+// -----------------------------------------------------------------------------
+
+static inline void PrintErrorAndExit(const std::string& errmsg, const char* file, int line)
+{
+    int rank = 0;
+
+#ifdef HAVE_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
     
-    exit( 1 );    
-}
+    fprintf(stderr,
+            "\n==============================================\n"
+            "[Rank %d] ERROR: %s\n"
+            "  Location: %s:%d\n"
+            "==============================================\n\n",
+            rank, errmsg.c_str(), file, line);
+    fflush(stderr);
 
-static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
-{    
-    printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
-    
-#ifdef  HAVE_MPI       
-    MPI_Finalize();    
+#ifdef HAVE_MPI
+    // Abort the entire MPI job instead of trying to finalize gracefully.
+    // MPI_Finalize() is unsafe after a runtime error and can hang.
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+#else
+    exit(EXIT_FAILURE);
 #endif
-    
-    exit( 1 );    
 }
 
-#define error( errmsg ) (PrintErrorAndExit( errmsg, __FILE__, __LINE__ ))
+// -----------------------------------------------------------------------------
+// Macro for convenient error reporting
+// -----------------------------------------------------------------------------
+#define error(msg)  PrintErrorAndExit((msg), __FILE__, __LINE__)
 
 std::string trim_dir(const std::string& s) {
     return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes

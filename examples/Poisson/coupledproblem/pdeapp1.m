@@ -6,6 +6,7 @@ pde{1}.buildpath = string(pwd);
 pde{1}.model = "ModelD";          % ModelC, ModelD, ModelW
 pde{1}.modelfile = "pdemodel1";    % name of a file defining the PDE model
 %pde{1}.modelnumber = 1;
+pde{1}.Cxxpreprocessing = 0;
 
 % Choose computing platform and set number of processors
 %pde{1}.platform = "gpu";         % choose this option if NVIDIA GPUs are available

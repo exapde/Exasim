@@ -318,7 +318,7 @@ public:
     }
 
     static void pvdwrite_series(const std::string& base,
-                                const float* dt, int nt,
+                                const dstype* dt, int nt, int nm,
                                 const std::string& ext /* "vtu" or "pvtu" */) {
         if (!dt && nt > 0) throw std::invalid_argument("pvdwrite_series: dt pointer is null.");
         if (nt < 0)        throw std::invalid_argument("pvdwrite_series: nt must be non-negative.");
@@ -329,9 +329,12 @@ public:
         float t = 0.0f;
         for (int k = 0; k < nt; ++k) {
             t += dt[k];
-            files.push_back(base + "_" + step_tag(k) + "." + ext);
-            times.push_back(t);
+            if ((k+1) % nm == 0) {
+                files.push_back(base + "_" + step_tag(k+1) + "." + ext);
+                times.push_back(t);
+            }
         }
+        cout<<nt<<",  "<<nm<<",  "<<base<<endl;        
         pvdwrite(base, files, times);
     }
 
@@ -459,7 +462,7 @@ private:
     static std::string rank_tag(int rank, int width = 5) {
         std::ostringstream ss; ss << "_" << std::setw(width) << std::setfill('0') << rank; return ss.str();
     }
-    static std::string step_tag(int k, int width = 4) {
+    static std::string step_tag(int k, int width = 6) {
         std::ostringstream ss; ss << std::setw(width) << std::setfill('0') << k; return ss.str();
     }
 
