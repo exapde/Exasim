@@ -66,13 +66,19 @@ void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const Conn
     ndims[10] = pde.nch;
     ndims[11] = pde.ncx;
 
+    int ncudg = 0;
+
     std::vector<double> nsize(20, 0);
     nsize[0] = static_cast<double>(ndims.size());
     if (!mesh.xdg.empty()) {
         nsize[1] = static_cast<double>(master.npe*mesh.dim*elempart.size());        
     }
     if (!mesh.udg.empty()) {
-        nsize[2] = static_cast<double>(master.npe*pde.ncu*elempart.size());
+        ncudg = mesh.udg.size()/(mesh.ne*master.npe);
+        if (ncudg == pde.ncu || ncudg == pde.nc) 
+            nsize[2] = static_cast<double>(master.npe*ncudg*elempart.size());
+        else
+            error("size of udg is incorrect.");
     }
     if (!mesh.vdg.empty()) {
         nsize[3] = static_cast<double>(master.npe*pde.ncv*elempart.size());
@@ -104,8 +110,8 @@ void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const Conn
         writeDoubleVector(tm);
     }
     if (!mesh.udg.empty()) {
-        tm.resize(master.npe*pde.ncu*elempart.size());
-        select_columns(tm.data(), mesh.udg.data(), elempart.data(), master.npe*pde.ncu, elempart.size());
+        tm.resize(master.npe*ncudg*elempart.size());
+        select_columns(tm.data(), mesh.udg.data(), elempart.data(), master.npe*ncudg, elempart.size());
         writeDoubleVector(tm);    
     }
     if (!mesh.vdg.empty()) {

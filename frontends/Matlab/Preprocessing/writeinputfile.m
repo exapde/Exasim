@@ -1,6 +1,5 @@
 function writeinputfile(filename, pde, mesh)
 
-
 fid = fopen(filename, 'w');
 if fid == -1
     error('Cannot open file %s for writing.', filename);
@@ -26,7 +25,7 @@ pde.boundaryexpressions = convertHandlesToStrings(mesh.boundaryexpr);
 pde.curvedboundaries = mesh.curvedboundary;
 pde.curvedboundaryexprs = mesh.curvedboundaryexpr;
 
-if isempty(pde.curvedboundaries)
+if isfield(pde, 'curvedboundaries') == 0 || isempty(pde.curvedboundaries)
   pde.curvedboundaries = 0*pde.boundaryconditions;
   pde.curvedboundaryexprs = repmat("", [1 length(pde.boundaryconditions)]);
 else
@@ -36,7 +35,7 @@ end
 % mesh.periodicexpr = {2, @(p) p(2,:), 4, @(p) p(2,:)};
 % mesh.periodicexpr = {2, @(p) p([2 3],:), 4, @(p) p([2 3],:); 1, @(p) p([1 3],:), 3, @(p) p([1 3],:); 5, @(p) p([1 2],:), 6, @(p) p([1 2],:)};
 
-if isempty(mesh.periodicboundary)
+if isfield(mesh, 'periodicboundary') == 0 || isempty(mesh.periodicboundary)
   pde.periodicboundaries1 = [];
   pde.periodicboundaries2 = [];
   pde.periodicexprs1 = [];
@@ -85,9 +84,30 @@ if isfield(pde, 'meshfile') == 0
   writebin(pde.meshfile, [size(mesh.p) size(mesh.t) mesh.p(:)' mesh.t(:)']);
 end
 
+if isfield(mesh, 'dgnodes') == 1
+  pde.xdgfile = "xdg.bin";  
+  writebin(pde.xdgfile, [size(mesh.dgnodes) mesh.dgnodes(:)']);
+end
+
+if isfield(mesh, 'udg') == 1
+  pde.udgfile = "udg.bin";  
+  writebin(pde.udgfile, [size(mesh.udg) mesh.udg(:)']);
+end
+
+if isfield(mesh, 'vdg') == 1
+  pde.vdgfile = "vdg.bin";  
+  writebin(pde.vdgfile, [size(mesh.vdg) mesh.vdg(:)']);
+end
+
+if isfield(mesh, 'wdg') == 1
+  pde.wdgfile = "wdg.bin";  
+  writebin(pde.wdgfile, [size(mesh.wdg) mesh.wdg(:)']);
+end
+
 %fprintf(fid, 'Input file saved on: %s\n\n', datestr(now));
 fields = fieldnames(pde);
-requiredKeys = ["exasimpath", "datapath", "model", "modelfile", "meshfile", "discretization",...
+requiredKeys = ["exasimpath", "datapath", "model", "modelfile", "meshfile", "xdgfile",...
+  "udgfile", "vdgfile", "wdgfile", "discretization",...
   "platform", "mpiprocs", "debugmode", "runmode", "modelnumber", "porder", "pgauss","torder",...
   "nstage","ncu", "ncw", "neb", "nfb", "NewtonIter", "NewtonTol", "GMRESiter", "GMRESrestart",...
   "GMREStol", "GMRESortho","ppdegree","RBdim", "matvecorder", "matvectol", "precMatrixType",...

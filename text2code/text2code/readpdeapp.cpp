@@ -725,6 +725,18 @@ PDE initializePDE(InputParams& params, int mpirank=0)
         pde.dae_epsilon = params.doubleParams["dae_epsilon"];
     }
      
+    pde.dt = params.dt;
+    pde.dae_dt = params.dae_dt;
+    pde.tau = params.tau;
+    pde.physicsparam = params.physicsParam;
+    pde.externalparam = params.externalParam;
+    pde.vindx = params.vindx;
+    pde.avparam1 = params.avparam1;
+    pde.avparam2 = params.avparam2;
+    pde.stgib = params.stgib;
+    pde.stgdata = params.stgdata;
+    pde.stgparam = params.stgparam;
+    
     if (pde.dt.size() > 0) {if (pde.dt[0]> 0) pde.tdep = 1;}    
     
     if (pde.discretization == "ldg" || pde.discretization == "LDG")
@@ -771,19 +783,7 @@ PDE initializePDE(InputParams& params, int mpirank=0)
     pde.factor = {pde.time, pde.dae_alpha, pde.dae_beta, pde.dae_gamma, pde.dae_epsilon};    
     pde.solversparam = {pde.NewtonTol, pde.GMREStol, pde.matvectol, pde.NLparam};
     
-    pde.dt = params.dt;
-    pde.dae_dt = params.dae_dt;
-    pde.tau = params.tau;
-    pde.physicsparam = params.physicsParam;
-    pde.externalparam = params.externalParam;
-    pde.vindx = params.vindx;
-    pde.avparam1 = params.avparam1;
-    pde.avparam2 = params.avparam2;
-    pde.stgib = params.stgib;
-    pde.stgdata = params.stgdata;
-    pde.stgparam = params.stgparam;
-            
-        
+                    
     pde.exasimpath = trimToSubstringAtLastOccurence(pde.exasimpath, "Exasim");     
     if (pde.exasimpath == "") {      
       if (mpirank==0) std::cout<<"exasimpath is not set in "<< params.pdeappfile <<" file.\nWe use the working directory to define exasimpath.\n";

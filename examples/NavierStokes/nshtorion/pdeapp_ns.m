@@ -12,8 +12,8 @@ pde.model = "ModelD";          % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel_axialns";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
+pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
+pde.mpiprocs = 4;              % number of MPI processors
 pde.hybrid = 1;
 pde.porder = 3;          % polynomial degree
 pde.gencode = 1;
@@ -25,7 +25,7 @@ mesh.dgnodes(:,2,:) = mesh.dgnodes(:,2,:) + 1e-3;
 L = max(mesh.p(1,:));
 mesh.boundaryexpr = {@(p) abs(p(2,:)-1e-3)<1e-6, @(p) p(1,:)> L-1e-2, @(p) ((p(1,:) < -1e-3) | (p(2,:) > 2.6)), @(p) abs(p(1,:))< 20 + 1e-6};
 % axis symmetric, supersonic outflow, supersonic inflow,  iso-thermal wall
-mesh.boundarycondition = [6, 2, 1, 3]; % Set boundary condition for each boundary
+mesh.boundarycondition = [4, 2, 1, 3]; % Set boundary condition for each boundary
 
 gam = 1.4;                      % specific heat ratio
 Re = 8.0e4;                       % Reynolds number
@@ -47,6 +47,8 @@ pde.tau = 1.0;                  % DG stabilization parameter
 pde.GMRESrestart = 100;         %try 50
 pde.linearsolvertol = 1e-8; % GMRES tolerance
 pde.linearsolveriter = 100; %try 100
+pde.preconditioner = 1;
+pde.GMRESortho = 1;
 pde.RBdim = 0;
 pde.ppdegree = 20;
 pde.NLtol = 1e-6;              % Newton tolerance
@@ -69,7 +71,12 @@ figure(1); clf; scaplot(mesh,mesh.vdg(:,1,:),[],2); axis on; axis equal; axis ti
 
 load nsinit.mat 
 mesh.udg = udg;
-[sol,pde,mesh,master,dmd] = exasim(pde,mesh);
+%[sol,pde,mesh,master,dmd] = exasim(pde,mesh);
+
+[pde,mesh,master,dmd] = preprocessing(pde,mesh);
+kkgencode(pde);
+% compilerstr = cmakecompile(pde); % use cmake to compile C++ source codes 
+% runstr = runcode(pde, 1); % run C++ code
 
 return;
 

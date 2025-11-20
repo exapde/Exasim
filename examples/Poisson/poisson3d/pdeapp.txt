@@ -1,6 +1,7 @@
 model = "ModelD";
 modelfile = "pdemodel.txt";
 meshfile = "grid.bin";
+xdgfile = "xdg.bin";
 discretization = "hdg";
 platform = "cpu";
 
@@ -9,8 +10,8 @@ debugmode = 0;
 runmode = 0;
 modelnumber = 0;
 
-porder = 3;
-pgauss = 6;
+porder = 2;
+pgauss = 4;
 torder = 1;
 nstage = 1;
 
@@ -21,16 +22,16 @@ nfb = 8192;
 
 NewtonIter = 20;
 NewtonTol = 1e-06;
-GMRESiter = 200;
-GMRESrestart = 202;
-GMREStol = 1e-06;
+GMRESiter = 1000;
+GMRESrestart = 50;
+GMREStol = 1e-08;
 GMRESortho = 0;
 ppdegree = 1;
 RBdim = 0;
 matvecorder = 1;
 matvectol = 0.001;
 precMatrixType = 0;
-preconditioner = 0;
+preconditioner = 1;
 
 time = 0;
 tau = [1];

@@ -69,6 +69,6 @@ function fb = fbouhdgaxialns(u, q, w, v, x, t, mu, eta, uhat, n, tau)
     f_grad = q(1:4)*nx + q(5:8)*ny + tau*(u(:) - uhat(:));
         
     % supersonic inflow, supersonic outflow, isothermal, symmetry, slip wall, gradient                 
-    fb = [f_in f_out f_iso f_sym f_slip f_grad f3];
+    fb = [f_in f_out f_iso f_grad];
 end
 

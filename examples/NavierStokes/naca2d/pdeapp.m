@@ -4,7 +4,7 @@ run(cdir(1:(ii+5)) + "/install/setpath.m");
 
 porder = 3;                     % polynomial degree
 gam = 1.4;                      % gas constant
-Minf = 0.025;                   % freestream mach number
+Minf = 0.25;                   % freestream mach number
 tau = 0.6/Minf;                 % stabilization parameter
 alpha = 0*pi/180;               % angle of attack
 rinf = 1.0;                     % freestream density

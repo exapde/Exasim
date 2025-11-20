@@ -1,6 +1,6 @@
 function print_results(a,type)
 if type==1
-a=round(a/0.001)*0.001;
+a=round(a/0.01)*0.01;
 c=[];
 for i=1:size(a,1)
     b=' ';

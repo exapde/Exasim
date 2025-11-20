@@ -842,56 +842,71 @@ void CSolution::ReadSolutions(Int backend)
 
 void CSolution::SaveParaview(Int backend) 
 {
-//#ifdef HAVE_TEXT2CODE     
-   int nc = disc.common.nc;  
-   int ncx = disc.common.ncx;   
-   int nco = disc.common.nco;  
-   int ncw = disc.common.ncw;  
-   int nsca = disc.common.nsca; 
-   int nvec = disc.common.nvec;  
-   int nten = disc.common.nten;     
-   int npe  = disc.common.npe;     
-   int ne   = disc.common.ne1;      
-   int ndg  = npe * ne;
-   int ncg  = vis.npoints;
+    // Decide whether we should write a file on this step
+    bool writeSolution = false;
+    
+    if (disc.common.tdep == 1) {
+       if (disc.common.currentstep==0 && disc.common.mpiRank==0) {
+          string ext = (disc.common.mpiProcs==1) ? "vtu" : "pvtu";                                  
+          vis.pvdwrite_series(disc.common.fileout + "vis", disc.common.dt, disc.common.tsteps, disc.common.saveSolFreq, ext);                          
+       }
+        
+        // Time-dependent: only write every 'saveSolFreq' steps
+        writeSolution = ((disc.common.currentstep + 1) % disc.common.saveSolFreq) == 0;
+    } else {
+        // Steady / not time-dependent: always write
+        writeSolution = true;
+    }
 
-   dstype* xdg = &disc.tmp.tempn[0];  
-   dstype* udg = disc.res.Rq;   
-   dstype* vdg = &disc.tmp.tempn[npe*ncx*ne];    
-   dstype* wdg = disc.res.Ru;     
-   dstype* f = solv.sys.v;
+   if (writeSolution) { 
+       int nc = disc.common.nc;  
+       int ncx = disc.common.ncx;   
+       int nco = disc.common.nco;  
+       int ncw = disc.common.ncw;  
+       int nsca = disc.common.nsca; 
+       int nvec = disc.common.nvec;  
+       int nten = disc.common.nten;     
+       int npe  = disc.common.npe;     
+       int ne   = disc.common.ne1;      
+       int ndg  = npe * ne;
+       int ncg  = vis.npoints;
+    
+       dstype* xdg = &disc.tmp.tempn[0];  
+       dstype* udg = disc.res.Rq;   
+       dstype* vdg = &disc.tmp.tempn[npe*ncx*ne];    
+       dstype* wdg = disc.res.Ru;     
+       dstype* f = solv.sys.v;
+    
+       GetElemNodes(xdg, disc.sol.xdg, npe, ncx, 0, ncx, 0, ne);
+       GetElemNodes(udg, disc.sol.udg, npe, nc, 0, nc, 0, ne);
+       if (nco > 0) GetElemNodes(vdg, disc.sol.odg, npe, nco, 0, nco, 0, ne);
+       if (ncw > 0) GetElemNodes(wdg, disc.sol.wdg, npe, ncw, 0, ncw, 0, ne);
+    
+       if (nsca > 0) {        
+            VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
+       }    
+       if (nvec > 0) {        
+            VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
+       }
+       if (nten > 0) {        
+            VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
+       }
 
-   GetElemNodes(xdg, disc.sol.xdg, npe, ncx, 0, ncx, 0, ne);
-   GetElemNodes(udg, disc.sol.udg, npe, nc, 0, nc, 0, ne);
-   if (nco > 0) GetElemNodes(vdg, disc.sol.odg, npe, nco, 0, nco, 0, ne);
-   if (ncw > 0) GetElemNodes(wdg, disc.sol.wdg, npe, ncw, 0, ncw, 0, ne);
-
-   if (nsca > 0) {        
-        VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-        VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
-   }    
-   if (nvec > 0) {        
-        VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-        VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
+       string baseName = disc.common.fileout + "vis";
+       if (disc.common.tdep == 1) {
+           std::ostringstream ss; 
+           ss << std::setw(6) << std::setfill('0') << disc.common.currentstep+disc.common.timestepOffset+1; 
+           baseName = baseName + "_" + ss.str();           
+       }
+       
+       if (disc.common.mpiProcs==1)                
+            vis.vtuwrite(baseName, vis.scafields, vis.vecfields, vis.tenfields);
+       else
+            vis.vtuwrite_parallel(baseName, disc.common.mpiRank, disc.common.mpiProcs, vis.scafields, vis.vecfields, vis.tenfields);
    }
-   if (nten > 0) {        
-        VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-        VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
-   }
-
-   if (disc.common.tdep==1) { 
-        if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
-        {        
-            
-        }    
-   }
-   else {                        
-        if (disc.common.mpiProcs==1)                
-            vis.vtuwrite(disc.common.fileout + "vis", vis.scafields, vis.vecfields, vis.tenfields);
-        else
-            vis.vtuwrite_parallel(disc.common.fileout + "vis", disc.common.mpiRank, disc.common.mpiProcs, vis.scafields, vis.vecfields, vis.tenfields);
-   }    
-//#endif    
 }
 
 void CSolution::SaveQoI(Int backend) 
