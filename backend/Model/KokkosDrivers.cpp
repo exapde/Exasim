@@ -89,7 +89,7 @@ void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* od
   Int nd = common.nd;     // spatial dimension    
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
-  typename Model::Flux flux{};
+  typename Model::FluxFn flux{};
 
   flux(
        f, xg, udg, odg, wdg,

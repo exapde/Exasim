@@ -16,7 +16,7 @@ void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* od
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
 
-  typename Model::Flux flux{};
+  typename Model::FluxFn flux{};
 
   flux(
        f, xg, udg, odg, wdg,
@@ -38,7 +38,7 @@ void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* 
   Int nd = common.nd;     // spatial dimension    
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
-  typename Model::Source source{};
+  typename Model::SourceFn source{};
   source(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
