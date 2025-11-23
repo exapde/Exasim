@@ -245,6 +245,7 @@ void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
     }       
 }
 
+template <typename Model = DefaultModel>
 void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
    Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
@@ -265,7 +266,7 @@ void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
         GetAv(sol, res, app, master, mesh, tmp, common, handle, backend);
 
     // Element integrals
-    RuElem(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
+    RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
                     
     // Face integrals
     RuFace(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
@@ -578,6 +579,7 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 
 #endif
 
+template <typename Model = DefaultModel>
 void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
@@ -587,7 +589,7 @@ void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
 #endif        
     }
     else {
-        RuResidual(sol, res, app, master, mesh, tmp, common, handle,
+        RuResidual<Model>(sol, res, app, master, mesh, tmp, common, handle,
                 0, common.nbe, 0, common.nbe, 0, common.nbf, backend);
     }        
             

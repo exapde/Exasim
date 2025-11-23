@@ -129,6 +129,7 @@ void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 #endif                  
 }
 
+template <typename Model = DefaultModel>
 void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int nbe1, Int nbe2, Int backend)
@@ -136,7 +137,7 @@ void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];            
-        RuElemBlock(sol, res, app, master, mesh, tmp, common, handle, e1, e2, backend);
+        RuElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, e1, e2, backend);
     }                     
 }
 
