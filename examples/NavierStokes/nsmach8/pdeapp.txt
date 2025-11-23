@@ -1,0 +1,52 @@
+model = "ModelD";
+modelfile = "pdemodel.txt";
+meshfile = "grid.bin";
+xdgfile = "xdg.bin";
+udgfile = "udg.bin";
+vdgfile = "vdg.bin";
+discretization = "hdg";
+platform = "cpu";
+
+mpiprocs = 1;
+debugmode = 0;
+runmode = 0;
+modelnumber = 0;
+
+porder = 4;
+pgauss = 8;
+torder = 1;
+nstage = 1;
+
+ncu = 4;
+ncw = 0;
+neb = 4096;
+nfb = 8192;
+
+NewtonIter = 30;
+NewtonTol = 1e-06;
+GMRESiter = 100;
+GMRESrestart = 100;
+GMREStol = 1e-08;
+GMRESortho = 0;
+ppdegree = 20;
+RBdim = 0;
+matvecorder = 1;
+matvectol = 1e-06;
+precMatrixType = 0;
+preconditioner = 0;
+
+time = 0;
+tau = [1];
+dt = [0];
+physicsparam = [1.4, 183500, 0.71, 8.03, 1, 1, 0, 0.52769, 0.027694, 124.49, 294.44, 10, 0.5, 0, 4, 0.02, 2.5];
+externalparam = [0, 0];
+
+boundaryconditions = [3, 2, 1];
+boundaryexpressions = ["sqrt(x^2+y^2)<1+1e-6", "x>-1e-7", "abs(x)<20"];
+curvedboundaries = [0, 0, 0];
+curvedboundaryexprs = ["", "", ""];
+periodicboundaries1 = [];
+periodicexprs1 = [];
+periodicboundaries2 = [];
+periodicexprs2 = [];
+interfaceconditions = [];

@@ -51,9 +51,10 @@ public:
     meshstruct mesh;
     tempstruct tmp;    
     commonstruct common;
+    // solstruct hsol;
 
     // constructor for both CPU and GPU
-    CDiscretization(string filein, string fileout, Int mpiprocs, Int mpirank, Int ompthreads, Int omprank, Int backend); 
+    CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int ompthreads, Int omprank, Int backend); 
     
     // destructor        
     ~CDiscretization(); 

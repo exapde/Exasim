@@ -134,7 +134,15 @@ using namespace std;
 #include "../Solution/solution.cpp"             // solution class
 
 #ifdef HAVE_TEXT2CODE
+// #include "../../text2code/text2code/TextParser.hpp"
+// #include "../../text2code/text2code/tinyexpr.cpp"
+// #include "../../text2code/text2code/helpersexasim.cpp"
 #include "../../text2code/text2code/readpdeapp.cpp"
+// #include "../../text2code/text2code/readmesh.cpp"
+// #include "../../text2code/text2code/makemeshexasim.cpp"
+// #include "../../text2code/text2code/makemasterexasim.cpp"
+// #include "../../text2code/text2code/domaindecomposition.cpp"
+// #include "../../text2code/text2code/writebinaryfilesexasim.cpp"
 #endif
 
 int main(int argc, char** argv) 
@@ -267,6 +275,7 @@ int main(int argc, char** argv)
 
     string filein[10]; 
     string fileout[10];
+    string exasimpath = "";  
     int mpiprocs0 = 0;
     int restart = 0;
 
@@ -286,7 +295,8 @@ int main(int argc, char** argv)
     PDE pde = initializePDE(params, mpirank);        
     nummodels = 1;
     filein[0] = pde.datainpath + "/";
-    fileout[0] = make_path(pde.dataoutpath, "out");      
+    fileout[0] = make_path(pde.dataoutpath, "out");    
+    exasimpath = pde.exasimpath;  
 #else      
     if (argc < 3) {
       printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");
@@ -337,8 +347,14 @@ int main(int argc, char** argv)
             return 1;
         }
     }
+
+    std::filesystem::path cwd = std::filesystem::current_path();
+    exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
+    if (exasimpath == "") exasimpath = trimToSubstringAtLastOccurence(fileout[0], "Exasim");                     
 #endif    
 
+    if (mpirank==0) std::cout << "exasimpath = "<<exasimpath<<std::endl;
+      
     // reset nummodels
     if (mpiprocs0 > 0) nummodels = 1;
                 
@@ -352,19 +368,19 @@ int main(int argc, char** argv)
             
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
+          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution(filein[0], fileout[0], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
           else {
             fileoffset = mpiprocs0;
-            pdemodel[i] = new CSolution(filein[1], fileout[1], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
         }
         pdemodel[i]->disc.common.nomodels = nummodels;
-        
+
         // can move these to the constructor 
         pdemodel[i]->disc.common.ncarray = new Int[nummodels]; 
         pdemodel[i]->disc.sol.udgarray = new dstype*[nummodels]; // array of pointers pointing to udg
@@ -391,16 +407,6 @@ int main(int argc, char** argv)
             pdemodel[i]->disc.sol.udgarray[j] = &pdemodel[j]->disc.sol.udg[0]; // model[i], model[j]
         }    
    
-//     if (pdemodel[0]->disc.common.subproblem==1) { // subproblem
-//         for (int i=0; i<nummodels; i++) {
-//             if (restart>0) {
-//                 pdemodel[i]->disc.common.currentstep = -1;
-//                 pdemodel[i]->ReadSolutions(backend);  
-//             }            
-//         }      
-//         pdemodel[0]->SolveProblem(pdemodel[1], backend);               
-//     }
-//     else 
     
     if (pdemodel[0]->disc.common.AVdistfunction==1) {
       avdistfunc(pdemodel, out, nummodels, backend);

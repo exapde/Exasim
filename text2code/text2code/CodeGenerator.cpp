@@ -41,6 +41,7 @@
  * Date: [Date]
  */
 #include "CodeGenerator.hpp"
+#include <iostream>
 
 std::string prefixSymEngineFunctions(const std::string& expr) {
     static const std::regex func_regex(
@@ -171,7 +172,8 @@ void CodeGenerator::generateSymbolicFunctionsHpp(const std::string& filename) co
     os << "#include <fstream>\n";
     os << "#include <iostream>\n";
     os << "#include <symengine/expression.h>\n";
-    os << "#include <symengine/functions.h>\n";
+    os << "// #include <symengine/functions.h>\n";
+    os << "#include \"SymEngineFunctionWrappers.hpp\"\n";
     os << "#include <symengine/printers/codegen.h>\n";
     //os << "#include <symengine/cse.h>\n";
     os << "#include <symengine/symbol.h>\n";
