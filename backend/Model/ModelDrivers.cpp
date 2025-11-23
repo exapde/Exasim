@@ -1,5 +1,8 @@
+#include "modeltemplate.hpp"
 #include "libpdemodel.hpp"
 
+
+template <typename Model = DefaultModel>
 void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
@@ -13,10 +16,16 @@ void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* od
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
 
-  KokkosFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
-                common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
-}
+  typename Model::Flux flux{};
 
+  flux(
+       f, xg, udg, odg, wdg,
+       app.uinf, app.physicsparam, time,
+       common.modelnumber, numPoints,
+       nc, ncu, nd, ncx, nco, ncw
+       );             
+}
+template <typename Model = DefaultModel>
 void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
@@ -29,8 +38,8 @@ void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* 
   Int nd = common.nd;     // spatial dimension    
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
-            
-  KokkosSource(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
+  typename Model::Source source{};
+  source(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time, 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
@@ -383,6 +392,7 @@ void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int 
   cpuInitwdg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, ncw, npe, ne);                
 }
 
+template <typename Model = DefaultModel>
 void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
@@ -396,7 +406,8 @@ void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dsty
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
 
-  HdgFlux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
+  typename Model::HdgFlux flux{};
+  flux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
                 common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);         
 }
 
