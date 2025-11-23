@@ -406,7 +406,7 @@ void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dsty
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
 
-  typename Model::HdgFlux flux{};
+  typename Model::HdgFluxFn flux{};
   flux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
                 common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);         
 }
