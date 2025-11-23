@@ -165,7 +165,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        
         // host structs
-        // solstruct hsol;
+        solstruct hsol;
         resstruct hres;
         appstruct happ;
         masterstruct hmaster; 
@@ -186,14 +186,18 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
           TemplateMalloc(&mesh.bf, hcommon.nfe*hcommon.ne, 0);
           for (int i=0; i<hcommon.nfe*hcommon.ne; i++) mesh.bf[i] = hmesh.bf[i];   
         }
-        
+
+       // copy hsol.xcg to sol.xcg for paraview visualization
+        sol.szxcg = hsol.szxcg;
+        TemplateMalloc(&sol.xcg, sol.szxcg, 0);
+        TemplateCopytoHost(sol.xcg, hsol.xcg, sol.szxcg, 0);
         if (common.mpiRank==0) printf("free CPU memory \n");
           
         // release CPU memory
         happ.freememory(1);        
         hmaster.freememory(1);        
         hmesh.freememory(1);        
-        // hsol.freememory(1);        
+        hsol.freememory(1);        
         htmp.freememory(1);        
         hres.freememory(1);        
         hcommon.freememory();             
