@@ -317,6 +317,7 @@ void writemasterstruct(string filename, masterstruct &master)
 }
 
 
+template <typename Model>
 void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct &app, masterstruct &master, Int mpirank)
 {
     // Open file to read
@@ -494,6 +495,7 @@ void writesolstruct(string filename, solstruct &sol)
     out.close();    
 }
 
+template <typename Model>
 void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, string filemesh, Int mpirank)
 {
     // Open file to read
@@ -562,10 +564,10 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
         cpuArraySetValue(sol.udg, zero, npe*nc*ne);
         
         if (app.flag[1]==0) { //            
-            cpuInituDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);    
+            cpuInituDriver<Model>(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);    
         }
         else // wave problem
-            cpuInitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);                    
+            cpuInitudgDriver<Model>(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);                    
         sol.nsize[2] = npe*nc*ne;       
         sol.szudg = sol.nsize[2];
     }
@@ -584,7 +586,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     else if (nco>0) {
         sol.odg = (dstype*) malloc (sizeof (dstype)*npe*nco*ne);
-        cpuInitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);       
+        cpuInitodgDriver<Model>(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);       
         sol.nsize[3] = npe*nco*ne;
         sol.szodg = sol.nsize[3];
     } 
@@ -600,7 +602,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     }
     else if (ncw>0) {
         sol.wdg = (dstype*) malloc (sizeof (dstype)*npe*ncw*ne);    
-        cpuInitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
+        cpuInitwdgDriver<Model>(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);        
         sol.nsize[4] = npe*ncw*ne;
         sol.szwdg = sol.nsize[4];
     }
@@ -619,6 +621,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     in.close();            
 }
 
+template <typename Model>
 void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, 
         Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {   
@@ -647,20 +650,20 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
         string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
         
         if (mpirank==0) printf("Reading initial solution from binary files \n");         
-        readsolstruct(filesol, sol, app, master, filemesh, mpirank);    
+        readsolstruct<Model>(filesol, sol, app, master, filemesh, mpirank);    
         
         if (mpirank==0) printf("Reading mesh from binary files \n");            
-        readmeshstruct(filemesh, mesh, sol, app, master, mpirank);                              
+        readmeshstruct<Model>(filemesh, mesh, sol, app, master, mpirank);                              
     }
     else {
         string filesol = filein + "sol.bin";              
         string filemesh = filein + "mesh.bin";                    
 
         if (mpirank==0) printf("Reading initial solution from binary files \n");                       
-        readsolstruct(filesol, sol, app, master, filemesh, mpirank);    
+        readsolstruct<Model>(filesol, sol, app, master, filemesh, mpirank);    
         
         if (mpirank==0) printf("Reading mesh from binary files \n");         
-        readmeshstruct(filemesh, mesh, sol, app, master, mpirank);                      
+        readmeshstruct<Model>(filemesh, mesh, sol, app, master, mpirank);                      
     }    
 }
 
