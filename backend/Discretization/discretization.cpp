@@ -157,10 +157,11 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
 }
       
 // Both CPU and GPU constructor
-CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, Int mpirank, 
+CDiscretization::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
         Int fileoffset, Int omprank, Int backend) 
 {
     common.backend = backend;
+    common.exasimpath = exasimpath;
 
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        

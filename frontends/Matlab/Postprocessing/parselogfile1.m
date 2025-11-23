@@ -39,4 +39,3 @@ n = length(d2);
 [length(d1) length(d2) length(d3) length(d4) length(d5) length(d6) length(d7) length(d8) length(d9) length(d10) length(d11) length(d12)]
 d = [d1(1:n) d2 d3 d4 d5 d6(1:n) d7(1:n) d8(1:n) d9(1:n) B(1:n,:)];
 
-d = [d1 d6 B];

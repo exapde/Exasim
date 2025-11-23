@@ -51,13 +51,13 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     common.mpiRank = app.comm[0];  // MPI rank      
     common.mpiProcs = app.comm[1]; // number of MPI ranks           
     
-    common.exasimpath = trimToSubstringAtLastOccurence(common.exasimpath, "Exasim");     
-    if (common.exasimpath == "") {      
-      std::filesystem::path cwd = std::filesystem::current_path();
-      common.exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
-      if (common.exasimpath == "") common.exasimpath = trimToSubstringAtLastOccurence(common.fileout, "Exasim");       
-    }
-    if (common.mpiRank==0) std::cout << "exasimpath = "<<common.exasimpath<<std::endl;
+    // common.exasimpath = trimToSubstringAtLastOccurence(common.exasimpath, "Exasim");     
+    // if (common.exasimpath == "") {      
+    //   std::filesystem::path cwd = std::filesystem::current_path();
+    //   common.exasimpath = trimToSubstringAtLastOccurence(cwd, "Exasim");            
+    //   if (common.exasimpath == "") common.exasimpath = trimToSubstringAtLastOccurence(common.fileout, "Exasim");       
+    // }
+    // if (common.mpiRank==0) std::cout << "exasimpath = "<<common.exasimpath<<std::endl;
     
 #ifdef HAVE_ENZYME    
     common.enzyme = 1;
