@@ -60,6 +60,8 @@
 #include "../Model/KokkosDrivers.cpp"
 #endif
 
+#include "../Model/modeltemplate.hpp"
+
 #include "connectivity.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"

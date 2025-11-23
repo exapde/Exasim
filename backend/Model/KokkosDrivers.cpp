@@ -1,4 +1,3 @@
-
 /*
   This file contains driver functions for various numerical operations in the Exasim backend,
   including flux, source, output, monitor, boundary, initialization, and equation-of-state computations.
@@ -76,7 +75,8 @@
 #include "cpuInitwdg.cpp"
 #include "cpuInitudg.cpp"
 #include "cpuInitodg.cpp"
-  
+#include "modeltemplate.hpp"
+template <typename Model = DefaultModel>
 void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
@@ -89,9 +89,14 @@ void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* od
   Int nd = common.nd;     // spatial dimension    
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
+  typename Model::Flux flux{};
 
-  KokkosFlux(f, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
-                common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
+  flux(
+       f, xg, udg, odg, wdg,
+       app.uinf, app.physicsparam, time,
+       common.modelnumber, numPoints,
+       nc, ncu, nd, ncx, nco, ncw
+       );                   
 }
 
 void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
@@ -557,6 +562,7 @@ void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int 
 #include "HdgSourcewonly.cpp"
 #include "HdgEoS.cpp"
 
+template <typename Model = DefaultModel>
 void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
@@ -570,8 +576,10 @@ void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dsty
   Int numPoints = nge*(e2-e1);              
   dstype time = common.time;
 
-  HdgFlux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
-                common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);         
+
+  typename Model::HdgFluxFn flux{};
+  flux(f, f_udg, f_wdg, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
+                common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);        
 }
 
 void SourceDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 

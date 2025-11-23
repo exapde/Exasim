@@ -42,7 +42,7 @@
 */
 #ifndef __URESIDUAL
 #define __URESIDUAL
-
+template <typename Model = DefaultModel>
 void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int e1, Int e2, Int backend)
@@ -106,7 +106,7 @@ void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
             &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
     }                
         
-    FluxDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
+    FluxDriver<Model>(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
 
     // RuSource(&res.Rue[npe*ncu*e1], &tmp.tempg[n4], &sol.elemg[nm+n2], master.shapegw, nge, npe, ncu, ne);
