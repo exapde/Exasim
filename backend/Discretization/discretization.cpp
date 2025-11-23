@@ -165,7 +165,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        
         // host structs
-        solstruct hsol;
+        // solstruct hsol;
         resstruct hres;
         appstruct happ;
         masterstruct hmaster; 
@@ -193,7 +193,7 @@ CDiscretization::CDiscretization(string filein, string fileout, Int mpiprocs, In
         happ.freememory(1);        
         hmaster.freememory(1);        
         hmesh.freememory(1);        
-        hsol.freememory(1);        
+        // hsol.freememory(1);        
         htmp.freememory(1);        
         hres.freememory(1);        
         hcommon.freememory();             

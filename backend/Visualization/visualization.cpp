@@ -72,7 +72,7 @@ public:
     CVisualization(CDiscretization& disc, int backend) {      
         int rank = disc.common.mpiRank;
         int nd_in   = disc.common.nd;
-        int npoints_in = disc.sol.szxcg / nd_in;
+        int npoints_in = disc.hsol.szxcg / nd_in;
         
         if (npoints_in > 0) {            
             int porder  = disc.common.porder;        
@@ -111,7 +111,7 @@ public:
                 TemplateCopytoHost(cgelcon, disc.mesh.cgelcon, npe*ne, backend);
             }            
             
-            Init(disc.sol.xcg, nd_in, npoints_in, cgelcon, npe, ne,
+            Init(disc.hsol.xcg, nd_in, npoints_in, cgelcon, npe, ne,
                  telem.data(), nce, nve_in, elemtype,
                  scalars, vectors, tensors, surfaces);
 
