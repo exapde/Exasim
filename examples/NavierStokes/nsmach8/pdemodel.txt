@@ -1,0 +1,155 @@
+scalars t
+
+vectors x(2), uq(12), v(2), w(0), uhat(4), n(2), tau(1), mu(11), eta(0)
+
+jacobian uq, w, uhat 
+
+hessian 
+
+batch x, uq, v, w, uhat, n
+
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars, VisVectors
+
+function Flux(x, uq, v, w, eta, mu, t)  
+    output_size(f) = 8;
+
+    gam = mu[0];
+    gam1 = gam - 1.0;
+    Re = mu[1];
+    Pr = mu[2];
+    Minf = mu[3];
+    Tref = mu[9];
+    muRef = 1/Re;
+    M2 = Minf*Minf;
+    c23 = 2.0/3.0;
+    pinf = 1.0/(gam*M2);
+    Tinf = pinf/(gam-1.0);
+
+    r = uq[0];
+    ru = uq[1];
+    rv = uq[2];
+    rE = uq[3];
+    rx = uq[4];
+    rux = uq[5];
+    rvx = uq[6];
+    rEx = uq[7];
+    ry = uq[8];
+    ruy = uq[9];
+    rvy = uq[10];
+    rEy = uq[11];
+
+    av = v[0];
+
+    r1 = 1/r;
+    uv = ru*r1;
+    vv = rv*r1;
+    E = rE*r1;
+    ke = 0.5*(uv*uv+vv*vv);
+    p = gam1*(rE-r*ke);
+    h = E+p*r1;    
+
+    T = p/(gam1*r);
+    Tphys = Tref/Tinf * T;
+    Ts = 110.4;
+
+    Tr = Tphys/Tref;
+    muphys = muRef * sqrt(Tr*Tr*Tr) * (Tref + Ts)/(Tphys + Ts);    
+    fc = muphys*gam/Pr;
+
+    ux = (rux - rx*uv)*r1;
+    vx = (rvx - rx*vv)*r1;
+    kex = uv*ux + vv*vx;
+    px = gam1*(rEx - rx*ke - r*kex);
+    Tx = (px*r - p*rx)*r1*r1/gam1;
+    uy = (ruy - ry*uv)*r1;
+    vy = (rvy - ry*vv)*r1;
+    key = uv*uy + vv*vy;
+    py = gam1*(rEy - ry*ke - r*key);
+    Ty = (py*r - p*ry)*r1*r1/gam1;
+
+    txx = muphys*c23*(2*ux - vy);
+    txy = muphys*(uy + vx);
+    tyy = muphys*c23*(2*vy - ux);
+
+    f[0] = ru + av*rx;
+    f[1] = ru*uv+p + txx + av*rux;
+    f[2] = rv*uv + txy + av*rvx;
+    f[3] = ru*h + uv*txx + vv*txy + fc*Tx + av*rEx;
+    f[4] = rv + av*ry;
+    f[5] = ru*vv + txy + av*ruy;
+    f[6] = rv*vv+p + tyy + av*rvy;
+    f[7] = rv*h + uv*txy + vv*tyy + fc*Ty + av*rEy;
+end
+
+function Source(x, uq, v, w, eta, mu, t)  
+    output_size(s) = 4;        
+    s[0] = 0;
+    s[1] = 0;
+    s[2] = 0;
+    s[3] = 0;
+end
+
+function Tdfunc(x, uq, v, w, eta, mu, t)  
+  output_size(m) = 4;
+  ones(m);
+end
+
+function Fbou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 8;
+  zeros(fb);
+end
+
+function Ubou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(ub) = 8;
+  zeros(ub);
+end
+
+function FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t)
+    output_size(fb) = 12;
+    
+    gam = mu[0];
+    gam1 = gam - 1.0;
+    Tinf = mu[8];
+    Tref = mu[9];
+    Twall = mu[10];
+    TisoW = Twall/Tref * Tinf;    
+
+    fb[0] = mu[4] - uhat[0]; 
+    fb[1] = mu[5] - uhat[1]; 
+    fb[2] = mu[6] - uhat[2]; 
+    fb[3] = mu[7] - uhat[3]; 
+
+    fb[4] = uq[0] - uhat[0]; 
+    fb[5] = uq[1] - uhat[1]; 
+    fb[6] = uq[2] - uhat[2]; 
+    fb[7] = uq[3] - uhat[3]; 
+
+    fb[8] =  uq[0] - uhat[0]; 
+    fb[9] =  0.0  - uhat[1]; 
+    fb[10] = 0.0  - uhat[2]; 
+    fb[11] = uhat[0]*TisoW - uhat[3];               
+end
+
+function Initu(x, eta, mu)
+  output_size(ui) = 4;
+  ui[0] = mu[4];
+  ui[1] = mu[5];
+  ui[2] = mu[6];
+  ui[3] = mu[7];
+end
+
+function VisScalars(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 4;
+  s[0] = uq[0];
+  s[1] = uq[1]/uq[0];
+  s[2] = uq[2]/uq[0];  
+  s[3] = 0.4*(uq[3] - 0.5*(uq[1]*s[1] + uq[2]*s[2]));
+end
+
+function VisVectors(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 2;
+  s[0] = uq[1];
+  s[1] = uq[2];  
+end
+
+

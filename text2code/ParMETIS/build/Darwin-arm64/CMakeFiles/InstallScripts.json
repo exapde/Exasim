@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/build/Darwin-arm64/cmake_install.cmake",
+		"/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/build/Darwin-arm64/include/cmake_install.cmake",
+		"/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/build/Darwin-arm64/libparmetis/cmake_install.cmake",
+		"/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/build/Darwin-arm64/programs/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

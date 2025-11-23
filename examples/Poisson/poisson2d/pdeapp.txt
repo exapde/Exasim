@@ -1,6 +1,7 @@
 model = "ModelD";
 modelfile = "pdemodel.txt";
-meshfile = "grid.bin"; 
+meshfile = "grid.bin";
+xdgfile = "xdg.bin";
 discretization = "hdg";
 platform = "cpu";
 
@@ -18,9 +19,6 @@ ncu = 1;
 ncw = 0;
 neb = 4096;
 nfb = 8192;
-
-saveSolBouFreq = 1;
-ibs = 1;
 
 NewtonIter = 20;
 NewtonTol = 1e-06;
@@ -50,4 +48,3 @@ periodicexprs1 = [];
 periodicboundaries2 = [];
 periodicexprs2 = [];
 interfaceconditions = [];
-

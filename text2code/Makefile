@@ -30,6 +30,11 @@ text2code:
 	  env -i PATH="$$PATH" SHELL="$$SHELL" make config prefix="$$PWD" gklib_path="$$PWD/../GKlib" && \
 	  env -i PATH="$$PATH" SHELL="$$SHELL" make -j"$(NPROCS)" install
 
+	# ParMETIS: requires 'make config'; run in a clean environment to avoid the 'w' target
+	cd ParMETIS && \
+	  env -i PATH="$$PATH" SHELL="$$SHELL" make config prefix="$$PWD" gklib_path="$$PWD/../GKlib" metis_path="$$PWD/../METIS" && \
+	  env -i PATH="$$PATH" SHELL="$$SHELL" make -j"$(NPROCS)" install
+
 	# SymEngine (CMake is fine)
 	cd symengine && cmake -S . -B build \
 	  -DCMAKE_INSTALL_PREFIX="$$PWD" \
