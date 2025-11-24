@@ -627,7 +627,7 @@ void CDiscretization<Model>::evalQ(dstype* q, dstype* u, Int backend)
             0, common.ncu, 0, common.ne1);
 
     // compute the flux q
-    ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // get q from udg
     ArrayExtract(q, sol.udg, common.npe, common.nc, common.ne, 0, common.npe, 
@@ -662,7 +662,7 @@ void CDiscretization<Model>::updateUDG(dstype* u, Int backend)
 
     if (common.ncq>0)
         // compute the flux q
-        ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+        ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
 template <typename Model>
@@ -682,7 +682,7 @@ void CDiscretization<Model>::evalAVfield(dstype* avField, dstype* u, Int backend
     
     // compute the flux q
     if (common.ncq>0)        
-        ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+        ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // compute the av field
     AvfieldDriver<Model>(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    

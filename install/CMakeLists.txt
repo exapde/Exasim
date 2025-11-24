@@ -267,8 +267,8 @@ if(EXASIM_CUDA)
     add_exasim_gpu_variant(gpu
       BACKEND      CUDA
       EXTRA_LIBS   ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
-      WITH_TEXT2CODE
-      TEXT2CODE_LIB ${T2C_CUDA_LIB}
+      #WITH_TEXT2CODE
+      #TEXT2CODE_LIB ${T2C_CUDA_LIB}
     )
   endif()
 
