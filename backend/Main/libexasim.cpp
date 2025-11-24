@@ -1,5 +1,5 @@
 #include "exasim.hpp"
-#include "BuiltIn/Poisson3d/model.hpp"
+#include "BuiltIn/Poisson3D/model.hpp"
 #include "libexasim.h"
 #include <algorithm>
 #include <vector>
