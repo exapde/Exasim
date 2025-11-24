@@ -24,6 +24,9 @@ file(GLOB MAIN_LIB_HEADER ${EXASIM_MAIN_DIR}/libexasim.h)
 
 # ---- Option: build EXASIM variants that link text2code-generated libs ----
 option(WITH_TEXT2CODE "Build extra EXASIM executables that link text2code-generated dynamic libraries" OFF)
+option(WITH_ASSUME_GENERATOR "Assume exasim does not need a generator" OFF)
+
+
 
 # logical names for text2code-produced shared libs (lib<name>.so/.dylib/.dll)
 set(T2C_CPU_LIB  pdemodelserial)
@@ -39,6 +42,32 @@ else()
   message(FATAL_ERROR "Lapack and Blas libraries are not found")
 endif()
 
+
+set(gpu_t2c_args)
+if(NOT WITH_ASSUME_GENERATOR)
+  list(APPEND gpu_t2c_args
+    WITH_TEXT2CODE
+    TEXT2CODE_LIB ${T2C_CUDA_LIB}
+  )
+endif()
+
+
+set(hip_t2c_args)
+if(NOT WITH_ASSUME_GENERATOR)
+  list(APPEND hip_t2c_args
+    WITH_TEXT2CODE
+    TEXT2CODE_LIB ${T2C_HIP_LIB}
+  )
+endif()
+
+
+set(cup_t2c_args)
+if(NOT WITH_ASSUME_GENERATOR)
+  list(APPEND hip_t2c_args
+    WITH_TEXT2CODE
+    TEXT2CODE_LIB ${T2C_CPU_LIB}
+  )
+endif()
 
 # Create EXASIM executable + shared library + mainlib-wrapper executable
 #
@@ -267,8 +296,7 @@ if(EXASIM_CUDA)
     add_exasim_gpu_variant(gpu
       BACKEND      CUDA
       EXTRA_LIBS   ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
-      #WITH_TEXT2CODE
-      #TEXT2CODE_LIB ${T2C_CUDA_LIB}
+      ${gpu_t2c_args}
     )
   endif()
 
@@ -282,8 +310,7 @@ if(EXASIM_CUDA)
         BACKEND      CUDA
         USE_MPI
         EXTRA_LIBS   ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${MPI_LIBRARIES}
-        WITH_TEXT2CODE
-        TEXT2CODE_LIB ${T2C_CUDA_LIB}
+        ${gpu_t2c_args}
       )
     else()
       message("MPI library is not found")
@@ -312,8 +339,7 @@ elseif(EXASIM_HIP)
     add_exasim_gpu_variant(gpu
       BACKEND      HIP
       EXTRA_LIBS   hipblas rocblas ${HIP_LIBRARIES}
-      WITH_TEXT2CODE
-      TEXT2CODE_LIB ${T2C_HIP_LIB}
+      ${hip_t2c_args}
     )
   endif()
 
@@ -327,8 +353,7 @@ elseif(EXASIM_HIP)
         BACKEND      HIP
         USE_MPI
         EXTRA_LIBS   hipblas rocblas ${HIP_LIBRARIES} ${MPI_LIBRARIES}
-        WITH_TEXT2CODE
-        TEXT2CODE_LIB ${T2C_HIP_LIB}
+        ${hip_t2c_args}
       )
     else()
       message("MPI library is not found")
@@ -343,8 +368,7 @@ else()
   if(EXASIM_NOMPI)
     add_exasim_variant(cpu
       EXTRA_LIBS          # no extra libs beyond Kokkos + lapackblas
-      WITH_TEXT2CODE
-      TEXT2CODE_LIB ${T2C_CPU_LIB}
+      ${cup_t2c_args}
     )
   endif()
 
@@ -356,8 +380,7 @@ else()
 
       add_exasim_variant(cpumpi
         EXTRA_LIBS    ${MPI_LIBRARIES}
-        WITH_TEXT2CODE
-        TEXT2CODE_LIB ${T2C_CPU_LIB}
+        ${cup_t2c_args}
       )
     else()
       message("MPI library is not found")
