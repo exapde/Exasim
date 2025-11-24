@@ -1,7 +1,6 @@
 model = "ModelD";
 modelfile = "pdemodel.txt";
 meshfile = "grid.bin";
-xdgfile = "xdg.bin";
 discretization = "hdg";
 platform = "cpu";
 
