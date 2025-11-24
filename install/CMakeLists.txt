@@ -63,7 +63,7 @@ endif()
 
 set(cup_t2c_args)
 if(NOT WITH_ASSUME_GENERATOR)
-  list(APPEND hip_t2c_args
+  list(APPEND cpu_t2c_args
     WITH_TEXT2CODE
     TEXT2CODE_LIB ${T2C_CPU_LIB}
   )
