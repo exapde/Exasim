@@ -16,7 +16,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake gfortran "openmpi*" "libopenmpi*"
+          sudo apt-get install -y build-essential cmake gfortran "openmpi*" "libopenmpi*" libblas-dev liblapack-dev
 
       # 1) cd Exasim/kokkos; make -f Makefile.builds serial
       - name: Build Kokkos (serial)
