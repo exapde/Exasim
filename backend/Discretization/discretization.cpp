@@ -187,7 +187,13 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
           TemplateMalloc(&mesh.bf, hcommon.nfe*hcommon.ne, 0);
           for (int i=0; i<hcommon.nfe*hcommon.ne; i++) mesh.bf[i] = hmesh.bf[i];   
         }
-                  
+
+       // copy hsol.xcg to sol.xcg for paraview visualization
+        sol.szxcg = hsol.szxcg;
+        TemplateMalloc(&sol.xcg, sol.szxcg, 0);
+        TemplateCopytoHost(sol.xcg, hsol.xcg, sol.szxcg, 0);
+        if (common.mpiRank==0) printf("free CPU memory \n");
+          
         // release CPU memory
         happ.freememory(1);        
         hmaster.freememory(1);        
