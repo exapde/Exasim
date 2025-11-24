@@ -368,7 +368,7 @@ else()
   if(EXASIM_NOMPI)
     add_exasim_variant(cpu
       EXTRA_LIBS          # no extra libs beyond Kokkos + lapackblas
-      ${cup_t2c_args}
+      ${cpu_t2c_args}
     )
   endif()
 
@@ -380,7 +380,7 @@ else()
 
       add_exasim_variant(cpumpi
         EXTRA_LIBS    ${MPI_LIBRARIES}
-        ${cup_t2c_args}
+        ${cpu_t2c_args}
       )
     else()
       message("MPI library is not found")
