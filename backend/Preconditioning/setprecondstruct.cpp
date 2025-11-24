@@ -20,7 +20,8 @@
 #ifndef __SETPRECSTRUCT
 #define __SETPRECSTRUCT
 
-void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend)
+template <typename Model>
+void setprecondstruct(precondstruct &precond, CDiscretization<Model>& disc, Int backend)
 {    
     Int N = max(disc.common.ndof1, disc.common.ndofuhat);
     Int M = disc.common.RBdim;    
