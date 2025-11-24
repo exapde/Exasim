@@ -479,6 +479,8 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         GetBoundaryNodes(uhb, uhg, &mesh.boufaces[start], ngf, nfe, ne, ncu, nfaces);
         GetBoundaryNodes(nlb, nlg, &mesh.boufaces[start], ngf, nfe, ne, nd, nfaces);
 
+        // transfer summit's boundary data to ogb  
+
         if ((ncw>0) & (common.wave==0)) {
           dstype *temp1 =  &tmp.tempn[0];
           dstype *temp2 =  &tmp.tempn[ngb*nc];

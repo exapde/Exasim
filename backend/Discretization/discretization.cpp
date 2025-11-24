@@ -160,10 +160,12 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
       
 // Both CPU and GPU constructor
 template <typename Model>
-CDiscretization<Model>::CDiscretization(string filein, string fileout, Int mpiprocs, Int mpirank, 
+CDiscretization::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
+
         Int fileoffset, Int omprank, Int backend) 
 {
     common.backend = backend;
+    common.exasimpath = exasimpath;
 
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        
@@ -189,7 +191,11 @@ CDiscretization<Model>::CDiscretization(string filein, string fileout, Int mpipr
           TemplateMalloc(&mesh.bf, hcommon.nfe*hcommon.ne, 0);
           for (int i=0; i<hcommon.nfe*hcommon.ne; i++) mesh.bf[i] = hmesh.bf[i];   
         }
-        
+
+       // copy hsol.xcg to sol.xcg for paraview visualization
+        sol.szxcg = hsol.szxcg;
+        TemplateMalloc(&sol.xcg, sol.szxcg, 0);
+        TemplateCopytoHost(sol.xcg, hsol.xcg, sol.szxcg, 0);
         if (common.mpiRank==0) printf("free CPU memory \n");
           
         // release CPU memory

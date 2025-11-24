@@ -76,8 +76,8 @@ public:
     ofstream outqoi;
     
     // constructor 
-    CSolution(string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend)   
-       : disc(filein, fileout, mpiprocs, mpirank, fileoffset, omprank, backend),
+    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend)   
+       : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend),
          prec(disc, backend), solv(disc, backend), vis(disc, backend) 
     {   
         int ncx = disc.common.ncx;                            

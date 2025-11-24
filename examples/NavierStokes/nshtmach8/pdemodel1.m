@@ -163,7 +163,7 @@ function u0 = initu(x, mu, eta)
 end
 
 function fi = fint(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-f = flux(u, q, w, v, x, t, mu, eta);
+f = flux(uhat, q, w, v, x, t, mu, eta);
 fi = f(4,1)*n(1) + f(4,2)*n(2) + tau*(u(4)-uhat(4)); 
 end
 
