@@ -47,7 +47,8 @@
 #ifndef __PTCSOLVER
 #define __PTCSOLVER
 
-int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int it, Int backend)
+template <typename Model>
+int LinearSolver(sysstruct &sys, CDiscretization<Model>& disc, CPreconditioner<Model>& prec, ofstream &out, Int it, Int backend)
 {    
         
 #ifdef TIMING    
@@ -212,7 +213,8 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, o
     //disc.common.Wcurrentdim = disc.common.RBcurrentdim;
 }
 
-void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int backend)
+template <typename Model>
+void UpdateRB(sysstruct &sys, CDiscretization<Model>& disc, CPreconditioner<Model>& prec, Int backend)
 {
     Int N = disc.common.ndof1;
                     
@@ -233,7 +235,8 @@ void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int 
     }
 }
 
-Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int backend)       
+template <typename Model>
+Int PTCsolver(sysstruct &sys,  CDiscretization<Model>& disc, CPreconditioner<Model>& prec, ofstream &out, Int backend)       
 {
     Int N = disc.common.ndof1;     
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
@@ -320,7 +323,8 @@ Int PTCsolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofs
     return it;
 }
 
-void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int N, Int backend)
+template <typename Model>
+void UpdateRB(sysstruct &sys, CDiscretization<Model>& disc, CPreconditioner<Model>& prec, Int N, Int backend)
 {                       
     dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
     if (nrmr>zero) {
@@ -339,7 +343,8 @@ void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int 
     }
 }
 
-void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
+template <typename Model>
+void LinearSolver(sysstruct &sys, CDiscretization<Model>& disc, CPreconditioner<Model>& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
 {            
     // evaluate the residual R(u) and set it to sys.b
     if (spatialScheme==0) {
@@ -390,7 +395,8 @@ void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, 
     //    printf("GMRES(%d) converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.gmresRestart,disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);                    
 }
 
-Int NonlinearSolver(sysstruct &sys,  CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
+template <typename Model>
+Int NonlinearSolver(sysstruct &sys,  CDiscretization<Model>& disc, CPreconditioner<Model>& prec, ofstream &out, Int N, Int spatialScheme, Int backend)       
 {
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
     dstype nrmr, nrm0, tol;

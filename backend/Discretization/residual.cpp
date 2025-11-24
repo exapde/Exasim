@@ -47,6 +47,7 @@
 #include "uresidual.cpp"
 #include "getuhat.cpp"
 
+
 void DG2CGAVField(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, dstype* avcg, dstype* avdg, Int backend)
 {
@@ -69,6 +70,7 @@ void DG2CGAVField(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     }
 }
 
+template <typename Model>
 void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
@@ -86,7 +88,7 @@ void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         
     START_TIMING;
     // Face integrals
-    RqFace(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
+    RuFace<Model>(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
     END_TIMING(16);       
         
     // elements in the range [e1, e2)
@@ -124,6 +126,7 @@ void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
     // END_TIMING(18);       
 }
 
+template <typename Model>
 void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
@@ -149,7 +152,7 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
                 // use Newton to solve the nonlinear system F(w, u) = 0 to obtain w for given u                
                 for (int iter=0; iter<10; iter++) {
                   // evaluate nonlinear system F(w, u)
-                  EosDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                  EosDriver<Model>(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
                       &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
                   
                   int nn = npe*(e2-e1);                  
@@ -158,7 +161,7 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
                   if (nrm < 1e-6) break;                                       
                   
                   // compute jacobian matrix dF/dw
-                  EosdwDriver(tmp.tempg, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                  EosdwDriver<Model>(tmp.tempg, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
                       &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
                                   
                   // compute the inverse of jacobian matrix
@@ -182,7 +185,7 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
             else {
                 // alpha * dw/dt + beta w = sourcew(u,q,v)
                 // calculate the source term Sourcew(xdg, udg, odg, wdg)
-                SourcewDriver(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
+                SourcewDriver<Model>(tmp.tempn, &sol.xdg[npe*ncx*e1], &sol.udg[npe*nc*e1], &sol.odg[npe*nco*e1], 
                         &sol.wdg[npe*ncw*e1], mesh, master, app, sol, tmp, common, npe, e1, e2, backend);            
                 if (common.dae_steps==0) { // alpha * dw/dt + beta w = sourcew(u,q,v)
                     // 1.0/(alpha*dirkd/dt + beta)
@@ -211,10 +214,11 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
     }
 }
 
+template <typename Model>
 void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
-    AvfieldDriver(sol.odg, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend); 
+    AvfieldDriver<Model>(sol.odg, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend); 
     // note that the args imply avfield can depend on odg...not sure this is true.
     // This is true actually; but we need to be careful with autodiff. Might need a seperate avfield...
     for (Int iav = 0; iav<common.AVsmoothingIter; iav++){
@@ -245,30 +249,31 @@ void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
     }       
 }
 
+template <typename Model>
 void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
    Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
 {    
     // compute uhat
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
     
     // compute q
     if (common.ncq>0)
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);                
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);                
     
     // compute w
     if (common.ncw>0)
-         GetW(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);                
+         GetW<Model>(sol, res, app, master, mesh, tmp, common, handle, nbe1q, nbe2q, nbf1, nbf2, backend);                
     
     if (common.ncAV>0 && common.frozenAVflag == 0)
     /// FROM MEETING: MUST MOVE THE VOLUME RESIDUAL AND EVALUATE 0 to common.npe2 if unfrozen for mpi
-        GetAv(sol, res, app, master, mesh, tmp, common, handle, backend);
+        GetAv<Model>(sol, res, app, master, mesh, tmp, common, handle, backend);
 
     // Element integrals
-    RuElem(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
+    RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, nbe1u, nbe2u, backend);    
                     
     // Face integrals
-    RuFace(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
+    RuFace<Model>(sol, res, app, master, mesh, tmp, common, handle, nbf1, nbf2, backend);
         
     Int f1 = common.fblks[3*nbf1]-1;
     Int f2 = common.fblks[3*(nbf2-1)+1];        
@@ -287,6 +292,7 @@ void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
 
 #ifdef  HAVE_MPI
 
+template <typename Model>
 void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {  
@@ -336,11 +342,11 @@ void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     }
             
     // compute uhat for all faces
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
        
     // calculate q for interior elements
     if (common.ncq>0)         
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
     
     // non-blocking receive solutions on exterior and outer elements from neighbors
     /* wait until all send and receive operations are completely done */
@@ -352,13 +358,14 @@ void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
     //    ArrayCopy(&sol.udg[nudg*common.elemrecv[n]], &tmp.buffrecv[bsz*n], bsz, backend);        
     
     // compute uhat for all faces
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
     
     // calculate q for interface and exterior elements
     if (common.ncq>0)         
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);                
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);                
 }
 
+template <typename Model>
 void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {      
@@ -415,22 +422,22 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
                     
     START_TIMING; 
     // compute uhat for all faces
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);            
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);            
     END_TIMING(7);    
     
     START_TIMING;  
     // calculate q for interior elements
     if (common.ncq>0)         
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
     if (common.ncw>0)         
-        GetW(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);            
+        GetW<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);            
     END_TIMING(8);    
     
     START_TIMING; 
     // calculate Ru for interior elements
     if (common.frozenAVflag == 1)
     // if AVfield is not part of residual, we can evaluate interior volume integrals before receving neighbor information
-        RuElem(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, backend);    
+        RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, backend);    
     END_TIMING(9);    
         
     START_TIMING; 
@@ -448,28 +455,28 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     
     START_TIMING; 
     // compute uhat for all faces
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
     END_TIMING(7);    
 
     START_TIMING; 
     // calculate q for interface and exterior elements
     if (common.ncq>0)         
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
     if (common.ncw>0)         
-        GetW(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
+        GetW<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);        
     
     if (common.ncAV>0 && common.frozenAVflag == 0)
     /// FROM MEETING: MUST MOVE THE VOLUME RESIDUAL AND EVALUATE 0 to common.npe2 if unfrozen for mpi
-        GetAv(sol, res, app, master, mesh, tmp, common, handle, backend);
+        GetAv<Model>(sol, res, app, master, mesh, tmp, common, handle, backend);
 
     
     if (common.frozenAVflag == 1)
     { // calculate Ru for interface elements
-        RuElem(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe1, backend); 
+        RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe1, backend); 
     } 
     else
     { // For unfrozen AV, we can only compute Ru for interior and interface after calculating AV 
-        RuElem(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe1, backend); 
+        RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe1, backend); 
     }
     
        
@@ -477,7 +484,7 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
      
     START_TIMING; 
     // calculate Ru for all faces
-    RuFace(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+    RuFace<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
     END_TIMING(12);    
         
     // assemble face residual vector into element residual vector
@@ -494,6 +501,7 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     //ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);      
 }
 
+template <typename Model>
 void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {      
@@ -540,17 +548,17 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     }
                     
     // compute uhat for all faces
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);                    
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);                    
     
     // calculate q for interior elements
     if (common.ncq>0)         
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, 0, common.nbf, backend);        
     
     // calculate Ru for interior elements
-    RuElem(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, backend);    
+    RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe0, backend);    
         
     // calculate Ru for interior faces
-    RuFace(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf0, backend);
+    RuFace<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf0, backend);
     
     // non-blocking receive solutions on exterior and outer elements from neighbors
     /* wait until all send and receive operations are completely done */
@@ -560,17 +568,17 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     PutArrayAtIndex(sol.udg, tmp.buffrecv, mesh.elemrecvind, bsz*common.nelemrecv);
     
     // compute uhat for all faces
-    GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
 
     // calculate q for interface and exterior elements
     if (common.ncq>0)
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, common.nbf0, common.nbf, backend);        
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, common.nbf0, common.nbf, backend);        
                 
     // calculate Ru for interface elements
-    RuElem(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe1, backend);    
+    RuElem<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe1, backend);    
      
     // calculate Ru for all other faces
-    RuFace(sol, res, app, master, mesh, tmp, common, handle, common.nbf0, common.nbf, backend);
+    RuFace<Model>(sol, res, app, master, mesh, tmp, common, handle, common.nbf0, common.nbf, backend);
         
     // change sign 
     //ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);      
@@ -578,16 +586,17 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 
 #endif
 
+template <typename Model = DefaultModel>
 void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     if (common.mpiProcs>1) { // mpi processes
 #ifdef  HAVE_MPI        
-        RuResidualMPI(sol, res, app, master, mesh, tmp, common, handle, backend);
+        RuResidualMPI<Model>(sol, res, app, master, mesh, tmp, common, handle, backend);
 #endif        
     }
     else {
-        RuResidual(sol, res, app, master, mesh, tmp, common, handle,
+        RuResidual<Model>(sol, res, app, master, mesh, tmp, common, handle,
                 0, common.nbe, 0, common.nbe, 0, common.nbf, backend);
     }        
             
@@ -609,6 +618,7 @@ void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
 //// Calculate just dR(u)/du v, with u, q, uhat, R(u) already precalculated /////
 ///////////////////////////////////////////////////////////////////////////////////////////
 #ifdef HAVE_ENZYME
+template <typename Model>
 void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
@@ -652,10 +662,11 @@ void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
     ArrayInsert(sol.dudg, &res.dRq[N], npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2);           
 }
 
+template <typename Model>
 void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
-    AvfieldDriver(sol.odg, sol.dodg, sol.xdg, sol.udg, sol.dudg, sol.odg, sol.wdg, sol.dwdg, mesh, master, app, sol, tmp, common, backend); 
+    AvfieldDriver<Model>(sol.odg, sol.dodg, sol.xdg, sol.udg, sol.dudg, sol.odg, sol.wdg, sol.dwdg, mesh, master, app, sol, tmp, common, backend); 
 
     for (Int iav = 0; iav<common.AVsmoothingIter; iav++){
         DG2CGAVField(sol, res, app, master, mesh, tmp, common, sol.dodg, sol.dodg, backend);
@@ -685,7 +696,7 @@ void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
     }       
 }
 
-
+template <typename Model>
 void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
    Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
@@ -723,7 +734,7 @@ void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 }
 
 #ifdef  HAVE_MPI
-
+template <typename Model>
 void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {      
@@ -821,18 +832,18 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 
 
 #endif
-
+template <typename Model>
 void dResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     
     if (common.mpiProcs>1) { // mpi processes
 #ifdef  HAVE_MPI        
-        dRuResidualMPI(sol, res, app, master, mesh, tmp, common, handle, backend);
+        dRuResidualMPI<Model>(sol, res, app, master, mesh, tmp, common, handle, backend);
 #endif        
     }
     else {
-        dRuResidual(sol, res, app, master, mesh, tmp, common, handle,
+        dRuResidual<Model>(sol, res, app, master, mesh, tmp, common, handle,
                 0, common.nbe, 0, common.nbe, 0, common.nbf, backend);
     } 
     // change sign for matrix-vector product
@@ -849,19 +860,19 @@ void dResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
 }
 
 #endif
-
+template <typename Model>
 void ComputeQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
     if (common.mpiProcs>1) {
 #ifdef  HAVE_MPI        
-        GetQMPI(sol, res, app, master, mesh, tmp, common, handle, backend);
+        GetQMPI<Model>(sol, res, app, master, mesh, tmp, common, handle, backend);
 #endif                
     }
     else {
         // compute uhat
-        GetUhat(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
-        GetQ(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe, 0, common.nbf, backend);    
+        GetUhat<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbf, backend);
+        GetQ<Model>(sol, res, app, master, mesh, tmp, common, handle, 0, common.nbe, 0, common.nbf, backend);    
     }        
     
     if (common.debugMode==1) {

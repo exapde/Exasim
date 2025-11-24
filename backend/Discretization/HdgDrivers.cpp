@@ -42,7 +42,7 @@
 #include "HdgSourcew.cpp"
 #include "HdgEoS.cpp"
 
-void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, 
+void FluxDriver<Model>(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, 
         const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
@@ -60,7 +60,7 @@ void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const
                 common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
 }
 
-void SourceDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourceDriver<Model>(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -77,7 +77,7 @@ void SourceDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, con
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-void SourcewDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourcewDriver<Model>(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -94,7 +94,7 @@ void SourcewDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, co
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-void EosDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void EosDriver<Model>(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -111,7 +111,7 @@ void EosDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                           
 }
 
-void FbouDriver(dstype* fb,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
+void FbouDriver<Model>(dstype* fb,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
 {
