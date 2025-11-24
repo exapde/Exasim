@@ -23,10 +23,10 @@ jobs:
         working-directory: kokkos
         run: make -f Makefile.builds serial
 
-      # 2) cd Exasim/text2code; make text2code
-      - name: Build text2code
-        working-directory: text2code
-        run: make text2code
+      # # 2) cd Exasim/text2code; make text2code
+      # - name: Build text2code
+      #   working-directory: text2code
+      #   run: make text2code
 
       # 3) cd Exasim/build; cmake ...; cmake --build .
       - name: Configure Exasim
@@ -37,7 +37,8 @@ jobs:
             -D EXASIM_MPI=ON \
             -D EXASIM_CUDA=OFF \
             -D EXASIM_HIP=OFF \
-            -D WITH_TEXT2CODE=ON \
+            -D WITH_TEXT2CODE=OFF \
+            -D WITH_ASSUME_GENERATOR=ON \
             ../install
 
       - name: Build Exasim
