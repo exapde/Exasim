@@ -137,10 +137,7 @@ using namespace std;
 #include "../../text2code/text2code/readpdeapp.cpp"
 #endif
 
-#include "../Model/modeltemplate.hpp"
-
-template <typename Model = DefaultModel>
-int premain(int argc, char** argv) 
+int exasim_premain(int argc, char** argv) 
 {   
   
     Int nummodels=1, mpiprocs=1, mpirank=0, shmrank=0, backend=0;    
@@ -342,7 +339,6 @@ int premain(int argc, char** argv)
     }
 #endif    
 
-    
     // reset nummodels
     if (mpiprocs0 > 0) nummodels = 1;
                 
@@ -350,21 +346,21 @@ int premain(int argc, char** argv)
     Int gpuid = 0;            
       
     // initialize PDE models
-    CSolution<Model>** pdemodel = new CSolution<Model>*[nummodels];     
+    CSolution** pdemodel = new CSolution*[nummodels];     
     // initialize file streams
     ofstream* out = new ofstream[nummodels];    
             
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution<Model>(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
+          pdemodel[i] = new CSolution(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution<Model>(filein[0], fileout[0], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution(filein[0], fileout[0], mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
           else {
             fileoffset = mpiprocs0;
-            pdemodel[i] = new CSolution<Model>(filein[1], fileout[1], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution(filein[1], fileout[1], mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
         }
         pdemodel[i]->disc.common.nomodels = nummodels;
