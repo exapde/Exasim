@@ -20,17 +20,17 @@ jobs:
 
       # 1) cd Exasim/kokkos; make -f Makefile.builds serial
       - name: Build Kokkos (serial)
-        working-directory: Exasim/kokkos
+        working-directory: kokkos
         run: make -f Makefile.builds serial
 
       # 2) cd Exasim/text2code; make text2code
       - name: Build text2code
-        working-directory: Exasim/text2code
+        working-directory: text2code
         run: make text2code
 
       # 3) cd Exasim/build; cmake ...; cmake --build .
       - name: Configure Exasim
-        working-directory: Exasim/build
+        working-directory: build
         run: |
           cmake \
             -D EXASIM_NOMPI=ON \
@@ -41,12 +41,12 @@ jobs:
             ../install
 
       - name: Build Exasim
-        working-directory: Exasim/build
+        working-directory: build
         run: cmake --build .
 
       # 4) cd Exasim/examples/Poisson/poisson3d; run test
       # Note: from poisson3d, the executable is at ../../../build/cpuEXASIMMAINLIB
       - name: Run Poisson3D test
-        working-directory: Exasim/examples/Poisson/poisson3d
+        working-directory: examples/Poisson/poisson3d
         run: |
           ../../../build/cpuEXASIMMAINLIB Poisson3D 1 datain/ dataout/

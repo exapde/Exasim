@@ -160,9 +160,7 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
       
 // Both CPU and GPU constructor
 template <typename Model>
-CDiscretization::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
-
-        Int fileoffset, Int omprank, Int backend) 
+CDiscretization<Model>::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend) 
 {
     common.backend = backend;
     common.exasimpath = exasimpath;

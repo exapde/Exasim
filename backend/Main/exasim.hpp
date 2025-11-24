@@ -353,18 +353,19 @@ int premain(int argc, char** argv)
     CSolution<Model>** pdemodel = new CSolution<Model>*[nummodels];     
     // initialize file streams
     ofstream* out = new ofstream[nummodels];    
-            
+
+    //Todo: these should be exasim paths...
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution<Model>(filein[i], fileout[i], mpiprocs, mpirank, fileoffset, gpuid, backend);                 
+          pdemodel[i] = new CSolution<Model>(filein[i], fileout[i], "", mpiprocs, mpirank, fileoffset, gpuid, backend);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution<Model>(filein[0], fileout[0], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution<Model>(filein[0], fileout[0], "", mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
           else {
             fileoffset = mpiprocs0;
-            pdemodel[i] = new CSolution<Model>(filein[1], fileout[1], mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution<Model>(filein[1], fileout[1], "", mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
         }
         pdemodel[i]->disc.common.nomodels = nummodels;
