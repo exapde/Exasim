@@ -86,6 +86,7 @@ Int CSolution::PTCsolver(ofstream &out, Int backend)
         if (nrmr > 1.0e6) {   
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
+            if (vis.savemode > 0) this->SaveParaview(backend, "_CRASH", true);     
             if (outsol.is_open()) { outsol.close(); }
             if (outwdg.is_open()) { outwdg.close(); }
             if (outuhat.is_open()) { outuhat.close(); }
