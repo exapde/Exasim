@@ -8,13 +8,13 @@
 /// Parallel mesh partitioning using ParMETIS_V3_PartMeshKway
 ///
 /// elmdist: global element distribution over MPI ranks, size = nprocs + 1.
-/// eind:    local element-to-node connectivity (flattened, global node IDs)
+/// e2n:    local element-to-node connectivity (flattened, global node IDs)
 ///
 /// Output:
 ///   epart_local[e] = partition ID of local element e
 ///
 void partitionMeshParMETIS(std::vector<idx_t>       &epart_local,
-                           std::vector<idx_t>       &eind,      // local connectivity
+                           std::vector<idx_t>       &e2n,      // local connectivity
                            const std::vector<idx_t> &elmdist,
                            idx_t                     nve,
                            idx_t                     ncommon,
@@ -30,9 +30,9 @@ void partitionMeshParMETIS(std::vector<idx_t>       &epart_local,
     //----------------------------------------------------------------------
     idx_t ne_local = elmdist[rank+1] - elmdist[rank];
 
-    if (ne_local > 0 && eind.size() != (size_t)ne_local * nve) {
+    if (ne_local > 0 && e2n.size() != (size_t)ne_local * nve) {
         if (rank == 0) {
-            std::cerr << "partitionMeshParMETIS: eind.size() = " << eind.size()
+            std::cerr << "partitionMeshParMETIS: e2n.size() = " << e2n.size()
                       << " but expected ne_local*nve = " << (ne_local * nve)
                       << std::endl;
         }
@@ -69,7 +69,7 @@ void partitionMeshParMETIS(std::vector<idx_t>       &epart_local,
     //----------------------------------------------------------------------
     idx_t *elmdist_ptr = const_cast<idx_t*>(elmdist.data());
     idx_t *eptr_ptr    = eptr.data();
-    idx_t *eind_ptr    = eind.data();
+    idx_t *eind_ptr    = e2n.data();
 
     idx_t *part_ptr    = epart_local.data();   // *** Direct output buffer ***
 
@@ -613,6 +613,923 @@ void readParMeshFromFile(const std::string& filename, Mesh& mesh, MPI_Comm comm)
     mesh.nfe = mesh.nd + (mesh.nd - 1) * mesh.elemtype + 1;                    
 }
 
+void readLocalMeshFromBinaryFile(const std::string& filename,
+                                 Mesh& mesh,
+                                 const std::vector<idx_t>& epart_local,
+                                 MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    // -----------------------------------------------------------------
+    // 1. Rank 0 reads global header (nd, np_global, nve, ne_global)
+    // -----------------------------------------------------------------
+    int nd_global = 0, np_global = 0, nve_global = 0, ne_global = 0;
+
+    if (rank == 0) {
+        std::ifstream in(filename, std::ios::in | std::ios::binary);
+        if (!in) error("Unable to open file " + filename);
+
+        int* ndims = readiarrayfromdouble(in, 4);
+        nd_global  = ndims[0];
+        np_global  = ndims[1];
+        nve_global = ndims[2];
+        ne_global  = ndims[3];
+        free(ndims);
+
+        in.close();
+    }
+
+    // Broadcast global mesh sizes to all ranks
+    int header[4] = { nd_global, np_global, nve_global, ne_global };
+    MPI_Bcast(header, 4, MPI_INT, 0, comm);
+    nd_global  = header[0];
+    np_global  = header[1];
+    nve_global = header[2];
+    ne_global  = header[3];
+
+    // -----------------------------------------------------------------
+    // 2. Reconstruct original block distribution used for ParMETIS
+    //    (same computeLocalRange as in readParMeshFromBinaryFile)
+    // -----------------------------------------------------------------
+    int ne_local_orig = 0;
+    int elemOffset    = 0;  // starting global element index for this rank
+    computeLocalRange(ne_global, size, rank, ne_local_orig, elemOffset);
+
+    // Sanity check: local ParMETIS output must match original local ne
+    if (static_cast<int>(epart_local.size()) != ne_local_orig) {
+        std::cerr << "readLocalMeshFromBinaryFile: epart_local.size() = "
+                  << epart_local.size()
+                  << " but original ne_local = " << ne_local_orig
+                  << " on rank " << rank << "\n";
+        error("Inconsistent local ParMETIS partition size");
+    }
+
+    // -----------------------------------------------------------------
+    // 3. Build global element-partition array epart_global[e] (size ne_global)
+    // -----------------------------------------------------------------
+    std::vector<idx_t> epart_global(ne_global);
+
+    // Determine MPI datatype for idx_t
+    MPI_Datatype mpi_idx_t = (sizeof(idx_t) == sizeof(int))
+                             ? MPI_INT
+                             : MPI_LONG_LONG; // adjust if you use 64-bit idx_t differently
+
+    // Allgatherv parameters
+    std::vector<int> recvcounts(size), displs(size);
+    for (int r = 0; r < size; ++r) {
+        int ne_r = 0, off_r = 0;
+        computeLocalRange(ne_global, size, r, ne_r, off_r);
+        recvcounts[r] = ne_r;
+        displs[r]     = off_r;
+    }
+
+    MPI_Allgatherv(epart_local.data(),
+                   ne_local_orig,
+                   mpi_idx_t,
+                   epart_global.data(),
+                   recvcounts.data(),
+                   displs.data(),
+                   mpi_idx_t,
+                   comm);
+
+    // -----------------------------------------------------------------
+    // 4. Determine which global elements belong to *this* rank after ParMETIS
+    // -----------------------------------------------------------------
+    std::vector<idx_t> ownedElems; // global element indices for this rank
+    ownedElems.reserve(ne_global / size + 1);
+
+    for (idx_t e = 0; e < (idx_t)ne_global; ++e) {
+        if (epart_global[e] == rank) {
+            ownedElems.push_back(e);
+        }
+    }
+
+    const int ne_local = static_cast<int>(ownedElems.size());
+
+    // If this rank owns no elements, also owns no nodes
+    if (ne_local == 0) {
+        mesh.nd  = nd_global;
+        mesh.nve = nve_global;
+        mesh.ne  = 0;
+        mesh.np  = 0;
+        mesh.p.clear();
+        mesh.t.clear();
+        return;
+    }
+
+    // -----------------------------------------------------------------
+    // 5. Compute file layout constants
+    //
+    // File layout:
+    //   - 4 doubles: nd, np, nve, ne
+    //   - p: np_global * nd_global doubles
+    //   - t: ne_global * nve_global doubles (each storing an integer)
+    // -----------------------------------------------------------------
+    const std::size_t headerDoubles = 4;
+    const std::size_t pDoubles      = static_cast<std::size_t>(np_global) * nd_global;
+    const std::size_t tDoubles      = static_cast<std::size_t>(ne_global) * nve_global;
+
+    const std::size_t headerBytes   = headerDoubles * sizeof(double);
+    const std::size_t pBytes        = pDoubles      * sizeof(double);
+    (void)tDoubles;
+
+    const std::size_t tBlockStartByte = headerBytes + pBytes;
+
+    // -----------------------------------------------------------------
+    // 6. Read connectivity for owned elements and build node mask
+    // -----------------------------------------------------------------
+    mesh.nd  = nd_global;
+    mesh.nve = nve_global;
+    mesh.ne  = ne_local;
+
+    // Temporarily store global node IDs
+    mesh.t.resize(static_cast<std::size_t>(mesh.nve) * mesh.ne);
+
+    std::vector<char> nodeMask(np_global, 0);
+
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
+    if (!in) error("Unable to open file " + filename);
+
+    std::vector<double> tmpConn(nve_global);
+
+    for (int eL = 0; eL < ne_local; ++eL) {
+        idx_t eGlobal = ownedElems[eL];
+
+        std::size_t elemStartDouble = static_cast<std::size_t>(eGlobal) * nve_global;
+        std::size_t elemStartByte   = tBlockStartByte + elemStartDouble * sizeof(double);
+
+        in.seekg(static_cast<std::streamoff>(elemStartByte), std::ios::beg);
+        in.read(reinterpret_cast<char*>(tmpConn.data()),
+                static_cast<std::streamsize>(nve_global * sizeof(double)));
+        if (!in) error("Error reading connectivity for element from " + filename);
+
+        for (int j = 0; j < nve_global; ++j) {
+            int gnode = static_cast<int>(tmpConn[j]);
+            mesh.t[j + eL * nve_global] = gnode; // global node for now
+
+            if (gnode < 0 || gnode >= np_global) {
+                error("readLocalMeshFromBinaryFile: node index out of range");
+            }
+            nodeMask[gnode] = 1;
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 7. Build list of local nodes and global→local mapping
+    // -----------------------------------------------------------------
+    std::vector<int> localNodes;
+    localNodes.reserve(np_global);
+
+    std::vector<int> g2l(np_global, -1);
+
+    for (int g = 0; g < np_global; ++g) {
+        if (nodeMask[g]) {
+            int l = static_cast<int>(localNodes.size());
+            localNodes.push_back(g);
+            g2l[g] = l;
+        }
+    }
+
+    const int np_local = static_cast<int>(localNodes.size());
+    mesh.np = np_local;
+
+    // -----------------------------------------------------------------
+    // 8. Read coordinates for local nodes
+    // -----------------------------------------------------------------
+    mesh.p.resize(static_cast<std::size_t>(mesh.nd) * mesh.np);
+
+    // Clear EOF flags before re-using the stream
+    in.clear();
+
+    std::vector<double> coordBuf(nd_global);
+
+    for (int l = 0; l < np_local; ++l) {
+        int gnode = localNodes[l];
+
+        std::size_t nodeStartDouble = static_cast<std::size_t>(gnode) * nd_global;
+        std::size_t nodeStartByte   = headerBytes + nodeStartDouble * sizeof(double);
+
+        in.seekg(static_cast<std::streamoff>(nodeStartByte), std::ios::beg);
+        in.read(reinterpret_cast<char*>(coordBuf.data()),
+                static_cast<std::streamsize>(nd_global * sizeof(double)));
+        if (!in) error("Error reading coordinates for node from " + filename);
+
+        for (int j = 0; j < nd_global; ++j) {
+            mesh.p[j + l * nd_global] = coordBuf[j];
+        }
+    }
+
+    in.close();
+
+    // -----------------------------------------------------------------
+    // 9. Remap connectivity from global node IDs to local node IDs
+    // -----------------------------------------------------------------
+    for (int eL = 0; eL < ne_local; ++eL) {
+        for (int j = 0; j < nve_global; ++j) {
+            int gnode = mesh.t[j + eL * nve_global];
+            int lnode = g2l[gnode];
+            if (lnode < 0) {
+                error("readLocalMeshFromBinaryFile: missing local mapping for node");
+            }
+            mesh.t[j + eL * nve_global] = lnode;
+        }
+    }
+}
+
+#include <mpi.h>
+#include <vector>
+#include <numeric>
+#include <iostream>
+#include <algorithm>
+
+// Your Mesh struct
+struct Mesh {
+    std::vector<double> p; // nd × np (column-major)
+    std::vector<int>    t; // nve × ne (column-major)
+    int nd;   // spatial dimension
+    int np;   // local number of nodes
+    int nve;  // vertices per element
+    int ne;   // local number of elements
+};
+
+void error(const std::string& msg);
+
+// Helper: compute prefix offsets from counts
+inline void prefixSums(const std::vector<int>& counts, std::vector<int>& displs, int& total)
+{
+    displs.resize(counts.size());
+    total = 0;
+    for (std::size_t i = 0; i < counts.size(); ++i) {
+        displs[i] = total;
+        total += counts[i];
+    }
+}
+
+// Main migration routine
+void migrateMeshWithParMETIS(const Mesh& mesh_in,
+                             const std::vector<idx_t>& epart_local,
+                             Mesh& mesh_out,
+                             MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    const int nd  = mesh_in.nd;
+    const int nve = mesh_in.nve;
+    const int ne_local_in = mesh_in.ne;
+    const int np_local_in = mesh_in.np;
+
+    if ((int)epart_local.size() != ne_local_in) {
+        error("migrateMeshWithParMETIS: epart_local size does not match local ne");
+    }
+
+    // ------------------------------------------------------------------
+    // 1. ELEMENT MIGRATION (based on ParMETIS partition epart_local)
+    // ------------------------------------------------------------------
+
+    // 1a. Count how many elements we send to each destination rank
+    std::vector<int> sendElemCounts(size, 0);
+    for (int e = 0; e < ne_local_in; ++e) {
+        int dest = static_cast<int>(epart_local[e]);
+        if (dest < 0 || dest >= size) {
+            error("migrateMeshWithParMETIS: epart_local has invalid destination rank");
+        }
+        sendElemCounts[dest] += 1;
+    }
+
+    // 1b. Exchange counts to know how many elements we will receive
+    std::vector<int> recvElemCounts(size, 0);
+    MPI_Alltoall(sendElemCounts.data(), 1, MPI_INT,
+                 recvElemCounts.data(), 1, MPI_INT,
+                 comm);
+
+    // 1c. Build displacements and total send/recv element counts
+    std::vector<int> sendElemDispls, recvElemDispls;
+    int totalSendElems = 0, totalRecvElems = 0;
+    prefixSums(sendElemCounts, sendElemDispls, totalSendElems);
+    prefixSums(recvElemCounts, recvElemDispls, totalRecvElems);
+
+    // 1d. Pack connectivity to send: global node IDs, nve per element
+    std::vector<int> sendElemConn(static_cast<std::size_t>(totalSendElems) * nve);
+
+    // per-destination "cursor" in element space
+    std::vector<int> elemOffsetPerDest(size, 0);
+
+    for (int e = 0; e < ne_local_in; ++e) {
+        int dest = static_cast<int>(epart_local[e]);
+        int localIdxInDest = elemOffsetPerDest[dest]++;
+        int globalElemPos  = sendElemDispls[dest] + localIdxInDest; // element index in send buffer
+
+        // Copy connectivity column e → position globalElemPos
+        for (int j = 0; j < nve; ++j) {
+            int gnode = mesh_in.t[j + e * nve]; // global node ID
+            sendElemConn[j + globalElemPos * nve] = gnode;
+        }
+    }
+
+    // 1e. Receive connectivity for new local elements
+    std::vector<int> recvElemConn(static_cast<std::size_t>(totalRecvElems) * nve);
+
+    // For Alltoallv, counts are in *number of ints*, not elements
+    std::vector<int> sendElemCountsInts(size), recvElemCountsInts(size);
+    for (int r = 0; r < size; ++r) {
+        sendElemCountsInts[r] = sendElemCounts[r] * nve;
+        recvElemCountsInts[r] = recvElemCounts[r] * nve;
+        sendElemDispls[r]    *= nve;
+        recvElemDispls[r]    *= nve;
+    }
+
+    MPI_Alltoallv(sendElemConn.data(),
+                  sendElemCountsInts.data(), sendElemDispls.data(), MPI_INT,
+                  recvElemConn.data(),
+                  recvElemCountsInts.data(), recvElemDispls.data(), MPI_INT,
+                  comm);
+
+    // Now recvElemConn holds all elements that this rank will own (global node IDs)
+    const int ne_local_out = totalRecvElems;
+
+    // ------------------------------------------------------------------
+    // 2. BUILD NODE OWNERSHIP INFORMATION (from initial distribution)
+    //    We assume nodes were initially distributed contiguously:
+    //      rank r owns global nodes in [nodedist[r], nodedist[r+1])
+    // ------------------------------------------------------------------
+    // Gather np_local_in from all ranks to reconstruct nodedist
+    std::vector<int> np_per_rank(size);
+    MPI_Allgather(&np_local_in, 1, MPI_INT,
+                  np_per_rank.data(), 1, MPI_INT,
+                  comm);
+
+    std::vector<int> nodedist(size + 1);
+    nodedist[0] = 0;
+    for (int r = 0; r < size; ++r) {
+        nodedist[r + 1] = nodedist[r] + np_per_rank[r];
+    }
+    const int np_global = nodedist[size];
+
+    // Helper to find owner rank of global node g
+    auto findNodeOwner = [&](int gnode) -> int {
+        // simple linear search over ranks; size is usually modest
+        for (int r = 0; r < size; ++r) {
+            if (gnode >= nodedist[r] && gnode < nodedist[r + 1]) {
+                return r;
+            }
+        }
+        return -1; // should never happen
+    };
+
+    // ------------------------------------------------------------------
+    // 3. DETERMINE WHICH GLOBAL NODES THIS RANK NEEDS FOR ITS NEW ELEMENTS
+    // ------------------------------------------------------------------
+    // 3a. Mark all global nodes referenced by new local elements
+    std::vector<char> nodeMask(np_global, 0);
+
+    for (int e = 0; e < ne_local_out; ++e) {
+        for (int j = 0; j < nve; ++j) {
+            int gnode = recvElemConn[j + e * nve];
+            if (gnode < 0 || gnode >= np_global) {
+                error("migrateMeshWithParMETIS: global node index out of range");
+            }
+            nodeMask[gnode] = 1;
+        }
+    }
+
+    // 3b. For each owner rank, collect the global nodes we need from it
+    std::vector<std::vector<int>> needNodes(size); // needNodes[owner] = list of GIDs
+    for (int g = 0; g < np_global; ++g) {
+        if (nodeMask[g]) {
+            int owner = findNodeOwner(g);
+            if (owner < 0) {
+                error("migrateMeshWithParMETIS: could not find owner for global node");
+            }
+            needNodes[owner].push_back(g);
+        }
+    }
+
+    // Total #local nodes after migration
+    int np_local_out = 0;
+    for (int r = 0; r < size; ++r) {
+        np_local_out += static_cast<int>(needNodes[r].size());
+    }
+
+    // ------------------------------------------------------------------
+    // 4. REQUEST NODE COORDINATES FROM OWNERS (two-phase MPI exchange)
+    // ------------------------------------------------------------------
+
+    // 4a. Phase 1: send requests for node IDs
+    std::vector<int> sendNodeReqCounts(size, 0);
+    for (int r = 0; r < size; ++r) {
+        sendNodeReqCounts[r] = static_cast<int>(needNodes[r].size());
+    }
+
+    std::vector<int> recvNodeReqCounts(size, 0);
+    MPI_Alltoall(sendNodeReqCounts.data(), 1, MPI_INT,
+                 recvNodeReqCounts.data(), 1, MPI_INT,
+                 comm);
+
+    std::vector<int> sendNodeReqDispls, recvNodeReqDispls;
+    int totalSendNodeReq = 0, totalRecvNodeReq = 0;
+    prefixSums(sendNodeReqCounts, sendNodeReqDispls, totalSendNodeReq);
+    prefixSums(recvNodeReqCounts, recvNodeReqDispls, totalRecvNodeReq);
+
+    // Flatten our node requests into a buffer
+    std::vector<int> sendNodeReqBuf(totalSendNodeReq);
+    for (int r = 0; r < size; ++r) {
+        int offset = sendNodeReqDispls[r];
+        for (std::size_t k = 0; k < needNodes[r].size(); ++k) {
+            sendNodeReqBuf[offset + static_cast<int>(k)] = needNodes[r][k];
+        }
+    }
+
+    // Owners receive node ID requests
+    std::vector<int> recvNodeReqBuf(totalRecvNodeReq);
+    MPI_Alltoallv(sendNodeReqBuf.data(),
+                  sendNodeReqCounts.data(), sendNodeReqDispls.data(), MPI_INT,
+                  recvNodeReqBuf.data(),
+                  recvNodeReqCounts.data(), recvNodeReqDispls.data(), MPI_INT,
+                  comm);
+
+    // 4b. Phase 2: owners respond with coordinates in the same order
+
+    // Each owner will send: recvNodeReqCounts[dest] * nd doubles
+    std::vector<int> sendCoordCounts(size, 0);
+    for (int r = 0; r < size; ++r) {
+        sendCoordCounts[r] = recvNodeReqCounts[r] * nd;
+    }
+
+    std::vector<int> recvCoordCounts(size, 0);
+    MPI_Alltoall(sendCoordCounts.data(), 1, MPI_INT,
+                 recvCoordCounts.data(), 1, MPI_INT,
+                 comm);
+
+    std::vector<int> sendCoordDispls, recvCoordDispls;
+    int totalSendCoord = 0, totalRecvCoord = 0;
+    prefixSums(sendCoordCounts, sendCoordDispls, totalSendCoord);
+    prefixSums(recvCoordCounts, recvCoordDispls, totalRecvCoord);
+
+    std::vector<double> sendCoordBuf(totalSendCoord);
+
+    // Fill sendCoordBuf: for each destination, in the order we received requests
+    for (int src = 0; src < size; ++src) {
+        int countNodesFromSrc = recvNodeReqCounts[src]; // nodes requested by 'src' from this rank
+        int reqOffset         = recvNodeReqDispls[src];
+        int coordOffset       = sendCoordDispls[src];
+
+        for (int k = 0; k < countNodesFromSrc; ++k) {
+            int gnode = recvNodeReqBuf[reqOffset + k];
+
+            // Map global node ID to local index on this owner
+            int ownerLocalStart = nodedist[rank];
+            int ownerLocalEnd   = nodedist[rank + 1];
+
+            if (gnode < ownerLocalStart || gnode >= ownerLocalEnd) {
+                error("migrateMeshWithParMETIS: node request to wrong owner");
+            }
+
+            int lidx = gnode - ownerLocalStart; // local index in mesh_in.p
+
+            // Copy nd coordinates
+            for (int j = 0; j < nd; ++j) {
+                sendCoordBuf[coordOffset + k * nd + j] =
+                    mesh_in.p[j + lidx * nd];
+            }
+        }
+    }
+
+    // Perform coordinate exchange
+    std::vector<double> recvCoordBuf(totalRecvCoord);
+    MPI_Alltoallv(sendCoordBuf.data(),
+                  sendCoordCounts.data(), sendCoordDispls.data(), MPI_DOUBLE,
+                  recvCoordBuf.data(),
+                  recvCoordCounts.data(), recvCoordDispls.data(), MPI_DOUBLE,
+                  comm);
+
+    // ------------------------------------------------------------------
+    // 5. BUILD FINAL LOCAL NODE LIST & GLOBAL→LOCAL MAPPING
+    // ------------------------------------------------------------------
+
+    mesh_out.nd  = nd;
+    mesh_out.nve = nve;
+    mesh_out.ne  = ne_local_out;
+    mesh_out.np  = np_local_out;
+
+    mesh_out.t.resize(static_cast<std::size_t>(nve) * ne_local_out);
+    mesh_out.p.resize(static_cast<std::size_t>(nd)  * np_local_out);
+
+    // 5a. Build owner-based offsets into local node space
+    std::vector<int> ownerNodeOffsets(size);
+    {
+        int offset = 0;
+        for (int r = 0; r < size; ++r) {
+            ownerNodeOffsets[r] = offset;
+            offset += static_cast<int>(needNodes[r].size());
+        }
+    }
+
+    // 5b. Global→local index map
+    std::vector<int> g2l(np_global, -1);
+    for (int r = 0; r < size; ++r) {
+        int base = ownerNodeOffsets[r];
+        for (std::size_t k = 0; k < needNodes[r].size(); ++k) {
+            int gnode = needNodes[r][k];
+            int lnode = base + static_cast<int>(k);
+            g2l[gnode] = lnode;
+        }
+    }
+
+    // 5c. Place received coordinates into mesh_out.p
+    for (int owner = 0; owner < size; ++owner) {
+        int numNodesFromOwner = sendNodeReqCounts[owner]; // nodes we requested from 'owner'
+        if (numNodesFromOwner == 0) continue;
+
+        int coordOffset = recvCoordDispls[owner]; // in doubles
+        int baseLocal   = ownerNodeOffsets[owner];
+
+        for (int k = 0; k < numNodesFromOwner; ++k) {
+            int localNode = baseLocal + k;
+            for (int j = 0; j < nd; ++j) {
+                mesh_out.p[j + localNode * nd] =
+                    recvCoordBuf[coordOffset + k * nd + j];
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 6. REMAP CONNECTIVITY FROM GLOBAL NODE IDS → LOCAL NODE IDS
+    // ------------------------------------------------------------------
+
+    // First copy new element connectivity (still global IDs) into mesh_out.t
+    for (int e = 0; e < ne_local_out; ++e) {
+        for (int j = 0; j < nve; ++j) {
+            mesh_out.t[j + e * nve] = recvElemConn[j + e * nve];
+        }
+    }
+
+    // Then replace global IDs with local IDs using g2l
+    for (int e = 0; e < ne_local_out; ++e) {
+        for (int j = 0; j < nve; ++j) {
+            int gnode = mesh_out.t[j + e * nve];
+            int lnode = g2l[gnode];
+            if (lnode < 0) {
+                error("migrateMeshWithParMETIS: missing local mapping for node");
+            }
+            mesh_out.t[j + e * nve] = lnode;
+        }
+    }
+}
+
+void migrateMeshWithParMETIS(const Mesh& mesh_in,
+                             const std::vector<idx_t>& epart_local,
+                             Mesh& mesh_out,
+                             MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    const int nd  = mesh_in.nd;
+    const int nve = mesh_in.nve;
+    const int ne_local_in = mesh_in.ne;
+    const int np_local_in = mesh_in.np;
+
+    if ((int)epart_local.size() != ne_local_in) {
+        error("migrateMeshWithParMETIS: epart_local size does not match local ne");
+    }
+
+    // ------------------------------------------------------------------
+    // 0. RECONSTRUCT GLOBAL ELEMENT IDS FOR CURRENT DISTRIBUTION
+    //    We assume initial elements are distributed contiguously:
+    //      rank r owns global elements [elmdist[r], elmdist[r+1])
+    // ------------------------------------------------------------------
+    // Gather ne_local_in from all ranks
+    std::vector<int> ne_per_rank(size);
+    MPI_Allgather(&ne_local_in, 1, MPI_INT,
+                  ne_per_rank.data(), 1, MPI_INT,
+                  comm);
+
+    std::vector<int> elmdist(size + 1);
+    elmdist[0] = 0;
+    for (int r = 0; r < size; ++r) {
+        elmdist[r + 1] = elmdist[r] + ne_per_rank[r];
+    }
+    const int ne_global = elmdist[size];
+
+    // Global ID of local element e on this rank:
+    const int gstart = elmdist[rank];
+    std::vector<int> elemGlobalID_in(ne_local_in);
+    for (int e = 0; e < ne_local_in; ++e) {
+        elemGlobalID_in[e] = gstart + e;
+    }
+
+    // ------------------------------------------------------------------
+    // 1. ELEMENT MIGRATION (based on ParMETIS partition epart_local)
+    // ------------------------------------------------------------------
+
+    // 1a. Count how many elements we send to each destination rank
+    std::vector<int> sendElemCounts(size, 0);
+    for (int e = 0; e < ne_local_in; ++e) {
+        int dest = static_cast<int>(epart_local[e]);
+        if (dest < 0 || dest >= size) {
+            error("migrateMeshWithParMETIS: epart_local has invalid destination rank");
+        }
+        sendElemCounts[dest] += 1;
+    }
+
+    // 1b. Exchange counts to know how many elements we will receive
+    std::vector<int> recvElemCounts(size, 0);
+    MPI_Alltoall(sendElemCounts.data(), 1, MPI_INT,
+                 recvElemCounts.data(), 1, MPI_INT,
+                 comm);
+
+    // 1c. Build displacements and total send/recv element counts
+    std::vector<int> sendElemDispls, recvElemDispls;
+    int totalSendElems = 0, totalRecvElems = 0;
+    prefixSums(sendElemCounts, sendElemDispls, totalSendElems);
+    prefixSums(recvElemCounts, recvElemDispls, totalRecvElems);
+
+    // 1d. Pack connectivity and global element IDs to send
+    std::vector<int> sendElemConn(static_cast<std::size_t>(totalSendElems) * nve);
+    std::vector<int> sendElemGlobalID(static_cast<std::size_t>(totalSendElems));
+
+    // per-destination "cursor" in element space
+    std::vector<int> elemOffsetPerDest(size, 0);
+
+    for (int e = 0; e < ne_local_in; ++e) {
+        int dest           = static_cast<int>(epart_local[e]);
+        int localIdxInDest = elemOffsetPerDest[dest]++;
+        int elemPos        = sendElemDispls[dest] + localIdxInDest; // element index in send buffers
+
+        // Copy connectivity column e → position elemPos
+        for (int j = 0; j < nve; ++j) {
+            int gnode = mesh_in.t[j + e * nve]; // global node ID
+            sendElemConn[j + elemPos * nve] = gnode;
+        }
+
+        // Copy global element ID
+        sendElemGlobalID[elemPos] = elemGlobalID_in[e];
+    }
+
+    // 1e. Receive connectivity for new local elements
+    std::vector<int> recvElemConn(static_cast<std::size_t>(totalRecvElems) * nve);
+    std::vector<int> recvElemGlobalID(static_cast<std::size_t>(totalRecvElems));
+
+    // For Alltoallv, counts are in *number of ints*, not elements
+    std::vector<int> sendElemCountsInts(size), recvElemCountsInts(size);
+    for (int r = 0; r < size; ++r) {
+        sendElemCountsInts[r] = sendElemCounts[r] * nve;
+        recvElemCountsInts[r] = recvElemCounts[r] * nve;
+        sendElemDispls[r]    *= nve;
+        recvElemDispls[r]    *= nve;
+    }
+
+    // Connectivity exchange
+    MPI_Alltoallv(sendElemConn.data(),
+                  sendElemCountsInts.data(), sendElemDispls.data(), MPI_INT,
+                  recvElemConn.data(),
+                  recvElemCountsInts.data(), recvElemDispls.data(), MPI_INT,
+                  comm);
+
+    // Global element ID exchange (one int per element)
+    // Use original element counts/displs (in units of "elements")
+    MPI_Alltoallv(sendElemGlobalID.data(),
+                  sendElemCounts.data(),   // counts in elements
+                  sendElemDispls.data(),   // displs in elements
+                  MPI_INT,
+                  recvElemGlobalID.data(),
+                  recvElemCounts.data(),
+                  recvElemDispls.data(),
+                  MPI_INT,
+                  comm);
+
+    // Now recvElemConn holds all elements this rank will own (global node IDs),
+    // and recvElemGlobalID[e] is the global element ID of new local element e.
+    const int ne_local_out = totalRecvElems;
+
+    // ------------------------------------------------------------------
+    // 2. BUILD NODE OWNERSHIP INFORMATION (from initial distribution)
+    //    We assume nodes were initially distributed contiguously:
+    //      rank r owns global nodes in [nodedist[r], nodedist[r+1])
+    // ------------------------------------------------------------------
+    // Gather np_local_in from all ranks to reconstruct nodedist
+    std::vector<int> np_per_rank(size);
+    MPI_Allgather(&np_local_in, 1, MPI_INT,
+                  np_per_rank.data(), 1, MPI_INT,
+                  comm);
+
+    std::vector<int> nodedist(size + 1);
+    nodedist[0] = 0;
+    for (int r = 0; r < size; ++r) {
+        nodedist[r + 1] = nodedist[r] + np_per_rank[r];
+    }
+    const int np_global = nodedist[size];
+
+    // Helper to find owner rank of global node g
+    auto findNodeOwner = [&](int gnode) -> int {
+        for (int r = 0; r < size; ++r) {
+            if (gnode >= nodedist[r] && gnode < nodedist[r + 1]) {
+                return r;
+            }
+        }
+        return -1; // should never happen
+    };
+
+    // ------------------------------------------------------------------
+    // 3. DETERMINE WHICH GLOBAL NODES THIS RANK NEEDS FOR ITS NEW ELEMENTS
+    // ------------------------------------------------------------------
+    std::vector<char> nodeMask(np_global, 0);
+
+    for (int e = 0; e < ne_local_out; ++e) {
+        for (int j = 0; j < nve; ++j) {
+            int gnode = recvElemConn[j + e * nve];
+            if (gnode < 0 || gnode >= np_global) {
+                error("migrateMeshWithParMETIS: global node index out of range");
+            }
+            nodeMask[gnode] = 1;
+        }
+    }
+
+    // For each owner rank, collect the global nodes we need from it
+    std::vector<std::vector<int>> needNodes(size); // needNodes[owner] = list of GIDs
+    for (int g = 0; g < np_global; ++g) {
+        if (nodeMask[g]) {
+            int owner = findNodeOwner(g);
+            if (owner < 0) {
+                error("migrateMeshWithParMETIS: could not find owner for global node");
+            }
+            needNodes[owner].push_back(g);
+        }
+    }
+
+    // Total #local nodes after migration
+    int np_local_out = 0;
+    for (int r = 0; r < size; ++r) {
+        np_local_out += static_cast<int>(needNodes[r].size());
+    }
+
+    // ------------------------------------------------------------------
+    // 4. REQUEST NODE COORDINATES FROM OWNERS (two-phase MPI exchange)
+    // ------------------------------------------------------------------
+
+    // 4a. Phase 1: send requests for node IDs
+    std::vector<int> sendNodeReqCounts(size, 0);
+    for (int r = 0; r < size; ++r) {
+        sendNodeReqCounts[r] = static_cast<int>(needNodes[r].size());
+    }
+
+    std::vector<int> recvNodeReqCounts(size, 0);
+    MPI_Alltoall(sendNodeReqCounts.data(), 1, MPI_INT,
+                 recvNodeReqCounts.data(), 1, MPI_INT,
+                 comm);
+
+    std::vector<int> sendNodeReqDispls, recvNodeReqDispls;
+    int totalSendNodeReq = 0, totalRecvNodeReq = 0;
+    prefixSums(sendNodeReqCounts, sendNodeReqDispls, totalSendNodeReq);
+    prefixSums(recvNodeReqCounts, recvNodeReqDispls, totalRecvNodeReq);
+
+    std::vector<int> sendNodeReqBuf(totalSendNodeReq);
+    for (int r = 0; r < size; ++r) {
+        int offset = sendNodeReqDispls[r];
+        for (std::size_t k = 0; k < needNodes[r].size(); ++k) {
+            sendNodeReqBuf[offset + static_cast<int>(k)] = needNodes[r][k];
+        }
+    }
+
+    std::vector<int> recvNodeReqBuf(totalRecvNodeReq);
+    MPI_Alltoallv(sendNodeReqBuf.data(),
+                  sendNodeReqCounts.data(), sendNodeReqDispls.data(), MPI_INT,
+                  recvNodeReqBuf.data(),
+                  recvNodeReqCounts.data(), recvNodeReqDispls.data(), MPI_INT,
+                  comm);
+
+    // 4b. Phase 2: owners respond with coordinates in the same order
+
+    std::vector<int> sendCoordCounts(size, 0);
+    for (int r = 0; r < size; ++r) {
+        sendCoordCounts[r] = recvNodeReqCounts[r] * nd;
+    }
+
+    std::vector<int> recvCoordCounts(size, 0);
+    MPI_Alltoall(sendCoordCounts.data(), 1, MPI_INT,
+                 recvCoordCounts.data(), 1, MPI_INT,
+                 comm);
+
+    std::vector<int> sendCoordDispls, recvCoordDispls;
+    int totalSendCoord = 0, totalRecvCoord = 0;
+    prefixSums(sendCoordCounts, sendCoordDispls, totalSendCoord);
+    prefixSums(recvCoordCounts, recvCoordDispls, totalRecvCoord);
+
+    std::vector<double> sendCoordBuf(totalSendCoord);
+
+    // Fill sendCoordBuf: for each destination, in the order we received requests
+    for (int src = 0; src < size; ++src) {
+        int countNodesFromSrc = recvNodeReqCounts[src]; // nodes requested by 'src' from this rank
+        int reqOffset         = recvNodeReqDispls[src];
+        int coordOffset       = sendCoordDispls[src];
+
+        for (int k = 0; k < countNodesFromSrc; ++k) {
+            int gnode = recvNodeReqBuf[reqOffset + k];
+
+            int ownerLocalStart = nodedist[rank];
+            int ownerLocalEnd   = nodedist[rank + 1];
+
+            if (gnode < ownerLocalStart || gnode >= ownerLocalEnd) {
+                error("migrateMeshWithParMETIS: node request to wrong owner");
+            }
+
+            int lidx = gnode - ownerLocalStart; // local index in mesh_in.p
+
+            for (int j = 0; j < nd; ++j) {
+                sendCoordBuf[coordOffset + k * nd + j] =
+                    mesh_in.p[j + lidx * nd];
+            }
+        }
+    }
+
+    std::vector<double> recvCoordBuf(totalRecvCoord);
+    MPI_Alltoallv(sendCoordBuf.data(),
+                  sendCoordCounts.data(), sendCoordDispls.data(), MPI_DOUBLE,
+                  recvCoordBuf.data(),
+                  recvCoordCounts.data(), recvCoordDispls.data(), MPI_DOUBLE,
+                  comm);
+
+    // ------------------------------------------------------------------
+    // 5. BUILD FINAL LOCAL NODE LIST & GLOBAL→LOCAL MAPPING
+    // ------------------------------------------------------------------
+
+    mesh_out.nd  = nd;
+    mesh_out.nve = nve;
+    mesh_out.ne  = ne_local_out;
+    mesh_out.np  = np_local_out;
+
+    mesh_out.t.resize(static_cast<std::size_t>(nve) * ne_local_out);
+    mesh_out.p.resize(static_cast<std::size_t>(nd)  * np_local_out);
+    mesh_out.elemGlobalID.resize(ne_local_out);  // NEW
+
+    // 5a. Build owner-based offsets into local node space
+    std::vector<int> ownerNodeOffsets(size);
+    {
+        int offset = 0;
+        for (int r = 0; r < size; ++r) {
+            ownerNodeOffsets[r] = offset;
+            offset += static_cast<int>(needNodes[r].size());
+        }
+    }
+
+    // 5b. Global→local index map
+    std::vector<int> g2l(np_global, -1);
+    for (int r = 0; r < size; ++r) {
+        int base = ownerNodeOffsets[r];
+        for (std::size_t k = 0; k < needNodes[r].size(); ++k) {
+            int gnode = needNodes[r][k];
+            int lnode = base + static_cast<int>(k);
+            g2l[gnode] = lnode;
+        }
+    }
+
+    // 5c. Place received coordinates into mesh_out.p
+    for (int owner = 0; owner < size; ++owner) {
+        int numNodesFromOwner = sendNodeReqCounts[owner]; // nodes we requested from 'owner'
+        if (numNodesFromOwner == 0) continue;
+
+        int coordOffset = recvCoordDispls[owner]; // in doubles
+        int baseLocal   = ownerNodeOffsets[owner];
+
+        for (int k = 0; k < numNodesFromOwner; ++k) {
+            int localNode = baseLocal + k;
+            for (int j = 0; j < nd; ++j) {
+                mesh_out.p[j + localNode * nd] =
+                    recvCoordBuf[coordOffset + k * nd + j];
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 6. REMAP CONNECTIVITY FROM GLOBAL NODE IDS → LOCAL NODE IDS
+    // ------------------------------------------------------------------
+
+    // Copy new element connectivity (still global IDs) into mesh_out.t,
+    // and copy global element IDs into mesh_out.elemGlobalID
+    for (int e = 0; e < ne_local_out; ++e) {
+        for (int j = 0; j < nve; ++j) {
+            mesh_out.t[j + e * nve] = recvElemConn[j + e * nve];
+        }
+        mesh_out.elemGlobalID[e] = recvElemGlobalID[e]; // NEW
+    }
+
+    // Replace global node IDs with local node IDs
+    for (int e = 0; e < ne_local_out; ++e) {
+        for (int j = 0; j < nve; ++j) {
+            int gnode = mesh_out.t[j + e * nve];
+            int lnode = g2l[gnode];
+            if (lnode < 0) {
+                error("migrateMeshWithParMETIS: missing local mapping for node");
+            }
+            mesh_out.t[j + e * nve] = lnode;
+        }
+    }
+}
 
 // // Parallel VTK reader: rank 0 reads full file, then distributes slices
 // void readParMeshFromVTKFile(const std::string& filename,
