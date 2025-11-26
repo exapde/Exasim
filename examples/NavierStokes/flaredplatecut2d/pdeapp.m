@@ -2,12 +2,12 @@
 % First, you need to run /examples/NavierStokes/flaredplate2d/pdeapp.m
 % Next, uncomment and run the below lines to obtain sol1 and av1
 
-nx2 = 111; nx3 = 15; nx4 = 61; dy = 0.0008;
-
-porder = 3;
-mesh1 = mkmesh_flatcase2d(porder, nx2, nx3, nx4, dy);
-sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
-av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
+% nx2 = 111; nx3 = 15; nx4 = 61; dy = 0.0008;
+% 
+% porder = 3;
+% mesh1 = mkmesh_flatcase2d(porder, nx2, nx3, nx4, dy);
+% sol1 = fieldatdgnodes(mesh, master, sol, mesh1.dgnodes);
+% av1 = fieldatdgnodes(mesh, master, mesh.vdg, mesh1.dgnodes);
 
 % Finally, you run this script
 

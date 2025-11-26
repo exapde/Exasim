@@ -87,6 +87,7 @@ Int CSolution<Model>::PTCsolver(ofstream &out, Int backend)
         if (nrmr > 1.0e6) {   
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
+            if (vis.savemode > 0) this->SaveParaview(backend, "_CRASH", true);     
             if (outsol.is_open()) { outsol.close(); }
             if (outwdg.is_open()) { outwdg.close(); }
             if (outuhat.is_open()) { outuhat.close(); }
@@ -194,7 +195,8 @@ Int CSolution<Model>::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int 
                                     
           if (nrmr > nrm0 && nrmr > 1.0e6) {                        
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
-            writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);       
+            writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);   
+            if (vis.savemode > 0) this->SaveParaview(backend, "_CRASH", true);     
             if (outsol.is_open()) { outsol.close(); }
             if (outwdg.is_open()) { outwdg.close(); }
             if (outuhat.is_open()) { outuhat.close(); }
@@ -848,9 +850,8 @@ void CSolution<Model>::ReadSolutions(Int backend)
    }    
 }
  
-
 template <typename Model>
-void CSolution<Model>::SaveParaview(Int backend) 
+void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
 {
     // Decide whether we should write a file on this step
     bool writeSolution = false;
@@ -863,6 +864,7 @@ void CSolution<Model>::SaveParaview(Int backend)
         
         // Time-dependent: only write every 'saveSolFreq' steps
         writeSolution = ((disc.common.currentstep + 1) % disc.common.saveSolFreq) == 0;
+        writeSolution = writeSolution || force_tdep_write;
     } else {
         // Steady / not time-dependent: always write
         writeSolution = true;
@@ -905,7 +907,7 @@ void CSolution<Model>::SaveParaview(Int backend)
             VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
        }
 
-       string baseName = disc.common.fileout + "vis";
+       string baseName = disc.common.fileout + "vis" + fname_modifier;
        if (disc.common.tdep == 1) {
            std::ostringstream ss; 
            ss << std::setw(6) << std::setfill('0') << disc.common.currentstep+disc.common.timestepOffset+1; 
