@@ -14,12 +14,6 @@
 # EXTERNAL cache entries
 ########################
 
-//turn asserts on
-ASSERT:BOOL=OFF
-
-//additional assertions
-ASSERT2:BOOL=OFF
-
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=CMAKE_ADDR2LINE-NOTFOUND
 
@@ -40,16 +34,16 @@ CMAKE_C_COMPILER:STRING=/opt/homebrew/bin/mpicc
 CMAKE_C_FLAGS:STRING=
 
 //Flags used by the C compiler during DEBUG builds.
-CMAKE_C_FLAGS_DEBUG:STRING=-g
+CMAKE_C_FLAGS_DEBUG:STRING=
 
 //Flags used by the C compiler during MINSIZEREL builds.
-CMAKE_C_FLAGS_MINSIZEREL:STRING=-Os -DNDEBUG
+CMAKE_C_FLAGS_MINSIZEREL:STRING=
 
 //Flags used by the C compiler during RELEASE builds.
-CMAKE_C_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+CMAKE_C_FLAGS_RELEASE:STRING=
 
 //Flags used by the C compiler during RELWITHDEBINFO builds.
-CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
+CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=
 
 //Path to a program.
 CMAKE_DLLTOOL:FILEPATH=CMAKE_DLLTOOL-NOTFOUND
@@ -219,32 +213,11 @@ CMAKE_TAPI:FILEPATH=/Library/Developer/CommandLineTools/usr/bin/tapi
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=1
 
-//add debugging support
-DEBUG:BOOL=OFF
-
-//enable use of GDB
-GDB:BOOL=OFF
-
 //No help, variable specified on the command line.
 GKLIB_PATH:UNINITIALIZED=/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/GKlib
 
-//enable GKRAND support
-GKRAND:BOOL=OFF
-
-//enable GKREGEX support
-GKREGEX:BOOL=OFF
-
-//add gprof support
-GPROF:BOOL=OFF
-
 //No help, variable specified on the command line.
 METIS_PATH:UNINITIALIZED=/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/METIS
-
-//enable OpenMP support
-OPENMP:BOOL=OFF
-
-//enable PCRE support
-PCRE:BOOL=OFF
 
 //Value Computed by CMake
 ParMETIS_BINARY_DIR:STATIC=/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/build/Darwin-arm64
@@ -297,7 +270,7 @@ CMAKE_DLLTOOL-ADVANCED:INTERNAL=1
 //Path to cache edit program executable.
 CMAKE_EDIT_COMMAND:INTERNAL=/opt/homebrew/bin/ccmake
 //Executable file format
-CMAKE_EXECUTABLE_FORMAT:INTERNAL=MACHO
+CMAKE_EXECUTABLE_FORMAT:INTERNAL=Unknown
 //ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS
 CMAKE_EXE_LINKER_FLAGS-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_EXE_LINKER_FLAGS_DEBUG
@@ -344,7 +317,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=4
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -389,8 +362,4 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
-//Have include execinfo.h
-HAVE_EXECINFO_H:INTERNAL=1
-//Have function getline
-HAVE_GETLINE:INTERNAL=1
 
