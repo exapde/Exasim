@@ -60,6 +60,8 @@
 #include "../Model/KokkosDrivers.cpp"
 #endif
 
+#include "../Model/modeltemplate.hpp"
+
 #include "connectivity.cpp"
 #include "readbinaryfiles.cpp"
 #include "setstructs.cpp"
@@ -157,8 +159,8 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
 }
       
 // Both CPU and GPU constructor
-CDiscretization::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
-        Int fileoffset, Int omprank, Int backend) 
+template <typename Model>
+CDiscretization<Model>::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend) 
 {
     common.backend = backend;
     common.exasimpath = exasimpath;
@@ -176,7 +178,7 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
 
         hcommon.backend = backend;        
         // allocate data for structs in CPU memory
-        cpuInit(hsol, hres, happ, hmaster, hmesh, htmp, hcommon, filein, fileout, 
+        cpuInit<Model>(hsol, hres, happ, hmaster, hmesh, htmp, hcommon, filein, fileout, 
                 mpiprocs, mpirank, fileoffset, omprank);                    
                 
         // copy data from cpu memory to gpu memory
@@ -205,7 +207,7 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
 #endif        
     }
     else  {// CPU
-        cpuInit(sol, res, app, master, mesh, tmp, common, filein, fileout, 
+        cpuInit<Model>(sol, res, app, master, mesh, tmp, common, filein, fileout, 
                 mpiprocs, mpirank, fileoffset, omprank);    
     }
     common.read_uh = app.read_uh;
@@ -418,8 +420,9 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
     }
 }
 
-// destructor 
-CDiscretization::~CDiscretization()
+// destructor
+template <typename Model>
+CDiscretization<Model>::~CDiscretization()
 {        
     app.freememory(common.backend);
     if (common.mpiRank==0) printf("CDiscretization destructor: app memory is freed successfully.\n");
@@ -452,7 +455,8 @@ CDiscretization::~CDiscretization()
 }
 
 // Compute and store the geometry
-void CDiscretization::compGeometry(Int backend) {
+template <typename Model>
+void CDiscretization<Model>::compGeometry(Int backend) {
     if (common.mpiRank==0) printf("start ElemGeom... \n");
     ElemGeom(sol, master, mesh, tmp, common, common.cublasHandle, backend);   
     if (common.mpiRank==0) printf("Finish ElemGeom... \n");
@@ -463,11 +467,13 @@ void CDiscretization::compGeometry(Int backend) {
 }
 
 // Compute and store the inverse of the mass matrix
-void CDiscretization::compMassInverse(Int backend) {
+template <typename Model>
+void CDiscretization<Model>::compMassInverse(Int backend) {
     ComputeMinv(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 }
 
-void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
+template <typename Model>
+void CDiscretization<Model>::hdgAssembleLinearSystem(dstype *b, Int backend)
 {
     int n = common.npe*common.ncu;
     int m = common.npf*common.nfe*common.ncu;
@@ -479,9 +485,9 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
     ArraySetValue(res.F, zero, n*m*ne);    
 
 #ifdef HAVE_MPI     
-    hdgAssembleLinearSystemMPI(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
+    hdgAssembleLinearSystemMPI<Model>(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 #else    
-    uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
+    uEquationHDG<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
     hdgAssembleRHS(b, res.Rh, mesh, common);
 #endif
 
@@ -559,7 +565,8 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
 //     }    
 }
 
-void CDiscretization::hdgAssembleResidual(dstype *b, Int backend)
+template <typename Model>
+void CDiscretization<Model>::hdgAssembleResidual(dstype *b, Int backend)
 {
     int n = common.npe*common.ncu;
     int m = common.npf*common.nfe*common.ncu;
@@ -568,58 +575,63 @@ void CDiscretization::hdgAssembleResidual(dstype *b, Int backend)
     ArraySetValue(res.Ru, zero, n*ne);
 
 #ifdef HAVE_MPI     
-    hdgAssembleResidualMPI(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
+    hdgAssembleResidualMPI<Model>(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 #else    
     // b, K, H, F, Ru    
-    ResidualHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    ResidualHDG<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
     //uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
     hdgAssembleRHS(b, res.Rh, mesh, common);      
 #endif
 }
 
 // residual evaluation
-void CDiscretization::evalResidual(Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalResidual(Int backend)
 {
     // compute the residual vector
-    Residual(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    Residual<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
 // residual evaluation
-void CDiscretization::evalResidual(dstype* Ru, dstype* u, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalResidual(dstype* Ru, dstype* u, Int backend)
 { 
     // insert u into udg
     ArrayInsert(sol.udg, u, common.npe, common.nc, common.ne, 0, common.npe, 
             0, common.ncu, 0, common.ne1);  
 
     // compute the residual vector R(u)
-    Residual(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    Residual<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // copy the residual vector to Ru
     ArrayCopy(Ru, res.Ru, common.ndof1);
 }
 
 // q evaluation
-void CDiscretization::evalQ(Int backend)
+template <typename Model>
+void CDiscretization<Model>::CDiscretization::evalQ(Int backend)
 {
     // compute the flux q
-    ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
-void CDiscretization::evalQSer(Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalQSer(Int backend)
 {
     // compute the flux q    
-    GetUhat(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbf, backend);        
-    GetQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbe, 0, common.nbf, backend);        
+    GetUhat<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbf, backend);        
+    GetQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbe, 0, common.nbf, backend);        
 }
 
-void CDiscretization::evalQ(dstype* q, dstype* u, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalQ(dstype* q, dstype* u, Int backend)
 {
     // insert u into udg
     ArrayInsert(sol.udg, u, common.npe, common.nc, common.ne, 0, common.npe, 
             0, common.ncu, 0, common.ne1);
 
     // compute the flux q
-    ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // get q from udg
     ArrayExtract(q, sol.udg, common.npe, common.nc, common.ne, 0, common.npe, 
@@ -627,13 +639,15 @@ void CDiscretization::evalQ(dstype* q, dstype* u, Int backend)
 }
 
 // matrix-vector product
-void CDiscretization::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, Int backend)
 {    
     MatVec(Jv, sol, res, app, master, mesh, tmp, common, common.cublasHandle, v, u, Ru, backend); 
 }
 
 // matrix-vector product
-void CDiscretization::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, Int spatialScheme, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, Int spatialScheme, Int backend)
 {    
     if (spatialScheme == 0) {// LDG
       MatVec(Jv, sol, res, app, master, mesh, tmp, common, common.cublasHandle, v, u, Ru, backend); 
@@ -643,7 +657,8 @@ void CDiscretization::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, I
     }
 }
 
-void CDiscretization::updateUDG(dstype* u, Int backend)
+template <typename Model>
+void CDiscretization<Model>::updateUDG(dstype* u, Int backend)
 {
     // insert u into udg
     ArrayInsert(sol.udg, u, common.npe, common.nc, common.ne, 0, common.npe, 
@@ -651,17 +666,19 @@ void CDiscretization::updateUDG(dstype* u, Int backend)
 
     if (common.ncq>0)
         // compute the flux q
-        ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+        ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
-void CDiscretization::updateU(dstype* u, Int backend)
+template <typename Model>
+void CDiscretization<Model>::updateU(dstype* u, Int backend)
 {
     // insert u into udg
     ArrayInsert(sol.udg, u, common.npe, common.nc, common.ne, 0, common.npe, 
             0, common.ncu, 0, common.ne1);
 }
 
-void CDiscretization::evalAVfield(dstype* avField, dstype* u, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalAVfield(dstype* avField, dstype* u, Int backend)
 {
     // insert u into udg
     ArrayInsert(sol.udg, u, common.npe, common.nc, common.ne, 0, common.npe, 
@@ -669,13 +686,14 @@ void CDiscretization::evalAVfield(dstype* avField, dstype* u, Int backend)
     
     // compute the flux q
     if (common.ncq>0)        
-        ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+        ComputeQ<Model>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // compute the av field
-    AvfieldDriver(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+    AvfieldDriver<Model>(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
-void CDiscretization::evalAVfield(dstype* avField, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalAVfield(dstype* avField, Int backend)
 {    
     
 #ifdef  HAVE_MPI    
@@ -733,10 +751,11 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
 #endif
   
     // compute the av field
-    AvfieldDriver(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);           
+    AvfieldDriver<Model>(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);           
 }
 
-void CDiscretization::evalOutput(dstype* output, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalOutput(dstype* output, Int backend)
 {
 #ifdef  HAVE_MPI    
     Int bsz = common.npe*common.nc;
@@ -789,21 +808,23 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
 #endif
             
     // compute the output field
-    OutputDriver(output, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
-//     void OutputDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, meshstruct &mesh, 
+    OutputDriver<Model>(output, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+//     void OutputDriver<Model>(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, meshstruct &mesh, 
 //         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
 //         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 
 }
 
 
-void CDiscretization::evalMonitor(dstype* output,  dstype* udg, dstype* wdg, Int nc, Int backend)
+template <typename Model>
+void CDiscretization<Model>::evalMonitor(dstype* output,  dstype* udg, dstype* wdg, Int nc, Int backend)
 {
     // compute the output field
-    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
+    MonitorDriver<Model>(output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
-void CDiscretization::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
+template <typename Model>
+void CDiscretization<Model>::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
 {
     for (Int i=0; i<ncu; i++) {
         // extract the ith component of udg and store it in utm
@@ -820,7 +841,8 @@ void CDiscretization::DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, In
     }
 }
 
-void CDiscretization::DG2CG2(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
+template <typename Model>
+void CDiscretization<Model>::DG2CG2(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
 {
     for (Int i=0; i<ncu; i++) {
         // extract the ith component of udg and store it in utm
@@ -837,7 +859,8 @@ void CDiscretization::DG2CG2(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
     }
 }
 
-void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
+template <typename Model>
+void CDiscretization<Model>::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend)
 {
     for (Int i=0; i<ncu; i++) {
         // extract the ith component of udg and store it in utm

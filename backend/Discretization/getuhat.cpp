@@ -56,6 +56,7 @@ bool isin(Int ib, Int *a, Int n)
     return in;
 }        
 
+template <typename Model>
 void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
@@ -133,7 +134,7 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
 //             GetFaceNodes(&tmp.tempg[n6], sol.wdg, mesh.facecon, npf, ncw, npe, ncw, f1, f2, 1,backend);       
 //         }
 //         
-//         UbouDriver(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n3], &tmp.tempg[n4], &tmp.tempg[n5], 
+//         UbouDriver<Model>(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n3], &tmp.tempg[n4], &tmp.tempg[n5], 
 //                 &tmp.tempg[n6], &tmp.tempg[n1], mesh, master, app, sol, tmp, common, 
 //                 npf, f1, f2, ib, backend);
 //         
@@ -173,13 +174,14 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
             GetFaceNodes(&tmp.tempg[n5], sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1);       
         }
                 
-        UbouDriver(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n3], 
+        UbouDriver<Model>(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n3], 
                  &tmp.tempg[n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
                                
         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2);
     }
 }
 
+template <typename Model>
 void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)
@@ -197,13 +199,14 @@ void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
         //UhatBlock(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
-        UhatBlock(sol, res, app, master, mesh, tmp, common,
+        UhatBlock<Model>(sol, res, app, master, mesh, tmp, common,
                 handle, nd, npe, npf, nc, ncu, ncx, nco, f1, f2, ib, backend);
     }                           
 }
 
 #ifdef HAVE_ENZYME
-//// Method 2
+  //// Method 2
+template <typename Model>
 void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
@@ -260,7 +263,7 @@ void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
         ArraySetValue(tmp.tempn, zero, 2*nn*ncu);
 
         // uhat = tempn[0], duhat = tempn[nn*ncu]
-        UbouDriver(&tmp.tempn[0], &tmp.tempn[nn*ncu], &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n8],
+        UbouDriver<Model>(&tmp.tempn[0], &tmp.tempn[nn*ncu], &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n8],
                 &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n9], &tmp.tempg[n3], 
                 &tmp.tempg[n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
 
@@ -269,6 +272,7 @@ void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
     }
 }
 
+template <typename Model>
 void GetdUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)
@@ -285,7 +289,7 @@ void GetdUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        dUhatBlock(sol, res, app, master, mesh, tmp, common,
+        dUhatBlock<Model>(sol, res, app, master, mesh, tmp, common,
                 handle, nd, npe, npf, nc, ncu, ncx, nco, f1, f2, ib, backend);
     }                           
 }

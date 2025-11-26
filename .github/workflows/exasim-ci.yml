@@ -1,0 +1,54 @@
+name: Exasim CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake gfortran "openmpi*" "libopenmpi*" libblas-dev liblapack-dev
+
+      # 1) cd Exasim/kokkos; make -f Makefile.builds serial
+      - name: Build Kokkos (serial)
+        working-directory: kokkos
+        run: make -f Makefile.builds serial
+
+      # # 2) cd Exasim/text2code; make text2code
+      # - name: Build text2code
+      #   working-directory: text2code
+      #   run: make text2code
+
+      
+      # 3) cd Exasim/build; cmake ...; cmake --build .
+      - name: Configure Exasim
+        working-directory: build
+        run: |
+          cmake \
+            -D EXASIM_NOMPI=ON \
+            -D EXASIM_MPI=ON \
+            -D EXASIM_CUDA=OFF \
+            -D EXASIM_HIP=OFF \
+            -D WITH_TEXT2CODE=OFF \
+            -D WITH_ASSUME_GENERATOR=ON \
+            ../install
+
+      - name: Build Exasim
+        working-directory: build
+        run: cmake --build .
+
+      # 4) cd Exasim/examples/Poisson/poisson3d; run test
+      # Note: from poisson3d, the executable is at ../../../build/cpuEXASIMMAINLIB
+      - name: Run Poisson3D test
+        working-directory: examples/Poisson/poisson3d
+        run: |
+          ../../../build/cpuEXASIMMAINLIB Poisson3D 1 datain/ dataout/
