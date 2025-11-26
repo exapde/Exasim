@@ -14,8 +14,8 @@ pde.hybrid = 1;
 pde.debugmode = 0;
 
 % Choose computing platform and set number of processors
-pde.platform = "cpu";
-pde.mpiprocs = 8;              % number of MPI processors
+pde.platform = "gpu";
+pde.mpiprocs = 1;              % number of MPI processors
 
 % Discretization parameters
 pde.porder = 2;          % polynomial degree
@@ -27,7 +27,7 @@ pde.GMRESortho = 0;   % 0 is MGS, 1 is CGS. numerical instability of CGS only ki
 pde.ppdegree = 0; % only use if > 1000 gmres iterations -- polynomial preconditioner isn't that good. if you have a good preconditioner you don't really need it.
 pde.linearsolvertol = 1e-7; % GMRES tolerance  -- don't need that much accuracy at the beginning of the newton iteration -- 10e-3 or 10e-4
 pde.NLiter = 5;
-pde.RBdim = 0;              % reduced basis dimension for preconditioner -- 5 is good
+pde.RBdim = 5;              % reduced basis dimension for preconditioner -- 5 is good
 pde.linearsolveriter = 400; % tdep solver is more efficient -> fewer GMRES iterations. was 100. 200-500 for steady problems. no restarts if you can handle it
 pde.GMRESrestart = 200; % larger gmres for steady problems. was 20 -- make this as high as possible, memory limited
 % pde.linearsolveriter = 100; % tdep solver is more efficient -> fewer GMRES iterations. was 100
@@ -36,11 +36,11 @@ pde.NLtol = 1e-8;
 pde.precMatrixType = 2; % 2 is good for tdep problems, can be [0,1,2]. 0=nothing, 1=use mass matrix, 2=inv(mass matrix), good for tdep problems
 pde.preconditioner = 1; % Additive Schwarz
 
-pde.gencode=0;
+% pde.gencode=0;
 % Timestepping
 pde.torder = 2;          % time-stepping order of accuracy
 pde.nstage = 2;          % time-stepping number of stages
-pde.dt = 5e-3*ones(1000,1);   % time step sizes
+pde.dt = 1e-3*ones(5000,1);   % time step sizes
 pde.soltime = 1:length(pde.dt); % steps at which solution are collected
 pde.visdt = 0.05; % visualization timestep size
 
@@ -52,16 +52,19 @@ pde.tau = 1e-3*ones(4,1);
 % pde.tau(2) = 1e-4;
 % pde.tau(3) = 1e-4;
 % pde.tau(4) = 1e-4;
-pde.gencode = 0;
+% pde.tau(4) = 1e-4;
+% pde.tau(4) = 1e-4;
+pde.gencode = 1;
 
 % Mesh
-[p,t] = gmshcall_sam("./streamer2_39k.msh", 2, 0);
+[p,t] = gmshcall_sam("./euler_mesh_390.msh", 2, 0);
+% [p,t] = gmshcall_sam("./streamer2_39k.msh", 2, 0);
 
 % Normalization
 xmax = max(p(1,:));
 p = p*10;       % Characteristic length scale is .1 mm
 
-p = [p(2,:); p(1,:)];
+% p = [p(2,:); p(1,:)];     % Do not transpose the 390K element mesh
 mesh.p = p;
 mesh.t = t;
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-3, @(p) and(p(2,:)<8, p(1,:)<0) , @(p) and(p(2,:)<8, p(1,:)>0), @(p) abs(p(2,:)-7.94)>0}; %@(p) p(2,:)>7.5};
@@ -77,29 +80,29 @@ mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curve
 % disp("Saved dmd, exiting")
 % return;
 %mesh.plocal = mesh.xpe;
-[mesh.xpe,mesh.telem,xpf,tface,perm] = masternodes(pde.porder,2,0);
+[mesh.xpe,mesh.telem,xpf,tface,master.perm] = masternodes(pde.porder,2,0);
 mesh.plocal = mesh.xpe;
 
-%%%%%%%%%%%% Initial condition: specify rho0 and T0
+%%%%%%%%%%%% Initial (reference) condition: specify two of rho, T, p, or E. In this simulation I have chosen to specify rho and T.
 rho0 = 1.225;
 T0 = 298;   % K
 cv = 718;   % Perfect gas: constant specific heats
-Rsp = 287;      
-p0 = rho0*Rsp*T0;    % For thermodynamic consistency, we have to use the equation of state to compmute T0 from rho0 and p0; we can't specify it separately.
-rE0 = rho0*cv*T0/(p0/rho0);   % Nondimensional initial rho*E is rho_0*cv(T_0)*T_0/(p_ref/rho_ref)
+Rsp = 287;
+p0 = rho0*Rsp*T0;
+rE0 = rho0*cv*T0/p0;   % Nondimensional initial rho*E = 2.5
 % initu_func_set = {rho0;0;0;rE0;};
 initu_func_set = {rho0;0;0;@initu_func_rE;};
 UDG0 = initu_euler(mesh,initu_func_set,pde.physicsparam);
 
-% Print out inital condition and boundary values for a verification
-fig = figure(1); clf; scaplot(mesh,UDG0(:,1,:),[],1); axis on; axis equal; axis tight;
-saveas(fig, "u0/U1.png")
-fig = figure(2); clf; scaplot(mesh,UDG0(:,2,:),[],1); axis on; axis equal; axis tight;
-saveas(fig, "u0/U2.png")
-fig = figure(3); clf; scaplot(mesh,UDG0(:,3,:),[],1); axis on; axis equal; axis tight;
-saveas(fig, "u0/U3.png")
-fig = figure(4); clf; scaplot(mesh,UDG0(:,4,:),[],1); axis on; axis equal; axis tight;
-saveas(fig, "u0/U4.png")
+% % Print out inital condition and boundary values for a verification
+% fig = figure(1); clf; scaplot(mesh,UDG0(:,1,:),[],1); axis on; axis equal; axis tight;
+% saveas(fig, "u0/U1.png")
+% fig = figure(2); clf; scaplot(mesh,UDG0(:,2,:),[],1); axis on; axis equal; axis tight;
+% saveas(fig, "u0/U2.png")
+% fig = figure(3); clf; scaplot(mesh,UDG0(:,3,:),[],1); axis on; axis equal; axis tight;
+% saveas(fig, "u0/U3.png")
+% fig = figure(4); clf; scaplot(mesh,UDG0(:,4,:),[],1); axis on; axis equal; axis tight;
+% saveas(fig, "u0/U4.png")
 
 % fig = figure(5); clf; boundaryplot(mesh,1);
 % saveas(fig, "u0/B1.png")
@@ -118,22 +121,26 @@ mesh.udg = UDG0;            % Load initial condition
 pde.saveSolFreq = 10;
 
 % search compilers and set options
-pde = setcompilers(pde);       
+pde = setcompilers(pde);
 
 mesh.f = facenumbering(mesh.p,mesh.t,0,mesh.boundaryexpr,mesh.periodicexpr);
 dist = meshdist3(mesh.f,mesh.dgnodes,master.perm,[1 2 3]); % distance to the wall
 mesh.vdg = zeros(size(mesh.dgnodes,1),1,size(mesh.dgnodes,3));
-mesh.vdg(:,1,:) = 0; %0e-6*tanh(dist);
+% mesh.vdg(:,1,:) = 0; %0e-6*tanh(dist);
+AV = 1e-4;
+mesh.vdg(:,1,:) = AV;
+disp("Assigning viscosity")
+disp(AV)
 
-% return;    
+% return;
 [sol,pde,mesh] = exasim(pde,mesh);
 
 %[k,sol] = readsoldmd("/Users/cuongnguyen/Documents/GitHub/Exasim/build/dataout/outudg", dmd, 1, 45);
 %figure(4); clf; scaplot(mesh,sol(:,1,:),[],1); axis on; axis equal; axis tight;
 
-figure(2); clf; scaplot(mesh,sol(:,2,:,end)./sol(:,1,:,end),[],1); 
-axis on; axis equal; axis tight;
-figure(3); clf; scaplot(mesh,sol(:,3,:,end)./sol(:,1,:,end),[],1); 
-axis on; axis equal; axis tight;
-figure(4); clf; scaplot(mesh,sol(:,1,:,end),[],1);
-axis on; axis equal; axis tight;
+% figure(2); clf; scaplot(mesh,sol(:,2,:,end)./sol(:,1,:,end),[],1);
+% axis on; axis equal; axis tight;
+% figure(3); clf; scaplot(mesh,sol(:,3,:,end)./sol(:,1,:,end),[],1);
+% axis on; axis equal; axis tight;
+% figure(4); clf; scaplot(mesh,sol(:,1,:,end),[],1);
+% axis on; axis equal; axis tight;
