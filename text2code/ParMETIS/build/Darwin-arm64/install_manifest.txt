@@ -1,6 +1,0 @@
-/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/lib/libparmetis.a
-/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/bin/pm_ptest
-/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/bin/pm_mtest
-/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/bin/pm_parmetis
-/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/bin/pm_pometis
-/Users/cuongnguyen/Documents/GitHub/Exasim/text2code/ParMETIS/bin/pm_dglpart
