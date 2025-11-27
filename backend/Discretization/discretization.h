@@ -41,8 +41,6 @@
 #ifndef __DISCRETIZATION_H__
 #define __DISCRETIZATION_H__
 
-
-template <typename Model>
 class CDiscretization {
 private:
 public:

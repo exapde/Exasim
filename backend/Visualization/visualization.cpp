@@ -1,4 +1,3 @@
-template <typename Model>
 class CVisualization {
 public:
     float* scafields=nullptr;
@@ -70,7 +69,7 @@ public:
         }
     }
 
-    CVisualization(CDiscretization<Model>& disc, int backend) {      
+    CVisualization(CDiscretization& disc, int backend) {      
         int rank = disc.common.mpiRank;
         int nd_in   = disc.common.nd;
         int npoints_in = disc.sol.szxcg / nd_in;

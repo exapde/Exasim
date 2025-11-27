@@ -41,7 +41,6 @@
 #ifndef __UEQUATION
 #define __UEQUATION
 
-template <typename Model>
 void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
@@ -121,7 +120,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     ArraySetValue(sg, 0.0, nga*ncu);
     ArraySetValue(sg_uq, 0.0, nga*ncu*nc);
     if ((ncw>0) & (common.wave==0)) ArraySetValue(sg_w, 0.0, nga*ncu*ncw);
-    SourceDriver<Model>(sg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
+    SourceDriver(sg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
     
     if (common.tdep) { // for time-dependent problem                
         // calculate sdg - udg*dtfactor
@@ -129,7 +128,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
       
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver<Model>(fg_uq, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);            
+            TdfuncDriver(fg_uq, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);            
         }
         else
             ArraySetValue(fg_uq, one, nga*ncu);;
@@ -154,7 +153,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     ArraySetValue(fg, 0.0, nga*ncu*nd);
     ArraySetValue(fg_uq, 0.0, nga*ncu*nd*nc);
     if ((ncw>0) & (common.wave==0)) ArraySetValue(fg_w, 0.0, nga*ncu*nd*ncw); 
-    FluxDriver<Model>(fg, fg_uq, fg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
+    FluxDriver(fg, fg_uq, fg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
     
     if ((ncw>0) & (common.wave==0)) {
         // sg_uq = sg_uq + sg_w * wg_uq -> ng * ncu * nc = ng * ncu * nc + (ng * ncu * ncw) * (ng * ncw * nc)
@@ -202,7 +201,6 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     } 
 }
 
-template <typename Model>
 void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {            
@@ -289,7 +287,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
     
     if (ncw > 0) ArraySetValue(fh_w, 0.0, nga*ncu*ncw);       
             
-    FhatDriver<Model>(fh, fh_uq, fh_w, fh_uh, xg, udg, odg, wdg, uhg, nlg, 
+    FhatDriver(fh, fh_uq, fh_w, fh_uh, xg, udg, odg, wdg, uhg, nlg, 
         mesh, master, app, sol, tmp, common, nga, backend);      
         
     if ((ncw>0) & (common.wave==0)) {
@@ -394,7 +392,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
                          app.physicsparam, app.stgdata, app.stgparam, common.time, 
                          ngb, common.stgNmode, nd, ncu, nc, ncw);
          else
-            FbouDriver<Model>(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
+            FbouDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
                  mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
 
         if ((ncw>0) & (common.wave==0)) {      
@@ -499,7 +497,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
         ArraySetValue(fhb_uq, 0.0, ngb*ncu12*nc);
         ArraySetValue(fhb_uh, 0.0, ngb*ncu12*ncu);
         if (ncw > 0) ArraySetValue(fhb_w, 0.0, ngb*ncu12*ncw);        
-        FintDriver<Model>(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
+        FintDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, common.coupledcondition, backend);    
                         
         if ((ncw>0) & (common.wave==0)) {          
@@ -774,19 +772,17 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     } 
 }
 
-template <typename Model>
 void uEquationHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int backend)
 {    
     for (Int j=0; j<common.nbe; j++) {         
-        uEquationElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-        uEquationElemFaceBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
         uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
     }                     
 }
 
-template <typename Model>
 void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
@@ -850,7 +846,7 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver<Model>(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
+            TdfuncDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
             ArrayAXY(sg, sg, fg, one, nga*ncu);                
@@ -859,7 +855,7 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         if (common.source==1) {            
             ArraySetValue(fg, 0.0, nga*ncu);
             // calculate the source term Source(xdg, udg, odg, wdg)
-            SourceDriver<Model>(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
+            SourceDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate Source(xdg, udg, odg) + (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
             ArrayAXPBY(sg, sg, fg, one, one, nga*ncu);            
@@ -868,18 +864,17 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     else {  // steady state problem      
         ArraySetValue(sg, 0.0, nga*ncu);
         // calculate the source term Source(xdg, udg, odg, wdg)
-        SourceDriver<Model>(sg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
+        SourceDriver(sg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
     }                
                 
     ArraySetValue(fg, 0.0, nga*ncu*nd);    
-    FluxDriver<Model>(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
+    FluxDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
     
     // Ru = npe * ne * ncu 
     ApplyXxJac(tmp.tempn, sg, fg, Xx, jac, nge, nd, ncu, ne);
     Gauss2Node(handle, &res.Ru[npe*ncu*e1], tmp.tempn, master.shapegw, nge*(nd+1), npe, ncu*ne, backend); // fixed bug here                   
 }
 
-template <typename Model>
 void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {            
@@ -953,7 +948,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         // wEquation(wdg, xg, udg, odg, wsrcg, tmp.tempn, app, common, nga, backend);                
     }
     
-    FhatDriver<Model>(fh, tmp.tempn, xg, udg, odg, wdg, uhg, nlg, mesh, master, app, sol, tmp, common, nga, backend);      
+    FhatDriver(fh, tmp.tempn, xg, udg, odg, wdg, uhg, nlg, mesh, master, app, sol, tmp, common, nga, backend);      
     columnwiseMultiply(fh, fh, jac, nga, ncu);
 
     dstype *Rutmp = &tmp.tempn[0];
@@ -1000,7 +995,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         if (ibc+1 == 1000) StgInflowHDG(fhb, &tmp.tempg[n8], xgb, ogb, uhb, app.physicsparam, app.stgdata, 
                                  app.stgparam, common.time, ngb, common.stgNmode, nd);          
         else
-            FbouDriver<Model>(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
+            FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
 
         dstype *jacb = &tmp.tempg[n8];
@@ -1062,7 +1057,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
           //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
-        FintDriver<Model>(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
+        FintDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, common.coupledcondition, backend);    
 
         dstype *jacb = &tmp.tempg[n8];
@@ -1076,14 +1071,13 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
     }            
 }
 
-template <typename Model>
 void ResidualHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int backend)
 {    
     for (Int j=0; j<common.nbe; j++) {        
-        RuEquationElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-        RuEquationElemFaceBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
+        RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                     
 }
 

@@ -37,7 +37,6 @@
 #define __MATVEC
 
 #include "ioutilities.cpp"
-
 void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
       meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, dstype *v, 
       dstype *u, dstype *Ru, Int backend)
@@ -388,8 +387,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
 #endif
 }
 
-#ifdef  HAVE_MPI
-template <typename Model>
+#ifdef  HAVE_MPI     
 void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
 {
@@ -406,8 +404,8 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     
     // perform HDG descrization for interface elements
     for (Int j=common.nbe0; j<common.nbe1; j++) {     // fixed bug here             
-      uEquationElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationElemFaceBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
       uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
     }                             
         
@@ -504,8 +502,8 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
       
     // perform HDG descrization for interior elements
     for (Int j=0; j<common.nbe0; j++) {                  
-      uEquationElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationElemFaceBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
       uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
     }                        
 
@@ -571,7 +569,6 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
 //     }
 }
 
-template <typename Model>
 void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
 {
@@ -585,8 +582,8 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 
     // perform HDG descrization for interface elements
     for (Int j=common.nbe0; j<common.nbe1; j++) {     // fixed bug here             
-      RuEquationElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      RuEquationElemFaceBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
+      RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                             
         
     // copy H and Rh to buffsend
@@ -675,8 +672,8 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
     
     // perform HDG descrization for interior elements
     for (Int j=0; j<common.nbe0; j++) {                  
-      RuEquationElemBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      RuEquationElemFaceBlock<Model>(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
+      RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                        
     
     // copy buffrecv to Rh 

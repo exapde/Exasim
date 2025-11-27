@@ -22,7 +22,6 @@
 #ifndef __SOLVER_H__
 #define __SOLVER_H__
 
-template <typename Model>
 class CSolver {
 private:
 public:
@@ -31,15 +30,15 @@ public:
     int mpiRank;
     
     // constructor 
-    CSolver(CDiscretization<Model>& disc, Int backend); 
+    CSolver(CDiscretization& disc, Int backend); 
     
     // destructor        
     ~CSolver(); 
             
     // Implement PTC to solve linear/nonlinear systems
-    void PseudoTransientContinuation(CDiscretization<Model>& disc, CPreconditioner<Model>& prec, ofstream& out, Int backend);           
+    void PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int backend);           
 
-    void NewtonSolver(CDiscretization<Model>& disc, CPreconditioner<Model>& prec, ofstream& out, Int N, Int spatialScheme, Int backend);       
+    void NewtonSolver(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int N, Int spatialScheme, Int backend);       
 };
 
 #endif        

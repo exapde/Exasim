@@ -57,8 +57,7 @@
 
 
 // constructor
-template <typename Model>
-CPreconditioner<Model>::CPreconditioner(CDiscretization<Model>& disc, Int backend)
+CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 {
     mpiRank = disc.common.mpiRank;
     setprecondstruct(precond, disc, backend);    
@@ -67,15 +66,13 @@ CPreconditioner<Model>::CPreconditioner(CDiscretization<Model>& disc, Int backen
 }
 
 // destructor
-template <typename Model>
-CPreconditioner<Model>::~CPreconditioner()
+CPreconditioner::~CPreconditioner()
 {            
     precond.freememory(precond.backend);
     if (mpiRank==0) printf("CPreconditioner destructor: precond memory is freed successfully.\n");
 }
 
-template <typename Model>
-void CPreconditioner<Model>::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization<Model>& disc, Int backend)
+void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)
 {       
     // P = B + V*W^T  
     // P*W = B*W + V*W^T*W = A*W -> V = (A-B)*W
@@ -126,8 +123,7 @@ void CPreconditioner<Model>::ComputeInitialGuessAndPreconditioner(sysstruct& sys
             inc1, &zero, sys.x, inc1, backend);                                                 
 }
 
-template <typename Model>
-void CPreconditioner<Model>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization<Model>& disc, Int backend)
+void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int backend)
 {        
     Int N = disc.common.ndof1;        
     
@@ -136,8 +132,7 @@ void CPreconditioner<Model>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDis
         disc.common.ne1, disc.common.precMatrixType, disc.common.curvedMesh, backend);                
 }
 
-template <typename Model>
-void CPreconditioner<Model>::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization<Model>& disc, Int N, Int spatialScheme, Int backend)
+void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend)
 {     
     Int RBdim = disc.common.RBcurrentdim;
     dstype *RBcoef = &disc.tmp.tempn[0];
@@ -269,8 +264,7 @@ void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commo
     }
 }
 
-template <typename Model>
-void CPreconditioner<Model>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization<Model>& disc, Int spatialScheme, Int backend)
+void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int spatialScheme, Int backend)
 {                
     if (spatialScheme==0) {
       Int N = disc.common.ndof1;        

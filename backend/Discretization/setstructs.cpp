@@ -437,7 +437,6 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
 #endif
 }
 
-template <typename Model>
 void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
@@ -445,7 +444,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
      
     if (mpirank==0)
         printf("Reading data from binary files \n");
-    readInput<Model>(app, master, mesh, sol, filein, mpiprocs, mpirank, fileoffset, omprank);            
+    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, fileoffset, omprank);            
     
     if (mpirank==0)
         printf("Finish reading data from binary files \n");
