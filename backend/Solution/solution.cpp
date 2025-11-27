@@ -811,16 +811,16 @@ void CSolution::SaveSolutions(Int backend)
 void CSolution::ReadSolutions(Int backend) 
 {
    if (disc.common.tdep==1) { 
-        if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
+        if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)             
         {        
             string filename = disc.common.fileout + "udg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";     
-            if (disc.common.saveSolOpt==0) {
-                readarrayfromfile(filename, &solv.sys.u, disc.common.ndof1, backend);
-                // insert u into udg
-                ArrayInsert(disc.sol.udg, solv.sys.u, disc.common.npe, disc.common.nc, 
-                 disc.common.ne, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);  
-            }
-            else
+            // if (disc.common.saveSolOpt==0) {
+            //     readarrayfromfile(filename, &disc.res.Rq, disc.common.ndof1, backend);
+            //     // insert u into udg
+            //     ArrayInsert(disc.sol.udg, disc.res.Rq, disc.common.npe, disc.common.nc, 
+            //      disc.common.ne, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);  
+            // }
+            // else
                 readarrayfromfile(filename, &disc.sol.udg, disc.common.ndofudg1, backend);        
             
             if (disc.common.ncw>0) {
