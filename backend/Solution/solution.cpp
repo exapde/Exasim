@@ -745,9 +745,25 @@ void CSolution::SaveSolutions(Int backend)
             writearray2file(fn1, disc.sol.udgavg, disc.common.ndofudg1+1, backend);
         }        
     }
+   
+   if (disc.common.tdep==1) { 
+        if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)             
+        {        
+            string filename = disc.common.fileout + "udg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";     
+            writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);
 
+            if (disc.common.ncw>0) {
+                string fn = disc.common.fileout + "_wdg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";                    
+                writearray2file(fn, solv.sys.wtmp, disc.common.ndofw1, backend);
+            }                        
+
+            if (disc.common.spatialScheme==1) {
+                string fn2 = disc.common.fileout + "_uhat_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";                    
+                writearray2file(fn2, disc.sol.uh, disc.common.ndofuhat, backend);        
+            }
+        }    
+   }
     
-
    // if (disc.common.tdep==1) { 
    //      if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
    //      {        

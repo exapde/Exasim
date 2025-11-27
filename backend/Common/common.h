@@ -1556,8 +1556,9 @@ struct commonstruct {
     Int wave;      // wave problem    
     Int linearProblem; // 0: nonlinear problem;  1: linear problem
     Int subproblem=0;
-    Int saveSolFreq;   // number of time steps to save the solution
-    Int saveSolOpt;    // option to save the solution
+    Int saveSolFreq;      // number of time steps to save the solution
+    Int saveSolOpt;       // option to save the solution
+    Int saveRestart=200;  // number of time steps to save the solution for restarting
     Int timestepOffset=0; // timestep offset to restart the simulation 
     Int stgNmode=0;       // number of synthetic turbulence generation modes
     Int tdfunc;           // time-derivative function flag
