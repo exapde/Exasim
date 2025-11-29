@@ -7,7 +7,7 @@ class SymbolicScalarsVectors {
 public:
 
     // path to model folder 
-    std::string modelpath = "/Users/cuongnguyen/Documents/GitHub/Exasim/backend/Model/";
+    std::string modelpath = "/Users/cuongnguyen/Documents/GitHub/PSAAP/Exasim/backend/Model/";
 
     // input symbolic scalars
     Expression t;

@@ -13,24 +13,6 @@ void HdgVisVectors(dstype* f, dstype* J1, dstype* J2, const dstype* x, const dst
     J1[3 * N + i] = 0;
     J1[4 * N + i] = 0;
     J1[5 * N + i] = 1;
-    J1[6 * N + i] = 0;
-    J1[7 * N + i] = 0;
-    J1[8 * N + i] = 0;
-    J1[9 * N + i] = 0;
-    J1[10 * N + i] = 0;
-    J1[11 * N + i] = 0;
-    J1[12 * N + i] = 0;
-    J1[13 * N + i] = 0;
-    J1[14 * N + i] = 0;
-    J1[15 * N + i] = 0;
-    J1[16 * N + i] = 0;
-    J1[17 * N + i] = 0;
-    J1[18 * N + i] = 0;
-    J1[19 * N + i] = 0;
-    J1[20 * N + i] = 0;
-    J1[21 * N + i] = 0;
-    J1[22 * N + i] = 0;
-    J1[23 * N + i] = 0;
   });
 }
 
