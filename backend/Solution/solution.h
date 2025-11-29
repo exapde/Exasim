@@ -199,7 +199,7 @@ public:
     void SaveQoI(Int backend);    
 
     // save fields in VTU files
-    void SaveParaview(Int backend);    
+    void SaveParaview(Int backend, std::string fname_modifier = "", bool force_tdep_write = false);    
     
     // save solutions in binary files
     void SaveSolutionsOnBoundary(Int backend);    
