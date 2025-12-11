@@ -23,7 +23,7 @@ To deploy, compile, and run Exasim on **HPC systems**, please follow the intruct
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
 
-* Build Kokkos Libaries
+Build Kokkos Libaries
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform:
 ```
 cd Exasim/kokkos   
