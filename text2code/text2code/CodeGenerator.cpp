@@ -107,7 +107,7 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "        } else if ((funcname == \"Initu\") || (funcname == \"Initq\") || (funcname == \"Inituq\") || (funcname == \"Initv\") || (funcname == \"Initw\")) { \n";
     os << "          std::string kname = funcname;\n";    
     os << "          if (funcname == \"Inituq\") kname = \"Initudg\";\n"; 
-    os << "          if (funcname == \"Initv\") kname = \"Initvdg\";\n"; 
+    os << "          if (funcname == \"Initv\") kname = \"Initodg\";\n"; 
     os << "          if (funcname == \"Initw\") kname = \"Initwdg\";\n"; 
     os << "          ssv.initfunc2cppfiles(f, ssv.modelpath + \"cpu\" + kname, \"cpu\" + kname, i, false, 0);\n";
     os << "          ssv.initfunc2cppfiles(f, ssv.modelpath + \"Kokkos\" + kname, \"Kokkos\" + kname, i, false, 1);\n";

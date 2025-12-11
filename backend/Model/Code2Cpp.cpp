@@ -49,7 +49,7 @@ int main()
         } else if ((funcname == "Initu") || (funcname == "Initq") || (funcname == "Inituq") || (funcname == "Initv") || (funcname == "Initw")) { 
           std::string kname = funcname;
           if (funcname == "Inituq") kname = "Initudg";
-          if (funcname == "Initv") kname = "Initvdg";
+          if (funcname == "Initv") kname = "Initodg";
           if (funcname == "Initw") kname = "Initwdg";
           ssv.initfunc2cppfiles(f, ssv.modelpath + "cpu" + kname, "cpu" + kname, i, false, 0);
           ssv.initfunc2cppfiles(f, ssv.modelpath + "Kokkos" + kname, "Kokkos" + kname, i, false, 1);

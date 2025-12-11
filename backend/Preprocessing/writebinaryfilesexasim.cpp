@@ -257,36 +257,36 @@ void writemesh(const PDE& pde,
     std::cout << "Finished writing mesh to " + filename << std::endl;
 }
 
-// #ifdef HAVE_METIS
-// void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector<int>& eind, 
-//          int ne, int np, int nve, int nvf, int nparts) 
-// { 
-//     std::vector<int> eptr(ne+1);
-//     eptr[0] = 0;
-//     for (int i=0; i<ne; i++) eptr[i+1] = eptr[i] + nve;
-// 
-//     // Resize output vectors
-//     epart.resize(ne);
-//     npart.resize(np);
-// 
-//     // METIS options
-//     int options[METIS_NOPTIONS];
-//     METIS_SetDefaultOptions(options);
-//     options[METIS_OPTION_NUMBERING] = 0;  
-// 
-//     int objval = 0;
-//     int status = METIS_PartMeshDual(&ne, &np, eptr.data(), eind.data(),
-//                                     NULL, NULL, &nvf, &nparts,
-//                                     NULL, options, &objval,
-//                                     epart.data(), npart.data());
-// 
-//     if (status != METIS_OK) {
-//         std::cerr << "METIS_PartMeshDual failed with status " << status << ".\n";
-//     }  else {
-//         std::cout << "Finished partitioning mesh using METIS" << std::endl;
-//     }    
-// }
-// #endif
+#ifdef HAVE_PARMETIS
+void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector<int>& eind, 
+         int ne, int np, int nve, int nvf, int nparts) 
+{ 
+    std::vector<int> eptr(ne+1);
+    eptr[0] = 0;
+    for (int i=0; i<ne; i++) eptr[i+1] = eptr[i] + nve;
+
+    // Resize output vectors
+    epart.resize(ne);
+    npart.resize(np);
+
+    // METIS options
+    int options[METIS_NOPTIONS];
+    METIS_SetDefaultOptions(options);
+    options[METIS_OPTION_NUMBERING] = 0;  
+
+    int objval = 0;
+    int status = METIS_PartMeshDual(&ne, &np, eptr.data(), eind.data(),
+                                    NULL, NULL, &nvf, &nparts,
+                                    NULL, options, &objval,
+                                    epart.data(), npart.data());
+
+    if (status != METIS_OK) {
+        std::cerr << "METIS_PartMeshDual failed with status " << status << ".\n";
+    }  else {
+        std::cout << "Finished partitioning mesh using METIS" << std::endl;
+    }    
+}
+#endif
 
 void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSpec& spec) 
 {
@@ -322,16 +322,16 @@ void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSp
             
         if (pde.mpiprocs>1) {
         
-//             if ((pde.partitionfile == "") || (mesh.elem2cpu.size() == 0)) {
-// #ifdef HAVE_METIS          
-//                 vector<int> node2cpu;
-//                 partitionMesh(mesh.elem2cpu, node2cpu, mesh.t, mesh.ne, mesh.np, mesh.nve, mesh.nvf, pde.mpiprocs);
-//                 node2cpu.resize(0);
-//                 for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] += 1;        
-// #else
-//                 error("mpiprocs > 1 requires a mesh partition array. \nPlease include the required mesh partition array in a binary file\nand set partitionfile to the name of the file.");      
-// #endif                  
-//             }
+            if ((pde.partitionfile == "") || (mesh.elem2cpu.size() == 0)) {
+#ifdef HAVE_PARMETIS          
+                vector<int> node2cpu;
+                partitionMesh(mesh.elem2cpu, node2cpu, mesh.t, mesh.ne, mesh.np, mesh.nve, mesh.nvf, pde.mpiprocs);
+                node2cpu.resize(0);
+                for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] += 1;        
+#else
+                error("mpiprocs > 1 requires a mesh partition array. \nPlease include the required mesh partition array in a binary file\nand set partitionfile to the name of the file.");      
+#endif                  
+            }
 
             for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] -= 1;                    
             mesh.t2t.resize(mesh.nfe*mesh.ne);
@@ -383,10 +383,10 @@ void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSp
         }    
     }
 
-    freeCharArray(mesh.boundaryExprs, mesh.nbndexpr);
-    freeCharArray(mesh.curvedBoundaryExprs, mesh.nbndexpr);
-    freeCharArray(mesh.periodicExprs1, mesh.nprdexpr*mesh.nprdcom);
-    freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);                
+    // freeCharArray(mesh.boundaryExprs, mesh.nbndexpr);
+    // freeCharArray(mesh.curvedBoundaryExprs, mesh.nbndexpr);
+    // freeCharArray(mesh.periodicExprs1, mesh.nprdexpr*mesh.nprdcom);
+    // freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);                
     
     std::cout << "Finished writeBinaryFiles.\n";
 }

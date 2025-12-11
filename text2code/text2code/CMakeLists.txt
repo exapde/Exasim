@@ -16,8 +16,10 @@ set(EXASIM_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../" CACHE PATH "Path to Exasim 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EXASIM_ROOT}/build")
 
 # Adjust these if your layout differs; they default to your examples.
-set(METIS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../METIS" CACHE PATH "Path to METIS root")
-set(GKLIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../GKlib" CACHE PATH "Path to GKlib root")
+#set(METIS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../METIS" CACHE PATH "Path to METIS root")
+#set(GKLIB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../GKlib" CACHE PATH "Path to GKlib root")
+set(METIS_ROOT    "${EXASIM_ROOT}/metis/METIS" CACHE PATH "Path to METIS root")
+set(GKLIB_ROOT    "${EXASIM_ROOT}/metis/GKlib" CACHE PATH "Path to GKlib root")
 
 # Derived include/lib dirs (override if needed)
 set(METIS_INCLUDE_DIR "${METIS_ROOT}/build/xinclude" CACHE PATH "METIS public include dir")
@@ -154,6 +156,65 @@ else()
   target_compile_definitions(t2cnometisusecmake PRIVATE USE_CMAKE)
   link_blas_lapack(t2cnometisusecmake)
 endif()
+
+# ======================================================================
+#  Summary of text2code configuration
+# ======================================================================
+message(STATUS "==================== text2code CONFIGURATION ==================")
+
+message(STATUS "EXASIM_ROOT              = ${EXASIM_ROOT}")
+message(STATUS "WITH_METIS               = ${WITH_METIS}")
+
+message(STATUS "METIS_ROOT               = ${METIS_ROOT}")
+message(STATUS "GKLIB_ROOT               = ${GKLIB_ROOT}")
+
+message(STATUS "METIS_INCLUDE_DIR        = ${METIS_INCLUDE_DIR}")
+message(STATUS "METIS_LIBRARY_DIR        = ${METIS_LIBRARY_DIR}")
+message(STATUS "GKLIB_INCLUDE_DIR        = ${GKLIB_INCLUDE_DIR}")
+message(STATUS "GKLIB_LIBRARY_DIR        = ${GKLIB_LIBRARY_DIR}")
+
+message(STATUS "MODEL_FILE               = ${MODEL_FILE}")
+
+# BLAS / LAPACK
+message(STATUS "BLAS_FOUND               = ${BLAS_FOUND}")
+message(STATUS "LAPACK_FOUND             = ${LAPACK_FOUND}")
+message(STATUS "BLAS_LIBRARIES           = ${BLAS_LIBRARIES}")
+message(STATUS "LAPACK_LIBRARIES         = ${LAPACK_LIBRARIES}")
+
+# C++ compiler
+message(STATUS "C++ COMPILER             = ${CMAKE_CXX_COMPILER}")
+message(STATUS "C++ COMPILER ID          = ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "C++ COMPILER VERSION     = ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "CMAKE_BUILD_TYPE         = ${CMAKE_BUILD_TYPE}")
+
+# Targets summary
+if (WITH_METIS)
+  if (TARGET text2code)
+    message(STATUS "Target 'text2code'       = ENABLED (HAVE_METIS)")
+  else()
+    message(STATUS "Target 'text2code'       = SKIPPED (missing METIS/GKlib dirs)")
+  endif()
+
+  if (TARGET t2cusecmake)
+    message(STATUS "Target 't2cusecmake'     = ENABLED (HAVE_METIS + USE_CMAKE)")
+  else()
+    message(STATUS "Target 't2cusecmake'     = NOT CREATED")
+  endif()
+else()
+  if (TARGET t2cnometis)
+    message(STATUS "Target 't2cnometis'      = ENABLED (no METIS)")
+  else()
+    message(STATUS "Target 't2cnometis'      = NOT CREATED")
+  endif()
+
+  if (TARGET t2cnometisusecmake)
+    message(STATUS "Target 't2cnometisusecmake' = ENABLED (no METIS + USE_CMAKE)")
+  else()
+    message(STATUS "Target 't2cnometisusecmake' = NOT CREATED")
+  endif()
+endif()
+
+message(STATUS "===============================================================")
 
 # ----------------------
 # Usage examples:

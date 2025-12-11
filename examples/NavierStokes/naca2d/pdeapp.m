@@ -61,6 +61,16 @@ set(gca,'fontsize', 16);
 
 
 
+[mesh.f, mesh.tprd, t2t] = facenumbering(mesh.p,mesh.t,1,mesh.boundaryexpr,mesh.periodicexpr);
+pde1.nd = 2;
+pde1.porder = 4;
+pde1.pgauss = 8;
+pde1.elemtype = 1;
+pde1.nodetype = 1;
+master1 = Master(pde1);
+mesh.xpe = master1.xpe;
+
+
 
 
 

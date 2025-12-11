@@ -67,7 +67,6 @@
 
 #ifdef _TEXT2CODE
 #define HAVE_TEXT2CODE
-#define HAVE_METIS
 #endif
 
 #ifdef _ENZYME
@@ -134,15 +133,8 @@ using namespace std;
 #include "../Solution/solution.cpp"             // solution class
 
 #ifdef HAVE_TEXT2CODE
-// #include "../../text2code/text2code/TextParser.hpp"
-// #include "../../text2code/text2code/tinyexpr.cpp"
-// #include "../../text2code/text2code/helpersexasim.cpp"
-#include "../../text2code/text2code/readpdeapp.cpp"
-// #include "../../text2code/text2code/readmesh.cpp"
-// #include "../../text2code/text2code/makemeshexasim.cpp"
-// #include "../../text2code/text2code/makemasterexasim.cpp"
-// #include "../../text2code/text2code/domaindecomposition.cpp"
-// #include "../../text2code/text2code/writebinaryfilesexasim.cpp"
+#include "../Preprocessing/preprocessing.cpp" // preprocessing class
+//#include "../../text2code/text2code/readpdeapp.cpp"
 #endif
 
 int main(int argc, char** argv) 
@@ -297,6 +289,20 @@ int main(int argc, char** argv)
     filein[0] = pde.datainpath + "/";
     fileout[0] = make_path(pde.dataoutpath, "out");    
     exasimpath = pde.exasimpath;  
+
+    {
+      if (pde.gendatain == 0) {
+        CPreprocessing preproc(argv[1], mpirank, mpiprocs);
+        if (mpiprocs == 1) 
+          preproc.SerialPreprocessing();
+        else {
+#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)          
+          preproc.ParallelPreprocessing(MPI_COMM_WORLD);  
+#endif          
+        }
+      }
+    }
+
 #else      
     if (argc < 3) {
       printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");

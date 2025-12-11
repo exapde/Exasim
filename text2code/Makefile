@@ -20,16 +20,6 @@ unexport GNUMAKEFLAGS
 text2code:
 	@echo "Building with -j$(NPROCS)…"
 
-	# GKlib (plain make, but still keep env clean for safety)
-	cd GKlib && \
-	  env -i PATH="$$PATH" SHELL="$$SHELL" make config prefix="$$PWD" && \
-	  env -i PATH="$$PATH" SHELL="$$SHELL" make install
-
-	# METIS: requires 'make config'; run in a clean environment to avoid the 'w' target
-	cd METIS && \
-	  env -i PATH="$$PATH" SHELL="$$SHELL" make config prefix="$$PWD" gklib_path="$$PWD/../GKlib" && \
-	  env -i PATH="$$PATH" SHELL="$$SHELL" make -j"$(NPROCS)" install
-
 	# SymEngine (CMake is fine)
 	cd symengine && cmake -S . -B build \
 	  -DCMAKE_INSTALL_PREFIX="$$PWD" \

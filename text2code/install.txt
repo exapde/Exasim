@@ -1,23 +1,8 @@
-##### Install GKlib, METIS, ParMETIS, symengine, text2code in one shot #####
+##### Install symengine, text2code in one shot #####
 cd text2code
 make text2code
 
 ##### If the above installation fails, then install them inviddually #####
-
-# Install GKlib
-cd GKlib 
-make config prefix=$(pwd)
-make install
-
-# Install METIS
-cd ../METIS 
-make config prefix=$(pwd) gklib_path="$(pwd)/../GKlib"
-make install
-
-# Install ParMETIS
-cd ../ParMETIS 
-make config prefix=$(pwd) gklib_path="$(pwd)/../GKlib" metis_path="$(pwd)/../METIS"
-make install
 
 # Install SYMENGINE
 cd ../symengine

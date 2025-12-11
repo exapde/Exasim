@@ -148,6 +148,51 @@ void readiarrayfromdouble(ifstream &in, vector<int> &a, int N) {
     }
 }
 
+template <typename T>
+void readarrayfrombinaryfile(const std::string &filename, std::vector<T> &a)
+{
+    static_assert(std::is_trivially_copyable<T>::value,
+                  "readarrayfromfile(binary) requires trivially copyable T");
+
+    a.clear();
+
+    std::ifstream in(filename, std::ios::binary);
+    if (!in.is_open()) {
+        std::cerr << "Error: Cannot open binary file: " << filename << "\n";
+        return;
+    }
+
+    // Get file size
+    in.seekg(0, std::ios::end);
+    std::streampos end = in.tellg();
+    in.seekg(0, std::ios::beg);
+    std::streampos begin = in.tellg();
+
+    std::streamoff bytes = end - begin;
+    if (bytes < 0) {
+        std::cerr << "Error: Negative size for file: " << filename << "\n";
+        return;
+    }
+
+    if (bytes % static_cast<std::streamoff>(sizeof(T)) != 0) {
+        std::cerr << "Warning: File size not a multiple of sizeof(T) in "
+                  << filename << " (bytes=" << bytes
+                  << ", sizeof(T)=" << sizeof(T) << ")\n";
+    }
+
+    std::size_t n = static_cast<std::size_t>(bytes / sizeof(T));
+    a.resize(n);
+
+    if (n > 0) {
+        in.read(reinterpret_cast<char*>(a.data()),
+                static_cast<std::streamsize>(n * sizeof(T)));
+        if (!in) {
+            std::cerr << "Error: Failed to read all data from " << filename << "\n";
+            a.clear();
+        }
+    }
+}
+
 void readfile(string filename, vector<int> &ndims, vector<int> &data, int m) 
 {
     ifstream in(filename, ios::in | ios::binary);
@@ -402,6 +447,26 @@ void select_columns(double* a_new, const double* a, const int* ind, int m, int k
     }
 }
 
+void insert_columns(int* a, const int* a_new, const int* ind, int m, int k) 
+{
+    for (int j = 0; j < k; ++j) {
+        int col = ind[j];
+        for (int i = 0; i < m; ++i) {
+            a[i + col * m] = a_new[i + j * m];
+        }
+    }
+}
+
+void insert_columns(double* a, const double* a_new, const int* ind, int m, int k) 
+{
+    for (int j = 0; j < k; ++j) {
+        int col = ind[j];
+        for (int i = 0; i < m; ++i) {
+            a[i + col * m] = a_new[i + j * m];
+        }
+    }
+}
+
 // void permute_columns(int* a, const int* ind, int m, int k) 
 // {    
 //   if ((k > 0) && (m > 0)) {
@@ -421,6 +486,32 @@ void select_columns(double* a_new, const double* a, const int* ind, int m, int k
 //     free(a_new);
 //   }
 // }
+
+// Simple contiguous partition helper
+inline void computeLocalRange(int globalN, int size, int rank,
+                              int &localN, int &offset)
+{
+    int base = globalN / size;
+    int rem  = globalN % size;
+    if (rank < rem) {
+        localN = base + 1;
+        offset = rank * localN;
+    } else {
+        localN = base;
+        offset = rem * (base + 1) + (rank - rem) * base;
+    }
+}
+
+// Helper: compute prefix offsets from counts
+inline void prefixSums(const std::vector<int>& counts, std::vector<int>& displs, int& total)
+{
+    displs.resize(counts.size());
+    total = 0;
+    for (std::size_t i = 0; i < counts.size(); ++i) {
+        displs[i] = total;
+        total += counts[i];
+    }
+}
 
 #endif
 

@@ -827,14 +827,20 @@ void compute_dgnodes(double* dgnodes, const double* p, const int* t,
 }
 
 void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const int* perm, const int* curvedboundary,
-                         char** fd_exprs, int nd, int porder, int npe, int npf, int nfe, int ne) 
+                         char** fd_exprs, int nd, int porder, int npe, int npf, int nfe, int ne, int factor=1) 
 {
     if (porder <= 1) return;
 
-    int has_curved = 0;
-    for (int k = 0; k < nfe * ne; ++k)
-        if (f[k] > -1 && curvedboundary[f[k]] != 0)
-            has_curved = 1;
+    int has_curved = 0;   
+    if (factor == - 1) {
+      for (int k = 0; k < nfe * ne; ++k)
+          if (f[k] <= -1 && curvedboundary[-f[k]-1] != 0)
+              has_curved = 1;
+    } else {
+       for (int k = 0; k < nfe * ne; ++k)
+          if (f[k] > -1 && curvedboundary[f[k]] != 0)
+              has_curved = 1;
+    }       
 
     if (!has_curved) return;
 
@@ -845,7 +851,8 @@ void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const
 
     for (int e = 0; e < ne; ++e) {
         for (int j = 0; j < nfe; ++j) {
-            int fid = f[j + nfe * e];
+            int fid = factor*f[j + nfe * e];
+            if (factor == -1) fid = fid - 1;
             if (fid < 0) continue;
 
             int k = fid;
@@ -946,6 +953,127 @@ void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const
     
     //std::cout << "Finished project_dgnodes_onto_curved_boundaries.\n";
 }
+
+// void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const int* perm, const int* curvedboundary,
+//                          char** fd_exprs, int nd, int porder, int npe, int npf, int nfe, int ne) 
+// {
+//     if (porder <= 1) return;
+// 
+//     int has_curved = 0;
+//     for (int k = 0; k < nfe * ne; ++k)
+//         if (f[k] > -1 && curvedboundary[f[k]] != 0)
+//             has_curved = 1;
+// 
+//     if (!has_curved) return;
+// 
+//     // printf("Project dgnodes onto the curved boundaries...\n");
+// 
+//     double eps = 1e-14;
+//     double deps;
+// 
+//     for (int e = 0; e < ne; ++e) {
+//         for (int j = 0; j < nfe; ++j) {
+//             int fid = f[j + nfe * e];
+//             if (fid < 0) continue;
+// 
+//             int k = fid;
+//             if (curvedboundary[k] != 1) continue;
+// 
+//             const char* expr_str = fd_exprs[k];
+//             double x=0, y=0, z=0;
+// 
+//             te_parser tep;
+//             tep.set_variables_and_functions({{"x", &x}, {"y", &y}, {"z", &z}});
+// 
+//             /* This will compile the expression and check for errors. */
+//             auto result = tep.evaluate(expr_str);
+// 
+//             if (!tep.success()) {
+//                 /* Show the user where the error is at. */
+//                 std::cout << "\t " << std::setfill(' ') <<
+//                 std::setw(tep.get_last_error_position()) << '^' <<"\tError near here\n";      
+//                 error("TinyExpr Failure");
+//             }
+// 
+// //             te_variable vars[] = { {"x", &x}, {"y", &y}, {"z", &z} };
+// //             int err;
+// //             te_expr* expr = te_compile(expr_str, vars, nd, &err);
+// //             if (!expr) {
+// //                 fprintf(stderr, "TinyExpr compile error at %d for expression: %s\n", err, expr_str);
+// //                 continue;
+// //             }
+// 
+//             // collect coordinates: p[npts][nd]
+//             int npts = npf;
+//             double* p = (double*) malloc(sizeof(double) * npts * nd);
+//             for (int i = 0; i < npts; ++i) {
+//                 int idx = perm[i + npf * j];
+//                 for (int d = 0; d < nd; ++d)
+//                     p[i + npts * d] = dgnodes[idx + npe * (d + nd * e)];
+//             }
+// 
+//             // estimate deps
+//             double pmax = -1e20, pmin = 1e20;
+//             for (int i = 0; i < npts * nd; ++i) {
+//                 if (p[i] > pmax) pmax = p[i];
+//                 if (p[i] < pmin) pmin = p[i];
+//             }
+//             deps = sqrt(eps) * (pmax - pmin);
+// 
+//             // evaluate distance function 
+//             double* d = (double*) malloc(sizeof(double) * npts);
+//             for (int i = 0; i < npts; ++i) {
+//                 x = (nd > 0) ? p[i + npts * 0] : 0;
+//                 y = (nd > 1) ? p[i + npts * 1] : 0;
+//                 z = (nd > 2) ? p[i + npts * 2] : 0;
+//                 //d[i] = te_eval(expr);
+//                 d[i] = tep.evaluate(expr_str);
+//             }
+// 
+//             // evaluate finite-difference gradients
+//             double* dgrad = (double*) malloc(sizeof(double) * npts * nd);
+//             for (int ddir = 0; ddir < nd; ++ddir) {
+//                 for (int i = 0; i < npts; ++i)
+//                     p[i + npts * ddir] += deps;
+// 
+//                 for (int i = 0; i < npts; ++i) {
+//                     x = (nd > 0) ? p[i + npts * 0] : 0;
+//                     y = (nd > 1) ? p[i + npts * 1] : 0;
+//                     z = (nd > 2) ? p[i + npts * 2] : 0;
+//                     //double dshift = te_eval(expr);
+//                     double dshift = tep.evaluate(expr_str);
+//                     dgrad[i + npts * ddir] = (dshift - d[i]) / deps;
+//                 }
+// 
+//                 for (int i = 0; i < npts; ++i)
+//                     p[i + npts * ddir] -= deps;
+//             }
+// 
+//             // project points onto the boundary
+//             for (int i = 0; i < npts; ++i) {
+//                 double sumsq = 0;
+//                 for (int ddir = 0; ddir < nd; ++ddir)
+//                     sumsq += dgrad[i + npts * ddir] * dgrad[i + npts * ddir];
+//                 if (sumsq == 0) sumsq = 1;
+//                 for (int ddir = 0; ddir < nd; ++ddir)
+//                     p[i + npts * ddir] -= (d[i] * dgrad[i + npts * ddir]) / sumsq;
+//             }
+// 
+//             // update dgnodes
+//             for (int i = 0; i < npts; ++i) {
+//                 int idx = perm[i + npf * j];
+//                 for (int ddir = 0; ddir < nd; ++ddir)
+//                     dgnodes[idx + npe * (ddir + nd * e)] = p[i + npts * ddir];
+//             }
+// 
+//             CPUFREE(d);
+//             CPUFREE(dgrad);
+//             CPUFREE(p);
+//         }
+//     }
+// 
+//     //std::cout << "Finished project_dgnodes_onto_curved_boundaries.\n";
+// }
 
 Mesh initializeMesh(InputParams& params, PDE& pde)
 {    
@@ -1061,6 +1189,72 @@ Mesh initializeMesh(InputParams& params, PDE& pde)
     return mesh;
 }
 
+#ifdef HAVE_MPI
+
+Mesh initializeParMesh(const InputParams& params, const ParsedSpec& spec, PDE& pde, MPI_Comm comm) 
+{
+    Mesh mesh;
+    readParMeshFromFile(make_path(pde.datapath, pde.meshfile), mesh, comm);                       
+    mesh.boundaryConditions = params.boundaryConditions;
+    mesh.curvedBoundaries = params.curvedBoundaries;
+    mesh.periodicBoundaries1 = params.periodicBoundaries1;
+    mesh.periodicBoundaries2 = params.periodicBoundaries2;
+    mesh.cartGridPart = params.cartGridPart;
+    mesh.interfaceConditions = params.interfaceConditions;
+        
+    assignVectorToCharArray(params.boundaryExprs, &mesh.boundaryExprs);
+    assignVectorToCharArray(params.curvedBoundaryExprs, &mesh.curvedBoundaryExprs);
+    assignVectorToCharArray(params.periodicExprs1, &mesh.periodicExprs1);
+    assignVectorToCharArray(params.periodicExprs2, &mesh.periodicExprs2);
+        
+    mesh.nbndexpr = params.boundaryExprs.size();
+    mesh.nbcm = params.boundaryConditions.size();
+    mesh.nprdexpr = params.periodicBoundaries1.size();    
+    mesh.nprdcom = (mesh.nprdexpr == 0) ? 0 : params.periodicExprs1.size()/mesh.nprdexpr;
+    if (mesh.nbndexpr != mesh.nbcm) 
+        error("boundaryconditions and boundaryexpressions are not the same size. Exiting.\n");
+                    
+    ensure_dir(pde.datainpath);
+    ensure_dir(pde.dataoutpath);
+    
+    for (const auto& vec : spec.vectors) {
+        const std::string& name = vec.first;
+        int size = vec.second;
+        if (name == "uhat") pde.ncu = size;
+        if (name == "v") pde.ncv = size;
+        if (name == "w") pde.ncw = size;
+        if (name == "uq") pde.nc = size;        
+    }
+        
+    mesh.dim = mesh.nd;
+    pde.nve = mesh.nve; pde.np = mesh.np_global; pde.ne = mesh.ne_global; pde.elemtype = mesh.elemtype;                
+    pde.nd = mesh.dim; pde.ncx = mesh.dim;
+    if (pde.model=="ModelC" || pde.model=="modelC") {
+        pde.wave = 0;
+        pde.nc = pde.ncu;
+    } else if (pde.model=="ModelD" || pde.model=="modelD") {     
+        pde.wave = 0;
+        pde.nc = (pde.ncu)*(pde.nd+1);
+    } else if (pde.model=="ModelW" || pde.model=="modelW") {
+        pde.tdep = 1;
+        pde.wave = 1;
+        pde.nc = (pde.ncu)*(pde.nd+1);
+    }
+    pde.ncq = pde.nc - pde.ncu;
+    pde.nch  = pde.ncu;        
+
+    for (int i=0; i<spec.functions.size(); i++) {
+        if (spec.functions[i].name == "VisScalars") pde.nsca = spec.functions[i].outputsize;
+        if (spec.functions[i].name == "VisVectors") pde.nvec = spec.functions[i].outputsize/pde.nd;
+        if (spec.functions[i].name == "VisTensors") pde.nten = spec.functions[i].outputsize/(pde.nd*pde.nd);
+        if (spec.functions[i].name == "QoIboundary") pde.nsurf = spec.functions[i].outputsize;
+        if (spec.functions[i].name == "QoIvolume") pde.nvqoi = spec.functions[i].outputsize;
+    }
+  
+    return mesh;
+}
+
+#endif
 
 #endif
 

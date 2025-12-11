@@ -91,10 +91,11 @@ int main(int argc, char* argv[])
     spec.modelpath = make_path(pde.exasimpath, "/backend/Model/");
     spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
     
-    Mesh mesh = initializeMesh(params, pde);        
-    Master master = initializeMaster(pde, mesh);                            
-        
-    writeBinaryFiles(pde, mesh, master, spec);
+    if (pde.gendatain == 1) {
+      Mesh mesh = initializeMesh(params, pde);        
+      Master master = initializeMaster(pde, mesh);                                    
+      writeBinaryFiles(pde, mesh, master, spec);
+    }
     
 #ifdef USE_CMAKE
     if (pde.gencode==1) generateCppCode(spec);

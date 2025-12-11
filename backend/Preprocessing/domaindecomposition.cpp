@@ -52,19 +52,21 @@
 #ifndef __DOMAINDECOMPOSITION
 #define __DOMAINDECOMPOSITION
 
-struct DMD {
-    std::vector<int> nbsd;                  // neighbors    
-    std::vector<std::vector<int>> elemrecv; // each row: [sender, recv_local_idx, sender_global_idx]
-    std::vector<std::vector<int>> elemsend; // each row: [receiver, send_local_idx, recv_global_idx]
-    std::vector<int> elempart;              // local element IDs in the partition
-    std::vector<int> elem2cpu;              // processor ID for each element in the partition
-    std::vector<int> elemsendpts;           // number of elements sent to each neighbor
-    std::vector<int> elemrecvpts;           // number of elements received from each neighbor
-    std::vector<int> elempartpts;           // partition sizes: [interior, interface, exterior]
-    std::vector<int> intepartpts;           // optional: [interior, interface1, interface2, exterior]
-//     std::vector<int> inte;                  // processor ID for each element in the partition
-//     std::vector<int> intl;                  // processor ID for each element in the partition
-};
+// struct DMD {
+//     std::vector<int> nbsd;                  // neighbors    
+//     std::vector<std::vector<int>> elemrecv; // each row: [sender, recv_local_idx, sender_global_idx]
+//     std::vector<std::vector<int>> elemsend; // each row: [receiver, send_local_idx, recv_global_idx]
+//     std::vector<int> elempart;              // local element IDs in the partition
+//     std::vector<int> elem2cpu;              // processor ID for each element in the partition
+//     std::vector<int> elemsendpts;           // number of elements sent to each neighbor
+//     std::vector<int> elemrecvpts;           // number of elements received from each neighbor
+//     std::vector<int> elempartpts;           // partition sizes: [interior, interface, exterior]
+//     std::vector<int> intepartpts;           // optional: [interior, interface1, interface2, exterior]
+//     std::vector<int> nbinfo;                // neighboring information 
+//     int numneigh;                           // number of neighbors 
+// //     std::vector<int> inte;                  // processor ID for each element in the partition
+// //     std::vector<int> intl;                  // processor ID for each element in the partition
+// };
 
 DMD initializeDMD(const PDE& pde, const Mesh& mesh)
 {              
@@ -142,7 +144,8 @@ void create_elemsend(std::vector<DMD>& dmd)
         for (int j = 0; j < dmd[i].nbsd.size(); ++j) {
             int k = dmd[i].nbsd[j];
 
-            std::vector<std::vector<int>> tm;
+            //std::vector<std::vector<int>> tm;
+            std::vector<std::array<int, 3>> tm;
             tm.reserve(dmd[i].elemrecv.size());
             for (const auto& row : dmd[i].elemrecv) {
                 if (row[0] == k) tm.push_back(row);
@@ -172,13 +175,20 @@ void create_elemsend(std::vector<DMD>& dmd)
         for (int j = 0; j < dmd[i].nbsd.size(); ++j) {
             int n = dmd[i].nbsd[j];
 
+            // dmd[i].elemsendpts[j] = std::count_if(
+            //     dmd[i].elemsend.begin(), dmd[i].elemsend.end(),
+            //     [n](const std::vector<int>& row) { return row[0] == n; });
+            // 
+            // dmd[i].elemrecvpts[j] = std::count_if(
+            //     dmd[i].elemrecv.begin(), dmd[i].elemrecv.end(),
+            //     [n](const std::vector<int>& row) { return row[0] == n; });
             dmd[i].elemsendpts[j] = std::count_if(
                 dmd[i].elemsend.begin(), dmd[i].elemsend.end(),
-                [n](const std::vector<int>& row) { return row[0] == n; });
-
+                [n](const std::array<int, 3>& row) { return row[0] == n; });
+            
             dmd[i].elemrecvpts[j] = std::count_if(
                 dmd[i].elemrecv.begin(), dmd[i].elemrecv.end(),
-                [n](const std::vector<int>& row) { return row[0] == n; });
+                [n](const std::array<int, 3>& row) { return row[0] == n; });
         }
     }
 }

@@ -186,3 +186,4 @@ examples/RANS/naca0012/nacap3M04Re100.png
 /examples/NavierStokes/nshtorion/ns
 examples/Poisson/poisson3d/xdg.bin
 /text2code/ParMETIS/build
+/metis/preprocessing/build

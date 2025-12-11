@@ -66,14 +66,14 @@
 #ifndef __MAKEMASTER
 #define __MAKEMASTER
 
-struct Master 
-{    
-    vector<double> xpe, gpe, gwe, xpf, gpf, gwf; // shapegwdotshapeg, shapfgwdotshapfg;
-    vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
-    vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
-    vector<int>  telem, tface, perm, permind; 
-    int nd, npe, npf, nge, ngf, porder, pgauss, nfe, elemtype, nodetype, nve, nvf, np1d, ng1d, npermind;
-};
+// struct Master 
+// {    
+//     vector<double> xpe, gpe, gwe, xpf, gpf, gwf; // shapegwdotshapeg, shapfgwdotshapfg;
+//     vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
+//     vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
+//     vector<int>  telem, tface, perm, permind; 
+//     int nd, npe, npf, nge, ngf, porder, pgauss, nfe, elemtype, nodetype, nve, nvf, np1d, ng1d, npermind;
+// };
 
 // int index4D(int i, int j, int k, int l, const vector<int>& shape) {
 //     // Column-major indexing: idx = i + j*n1 + k*n1*n2 + l*n1*n2*n3
@@ -1016,12 +1016,12 @@ int permindex(vector<int>& permind, const double* plocfc, int npf, int dim, int 
     return ncols_out;
 }
 
-Master initializeMaster(PDE& pde, Mesh& mesh)
+Master initializeMaster(PDE& pde, Mesh& mesh, int rank=0)
 {    
     Master master;
     
-    std::string fn1 = make_path(pde.exasimpath, "/text2code/text2code/masternodes.bin");
-    std::string fn2 = make_path(pde.exasimpath, "/text2code/text2code/gaussnodes.bin");
+    std::string fn1 = make_path(pde.exasimpath, "/backend/Preprocessing/masternodes.bin");
+    std::string fn2 = make_path(pde.exasimpath, "/backend/Preprocessing/gaussnodes.bin");
     
     masternodes(master.xpe, master.telem, master.xpf, master.tface, master.perm, pde.porder, mesh.dim, mesh.elemtype, fn1);     
     gaussnodes(master.gpe, master.gwe, pde.pgauss, mesh.dim, mesh.elemtype, fn2); 
@@ -1140,7 +1140,7 @@ Master initializeMaster(PDE& pde, Mesh& mesh)
     localbasis(master.phielem.data(), master.phiface.data(), master.xpe.data(), master.xpf.data(), master.nd, master.elemtype, master.npe, master.npf);    
     master.npermind = permindex(master.permind, master.xpf.data(), master.npf, master.nd, master.elemtype);              
     
-    std::cout << "Finished initializing Master.\n";
+    if (rank == 0) std::cout << "Finished initializing Master.\n";
            
     return master;
 }
