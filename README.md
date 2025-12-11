@@ -57,7 +57,7 @@ cd Exasim/text2code
 make text2code
 ``` 
 
-Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. 
+Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python preprocessing. 
 
 ### Build Exasim Executables
 
