@@ -72,6 +72,8 @@ EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Si
 
 ## Examples
 
+Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in **Exasim/apps** and **Exasim/examples** to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, linear elasticity, nonlinear elasticity, Euler equations, Navier-Stokes equations, and MHD equations. The directory **Exasim/apps** include examples that use Text2Code to generate C++ source code from a text file. The directory **Exasim/examples** include examples that use Matlab, Julia, or Python to generate C++ source code. 
+
 ### Exasim/apps
 
 To run any example in the directory **Exasim/apps**, open a terminal and perform the following commands
@@ -89,9 +91,7 @@ where N is the number of processors. Make sure to set MPI and GPU environment va
 
 ### Exasim/examples
 
-Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, linear elasticity, nonlinear elasticity, Euler equations, Navier-Stokes equations, and MHD equations.   
-
-To run any example with Julia, type the following line and hit return
+To run any example in the directory **Exasim/examples** with Julia, type the following line and hit return
 
 ```
    julia> include("pdeapp.jl")
