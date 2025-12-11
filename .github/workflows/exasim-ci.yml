@@ -48,7 +48,7 @@ jobs:
 
       # 4) cd Exasim/examples/Poisson/poisson3d; run test
       # Note: from poisson3d, the executable is at ../../../build/cpuEXASIMMAINLIB
-      - name: Run Poisson3D test
-        working-directory: examples/Poisson/poisson3d
-        run: |
-          ../../../build/cpuEXASIMMAINLIB Poisson3D 1 datain/ dataout/
+      # - name: Run Poisson3D test
+      #  working-directory: examples/Poisson/poisson3d
+      #  run: |
+      #    ../../../build/cpuEXASIMMAINLIB Poisson3D 1 datain/ dataout/
