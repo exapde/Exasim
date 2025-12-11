@@ -1070,7 +1070,12 @@ struct solstruct {
     #endif
     dstype *elemg=nullptr;
     dstype *faceg=nullptr;
-    dstype *xdgint=nullptr;        
+    dstype *xdgint=nullptr;   
+    // dstype *udgint=nullptr;  
+    // dstype *odgint=nullptr;  
+    // dstype *wdgint=nullptr;   
+    // dstype *uhint=nullptr;  
+    // dstype *nlint=nullptr;  
     dstype *elemfaceg=nullptr;        
     //dstype *udgg=nullptr;
     dstype *sdgg=nullptr;
@@ -1084,13 +1089,13 @@ struct solstruct {
     
     Int szxdg=0, szxcg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
     Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
-    Int szudgavg=0, szwsrc=0, szwdual=0, szxdgint=0;
+    Int szudgavg=0, szwsrc=0, szwdual=0, szxdgint=0, szudgint=0, szwdgint=0, szodgint=0;
 
     int sizeofint() {return 0;}
     int sizeoffloat() {
       int sz = szxdg + szxcg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
                szelemfaceg + szsdgg + szodgg + szog1 + szog2 + szudgavg + 
-               szwsrc + szwdual + szxdgint;
+               szwsrc + szwdual + szxdgint + szudgint + szodgint + szwdgint;
       return sz;
     }
 
@@ -1105,6 +1110,9 @@ struct solstruct {
       printf("size of wdg: %d\n", szwdg);
       printf("size of uh: %d\n", szuh);
       printf("size of xdgint: %d\n", szxdgint);
+      // printf("size of udgint: %d\n", szudgint);
+      // printf("size of wdgint: %d\n", szwdgint);
+      // printf("size of odgint: %d\n", szodgint);
       printf("size of elemg: %d\n", szelemg);
       printf("size of faceg: %d\n", szfaceg);
       printf("size of elemfaceg: %d\n", szelemfaceg);

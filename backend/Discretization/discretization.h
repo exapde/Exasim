@@ -110,8 +110,16 @@ public:
     void DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend);
     void DG2CG2(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend);
     void DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend);
-};
 
+    Int getFacesOnInterface(Int **faces, Int boundarycondition);    
+    void getDGNodesOnInterface(dstype* xdgint, Int* faces, Int nfaces);
+    void getUDGOnInterface(dstype* udgint, Int* faces, Int nfaces);
+    void getWDGOnInterface(dstype* wdgint, Int* faces, Int nfaces);
+    void getODGOnInterface(dstype* odgint, Int* faces, Int nfaces);
+    void getUHATOnInterface(dstype* uhint, Int* faces, Int nfaces);
+    void getNormalVectorOnInterface(dstype* nlint, dstype* xdgint, Int* faces, Int nfaces);
+    void getFieldsAtGaussPointsOnInterface(dstype* xdg, dstype* xdgint, Int* faces, Int nfaces, Int ncx);
+};
 
 #endif        
 

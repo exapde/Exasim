@@ -266,6 +266,8 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
         sol.szxdgint = ncx*npf*common.nintfaces;                
         //print2darray(sol.xdgint, npf*common.nintfaces, ncx);
       }
+      
+      // GetBoudaryNodes(xdgb.data(), &sol.xdg[0], &mesh.boufaces[start], mesh.perm, nfe, npf, npe, ncx, ncx, nfaces);
 
       if (common.mpiRank==0) 
         printf("Maximum number of boundary conditions = %d \n", maxbc);        
@@ -846,6 +848,81 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
         // make it a CG field and store in res.Ru
         ArrayDG2CG(&ucg[i*common.ndofucg], utm, mesh.cgent2dgent, mesh.rowent2elem, common.ndofucg);
     }
+}
+
+Int CDiscretization::getFacesOnInterface(Int **faces, Int boundarycondition)
+{
+    int nintfaces = getinterfacefaces(mesh.bf, common.eblks, common.nbe, common.nfe, boundarycondition);
+    int *intfaces = nullptr; 
+    TemplateMalloc(&intfaces, nintfaces, 0);
+
+    getinterfacefaces(intfaces, mesh.bf, common.eblks, common.nbe, common.nfe, boundarycondition, common.nintfaces);
+
+    TemplateMalloc(faces, common.nintfaces, common.backend);
+    TemplateCopytoDevice(*faces, intfaces, common.nintfaces, common.backend);                           
+
+    CPUFREE(intfaces);
+
+    return nintfaces;
+}
+
+void CDiscretization::getDGNodesOnInterface(dstype* xdgint, Int* faces, Int nfaces)
+{
+    // npf * nfaces * ncx
+    GetBoudaryNodes(xdgint, sol.xdg, faces, mesh.perm, common.nfe, 
+                  common.npf, common.npe, common.ncx, common.ncx, nfaces);
+}
+
+void CDiscretization::getUDGOnInterface(dstype* udgint, Int* faces, Int nfaces)
+{
+    GetBoudaryNodes(udgint, sol.udg, faces, mesh.perm, common.nfe, 
+                  common.npf, common.npe, common.nc, common.nc, nfaces);
+}
+
+void CDiscretization::getWDGOnInterface(dstype* wdgint, Int* faces, Int nfaces)
+{
+    GetBoudaryNodes(wdgint, sol.wdg, faces, mesh.perm, common.nfe, 
+                  common.npf, common.npe, common.ncw, common.ncw, nfaces);
+}
+
+void CDiscretization::getODGOnInterface(dstype* odgint, Int* faces, Int nfaces)
+{
+    GetBoudaryNodes(odgint, sol.odg, faces, mesh.perm, common.nfe, 
+                  common.npf, common.npe, common.nco, common.nco, nfaces);
+}
+
+void CDiscretization::getUHATOnInterface(dstype* uhint, Int* faces, Int nfaces)
+{
+    GetBoudaryNodes(uhint, sol.uh, faces, mesh.elemcon, common.nfe, 
+                  common.npf, common.ncu, nfaces);
+}
+
+void CDiscretization::getNormalVectorOnInterface(dstype* nlint, dstype* xdgint, Int* faces, Int nfaces)
+{  
+    Int nd = common.nd; 
+    Int npf = common.npf; 
+    Int nn = npf*nfaces; 
+    Int ncx = common.ncx;    
+    Int n2 = 0;    // jac
+    Int n3 = nn;   // Jg
+  
+    if (nd==1) {
+        FaceGeom1D(&tmp.tempn[n2], nlint, xdgint, nn);    
+    }
+    else if (nd==2){
+        Node2Gauss(common.cublasHandle, &tmp.tempn[n3], xdgint, &master.shapfnt[npf*npf], npf, npf, nfaces*nd, common.backend);                
+        FaceGeom2D(&tmp.tempn[n2], nlint, &tmp.tempn[n3], nn);
+    }
+    else if (nd==3) {
+        Node2Gauss(common.cublasHandle, &tmp.tempn[n3], xdgint, &master.shapfnt[npf*npf], npf, npf, nfaces*nd, common.backend);                     
+        Node2Gauss(common.cublasHandle, &tmp.tempn[n3+nn*nd], xdgint, &master.shapfnt[2*npf*npf], npf, npf, nfaces*nd, common.backend);                
+        FaceGeom3D(&tmp.tempn[n2], nlint, &tmp.tempn[n3], nn);
+    }
+}
+
+void CDiscretization::getFieldsAtGaussPointsOnInterface(dstype* xdg, dstype* xdgint, Int* faces, Int nfaces, Int ncx)
+{
+    Node2Gauss(common.cublasHandle, xdg, xdgint, master.shapfgt, common.ngf, common.npf, nfaces*ncx, common.backend);    
 }
 
 #endif        
