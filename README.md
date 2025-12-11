@@ -64,7 +64,7 @@ Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Py
 After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
 cd Exasim/build
-cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -D WITH_TEXT2CODE=ON ../install 
+cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -D WITH_TEXT2CODE=ON -D WITH_PARMETIS=ON ../install 
 cmake --build .
 ``` 
 
