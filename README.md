@@ -23,6 +23,7 @@ To deploy, compile, and run Exasim on **HPC systems**, please follow the intruct
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
 
+# Build Kokkos Libaries
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform:
 ```
 cd Exasim/kokkos   
@@ -40,13 +41,27 @@ cd Exasim/kokkos
 make -f Makefile.builds hip   
 ```
 
+# Build Metis and ParMetis Libraries
+
+To build Metis and ParMetis libaries:
+```
+cd Exasim/metis
+make metis
+```
+
+# Build Text2Code Executable
+
 To use Text2Code as a code generator and preprocessor in Exasim:
 ```
 cd Exasim/text2code
 make text2code
 ``` 
 
-Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. After installing Text2Code successfully, please procceed installing Exasim as follows
+Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. 
+
+# Build Exasim Executables
+
+After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
 cd Exasim/build
 cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -D WITH_TEXT2CODE=ON ../install 
