@@ -19,11 +19,11 @@ After downloading the source code, please make sure that the name of the folder 
 
 To deploy, compile, and run Exasim on **HPC systems**, please follow the intructions in [the hpc manual](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
 
-# Installation 
+## Installation 
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
 
-## Build Kokkos Libaries
+### Build Kokkos Libaries
 Since Exasim uses Kokkos to target various computing platforms, you must build Kokkos libraries before using Exasim. To build Kokkos serial library for CPU platform:
 ```
 cd Exasim/kokkos   
@@ -41,7 +41,7 @@ cd Exasim/kokkos
 make -f Makefile.builds hip   
 ```
 
-## Build Metis and ParMetis Libraries
+### Build Metis and ParMetis Libraries
 
 To build Metis and ParMetis libaries:
 ```
@@ -49,7 +49,7 @@ cd Exasim/metis
 make metis
 ```
 
-## Build Text2Code Executable
+### Build Text2Code Executable
 
 To use Text2Code as a code generator and preprocessor in Exasim:
 ```
@@ -59,7 +59,7 @@ make text2code
 
 Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python at runtime. 
 
-## Build Exasim Executables
+### Build Exasim Executables
 
 After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
@@ -70,7 +70,7 @@ cmake --build .
 
 EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. It will produce Exasim's executable programs in Exasim/build, which are **cput2cEXASIM** for CPU platform on one core, **cpumpit2cEXASIM** for CPU platform on many cores, **gput2cEXASIM** for CUDA/HIP platform on one GPU, and **gpumpit2cEXASIM** for CUDA/HIP platform on many GPUs. 
 
-# Examples
+## Examples
 
 Exasim produces C++ Code to solve a wide variety of parametrized partial differential equations from first-order, second-order elliptic, parabolic, hyperbolic PDEs, to higher-order PDEs. Many examples are provided in `Exasim/examples` to illustrate how to use Exasim for solving Poisson equation, wave equation, heat equation, advection, convection-diffusion, linear elasticity, nonlinear elasticity, Euler equations, Navier-Stokes equations, and MHD equations.   
 
@@ -107,7 +107,7 @@ mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM pdeapp.txt    (if you run on
 
 where N is the number of processors you specify in pdeapp.txt. Make sure to set MPI and GPU environment variables appropriately on your system. If there are examples that do not have pdeapp.txt and pdemodel.txt, they can be made by making use of pdeapp.m and pdemodel.m.
 
-# Publications
+## Publications
 [1] Vila-Pérez, J., Van Heyningen, R. L., Nguyen, N.-C., & Peraire, J. (2022). Exasim: Generating discontinuous Galerkin codes for numerical solutions of partial differential equations on graphics processors. SoftwareX, 20, 101212. https://doi.org/10.1016/j.softx.2022.101212
 
 [2] Hoskin, D. S., Van Heyningen, R. L., Nguyen, N. C., Vila-Pérez, J., Harris, W. L., & Peraire, J. (2024). Discontinuous Galerkin methods for hypersonic flows. Progress in Aerospace Sciences, 146, 100999. https://doi.org/10.1016/j.paerosci.2024.100999
