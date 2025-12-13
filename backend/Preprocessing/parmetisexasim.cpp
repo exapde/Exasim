@@ -554,7 +554,7 @@ void mke2e_global(int* e2e,                 // [ne * nfe], output GLOBAL neighbo
     //   print2iarray(e2n, nne, ne);
     //   print2iarray(elemGlobalID, 1, ne);
     // }
-    // MPI_Barrier(MPI_COMM_WORLD);
+    // MPI_Barrier(EXASIM_COMM_WORLD);
     // error("here");
 
     // 1. Build local neighbor connectivity

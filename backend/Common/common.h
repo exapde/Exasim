@@ -529,7 +529,7 @@ static inline void PrintErrorAndExit(const std::string& errmsg, const char* file
     int rank = 0;
 
 #ifdef HAVE_MPI
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_rank(EXASIM_COMM_WORLD, &rank);
 #endif
     
     fprintf(stderr,
@@ -543,7 +543,7 @@ static inline void PrintErrorAndExit(const std::string& errmsg, const char* file
 #ifdef HAVE_MPI
     // Abort the entire MPI job instead of trying to finalize gracefully.
     // MPI_Finalize() is unsafe after a runtime error and can hang.
-    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    MPI_Abort(EXASIM_COMM_WORLD, EXIT_FAILURE);
 #else
     exit(EXIT_FAILURE);
 #endif

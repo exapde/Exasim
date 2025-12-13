@@ -277,7 +277,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
         nsend = common.elemsendpts[n]*bsz;
         if (nsend>0) {
             MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                  MPI_COMM_WORLD, &common.requests[request_counter]);
+                  EXASIM_COMM_WORLD, &common.requests[request_counter]);
             psend += nsend;
             request_counter += 1;
         }
@@ -290,7 +290,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
         nrecv = common.elemrecvpts[n]*bsz;
         if (nrecv>0) {
             MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                  MPI_COMM_WORLD, &common.requests[request_counter]);
+                  EXASIM_COMM_WORLD, &common.requests[request_counter]);
             precv += nrecv;
             request_counter += 1;
         }
@@ -325,7 +325,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
           nsend = common.facesendpts[n]*szRi;
           if (nsend>0) {
               MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                    MPI_COMM_WORLD, &common.requests[request_counter]);
+                    EXASIM_COMM_WORLD, &common.requests[request_counter]);
               psend += nsend;
               request_counter += 1;
           }
@@ -338,7 +338,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
           nrecv = common.facerecvpts[n]*szRi;
           if (nrecv>0) {
               MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                    MPI_COMM_WORLD, &common.requests[request_counter]);
+                    EXASIM_COMM_WORLD, &common.requests[request_counter]);
               precv += nrecv;
               request_counter += 1;
           }
@@ -432,7 +432,7 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
         nsend = common.elemsendpts[n]*bsz;
         if (nsend>0) {
             MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                  MPI_COMM_WORLD, &common.requests[request_counter]);
+                  EXASIM_COMM_WORLD, &common.requests[request_counter]);
             psend += nsend;
             request_counter += 1;
         }
@@ -445,7 +445,7 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
         nrecv = common.elemrecvpts[n]*bsz;
         if (nrecv>0) {
             MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                  MPI_COMM_WORLD, &common.requests[request_counter]);
+                  EXASIM_COMM_WORLD, &common.requests[request_counter]);
             precv += nrecv;
             request_counter += 1;
         }
@@ -480,7 +480,7 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
           nsend = common.facesendpts[n]*szRi;
           if (nsend>0) {
               MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                    MPI_COMM_WORLD, &common.requests[request_counter]);
+                    EXASIM_COMM_WORLD, &common.requests[request_counter]);
               psend += nsend;
               request_counter += 1;
           }
@@ -493,7 +493,7 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
           nrecv = common.facerecvpts[n]*szRi;
           if (nrecv>0) {
               MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                    MPI_COMM_WORLD, &common.requests[request_counter]);
+                    EXASIM_COMM_WORLD, &common.requests[request_counter]);
               precv += nrecv;
               request_counter += 1;
           }
@@ -607,7 +607,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
         nsend = common.elemsendpts[n]*bsz;
         if (nsend>0) {
             MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                  MPI_COMM_WORLD, &common.requests[request_counter]);
+                  EXASIM_COMM_WORLD, &common.requests[request_counter]);
             psend += nsend;
             request_counter += 1;
         }
@@ -620,7 +620,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
         nrecv = common.elemrecvpts[n]*bsz;
         if (nrecv>0) {
             MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                  MPI_COMM_WORLD, &common.requests[request_counter]);
+                  EXASIM_COMM_WORLD, &common.requests[request_counter]);
             precv += nrecv;
             request_counter += 1;
         }
@@ -650,7 +650,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
           nsend = common.facesendpts[n]*szRi;
           if (nsend>0) {
               MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                    MPI_COMM_WORLD, &common.requests[request_counter]);
+                    EXASIM_COMM_WORLD, &common.requests[request_counter]);
               psend += nsend;
               request_counter += 1;
           }
@@ -663,7 +663,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
           nrecv = common.facerecvpts[n]*szRi;
           if (nrecv>0) {
               MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                    MPI_COMM_WORLD, &common.requests[request_counter]);
+                    EXASIM_COMM_WORLD, &common.requests[request_counter]);
               precv += nrecv;
               request_counter += 1;
           }
@@ -843,7 +843,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 //         nsend = common.elemsendpts[n]*m;
 //         if (nsend>0) {
 //             MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-//                   MPI_COMM_WORLD, &common.requests[request_counter]);
+//                   EXASIM_COMM_WORLD, &common.requests[request_counter]);
 //             psend += nsend;
 //             request_counter += 1;
 //         }
@@ -856,7 +856,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 //         nrecv = common.elemrecvpts[n]*m;
 //         if (nrecv>0) {
 //             MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-//                   MPI_COMM_WORLD, &common.requests[request_counter]);
+//                   EXASIM_COMM_WORLD, &common.requests[request_counter]);
 //             precv += nrecv;
 //             request_counter += 1;
 //         }
@@ -883,7 +883,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 //           nsend = common.facesendpts[n]*szRi;
 //           if (nsend>0) {
 //               MPI_Isend(&tmp.bufffacesend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-//                     MPI_COMM_WORLD, &common.requests[request_counter]);
+//                     EXASIM_COMM_WORLD, &common.requests[request_counter]);
 //               psend += nsend;
 //               request_counter += 1;
 //           }
@@ -896,7 +896,7 @@ void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct
 //           nrecv = common.facerecvpts[n]*szRi;
 //           if (nrecv>0) {
 //               MPI_Irecv(&tmp.bufffacerecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-//                     MPI_COMM_WORLD, &common.requests[request_counter]);
+//                     EXASIM_COMM_WORLD, &common.requests[request_counter]);
 //               precv += nrecv;
 //               request_counter += 1;
 //           }

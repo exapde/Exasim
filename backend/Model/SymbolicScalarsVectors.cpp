@@ -10,15 +10,15 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          x[i] = Expression("x"  + std::to_string(i));
     }
 
-    szmu = 11;
-    mu.resize(11);
-    for (int i = 0; i < 11; ++i) {
+    szmu = 8;
+    mu.resize(8);
+    for (int i = 0; i < 8; ++i) {
          mu[i] = Expression("mu"  + std::to_string(i));
     }
 
-    szv = 2;
-    v.resize(2);
-    for (int i = 0; i < 2; ++i) {
+    szv = 0;
+    v.resize(0);
+    for (int i = 0; i < 0; ++i) {
          v[i] = Expression("v"  + std::to_string(i));
     }
 

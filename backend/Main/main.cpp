@@ -104,6 +104,7 @@
 
 #ifdef HAVE_MPI
 #include <mpi.h>
+MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
 #endif
 
 #ifdef HAVE_TEXT2CODE
@@ -146,14 +147,17 @@ int main(int argc, char** argv)
     // Initialize the MPI environment
     MPI_Init(&argc, &argv);
 
+    // set EXASIM_COMM_WORLD
+    EXASIM_COMM_WORLD = MPI_COMM_WORLD;
+
     // Get the number of processes    
-    MPI_Comm_size(MPI_COMM_WORLD, &mpiprocs);
+    MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
 
     // Get the rank of the process
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpirank);
+    MPI_Comm_rank(EXASIM_COMM_WORLD, &mpirank);
    
     MPI_Comm shmcomm;
-    MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0,
+    MPI_Comm_split_type(EXASIM_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0,
                     MPI_INFO_NULL, &shmcomm);
     
     MPI_Comm_rank(shmcomm, &shmrank);
@@ -297,7 +301,7 @@ int main(int argc, char** argv)
           preproc.SerialPreprocessing();
         else {
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)          
-          preproc.ParallelPreprocessing(MPI_COMM_WORLD);  
+          preproc.ParallelPreprocessing(EXASIM_COMM_WORLD);  
 #endif          
         }
       }
