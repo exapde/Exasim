@@ -713,6 +713,22 @@ void FintDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, co
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
+void FextDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
+        const dstype*  odg, const dstype*  wdg, dstype* uhg, const dstype* nl, const dstype* uext, meshstruct &mesh, 
+        masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
+{
+    // HdgFext(f, f_udg, f_wdg, f_uhg, xg, udg, odg, wdg, uhg, nl, uext, app.tau, app.uinf, app.physicsparam, common.time, 
+    //           common.modelnumber, ib, nga, common.nc, common.ncu, common.nd, common.ncx, common.nco, common.ncw);
+}
+
+void FextDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
+        const dstype* nl, const dstype* uext, meshstruct &mesh, masterstruct &master, appstruct &app, 
+        solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
+{
+    // HdgFextonly(f, xg, udg, odg, wdg, uhg, nl, uext, app.tau, app.uinf, app.physicsparam, common.time, 
+    //           common.modelnumber, ib, nga, common.nc, common.ncu, common.nd, common.ncx, common.nco, common.ncw);
+}
+
 void FhatDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xg, dstype* udg, 
         const dstype*  odg, const dstype*  wdg, const dstype* uhg,  dstype* nl, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int backend)

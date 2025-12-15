@@ -1,6 +1,6 @@
 scalars t
 
-vectors x(2), uq(12), v(2), w(0), uhat(4), n(2), tau(1), mu(11), eta(0)
+vectors x(2), uq(12), v(2), w(0), uhat(4), uext(1), n(2), tau(1), mu(11), eta(0)
 
 jacobian uq, w, uhat 
 
@@ -8,7 +8,7 @@ hessian
 
 batch x, uq, v, w, uhat, n
 
-outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars, VisVectors
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Fint, Fext, Initu, VisScalars, VisVectors
 
 function Flux(x, uq, v, w, eta, mu, t)  
     output_size(f) = 8;
@@ -152,4 +152,86 @@ function VisVectors(x, uq, v, w, eta, mu, t)
   s[1] = uq[2];  
 end
 
+function HeatFlux(x, uhat, uq, v, w, eta, mu, t)  
+    output_size(f) = 2;
 
+    gam = mu[0];
+    gam1 = gam - 1.0;
+    Re = mu[1];
+    Pr = mu[2];
+    Minf = mu[3];
+    Tref = mu[9];
+    muRef = 1/Re;
+    M2 = Minf*Minf;
+    c23 = 2.0/3.0;
+    pinf = 1.0/(gam*M2);
+    Tinf = pinf/(gam-1.0);
+
+    r = uhat[0];
+    ru = uhat[1];
+    rv = uhat[2];
+    rE = uhat[3];
+    rx = uq[4];
+    rux = uq[5];
+    rvx = uq[6];
+    rEx = uq[7];
+    ry = uq[8];
+    ruy = uq[9];
+    rvy = uq[10];
+    rEy = uq[11];
+
+    av = v[0];
+
+    r1 = 1/r;
+    uv = ru*r1;
+    vv = rv*r1;
+    E = rE*r1;
+    ke = 0.5*(uv*uv+vv*vv);
+    p = gam1*(rE-r*ke);
+    h = E+p*r1;    
+
+    T = p/(gam1*r);
+    Tphys = Tref/Tinf * T;
+    Ts = 110.4;
+
+    Tr = Tphys/Tref;
+    muphys = muRef * sqrt(Tr*Tr*Tr) * (Tref + Ts)/(Tphys + Ts);    
+    fc = muphys*gam/Pr;
+
+    ux = (rux - rx*uv)*r1;
+    vx = (rvx - rx*vv)*r1;
+    kex = uv*ux + vv*vx;
+    px = gam1*(rEx - rx*ke - r*kex);
+    Tx = (px*r - p*rx)*r1*r1/gam1;
+    uy = (ruy - ry*uv)*r1;
+    vy = (rvy - ry*vv)*r1;
+    key = uv*uy + vv*vy;
+    py = gam1*(rEy - ry*ke - r*key);
+    Ty = (py*r - p*ry)*r1*r1/gam1;
+
+    f[0] = fc*Tx;
+    f[1] = fc*Ty;
+end
+
+function Fint(x, uq, v, w, uhat, n, tau, eta, mu, t)
+    output_size(fb) = 1;
+    
+    f = HeatFlux(x, uhat, uq, v, w, eta, mu, t);
+    fb[0] = f[0] * n[0] + f[1] * n[1] + tau[0]*(uq[3] - uhat[3]);      
+end
+
+function Fext(x, uq, v, w, uhat, n, uext, tau, eta, mu, t)
+    output_size(fb) = 4;
+    
+    gam = mu[0];
+    gam1 = gam - 1.0;
+    Tinf = mu[8];
+    Tref = mu[9];
+    Twall = mu[10];
+    TisoW = Twall/Tref * Tinf;    
+
+    fb[0] = uq[0] - uhat[0]; 
+    fb[1] = 0.0  - uhat[1]; 
+    fb[2] = 0.0  - uhat[2]; 
+    fb[3] = uhat[0]*uext[0] - uhat[3];               
+end

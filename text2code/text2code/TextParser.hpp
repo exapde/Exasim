@@ -29,7 +29,7 @@ struct ParsedSpec {
         "Flux", "Source", "Tdfunc", "Ubou", "Fbou", "FbouHdg",
         "Sourcew", "Output", "Monitor", "Initu", "Initq", "Inituq",
         "Initw", "Initv", "Avfield", "Fint", "EoS", "VisScalars", 
-        "VisVectors", "VisTensors", "QoIvolume", "QoIboundary"};
+        "VisVectors", "VisTensors", "QoIvolume", "QoIboundary","Fext"};
     std::vector<bool> isoutput;     
     std::string datatype = "dstype";
     std::string framework = "kokkos";

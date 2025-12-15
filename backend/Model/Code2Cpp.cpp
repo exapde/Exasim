@@ -17,6 +17,14 @@ int main()
           fname = std::string("HdgFbouonly");
           jname = std::string("HdgFbou");
         }
+        if (funcname == "Fint") {
+          fname = std::string("HdgFintonly");
+          jname = std::string("HdgFint");
+        }
+        if (funcname == "Fext") {
+          fname = std::string("HdgFextonly");
+          jname = std::string("HdgFext");
+        }
         if (funcname == "Sourcew") {
           fname = std::string("HdgSourcewonly");
           jname = std::string("HdgSourcew");
@@ -24,6 +32,48 @@ int main()
         if (funcname == "QoIboundary") { 
             ssv.func2cppfiles(f, ssv.modelpath + fname, fname + std::to_string(1), i, false);
             ssv.appendUbouFbou(ssv.modelpath + fname, fname, 1);
+        }
+        else if (funcname == "Fint") { 
+          int szf = f.size();
+          int nbc = 1;
+          for (int n = 0; n < nbc; ++n) {
+            std::vector<Expression> g(szf);
+            for (int m = 0; m < szf; ++m) {
+              g[m] = f[m + n * szf];
+            }
+            if (n==0) {
+               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, false);
+               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, false);
+            } else {
+               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, append);
+               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, append);
+            }
+            if (n==nbc-1) {
+               ssv.appendUbouFbou(ssv.modelpath + fname, fname, nbc);
+               if (funcname == "Fint") ssv.appendFbouHdg(ssv.modelpath + jname, jname, nbc);
+            }
+          }
+        }
+        else if (funcname == "Fext") { 
+          int szf = f.size();
+          int nbc = 1;
+          for (int n = 0; n < nbc; ++n) {
+            std::vector<Expression> g(szf);
+            for (int m = 0; m < szf; ++m) {
+              g[m] = f[m + n * szf];
+            }
+            if (n==0) {
+               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, false);
+               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, false);
+            } else {
+               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, append);
+               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, append);
+            }
+            if (n==nbc-1) {
+               ssv.appendFextonly(ssv.modelpath + fname, fname, nbc);
+               if (funcname == "Fext") ssv.appendFext(ssv.modelpath + jname, jname, nbc);
+            }
+          }
         }
         else if ((funcname == "Ubou") || (funcname == "Fbou") || (funcname == "FbouHdg")) { 
           int szf = f.size();

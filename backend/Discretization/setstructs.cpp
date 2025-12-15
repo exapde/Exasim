@@ -86,6 +86,8 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     else
         common.ncs = 0; // steady-state problem
         
+    common.ncuext = 0;
+  
     common.nd = master.ndims[0];     // spatial dimension    
     common.elemtype = master.ndims[1]; 
     common.nodetype = master.ndims[2]; 

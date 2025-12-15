@@ -73,6 +73,14 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "          fname = std::string(\"HdgFbouonly\");\n";
     os << "          jname = std::string(\"HdgFbou\");\n";
     os << "        }\n";
+    os << "        if (funcname == \"Fint\") {\n"; 
+    os << "          fname = std::string(\"HdgFintonly\");\n";
+    os << "          jname = std::string(\"HdgFint\");\n";
+    os << "        }\n";  
+    os << "        if (funcname == \"Fext\") {\n"; 
+    os << "          fname = std::string(\"HdgFextonly\");\n";
+    os << "          jname = std::string(\"HdgFext\");\n";
+    os << "        }\n";    
     os << "        if (funcname == \"Sourcew\") {\n"; 
     os << "          fname = std::string(\"HdgSourcewonly\");\n";
     os << "          jname = std::string(\"HdgSourcew\");\n";
@@ -81,7 +89,48 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "            ssv.func2cppfiles(f, ssv.modelpath + fname, fname + std::to_string(1), i, false);\n";
     os << "            ssv.appendUbouFbou(ssv.modelpath + fname, fname, 1);\n";
     os << "        }\n";
-    //os << "        std::cout<<funcname<<\", \"<<fname<<\", \"<<jname<<std::endl;\n";    
+    os << "        else if (funcname == \"Fint\") { \n";
+    os << "          int szf = f.size();\n";    
+    os << "          int nbc = 1;\n";
+    os << "          for (int n = 0; n < nbc; ++n) {\n";
+    os << "            std::vector<Expression> g(szf);\n";        
+    os << "            for (int m = 0; m < szf; ++m) {\n";
+    os << "              g[m] = f[m + n * szf];\n";
+    os << "            }\n";
+    os << "            if (n==0) {\n";
+    os << "               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, false);\n";
+    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, false);\n";
+    os << "            } else {\n";
+    os << "               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, append);\n";
+    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, append);\n";
+    os << "            }\n";
+    os << "            if (n==nbc-1) {\n";
+    os << "               ssv.appendUbouFbou(ssv.modelpath + fname, fname, nbc);\n";
+    os << "               if (funcname == \"Fint\") ssv.appendFbouHdg(ssv.modelpath + jname, jname, nbc);\n";
+    os << "            }\n";
+    os << "          }\n";    
+    os << "        }\n";
+    os << "        else if (funcname == \"Fext\") { \n";
+    os << "          int szf = f.size();\n"; 
+    os << "          int nbc = 1;\n";
+    os << "          for (int n = 0; n < nbc; ++n) {\n";
+    os << "            std::vector<Expression> g(szf);\n";        
+    os << "            for (int m = 0; m < szf; ++m) {\n";
+    os << "              g[m] = f[m + n * szf];\n";
+    os << "            }\n";
+    os << "            if (n==0) {\n";
+    os << "               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, false);\n";
+    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, false);\n";
+    os << "            } else {\n";
+    os << "               ssv.func2cppfiles(g, ssv.modelpath + fname, fname + std::to_string(n+1), i, append);\n";
+    os << "               if (ssv.jacobianInputs[i].size() > 0) ssv.funcjac2cppfiles(g, ssv.modelpath + jname, jname + std::to_string(n+1), i, append);\n";
+    os << "            }\n";
+    os << "            if (n==nbc-1) {\n";
+    os << "               ssv.appendFextonly(ssv.modelpath + fname, fname, nbc);\n";
+    os << "               if (funcname == \"Fext\") ssv.appendFext(ssv.modelpath + jname, jname, nbc);\n";
+    os << "            }\n";
+    os << "          }\n";    
+    os << "        }\n";  
     os << "        else if ((funcname == \"Ubou\") || (funcname == \"Fbou\") || (funcname == \"FbouHdg\")) { \n";
     os << "          int szf = f.size();\n";
     os << "          int szuhat = ssv.szuhat;\n";
@@ -552,6 +601,17 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     for (const auto& [name, size] : spec.vectors) {
         os << "    int sz" << name << ";\n";
     }
+    // bool has_fint = false;    
+    // for (const auto& [name, size] : spec.vectors) {
+    //     os << "    int sz" << name << ";\n";
+    //     if (name == "fint") {
+    //         has_fint = true;
+    //     }
+    // }    
+    // if (!has_fint) {
+    //     os << "    int szfint = 0;\n";
+    // }
+
     os << "    bool exasim;\n";
     os << "\n";
         
@@ -591,6 +651,9 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     os << "    void appendUbouFbou(const std::string& filename, const std::string& funcname, int nbc);\n";
     os << "    void appendFbouHdg(const std::string& filename, const std::string& funcname, int nbc);\n";
     
+    os << "    void appendFextonly(const std::string& filename, const std::string& funcname, int nbc);\n";
+    os << "    void appendFext(const std::string& filename, const std::string& funcname, int nbc);\n";
+
     os << "};\n";
     
     os.close();  
@@ -1539,6 +1602,56 @@ void emitFbouHdg(std::ostream& os) {
     os << "}\n";
 }
 
+void emitFextonly(std::ostream& os) {
+    os << "void SymbolicScalarsVectors::appendFextonly(const std::string& filename, const std::string& funcname, int nbc) {\n";
+    os << "    std::ostringstream tmp;\n\n";
+    os << "    tmp << \"void \" << funcname << \"(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg,\\n\";\n";
+    os << "        tmp << \"           const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\\n\";\n";
+    os << "        tmp << \"           const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd,\\n\";\n";
+    os << "        tmp << \"           const int ncx, const int nco, const int ncw) {\\n\";\n\n";
+
+    os << "    for (int k = 1; k <= nbc; ++k) {\n";
+    os << "        if (k == 1)\n";
+    os << "            tmp << \"    if (ib == 1 )\\n\";\n";
+    os << "        else\n";
+    os << "            tmp << \"    else if (ib == \" << k << \" )\\n\";\n";
+    os << "        tmp << \"        \" << funcname << k << \"(f, xdg, udg, odg, wdg, uhg, nlg, uext, tau, uinf, param, time, modelnumber,\\n\";\n";
+    os << "        tmp << \"                        ng, nc, ncu, nd, ncx, nco, ncw, nc, ncu, nd, ncx);\\n\";\n";
+    os << "    }\n\n";
+    
+    os << "    tmp << \"}\\n\";\n\n";
+    
+    os << "    std::ofstream cppfile(filename + \".cpp\", std::ios::out | std::ios::app);\n";    
+    os << "    cppfile << tmp.str();\n";
+    os << "    cppfile.close();\n";
+    os << "}\n";
+}
+
+void emitFext(std::ostream& os) {
+    os << "void SymbolicScalarsVectors::appendFext(const std::string& filename, const std::string& funcname, int nbc) {\n";
+    os << "    std::ostringstream tmp;\n\n";
+    os << "    tmp << \"void \" << funcname << \"(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg,\\n\";\n";
+    os << "        tmp << \"           const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\\n\";\n";
+    os << "        tmp << \"           const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd,\\n\";\n";
+    os << "        tmp << \"           const int ncx, const int nco, const int ncw) {\\n\";\n\n";
+
+    os << "    for (int k = 1; k <= nbc; ++k) {\n";
+    os << "        if (k == 1)\n";
+    os << "            tmp << \"    if (ib == 1 )\\n\";\n";
+    os << "        else\n";
+    os << "            tmp << \"    else if (ib == \" << k << \" )\\n\";\n";
+    os << "        tmp << \"        \" << funcname << k << \"(f, f_udg, f_wdg, f_uhg, xdg, udg, odg, wdg, uhg, nlg, uext, tau, uinf, param, time, modelnumber,\\n\";\n";
+    os << "        tmp << \"                        ng, nc, ncu, nd, ncx, nco, ncw, nc, ncu, nd, ncx);\\n\";\n";
+    os << "    }\n\n";
+    
+    os << "    tmp << \"}\\n\";\n\n";
+    
+    os << "    std::ofstream cppfile(filename + \".cpp\", std::ios::out | std::ios::app);\n";    
+    os << "    cppfile << tmp.str();\n";
+    os << "    cppfile.close();\n";
+    os << "}\n";
+}
+
 void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filename) const {
     std::ofstream os(filename);
 
@@ -1565,6 +1678,10 @@ void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filenam
     emitUbouFbou(os);
     
     emitFbouHdg(os);
+
+    emitFextonly(os);
+    
+    emitFext(os);
     
     os.close();  
 }
@@ -1724,6 +1841,39 @@ void CodeGenerator::generateEmptyFintCpp(std::string modelpath) const {
     std::ofstream os2(make_path(modelpath,  "HdgFint.cpp"));
     os2 << "void HdgFint(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
     os2 << "             const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
+    os2 << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
+    os2 << "             const int nco, const int ncw)\n";
+    os2 << "{\n";
+    os2 << "}\n";
+    os2.close();        
+}
+
+void CodeGenerator::generateEmptyFextCpp(std::string modelpath) const {  
+  {
+    std::ofstream os(make_path(modelpath,  "KokkosFext.cpp"));
+    os << "void KokkosFext(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "             const dstype* uhg, const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
+    os << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
+    os << "             const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();        
+  }
+    
+  {
+    std::ofstream os(make_path(modelpath,  "HdgFextonly.cpp"));
+    os << "void HdgFextonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os << "             const dstype* uhg, const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
+    os << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
+    os << "             const int nco, const int ncw)\n";
+    os << "{\n";
+    os << "}\n";
+    os.close();        
+  }
+  
+    std::ofstream os2(make_path(modelpath,  "HdgFext.cpp"));
+    os2 << "void HdgFext(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,\n";
+    os2 << "             const dstype* uhg, const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,\n";
     os2 << "             const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx,\n";
     os2 << "             const int nco, const int ncw)\n";
     os2 << "{\n";
@@ -1891,6 +2041,8 @@ void CodeGenerator::generateLibPDEModelHpp(std::string modelpath) const {
     os << "void HdgFbouonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void HdgFint(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void HdgFintonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void HdgFext(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void HdgFextonly(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* uext, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";  
     os << "void HdgFlux(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void HdgSource(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void HdgSourcew(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
@@ -1951,6 +2103,8 @@ void CodeGenerator::generateLibPDEModelCpp(std::string modelpath) const {
     os << "#include \"HdgFbouonly.cpp\"\n";
     os << "#include \"HdgFint.cpp\"\n";
     os << "#include \"HdgFintonly.cpp\"\n";
+    os << "#include \"HdgFext.cpp\"\n";
+    os << "#include \"HdgFextonly.cpp\"\n";  
     os << "#include \"HdgSource.cpp\"\n";
     os << "#include \"HdgSourcew.cpp\"\n";
     os << "#include \"HdgSourcewonly.cpp\"\n";

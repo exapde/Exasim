@@ -1,14 +1,14 @@
 scalars t
 
-vectors x(2), uq(3), v(0), w(0), uhat(1), n(2), tau(1), mu(1), eta(0)
+vectors x(2), uq(3), v(0), w(0), uhat(1), uext(1), n(2), tau(1), mu(1), eta(0)
 
 jacobian uq, w, uhat 
 
 hessian 
 
-batch x, uq, v, w, uhat, n
+batch x, uq, v, w, uhat, n, uext
 
-outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars, VisVectors, QoIvolume, QoIboundary
+outputs Flux, Source, Tdfunc, Ubou, Fbou, Fint, Fext, FbouHdg, Initu, VisScalars, VisVectors, QoIvolume, QoIboundary
 
 function Flux(x, uq, v, w, eta, mu, t)  
   output_size(f) = 2;
@@ -78,4 +78,15 @@ function QoIboundary(x, uq, v, w, uhat, n, tau, eta, mu, t)
   output_size(fb) = 1;
   f = Flux(x, uq, v, w, eta, mu, t);  
   fb[0] = f[0]*n[0] + f[1]*n[1] + tau[0]*(uq[0]-uhat[0]);
+end
+
+function Fint(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 2;
+  fb[0] = (0-uhat[0]);
+  fb[1] = (1-uhat[0]);
+end
+
+function Fext(x, uq, v, w, uhat, n, uext, tau, eta, mu, t)
+  output_size(fb) = 1;
+  fb[0] = (uext[0]-uhat[0]);
 end

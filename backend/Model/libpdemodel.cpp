@@ -41,6 +41,8 @@ using namespace std;
 #include "HdgFbouonly.cpp"
 #include "HdgFint.cpp"
 #include "HdgFintonly.cpp"
+#include "HdgFext.cpp"
+#include "HdgFextonly.cpp"
 #include "HdgSource.cpp"
 #include "HdgSourcew.cpp"
 #include "HdgSourcewonly.cpp"

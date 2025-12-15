@@ -1071,6 +1071,7 @@ struct solstruct {
     dstype *elemg=nullptr;
     dstype *faceg=nullptr;
     dstype *xdgint=nullptr;   
+    dstype *uext = nullptr;   
     // dstype *udgint=nullptr;  
     // dstype *odgint=nullptr;  
     // dstype *wdgint=nullptr;   
@@ -1089,13 +1090,13 @@ struct solstruct {
     
     Int szxdg=0, szxcg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
     Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
-    Int szudgavg=0, szwsrc=0, szwdual=0, szxdgint=0, szudgint=0, szwdgint=0, szodgint=0;
+    Int szudgavg=0, szwsrc=0, szwdual=0, szuext=0, szxdgint=0, szudgint=0, szwdgint=0, szodgint=0;
 
     int sizeofint() {return 0;}
     int sizeoffloat() {
       int sz = szxdg + szxcg + szudg + szsdg + szodg + szwdg + szuh + szelemg + szfaceg +
                szelemfaceg + szsdgg + szodgg + szog1 + szog2 + szudgavg + 
-               szwsrc + szwdual + szxdgint + szudgint + szodgint + szwdgint;
+               szwsrc + szwdual + szuext + szxdgint + szudgint + szodgint + szwdgint;
       return sz;
     }
 
@@ -1109,6 +1110,7 @@ struct solstruct {
       printf("size of odg: %d\n", szodg);
       printf("size of wdg: %d\n", szwdg);
       printf("size of uh: %d\n", szuh);
+      printf("size of uext: %d\n", szuext);
       printf("size of xdgint: %d\n", szxdgint);
       // printf("size of udgint: %d\n", szudgint);
       // printf("size of wdgint: %d\n", szwdgint);
@@ -1138,6 +1140,7 @@ struct solstruct {
         TemplateFree(sdg, backend); // source term due to the previous solution
         TemplateFree(odg, backend); // auxilary term 
         TemplateFree(wdg, backend); // wave problem
+        TemplateFree(uext, backend); 
         TemplateFree(xdgint, backend); // spatial coordinates
       #ifdef HAVE_ENZYME                   
         TemplateFree(dudg, backend); // solution (u, q, p) 
@@ -1481,6 +1484,7 @@ struct commonstruct {
     Int ncx;// number of compoments of (xdg)
     Int ncs;// number of compoments of (sdg)
     Int nce;// number of compoments of (edg)
+    Int ncuext; // number of compoments of uext
     Int ncm;// number of compoments of PTC monitor function
     Int nsca; // number of components of scalar fields for visualization
     Int nvec; // number of components of vector fields for visualization

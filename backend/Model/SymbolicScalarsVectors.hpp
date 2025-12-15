@@ -22,6 +22,7 @@ public:
     std::vector<Expression> eta;
     std::vector<Expression> w;
     std::vector<Expression> tau;
+    std::vector<Expression> uext;
 
     // vector sizes
     int szx;
@@ -33,6 +34,7 @@ public:
     int szeta;
     int szw;
     int sztau;
+    int szuext;
     bool exasim;
 
     std::vector<bool> outputfunctions;
@@ -69,4 +71,6 @@ public:
     void initfunc2cppfiles(const std::vector<Expression> &f, const std::string filename, const std::string funcname, const int functionid, bool append, int framework);
     void appendUbouFbou(const std::string& filename, const std::string& funcname, int nbc);
     void appendFbouHdg(const std::string& filename, const std::string& funcname, int nbc);
+    void appendFextonly(const std::string& filename, const std::string& funcname, int nbc);
+    void appendFext(const std::string& filename, const std::string& funcname, int nbc);
 };

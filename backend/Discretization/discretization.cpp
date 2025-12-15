@@ -850,7 +850,7 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
     }
 }
 
-Int CDiscretization::getFacesOnInterface(Int **faces, Int boundarycondition)
+Int CDiscretization::getFacesOnInterface(Int **faces, const Int boundarycondition)
 {
     int nintfaces = getinterfacefaces(mesh.bf, common.eblks, common.nbe, common.nfe, boundarycondition);
     int *intfaces = nullptr; 
@@ -866,38 +866,38 @@ Int CDiscretization::getFacesOnInterface(Int **faces, Int boundarycondition)
     return nintfaces;
 }
 
-void CDiscretization::getDGNodesOnInterface(dstype* xdgint, Int* faces, Int nfaces)
+void CDiscretization::getDGNodesOnInterface(dstype* xdgint, const Int* faces, const Int nfaces)
 {
     // npf * nfaces * ncx
     GetBoudaryNodes(xdgint, sol.xdg, faces, mesh.perm, common.nfe, 
                   common.npf, common.npe, common.ncx, common.ncx, nfaces);
 }
 
-void CDiscretization::getUDGOnInterface(dstype* udgint, Int* faces, Int nfaces)
+void CDiscretization::getUDGOnInterface(dstype* udgint, const Int* faces, const Int nfaces)
 {
     GetBoudaryNodes(udgint, sol.udg, faces, mesh.perm, common.nfe, 
                   common.npf, common.npe, common.nc, common.nc, nfaces);
 }
 
-void CDiscretization::getWDGOnInterface(dstype* wdgint, Int* faces, Int nfaces)
+void CDiscretization::getWDGOnInterface(dstype* wdgint, const Int* faces, const Int nfaces)
 {
     GetBoudaryNodes(wdgint, sol.wdg, faces, mesh.perm, common.nfe, 
                   common.npf, common.npe, common.ncw, common.ncw, nfaces);
 }
 
-void CDiscretization::getODGOnInterface(dstype* odgint, Int* faces, Int nfaces)
+void CDiscretization::getODGOnInterface(dstype* odgint, const Int* faces, const Int nfaces)
 {
     GetBoudaryNodes(odgint, sol.odg, faces, mesh.perm, common.nfe, 
                   common.npf, common.npe, common.nco, common.nco, nfaces);
 }
 
-void CDiscretization::getUHATOnInterface(dstype* uhint, Int* faces, Int nfaces)
+void CDiscretization::getUHATOnInterface(dstype* uhint, const Int* faces, const Int nfaces)
 {
     GetBoudaryNodes(uhint, sol.uh, faces, mesh.elemcon, common.nfe, 
                   common.npf, common.ncu, nfaces);
 }
 
-void CDiscretization::getNormalVectorOnInterface(dstype* nlint, dstype* xdgint, Int* faces, Int nfaces)
+void CDiscretization::getNormalVectorOnInterface(dstype* nlint, dstype* xdgint, const Int nfaces)
 {  
     Int nd = common.nd; 
     Int npf = common.npf; 
@@ -920,9 +920,55 @@ void CDiscretization::getNormalVectorOnInterface(dstype* nlint, dstype* xdgint, 
     }
 }
 
-void CDiscretization::getFieldsAtGaussPointsOnInterface(dstype* xdg, dstype* xdgint, Int* faces, Int nfaces, Int ncx)
+void CDiscretization::getFieldsAtGaussPointsOnInterface(dstype* xdggint, dstype* xdgint, const Int nfaces, const Int ncx)
 {
-    Node2Gauss(common.cublasHandle, xdg, xdgint, master.shapfgt, common.ngf, common.npf, nfaces*ncx, common.backend);    
+    Node2Gauss(common.cublasHandle, xdggint, xdgint, master.shapfgt, common.ngf, common.npf, nfaces*ncx, common.backend);    
+}
+
+void CDiscretization::getInterfaceFluxesAtNodalPoints(dstype *flux, dstype* xdgint, dstype* nlint, const Int* faces, const Int nfaces)  
+{    
+    Int npf = common.npf;
+    dstype *udgint = &tmp.tempn[0]; // reuse tempg for udgint
+    dstype *odgint = &tmp.tempn[npf * nfaces * common.nc];
+    dstype *wdgint = &tmp.tempn[npf * nfaces * common.nc + npf * nfaces * common.nco];
+    dstype *uhint = &tmp.tempn[npf * nfaces * common.nc + npf * nfaces * common.nco + npf * nfaces * common.ncw];
+    
+    this->getUDGOnInterface(udgint, faces, nfaces);
+    this->getODGOnInterface(odgint, faces, nfaces);
+    this->getWDGOnInterface(wdgint, faces, nfaces);
+    this->getUHATOnInterface(uhint, faces, nfaces);
+    
+    FintDriver(flux, xdgint, udgint, odgint, wdgint, uhint, nlint, mesh, 
+        master, app, sol, tmp, common, nfaces*npf, 1, common.backend);        
+}
+
+void CDiscretization::getInterfaceFluxesAtGaussPoints(dstype *flux, dstype* xdggint, dstype* nlgint, const Int* faces, const Int nfaces)  
+{    
+    Int npf = common.npf;
+    Int ngf = common.ngf;
+
+    dstype *udgint = &tmp.tempn[0]; // reuse tempg for udgint
+    dstype *odgint = &tmp.tempn[npf * nfaces * common.nc];
+    dstype *wdgint = &tmp.tempn[npf * nfaces * common.nc + npf * nfaces * common.nco];
+    dstype *uhint = &tmp.tempn[npf * nfaces * common.nc + npf * nfaces * common.nco + npf * nfaces * common.ncw];
+    
+    this->getUDGOnInterface(udgint, faces, nfaces);
+    this->getODGOnInterface(odgint, faces, nfaces);
+    this->getWDGOnInterface(wdgint, faces, nfaces);
+    this->getUHATOnInterface(uhint, faces, nfaces);
+
+    dstype *udggint = &tmp.tempg[0]; // reuse tempg2 for udggint
+    dstype *odggint = &tmp.tempg[ngf * nfaces * common.nc];
+    dstype *wdggint = &tmp.tempg[ngf * nfaces * (common.nc + common.nco)];
+    dstype *uhgint = &tmp.tempg[ngf * nfaces * (common.nc + common.nco + common.ncw)];
+
+    this->getFieldsAtGaussPointsOnInterface(udggint, udggint, nfaces, common.ncu);
+    this->getFieldsAtGaussPointsOnInterface(odggint, odggint, nfaces, common.nco);
+    this->getFieldsAtGaussPointsOnInterface(wdggint, wdggint, nfaces, common.ncw);
+    this->getFieldsAtGaussPointsOnInterface(uhgint, uhgint, nfaces, common.ncu);
+    
+    FintDriver(flux, xdggint, udggint, odggint, wdggint, uhgint, nlgint, mesh, 
+        master, app, sol, tmp, common, nfaces*ngf, 1, common.backend);        
 }
 
 #endif        

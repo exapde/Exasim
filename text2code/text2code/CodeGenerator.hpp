@@ -45,6 +45,7 @@ public:
     void generateEmptyInitodgCpp(std::string modelpath) const;
     void generateEmptyAvfieldCpp(std::string modelpath) const;
     void generateEmptyFintCpp(std::string modelpath) const;    
+    void generateEmptyFextCpp(std::string modelpath) const;    
     void generateEmptyFhatCpp(std::string modelpath) const;    
     void generateEmptyUhatCpp(std::string modelpath) const;    
     void generateEmptyStabCpp(std::string modelpath) const;    

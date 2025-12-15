@@ -1,3 +1,157 @@
-void HdgFint(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+void HdgFint1(dstype* f, dstype* J1, dstype* J2, dstype* J3, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)
 {
+
+  Kokkos::parallel_for("Fint", N, KOKKOS_LAMBDA(const size_t i) {
+    dstype uq3 = uq[3*N+i];
+    dstype uq4 = uq[4*N+i];
+    dstype uq5 = uq[5*N+i];
+    dstype uq6 = uq[6*N+i];
+    dstype uq7 = uq[7*N+i];
+    dstype uq8 = uq[8*N+i];
+    dstype uq9 = uq[9*N+i];
+    dstype uq10 = uq[10*N+i];
+    dstype uq11 = uq[11*N+i];
+    dstype uhat0 = uhat[0*N+i];
+    dstype uhat1 = uhat[1*N+i];
+    dstype uhat2 = uhat[2*N+i];
+    dstype uhat3 = uhat[3*N+i];
+    dstype n0 = n[0*N+i];
+    dstype n1 = n[1*N+i];
+    dstype tau0 = tau[0];
+    dstype mu0 = mu[0];
+    dstype mu1 = mu[1];
+    dstype mu2 = mu[2];
+    dstype mu3 = mu[3];
+    dstype mu9 = mu[9];
+    dstype x0 = pow(uhat0, -2);
+    dstype x1 = 1.0*x0;
+    dstype x2 = x1*mu0;
+    dstype x3 = pow(uhat0, -3);
+    dstype x4 = pow(mu3, 6);
+    dstype x5 = pow(mu0, 3);
+    dstype x6 = pow(uhat2, 2);
+    dstype x7 = x0*x6;
+    dstype x8 = pow(uhat1, 2);
+    dstype x9 = x0*x8;
+    dstype x10 = 0.5*(x7 + x9);
+    dstype x11 = uhat3 - x10*uhat0;
+    dstype x12 = -1.0 + mu0;
+    dstype x13 = pow(x12, 3);
+    dstype x14 = x4*x5*x13*pow(x11, 3);
+    dstype x15 = sqrt(x3*x14);
+    dstype x16 = pow(mu2, -1);
+    dstype x17 = pow(mu1, -1);
+    dstype x18 = x12*x11;
+    dstype x19 = pow(mu3, 2)*mu9;
+    dstype x20 = x19*x18;
+    dstype x21 = pow(uhat0, -1);
+    dstype x22 = 1.0*x21*mu0;
+    dstype x23 = 110.4 + x22*x20;
+    dstype x24 = 110.4 + mu9;
+    dstype x25 = x24*x17*x16/x23;
+    dstype x26 = x25*x15;
+    dstype x27 = n1*x26;
+    dstype x28 = x2*x27;
+    dstype x29 = pow(x12, -1);
+    dstype x30 = x21*uhat2;
+    dstype x31 = uq8*x30;
+    dstype x32 = uq10 - x31;
+    dstype x33 = x0*x32;
+    dstype x34 = x33*uhat2;
+    dstype x35 = uq8*uhat1;
+    dstype x36 = x35*x21;
+    dstype x37 = uq9 - x36;
+    dstype x38 = x0*x37;
+    dstype x39 = x38*uhat1;
+    dstype x40 = x12*(uq11 - uq8*x10 - (x34 + x39)*uhat0);
+    dstype x41 = -uq8*x18 + x40*uhat0;
+    dstype x42 = x41*x29;
+    dstype x43 = uq4*x30;
+    dstype x44 = uq6 - x43;
+    dstype x45 = x0*x44;
+    dstype x46 = x45*uhat2;
+    dstype x47 = uq4*uhat1;
+    dstype x48 = x47*x21;
+    dstype x49 = uq5 - x48;
+    dstype x50 = x0*x49;
+    dstype x51 = x50*uhat1;
+    dstype x52 = x12*(uq7 - uq4*x10 - (x46 + x51)*uhat0);
+    dstype x53 = -uq4*x18 + x52*uhat0;
+    dstype x54 = n0*x26;
+    dstype x55 = x2*x54;
+    dstype x56 = x55*x29;
+    dstype x57 = x3*x8;
+    dstype x58 = x3*x6;
+    dstype x59 = -0.5*x7 - 0.5*x9;
+    dstype x60 = x12*uhat0;
+    dstype x61 = -x18 + x60*(x59 - (-x57 - x58)*uhat0);
+    dstype x62 = x1*uhat2;
+    dstype x63 = x62*mu0;
+    dstype x64 = x22*x26;
+    dstype x65 = x28*x29;
+    dstype x66 = 2.0*x3;
+    dstype x67 = x53*x29;
+    dstype x68 = x67*mu0;
+    dstype x69 = 0.5*(-2*x57 - 2*x58);
+    dstype x70 = 2*x3*uhat1;
+    dstype x71 = x3*uhat2;
+    dstype x72 = 2*x71;
+    dstype x73 = pow(uhat0, -4);
+    dstype x74 = uq4*x73;
+    dstype x75 = x59 - x69*uhat0;
+    dstype x76 = x75*x12;
+    dstype x77 = x4*pow(x11, 2);
+    dstype x78 = 0.5*x0*(-3*x73*x14 + 3*x3*x5*x75*x77*x13);
+    dstype x79 = x25/x15;
+    dstype x80 = n0*x79;
+    dstype x81 = x42*mu0;
+    dstype x82 = x24*x15*x17*x16/pow(x23, 2);
+    dstype x83 = n0*x82;
+    dstype x84 = x2*(-x2*x20 + x76*x22*x19);
+    dstype x85 = n1*x82;
+    dstype x86 = n1*x79;
+    dstype x87 = uq8*x73;
+    dstype x88 = x83*x53;
+    dstype x89 = 1.0*x19*pow(mu0, 2);
+    dstype x90 = x89*x73;
+    dstype x91 = x88*x90;
+    dstype x92 = 1.0*x12;
+    dstype x93 = x80*x53;
+    dstype x94 = 1.5*x77*pow(x12, 2)*pow(mu0, 4);
+    dstype x95 = x94/pow(uhat0, 6);
+    dstype x96 = x95*uhat1;
+    dstype x97 = x85*x41;
+    dstype x98 = x90*x97;
+    dstype x99 = x86*x41;
+    dstype x100 = x95*uhat2;
+    dstype x101 = x94/pow(uhat0, 5);
+    dstype x102 = x3*x89;
+
+    f[0 * N + i] = tau0*(-uhat3 + uq3) + x42*x28 + x53*x56;
+    J1[0 * N + i] = 0;
+    J1[1 * N + i] = 0;
+    J1[2 * N + i] = 0;
+    J1[3 * N + i] = tau0;
+    J1[4 * N + i] = x61*x56;
+    J1[5 * N + i] = -x55*uhat1;
+    J1[6 * N + i] = -x63*x54;
+    J1[7 * N + i] = n0*x64;
+    J1[8 * N + i] = x61*x65;
+    J1[9 * N + i] = -x28*uhat1;
+    J1[10 * N + i] = -x63*x27;
+    J1[11 * N + i] = n1*x64;
+    J3[0 * N + i] = x56*(x52 - uq4*x76 + x60*(-x46 - x51 - uq4*x69 - (x6*x74 - x70*x49 - x72*x44 + x8*x74)*uhat0)) + x65*(x40 - uq8*x76 + x60*(-x34 - x39 - uq8*x69 - (x6*x87 - x70*x37 - x72*x32 + x8*x87)*uhat0)) - x68*x66*x54 + x80*x78*x68 - x81*x66*x27 + x81*x86*x78 - x83*x84*x67 - x84*x85*x42;
+    J3[1 * N + i] = x56*(x60*(-uhat0*(x50 - x3*x47) - x1*x47) + x92*x48) + x65*(x60*(-uhat0*(x38 - x3*x35) - x1*x35) + x92*x36) + x91*uhat1 - x93*x96 + x98*uhat1 - x99*x96;
+    J3[2 * N + i] = x56*(x60*(-uhat0*(x45 - uq4*x71) - uq4*x62) + x92*x43) + x65*(x60*(-uhat0*(x33 - uq8*x71) - uq8*x62) + x92*x31) + x91*uhat2 - x93*x100 + x98*uhat2 - x99*x100;
+    J3[3 * N + i] = -tau0 - uq4*x55 - uq8*x28 - x88*x102 + x93*x101 - x97*x102 + x99*x101;
+  });
+}
+
+void HdgFint(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg,
+           const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time,
+           const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd,
+           const int ncx, const int nco, const int ncw) {
+    if (ib == 1 )
+        HdgFint1(f, f_udg, f_wdg, f_uhg, xdg, udg, odg, wdg, uhg, nlg, tau, uinf, param, time, modelnumber,
+                        ng, nc, ncu, nd, ncx, nco, ncw, nc, ncu, nd);
 }
