@@ -12,11 +12,12 @@ pde{2}.modelfile = "pdemodel2";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde{2}.platform = "cpu";         % choose this option if NVIDIA GPUs are available
-pde{2}.mpiprocs = 1;             % number of MPI processors
+pde{2}.mpiprocs = 2;             % number of MPI processors
 pde{2}.hybrid = 1;               % 0 -> LDG, 1 -> HDG
 pde{2}.debugmode = 0;
 pde{2}.nd = 2;
 pde{2}.gencode = 1;
+pde{2}.Cxxpreprocessing = 0;
 
 kappa = 0.2;
 

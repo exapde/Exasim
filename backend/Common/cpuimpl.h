@@ -730,6 +730,28 @@ void getinterfacefaces(int *intfaces, int *bf, int *eblks, int nbe, int nfe, int
     }                     
 }
 
+int getinterfacefaces(int *bf, int nfe, int ne, int ibinterface)
+{ 
+    int nintfaces = 0;
+    for (int e=0; e<ne; e++) 
+      for (int k=0; k<nfe; k++) 
+          if (bf[k + nfe*e] == ibinterface) nintfaces += 1;
+    
+    return nintfaces;
+}
+
+void getinterfacefaces(int *intfaces, int *bf, int nfe, int ne, int ibinterface, int nintfaces)
+{ 
+    for (int i=0; i<nintfaces; i++) intfaces[i] = 0;
+  
+    int m = 0;
+    for (int e=0; e<ne; e++) 
+      for (int k=0; k<nfe; k++) 
+          if (bf[k + nfe*e] == ibinterface) {
+            intfaces[m] = k + nfe*e;     // local face on that element 
+            m += 1;
+          }    
+}
 
 void getboundaryfaces(int *numbf, int *boufaces, int *bf, int *eblks, int nbe, int nfe, int maxbc, int nboufaces)
 {

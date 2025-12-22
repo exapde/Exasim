@@ -24,6 +24,7 @@ pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-8; % GMRES tolerance
 pde.ppdegree = 1;          % degree of polynomial preconditioner
 pde.RBdim = 0;
+pde.Cxxpreprocessing = 0;
 
 % create a 1D grid from 0 to 1
 [mesh.p,mesh.t] = linemesh(5);

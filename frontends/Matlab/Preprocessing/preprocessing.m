@@ -282,8 +282,13 @@ for i = 1:mpiprocs
             nfb = max(fblks(2,:)-fblks(1,:))+1;        
         else
             if coupledinterface>0
-              me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2) dmd{i}.intepartpts(3) dmd{i}.intepartpts(4)]);
-              [eblks,nbe] = mkfaceblocks(me,[0 -1 1 2],app.neb);          
+              if dmd{i}.intepartpts(2)>0
+                me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(2) dmd{i}.intepartpts(3) dmd{i}.intepartpts(4)]);
+                [eblks,nbe] = mkfaceblocks(me,[0 -1 1 2],app.neb);          
+              else
+                me = cumsum([0 dmd{i}.intepartpts(1) dmd{i}.intepartpts(3) dmd{i}.intepartpts(4)]);
+                [eblks,nbe] = mkfaceblocks(me,[0 1 2],app.neb);          
+              end
             else
               me = cumsum([0 dmd{i}.elempartpts(1) dmd{i}.elempartpts(2) dmd{i}.elempartpts(3)]);
               [eblks,nbe] = mkfaceblocks(me,[0 1 2],app.neb);          

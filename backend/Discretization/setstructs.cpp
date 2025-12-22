@@ -259,7 +259,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.ndofsdg1 = common.npe*common.ncs*common.ne1; // number of degrees of freedom of sdg    
         common.ndofodg1 = common.npe*common.nco*common.ne1; // number of degrees of freedom of odg           
         common.ndofedg1 = common.npe*common.nce*common.ne1; // number of degrees of freedom of edg           
-        
+               
         common.nbe0 = 0;
         common.nbe1 = 0;
         common.nbe2 = 0;
@@ -322,7 +322,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.ndofsdg1 = common.npe*common.ncs*common.ne; // number of degrees of freedom of sdg    
         common.ndofodg1 = common.npe*common.nco*common.ne; // number of degrees of freedom of odg                   
         common.ndofedg1 = common.npe*common.nce*common.ne; // number of degrees of freedom of edg                   
-    }            
+    }                
 }
 
 void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)

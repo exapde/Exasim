@@ -41,16 +41,31 @@ for i = 1:nproc
     bndelem = intersect(elem,intelem);  % interface elements in subdmain i
     
     % split bndelem into bndelem1 and bndelem2
-    if coupledinterface>0
-      bndelem1 = intersect(bndelem, inte);
-      bndelem2 = setdiff(bndelem, bndelem1);
-      bndelem = [bndelem1; bndelem2];
-    end
-    
+    % if coupledinterface>0
+    %   bndelem1 = intersect(bndelem, inte);
+    %   bndelem2 = setdiff(bndelem, bndelem1);
+    %   bndelem = [bndelem1; bndelem2];
+    % end
+    % bndelem1
+    % bndelem2
+    % inte'
+    % bndelem'
+    % intersect(bndelem, inte)'
+    % intersect(intelem, inte)'
+    % pause
+
     dmd{i}.elempart = [setdiff(intelem,bndelem); bndelem; extelem]; % partitions of elements
     dmd{i}.elempartpts = [length(intelem)-length(bndelem) length(bndelem) length(extelem)];    
     if coupledinterface>0
-      dmd{i}.intepartpts = [length(intelem)-length(bndelem) length(bndelem1) length(bndelem2) length(extelem)];    
+      interface = intersect(intelem, inte);      
+      part0 = union(interface, bndelem);
+      part1 = setdiff(intelem,part0);
+      part2 = setdiff(interface,bndelem);
+      part3 = intersect(interface,bndelem);
+      part4 = setdiff(bndelem, part3);
+      dmd{i}.elempart = [part1; part2; part3; part4; extelem]; 
+      dmd{i}.elempartpts = [length(intelem)-length(bndelem) length(bndelem) length(extelem)];    
+      dmd{i}.intepartpts = [length(part1) length(interface) length(intelem)-length(part1)-length(interface) length(extelem)];    
     end
     dmd{i}.elem2cpu = elem2cpu(dmd{i}.elempart);
     nelem = dmd{i}.elempartpts;

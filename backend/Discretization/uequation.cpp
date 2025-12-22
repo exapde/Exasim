@@ -732,6 +732,7 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
           dstype *Gx = res.Gi; // npf*npe*ne*ncu12*ncu
           dstype *Gy = &res.Gi[npf*npe*ncu12*ncu*ne]; // npf*npe*ne*ncu12*ncu
           
+          // ncu12*npf*npe*ncu*ne
           schurMatrixGMinvC(res.Ki, Gx, Cx, scalar, npe, ncu12, ncu, npf, 1, ne);
           schurMatrixGMinvC(res.Ki, Gy, Cy, scalar, npe, ncu12, ncu, npf, 1, ne);
           schurMatrixGintMinvE(res.Hi, Gx, Ex, scalar, npe, ncu12, ncu, npf, nfe, ne); 
@@ -1075,6 +1076,8 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         Gauss2Node(handle, Rb, fhb, master.shapfgw, ngf, npf, nfaces*ncu12, backend);                
         ArrayAXPB(res.Ri, Rb, minusone, zero, npf*nfaces*ncu12);       
                 
+        schurVectorRh(tmp.tempn, res.Ri, npf, ncu12, nfaces); 
+        ArrayCopy(res.Ri, tmp.tempn, npf*ncu12*nfaces);        
       }
     }            
 }

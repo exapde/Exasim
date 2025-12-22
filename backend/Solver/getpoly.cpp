@@ -47,8 +47,8 @@ void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int L, Int b
       MGS(handle, V, H, N, m, backend);
       return;
     }
-      
-    double h1, h2;
+
+    dstype h1=0.0, h2=0.0;
     Int M = N-L;
     for (Int k = 0; k < m; k++) {
         PDOT(handle, L, &V[m*N], inc1, &V[k*N], inc1, &h1, backend);
@@ -210,6 +210,7 @@ void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
         disc.evalMatVec(&sys.v[(j+1)*N], &sys.v[j*N], sys.u, sys.b, spatialScheme, backend);      
         prec.ApplyPreconditioner(&sys.v[(j+1)*N], sys, disc, spatialScheme, backend);            
         MGS(disc.common.cublasHandle, sys.v, &H[m1*j], N, j+1, disc.common.ndofuhatinterface, backend);
+        //MGS(disc.common.cublasHandle, sys.v, &H[m1*j], N, j+1, backend);
     }
 }
 

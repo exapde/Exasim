@@ -47,12 +47,19 @@ pde{2}.interfacefluxmap = [1];
 
 [sol,pde,mesh,master,dmd,compilerstr,runstr] = exasim(pde,mesh);
 
+for m = 1:2    
+  if pde{m}.mpiprocs > 1
+      f = facenumbering(mesh{m}.p,mesh{m}.t,1,mesh{m}.boundaryexpr,mesh{m}.periodicexpr);
+      mesh{m}.dgnodes = createdgnodes(mesh{m}.p,mesh{m}.t,f,mesh{m}.curvedboundary,mesh{m}.curvedboundaryexpr,pde{m}.porder);       
+  end                  
+end
+
 mesh{1}.porder = pde{1}.porder;
 mesh{2}.porder = pde{2}.porder;
 figure(5); clf; 
 scaplot(mesh{1},sol{1}(:,1,:),[],2,1); 
 hold on;
 scaplot(mesh{2},sol{2}(:,1,:),[],2,1); 
-axis on; axis equal; axis tight;
+axis on; axis equal; axis tight; colorbar;
 
 

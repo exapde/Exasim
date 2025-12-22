@@ -82,9 +82,9 @@ def initializepde(version):
     pde['linearsolver'] = 0;
     pde['NLiter'] = 20;
     pde['linearsolveriter'] = 200;
-    pde['GMRESrestart'] = 25;
+    pde['GMRESrestart'] = 100;
     pde['GMRESortho'] = 0;
-    pde['preconditioner'] = 0;
+    pde['preconditioner'] = 1;
     pde['precMatrixType'] = 0;
     pde['NLMatrixType'] = 0;
     pde['ppdegree'] = 0;
@@ -92,7 +92,7 @@ def initializepde(version):
     pde['tdfunc'] = 1;
     pde['source'] = 1;
     pde['matvecorder'] = 1;
-    pde['RBdim'] = 5;
+    pde['RBdim'] = 0;
     pde['saveSolFreq'] = 1;
     pde['saveSolOpt'] = 1;
     pde['timestepOffset'] = 0;

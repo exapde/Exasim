@@ -83,7 +83,7 @@ for i = 1:length(isd)
   end    
   
   % the center points for faces on the interface
-  xm{i} = reshape(mean(xdg{1},1), [nd ne])';    
+  xm{i} = reshape(mean(xdg{i},1), [nd ne])';    
 end
 
 end
@@ -159,7 +159,7 @@ for j = 1:n2
     facesend2{j} = [facesend2{j}; [i*ones(m,1) match{i,j}(:,2)]];    
     facerecv1{i} = [facerecv1{i}; [j*ones(m,1) match{i,j}(:,1)]];
     facesendpts2{j}(k) = m;
-    facerecvpts1{j}(nbintf1{i}==j) = m;
+    facerecvpts1{i}(nbintf1{i}==j) = m;
   end
 end
 

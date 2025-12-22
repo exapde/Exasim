@@ -105,6 +105,7 @@
 #ifdef HAVE_MPI
 #include <mpi.h>
 MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
+MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
 #endif
 
 #ifdef HAVE_TEXT2CODE
@@ -141,14 +142,15 @@ using namespace std;
 int main(int argc, char** argv) 
 {   
   
-    Int nummodels=1, mpiprocs=1, mpirank=0, shmrank=0, backend=0;    
+    Int nummodels=1, mpiprocs=1, mpirank=0, shmrank=0, backend=0, localprocs=1, localrank=0;    
     
 #ifdef HAVE_MPI    
     // Initialize the MPI environment
     MPI_Init(&argc, &argv);
 
-    // set EXASIM_COMM_WORLD
+    // set EXASIM_COMM_WORLD and EXASIM_COMM_LOCAL
     EXASIM_COMM_WORLD = MPI_COMM_WORLD;
+    EXASIM_COMM_LOCAL = MPI_COMM_WORLD;
 
     // Get the number of processes    
     MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
@@ -161,11 +163,6 @@ int main(int argc, char** argv)
                     MPI_INFO_NULL, &shmcomm);
     
     MPI_Comm_rank(shmcomm, &shmrank);
-#else        
-    // get number of MPI processes and MPI ranks
-    mpiprocs = 1;
-    mpirank = 0;
-    shmrank = 0;
 #endif                
       
 // #ifdef HAVE_OPENMP    
@@ -293,20 +290,18 @@ int main(int argc, char** argv)
     filein[0] = pde.datainpath + "/";
     fileout[0] = make_path(pde.dataoutpath, "out");    
     exasimpath = pde.exasimpath;  
-
-    {
-      if (pde.gendatain == 0) {
-        CPreprocessing preproc(argv[1], mpirank, mpiprocs);
-        if (mpiprocs == 1) 
-          preproc.SerialPreprocessing();
-        else {
+    
+    if (pde.gendatain == 0) {
+      CPreprocessing preproc(argv[1], mpirank, mpiprocs);
+      if (mpiprocs == 1) 
+        preproc.SerialPreprocessing();
+      else {
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)          
-          preproc.ParallelPreprocessing(EXASIM_COMM_WORLD);  
+        preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);  
 #endif          
-        }
       }
     }
-
+    
 #else      
     if (argc < 3) {
       printf("Usage: ./cppfile nummodels InputFile(s) OutputFile(s) [restart]\n");
@@ -340,8 +335,6 @@ int main(int argc, char** argv)
       return 1;
     }
     
-    //printf("%d %d %d\n", mpirank, nummodels, mpiprocs0);
-
     for (int i=0; i<nummodels; i++) {
         filein[i]  = string(argv[2*i+2]); // input files
         fileout[i]  = string(argv[2*i+3]); // output files        
@@ -366,8 +359,23 @@ int main(int argc, char** argv)
     if (mpirank==0) std::cout << "exasimpath = "<<exasimpath<<std::endl;
       
     // reset nummodels
-    if (mpiprocs0 > 0) nummodels = 1;
+    if (mpiprocs0 > 0) {
+      nummodels = 1;
+#ifdef HAVE_MPI          
+      int color = (mpirank < mpiprocs0) ? 0 : 1;
+      // split the communicator based on the color
+      MPI_Comm_split(MPI_COMM_WORLD, color, mpirank, &EXASIM_COMM_LOCAL);
+
+      // Get the number of processes    
+      MPI_Comm_size(EXASIM_COMM_LOCAL, &localprocs);
+
+      // Get the rank of the process
+      MPI_Comm_rank(EXASIM_COMM_LOCAL, &localrank);   
+#endif      
+    }
                 
+    //printf("%d %d %d %d %d %d\n", mpirank, mpiprocs, localrank, localprocs, nummodels, mpiprocs0);
+        
     Int fileoffset = 0;
     Int gpuid = 0;            
       
@@ -386,9 +394,12 @@ int main(int argc, char** argv)
           }
           else {
             fileoffset = mpiprocs0;
+            cout<<filein[1]<<endl;
+            cout<<fileout[1]<<endl;
             pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);       
           }
         }
+      
         pdemodel[i]->disc.common.nomodels = nummodels;
 
         // can move these to the constructor 

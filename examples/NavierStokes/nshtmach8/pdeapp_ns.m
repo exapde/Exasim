@@ -17,6 +17,7 @@ pde.mpiprocs = 1;              % number of MPI processors
 pde.hybrid = 1;
 pde.porder = 4;          % polynomial degree
 pde.gencode = 1;
+pde.Cxxpreprocessing = 0;
 
 mesh = mkmesh_cylns(pde.porder);
 % iso-thermal wall, supersonic outflow, supersonic inflow

@@ -10,7 +10,7 @@ pde.model = "ModelD";       % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel"; % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-pde.mpiprocs = 1;           % number of MPI processors=
+pde.mpiprocs = 8;           % number of MPI processors=
 pde.hybrid = 1;             % 0 -> LDG, 1-> HDG
 pde.debugmode = 0;
 
@@ -47,7 +47,9 @@ pde.physicsparam = [kappa, l_ref, mu_ref, E_ref, e_eps0, phi0, N0, z0, sigma0];
 % mesh = mkmesh_streamer_gmsh(porder, "streamer_380k.msh");
 % mesh0 = mkmesh_streamer_gmsh(pde.porder, "streamer_16k_fixed.msh");
 
-[p,t] = gmshcall("streamer_16k_fixed.msh", 2, 0);
+% [p,t] = gmshcall(pde, "streamer_16k_fixed.msh", 2, 0);
+[p,t] = gmsh2pt("streamer_16k_fixed.msh", 2);
+p = p'; t = t';
 
 % Normalization
 xmax = max(p(1,:));

@@ -13,10 +13,11 @@ pde{1}.modelfile = "pdemodel1";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde{1}.platform = "cpu";         % choose this option if NVIDIA GPUs are available
-pde{1}.mpiprocs = 1;              % number of MPI processors
+pde{1}.mpiprocs = 2;              % number of MPI processors
 pde{1}.hybrid = 1;
 pde{1}.porder = 4;          % polynomial degree
 pde{1}.gencode = 1;
+pde{1}.Cxxpreprocessing = 0;
 
 gam = 1.4;                      % specific heat ratio
 Re = 1.835e5;                     % Reynolds number

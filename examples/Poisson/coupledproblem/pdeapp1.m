@@ -10,9 +10,10 @@ pde{1}.Cxxpreprocessing = 0;
 
 % Choose computing platform and set number of processors
 %pde{1}.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde{1}.mpiprocs = 1;              % number of MPI processors
+pde{1}.mpiprocs = 3;              % number of MPI processors
 pde{1}.hybrid = 1;
 pde{1}.linearsolvertol = 1e-6;
+pde{1}.NLiter = 1;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde{1}.porder = 3;          % polynomial degree
@@ -20,7 +21,7 @@ pde{1}.physicsparam = 1;    % unit thermal conductivity
 pde{1}.tau = 1.0;           % DG stabilization parameter
 
 % create a grid of 8 by 8 on the unit square
-[mesh{1}.p,mesh{1}.t] = squaremesh(4,8,1,1);
+[mesh{1}.p,mesh{1}.t] = squaremesh(8,16,1,1);
 mesh{1}.p(1,:) = 0.5*mesh{1}.p(1,:);
 
 % expressions for domain boundaries

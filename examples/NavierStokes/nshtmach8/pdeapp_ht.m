@@ -17,6 +17,7 @@ pdeht.hybrid = 1;               % 0 -> LDG, 1 -> HDG
 pdeht.debugmode = 0;
 pdeht.nd = 2;
 pdeht.gencode = 1;
+pdeht.Cxxpreprocessing = 0;
 
 kappa = 0.2;
 

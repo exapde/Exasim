@@ -372,7 +372,7 @@ template <typename T> void readarrayfromfile(string filename, T **a, Int N)
     }
 }
 
-template <typename T> void readarrayfromfile(string filename, T **a, Int N, Int backend)
+template <typename T> void readarrayfromfile(string filename, T **a, Int N, Int backend, Int skip=0)
 {
     if (N>0) {
         // Open file to read
@@ -382,6 +382,12 @@ template <typename T> void readarrayfromfile(string filename, T **a, Int N, Int 
             error("Unable to open file " + filename);
         }
         
+        const std::streamoff skip_bytes = static_cast<std::streamoff>(sizeof(T)) * static_cast<std::streamoff>(skip);
+        if (skip_bytes > 0) {
+            in.seekg(skip_bytes, std::ios::beg);
+            if (!in) error("readarrayfromfile: seekg failed for " + filename);
+        }
+
         if (backend==2) { //GPU
 #ifdef  HAVE_CUDA                        
             T *a_host;            
@@ -501,5 +507,118 @@ void writeScalarField2File(string filename, double* field, Int ne, Int* ndims)
     }
     out.close();
 }
+
+#ifdef  HAVE_MPI    
+void print2iarray(const int* a,
+                  int m, int n,
+                  const std::string& msg,
+                  MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+
+        if (rank == r) {
+            std::cout << "----------------------------------------\n";
+            std::cout << "Rank " << rank << ": " << msg << "\n";
+            std::cout << "Dimensions: (" << m << " x " << n << ")\n";
+
+            for (int i = 0; i < m; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    // column-major access
+                    std::cout << std::setw(12)
+                              << a[i + j * m] << " ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::flush;
+        }
+    }
+
+    MPI_Barrier(comm);
+}
+
+void print2darray(const double* a,
+                  int m, int n,
+                  const std::string& msg,
+                  MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+
+        if (rank == r) {
+            std::cout << "----------------------------------------\n";
+            std::cout << "Rank " << rank << ": " << msg << "\n";
+            std::cout << "Dimensions: (" << m << " x " << n << ")\n";
+
+            for (int i = 0; i < m; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    // column-major access
+                    std::cout << std::setw(12)
+                              << std::setprecision(6)
+                              << std::scientific
+                              << a[i + j * m] << " ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::flush;
+        }
+    }
+
+    MPI_Barrier(comm);
+}
+
+void print3darray(const double* a,
+                  int m, int n, int p,
+                  const std::string& msg,
+                  MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    auto idx = [m, n](int i, int j, int k) -> std::size_t {
+        // column-major for 3D: i + j*m + k*m*n
+        return static_cast<std::size_t>(i)
+             + static_cast<std::size_t>(j) * static_cast<std::size_t>(m)
+             + static_cast<std::size_t>(k) * static_cast<std::size_t>(m) * static_cast<std::size_t>(n);
+    };
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+
+        if (rank == r) {
+            std::cout << "----------------------------------------\n";
+            std::cout << "Rank " << rank << ": " << msg << "\n";
+            std::cout << "Dimensions: (" << m << " x " << n << " x " << p << ")\n";
+
+            for (int k = 0; k < p; ++k) {
+                std::cout << "---- slice k = " << k << " ----\n";
+                for (int i = 0; i < m; ++i) {
+                    for (int j = 0; j < n; ++j) {
+                        std::cout << std::setw(12)
+                                  << std::setprecision(6)
+                                  << std::scientific
+                                  << a[idx(i, j, k)] << " ";
+                    }
+                    std::cout << "\n";
+                }
+            }
+
+            std::cout << std::flush;
+        }
+    }
+
+    MPI_Barrier(comm);
+}
+
+#endif
 
 #endif

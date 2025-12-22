@@ -498,6 +498,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, I
             //CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             if (orthogMethod == 0)
                 MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, disc.common.ndofuhatinterface, backend);
+                //MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, backend);
             else
                 CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             

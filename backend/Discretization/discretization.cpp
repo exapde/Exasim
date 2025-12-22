@@ -251,10 +251,12 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
       common.maxnbc = maxbc;      
       
       if (common.coupledboundarycondition>0) {
-        common.nintfaces = getinterfacefaces(mesh.bf, common.eblks, nbe, nfe, common.coupledboundarycondition);
+        //common.nintfaces = getinterfacefaces(mesh.bf, common.eblks, nbe-1, nfe, common.coupledboundarycondition);
+        common.nintfaces = getinterfacefaces(mesh.bf, nfe, common.ne1, common.coupledboundarycondition);
         int *intfaces = nullptr; // store interface faces
         TemplateMalloc(&intfaces, common.nintfaces, 0);
-        getinterfacefaces(intfaces, mesh.bf, common.eblks, nbe, nfe, common.coupledboundarycondition, common.nintfaces);
+        //getinterfacefaces(intfaces, mesh.bf, common.eblks, nbe-1, nfe, common.coupledboundarycondition, common.nintfaces);
+        getinterfacefaces(intfaces, mesh.bf, nfe, common.ne1, common.coupledboundarycondition, common.nintfaces);
         TemplateMalloc(&mesh.intfaces, common.nintfaces, common.backend);
         TemplateCopytoDevice(mesh.intfaces, intfaces, common.nintfaces, common.backend);                       
         mesh.szintfaces = common.nintfaces;
@@ -263,8 +265,7 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
         
         TemplateMalloc(&sol.xdgint, ncx*npf*common.nintfaces, common.backend);
         GetBoudaryNodes(sol.xdgint, sol.xdg, mesh.intfaces, mesh.perm, nfe, npf, npe, ncx, ncx, common.nintfaces);
-        sol.szxdgint = ncx*npf*common.nintfaces;                
-        //print2darray(sol.xdgint, npf*common.nintfaces, ncx);
+        sol.szxdgint = ncx*npf*common.nintfaces;                 
       }
       
       // GetBoudaryNodes(xdgb.data(), &sol.xdg[0], &mesh.boufaces[start], mesh.perm, nfe, npf, npe, ncx, ncx, nfaces);
@@ -335,7 +336,7 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
         TemplateMalloc(&res.Ki, res.szKi, backend);
         TemplateMalloc(&res.Hi, res.szHi, backend);
       }
-      
+           
       if (common.mpiRank==0) 
         printf("Memory allocation ...\n");        
 
@@ -705,7 +706,7 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
         nsend = common.elemsendpts[n]*bsz;
         if (nsend>0) {
             MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                   EXASIM_COMM_WORLD, &common.requests[request_counter]);
+                   EXASIM_COMM_LOCAL, &common.requests[request_counter]);
             psend += nsend;
             request_counter += 1;
         }
@@ -718,7 +719,7 @@ void CDiscretization::evalAVfield(dstype* avField, Int backend)
         nrecv = common.elemrecvpts[n]*bsz;
         if (nrecv>0) {
             MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                   EXASIM_COMM_WORLD, &common.requests[request_counter]);
+                   EXASIM_COMM_LOCAL, &common.requests[request_counter]);
             precv += nrecv;
             request_counter += 1;
         }
@@ -763,7 +764,7 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
         nsend = common.elemsendpts[n]*bsz;
         if (nsend>0) {
             MPI_Isend(&tmp.buffsend[psend], nsend, MPI_DOUBLE, neighbor, 0,
-                   EXASIM_COMM_WORLD, &common.requests[request_counter]);
+                   EXASIM_COMM_LOCAL, &common.requests[request_counter]);
             psend += nsend;
             request_counter += 1;
         }
@@ -776,7 +777,7 @@ void CDiscretization::evalOutput(dstype* output, Int backend)
         nrecv = common.elemrecvpts[n]*bsz;
         if (nrecv>0) {
             MPI_Irecv(&tmp.buffrecv[precv], nrecv, MPI_DOUBLE, neighbor, 0,
-                   EXASIM_COMM_WORLD, &common.requests[request_counter]);
+                   EXASIM_COMM_LOCAL, &common.requests[request_counter]);
             precv += nrecv;
             request_counter += 1;
         }
@@ -852,11 +853,11 @@ void CDiscretization::DG2CG3(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, I
 
 Int CDiscretization::getFacesOnInterface(Int **faces, const Int boundarycondition)
 {
-    int nintfaces = getinterfacefaces(mesh.bf, common.eblks, common.nbe, common.nfe, boundarycondition);
+    int nintfaces = getinterfacefaces(mesh.bf, common.nfe, common.ne1, boundarycondition);
     int *intfaces = nullptr; 
     TemplateMalloc(&intfaces, nintfaces, 0);
 
-    getinterfacefaces(intfaces, mesh.bf, common.eblks, common.nbe, common.nfe, boundarycondition, common.nintfaces);
+    getinterfacefaces(intfaces, mesh.bf, common.nfe, common.ne1, boundarycondition, common.nintfaces);
 
     TemplateMalloc(faces, common.nintfaces, common.backend);
     TemplateCopytoDevice(*faces, intfaces, common.nintfaces, common.backend);                           

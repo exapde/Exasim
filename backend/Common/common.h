@@ -1843,7 +1843,7 @@ struct commonstruct {
         }        
       }
       
-      if (nnbsd > 1) {
+      if (nnbsd >= 1) {
         printf("nbsd array: %d by %d\n", 1, nnbsd);
         for (int i=0; i<nnbsd; i++)
           printf("%d  ", nbsd[i]);
