@@ -1,11 +1,19 @@
-#include "KokkosInitu1.cpp"
-#include "KokkosInitu2.cpp"
-
-void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne)
+void KokkosInitu(dstype* f, const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int ncx, const int nce, const int npe, const int ne)
 {
-	if (modelnumber == 1)
-		KokkosInitu1(f, xdg, uinf, param, modelnumber, ng, ncx, nce, npe, ne);
-	else if (modelnumber == 2)
-		KokkosInitu2(f, xdg, uinf, param, modelnumber, ng, ncx, nce, npe, ne);
+
+  Kokkos::parallel_for("Initu", N, KOKKOS_LAMBDA(const size_t i) {
+    int p = i%npe; 
+    int e = i/npe; 
+    dstype mu4 = mu[4];
+    dstype mu5 = mu[5];
+    dstype mu6 = mu[6];
+    dstype mu7 = mu[7];
+
+
+    f[p+npe*0 +npe*nce*e] = mu4;
+    f[p+npe*1 +npe*nce*e] = mu5;
+    f[p+npe*2 +npe*nce*e] = mu6;
+    f[p+npe*3 +npe*nce*e] = mu7;
+  });
 }
 

@@ -13,6 +13,7 @@ pde.modelfile = "pdemodel";   % name of a file defining the PDE model
 pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;             % number of MPI processors
 pde.hybrid = 1;               % 0 -> LDG, 1 -> HDG
+pde.Cxxpreprocessing = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;               % polynomial degree
@@ -80,7 +81,7 @@ mesh.boundaryexpr = {@(p) abs(p(1))<1e-8, @(p) abs(p(1)-1<1e-8)};
 
 mesh.boundarycondition = [1;2]; %set boundary condition for each boundary
 
-pde.gencode = 0;
+pde.gencode = 1;
 % call exasim to generate and run C++ code to solve the PDE model
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 

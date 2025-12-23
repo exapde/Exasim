@@ -2769,8 +2769,8 @@ DMD initializeDMD(Mesh& mesh, const Master& master, const PDE& pde, MPI_Comm com
         if (rank==0) std::cout << "Finished computing dgnodes.\n";
     }     
     else 
-      readParFieldFromBinaryFile(pde.xdgfile, mesh.elemGlobalID, mesh.xdg, mesh.xdgdims);
-          
+      readParFieldFromBinaryFile(make_path(pde.datapath, pde.xdgfile), mesh.elemGlobalID, mesh.xdg, mesh.xdgdims);
+            
     setperiodicfaces(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.p.data(),    
         mesh.elemGlobalID.data(), mesh.periodicBoundaries1.data(), mesh.periodicBoundaries2.data(),
         mesh.periodicExprs1, mesh.periodicExprs2, mesh.dim, mesh.nve, mesh.nvf, mesh.nfe, mesh.ne, 
@@ -2922,15 +2922,15 @@ void writesol(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& master, 
     nsize[1] = master.npe*mesh.dim*ne;
 
     if (pde.udgfile != "") {
-      readParFieldFromBinaryFile(pde.udgfile, mesh.elemGlobalID, mesh.udg, mesh.udgdims);      
+      readParFieldFromBinaryFile(make_path(pde.datapath, pde.udgfile), mesh.elemGlobalID, mesh.udg, mesh.udgdims);      
       nsize[2] = master.npe*mesh.udgdims[1]*ne;
     }
     if (pde.vdgfile != "") {
-      readParFieldFromBinaryFile(pde.vdgfile, mesh.elemGlobalID, mesh.vdg, mesh.vdgdims);   
+      readParFieldFromBinaryFile(make_path(pde.datapath, pde.vdgfile), mesh.elemGlobalID, mesh.vdg, mesh.vdgdims);   
       nsize[3] = master.npe*mesh.vdgdims[1]*ne;
     }
     if (pde.wdgfile != "") {
-      readParFieldFromBinaryFile(pde.wdgfile, mesh.elemGlobalID, mesh.wdg, mesh.wdgdims);   
+      readParFieldFromBinaryFile(make_path(pde.datapath, pde.wdgfile), mesh.elemGlobalID, mesh.wdg, mesh.wdgdims);   
       nsize[4] = master.npe*mesh.wdgdims[1]*ne;
     }
 

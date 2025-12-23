@@ -13,6 +13,7 @@ pde.modelfile = "pdemodel";   % name of a file defining the PDE model
 pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 1;             % number of MPI processors
 pde.hybrid = 1;               % 0 -> LDG, 1 -> HDG
+pde.Cxxpreprocessing = 0;
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 3;               % polynomial degree

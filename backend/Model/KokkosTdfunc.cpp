@@ -1,11 +1,13 @@
-#include "KokkosTdfunc1.cpp"
-#include "KokkosTdfunc2.cpp"
-
-void KokkosTdfunc(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
+void KokkosTdfunc(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)
 {
-	if (modelnumber == 1)
-		KokkosTdfunc1(f, xdg, udg, odg, wdg, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
-	else if (modelnumber == 2)
-		KokkosTdfunc2(f, xdg, udg, odg, wdg, uinf, param, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
+
+  Kokkos::parallel_for("Tdfunc", N, KOKKOS_LAMBDA(const size_t i) {
+
+
+    f[0 * N + i] = 1;
+    f[1 * N + i] = 1;
+    f[2 * N + i] = 1;
+    f[3 * N + i] = 1;
+  });
 }
 

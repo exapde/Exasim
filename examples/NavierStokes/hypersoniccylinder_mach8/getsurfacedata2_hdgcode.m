@@ -1,4 +1,4 @@
-function [Cp,Cf,x,Cp2d,Cf2d,x2d,Ch,Ch2d]=getsurfacedata(master,mesh,app,UDG,UH,wid,elemAvg,deltaT)
+function [Cp,Cf,x,Cp2d,Cf2d,x2d,Ch,Ch2d]=getsurfacedata2_hdgcode(master,mesh,app,UDG,UH,wid,elemAvg,deltaT)
 
     if nargin < 7; elemAvg = 0; end
     if nargin < 8; deltaT = 1; end

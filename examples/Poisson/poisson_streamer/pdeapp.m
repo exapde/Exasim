@@ -25,10 +25,9 @@ pde.pgauss = 2*pde.porder;  % gauss quad order
 pde.tau = 1.0;              % DG stabilization parameter
 pde.linearsolvertol = 1e-6; % GMRES tolerance
 pde.NLiter = 1;
-
 pde.RBdim = 0;              % reduced basis dimension for preconditioner
-pde.linearsolveriter = 1000;
-pde.GMRESrestart = 500;
+pde.linearsolveriter = 50;
+pde.GMRESrestart = 50;
 
 kappa = 1;
 l_ref = 1e-4;   % m
@@ -43,13 +42,7 @@ n_background = 1e13;    % 1/m^3
 
 %          1       2      3       4      5   6    7     8       9
 pde.physicsparam = [kappa, l_ref, mu_ref, E_ref, e_eps0, phi0, N0, z0, sigma0];
-
-% mesh = mkmesh_streamer_gmsh(porder, "streamer_380k.msh");
-% mesh0 = mkmesh_streamer_gmsh(pde.porder, "streamer_16k_fixed.msh");
-
-% [p,t] = gmshcall(pde, "streamer_16k_fixed.msh", 2, 0);
-[p,t] = gmsh2pt("streamer_16k_fixed.msh", 2);
-p = p'; t = t';
+[p,t] = gmshpt("streamer_16k_fixed.msh", 2, 0);
 
 % Normalization
 xmax = max(p(1,:));
@@ -57,15 +50,7 @@ p = p/xmax * 125;
 
 mesh.p = p;
 mesh.t = t;
-% mesh.f = mesh.f';
-% mesh.t2f = mesh.t2f';
-% mesh.fcurved = mesh.fcurved';
-% mesh.tcurved = mesh.tcurved';
-
-% mesh.boundaryexpr = [1;2;3;4]; % Set boundary condition for each boundary
-% mesh.boundaryexpr = mesh0.bndexpr;
 mesh.boundaryexpr = {@(p) abs(p(2,:))<1e-8, @(p) abs(p(1,:)-125)<1e-8, @(p) abs(p(2,:)-125)<1e-8, @(p) abs(p(1,:))<1e-8};
-%mesh.periodicexpr = [0 0 0 0];
 mesh.boundarycondition = [1;2;3;4]; % Set boundary condition for each boundary
 
 % call exasim to generate and run C++ code to solve the PDE model
@@ -74,8 +59,3 @@ mesh.porder = pde.porder;
 mesh.dgnodes = createdgnodes(mesh.p,mesh.t,mesh.f,mesh.curvedboundary,mesh.curvedboundaryexpr,pde.porder);
 figure(1); clf; scaplot(mesh,sol(:,1,:),[],2); axis on; axis equal; axis tight;
 
-% pde.platform = "cpu";
-% pde.GMRESortho = 0;
-% pde.ppdegree = 0;
-% [sol,pde,mesh] = exasim(pde,mesh);
-% return;

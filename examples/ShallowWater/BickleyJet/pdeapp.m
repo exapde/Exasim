@@ -11,7 +11,7 @@ pde.modelfile = "pdemodel2";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 %pde.platform = "gpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
+pde.mpiprocs = 4;              % number of MPI processors
 
 % Set discretization parameters, physical parameters, and solver parameters
 pde.porder = 4;          % polynomial degree
@@ -50,14 +50,14 @@ mesh.periodicexpr = {2, @(p) p(2,:), 4, @(p) p(2,:); 1, @(p) p(1,:), 3, @(p) p(1
 [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
 % generate source codes and store them in app folder
-gencode(pde); 
+kkgencode(pde); 
 
 % compile source codes to build an executable file and store it in app folder
-compilerstr = compilecode(pde);
+compilerstr = cmakecompile(pde);
 
 % % run executable file to compute solution and store it in dataout folder
 tic
-runstr = runcode(pde);
+runstr = runcode(pde, 1);
 toc
 
 % % call exasim to generate and run C++ code to solve the PDE model

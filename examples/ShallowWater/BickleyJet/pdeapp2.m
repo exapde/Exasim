@@ -54,13 +54,13 @@ pde = setcompilers(pde);
 [pde,mesh,master,dmd] = preprocessing(pde,mesh);
 
 % generate source codes and store them in app folder
-gencode(pde); 
+kkgencode(pde); 
 
 % compile source codes to build an executable file and store it in app folder
-compilerstr = compilecode(pde);
+compilerstr = cmakecompile(pde);
 
 % % run executable file to compute solution and store it in dataout folder
-runstr = runcode(pde);
+runstr = runcode(pde, 1);
 
 sol = fetchsolution(pde,master,dmd);
 sol(:,7,:,:) = sol(:,5,:,:)-sol(:,4,:,:);

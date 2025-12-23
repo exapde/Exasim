@@ -15,7 +15,7 @@ q1x = q(1);
 q2x = q(2);
 q1y = q(3);
 q2y = q(4);
-fi = [u1*q2x sym(0) u1*q2y sym(0)];
+fi = [u1 sym(0) sym(0) u2];
 fv = [mu(1)*q1x q2x mu(1)*q1y q2y];
 f = fi + fv;
 f = reshape(f,[2,2]);    
@@ -40,7 +40,7 @@ u0 = [sym(0.0); sym(0.0)];
 end
 
 function fb = fbouhdg(u, q, w, v, x, t, mu, eta, uhat, n, tau)
-fb0 = tau*(sym(0.0)-uhat(1));
+fb0 = tau*(-uhat);
 fb = [fb0; fb0];
 end
 

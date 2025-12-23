@@ -53,28 +53,28 @@ public:
     std::uint64_t types_offset  = 0;
 
 public:
-    CVisualization(const dstype* xcg, int nd_in, int np,
-                   const int* cgelcon, int npe, int ne,
-                   const int* telem,   int nce, int nverts_per_cell,
-                   int elemtype,
-                   const std::vector<std::string>& scalars,
-                   const std::vector<std::string>& vectors,
-                   const std::vector<std::string>& tensors,
-                   const std::vector<std::string>& surfaces)
-    {
-        if (np > 0) {
-            Init(xcg, nd_in, np, cgelcon, npe, ne,
-                 telem, nce, nverts_per_cell, elemtype,
-                 scalars, vectors, tensors, surfaces);            
-        }
-    }
+    // CVisualization(const dstype* xcg, int nd_in, int np,
+    //                const int* cgelcon, int npe, int ne,
+    //                const int* telem,   int nce, int nverts_per_cell,
+    //                int elemtype,
+    //                const std::vector<std::string>& scalars,
+    //                const std::vector<std::string>& vectors,
+    //                const std::vector<std::string>& tensors,
+    //                const std::vector<std::string>& surfaces)
+    // {
+    //     if (np > 0) {
+    //         Init(xcg, nd_in, np, cgelcon, npe, ne,
+    //              telem, nce, nverts_per_cell, elemtype,
+    //              scalars, vectors, tensors, surfaces);            
+    //     }
+    // }
 
     CVisualization(CDiscretization& disc, int backend) {      
         rank = disc.common.mpiRank;
         int nd_in   = disc.common.nd;
         int npoints_in = disc.sol.szxcg / nd_in;
         
-        if (npoints_in > 0) {            
+        if (npoints_in > 0 && nd_in > 1) {            
             int porder  = disc.common.porder;        
             int nsca    = disc.common.nsca;
             int nvec    = disc.common.nvec;            
@@ -357,12 +357,12 @@ private:
         tensor_names = t_names;
         surface_names = surf_names;
 
-        if (!xcg)     throw std::invalid_argument("Visualization: xcg pointer is null.");
-        if (!cgelcon) throw std::invalid_argument("Visualization: cgelcon pointer is null.");
-        if (!telem)   throw std::invalid_argument("Visualization: telem pointer is null.");
+        if (!xcg)     error("Visualization: xcg pointer is null.");
+        if (!cgelcon) error("Visualization: cgelcon pointer is null.");
+        if (!telem)   error("Visualization: telem pointer is null.");
         if (nd != 2 && nd != 3) throw std::invalid_argument("nd must be 2 or 3.");
         if (npoints < 0 || ne <= 0 || npe <= 0 || nce <= 0 || nve <= 0)
-            throw std::invalid_argument("Visualization: invalid sizes (np, ne, npe, nce, nve).");
+            error("Visualization: invalid sizes (np, ne, npe, nce, nve).");
 
         // cgnodes padded to 3D
         cgnodes.assign(3 * npoints, 0.0f);
