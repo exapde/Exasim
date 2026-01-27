@@ -654,6 +654,7 @@ struct appstruct {
     Int sztau=0, szstgdata=0, szstgparam=0, szfc_u=0, szfc_q=0, szfc_w=0;
     Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0, szavparam=0;
     Int read_uh = 0;
+    Int builtinmodelID = 0;
 
     int sizeofint() {
       int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx + szinterfacefluxmap;
@@ -1052,7 +1053,7 @@ struct solstruct {
     Int *ndims=nullptr;  // dimensions
     
     dstype *xdg=nullptr; // spatial coordinates
-    dstype *udg=nullptr; // solution (u, q, p) 
+    dstype *udg=nullptr; // solution (u, q) 
     dstype *sdg=nullptr; // source term due to the previous solution
     dstype *odg=nullptr; // auxilary term 
     dstype *wdg=nullptr; // dw/dt = u (wave problem)
@@ -1083,10 +1084,13 @@ struct solstruct {
     dstype *odgg=nullptr;
     dstype *og1=nullptr;
     dstype *og2=nullptr;    
-    dstype *udgavg=nullptr; // time-average solution (u, q, p) 
+    dstype *udgavg=nullptr; // time-average solution (u, q) 
+    dstype *bouudgavg=nullptr; 
+    dstype *bouwdgavg=nullptr; 
+    dstype *bouuhavg=nullptr; 
     dstype *wsrc=nullptr;   // source term due to the time derivative for DAE equations  
     dstype *wdual=nullptr;   // source term due to the dual time derivative for DAE equations  
-    dstype** udgarray;
+    dstype** udgarray;    
     
     Int szxdg=0, szxcg=0, szudg=0, szsdg=0, szodg=0, szwdg=0, szuh=0;
     Int szelemg=0, szfaceg=0, szelemfaceg=0, szsdgg=0, szodgg=0, szog1=0, szog2=0;
@@ -1162,6 +1166,9 @@ struct solstruct {
         TemplateFree(og1, backend);
         TemplateFree(og2, backend);     
         TemplateFree(udgavg, backend); // time-average solution (u, q, p) 
+        TemplateFree(bouudgavg, backend); 
+        TemplateFree(bouwdgavg, backend); 
+        TemplateFree(bouuhavg, backend); 
     }             
 };
 
@@ -1507,6 +1514,7 @@ struct commonstruct {
     Int coupledinterface;
     Int coupledcondition;
     Int coupledboundarycondition;
+    Int FextCall=0;
     Int isd=0; 
             
     Int ne; // number of elements
@@ -1536,6 +1544,7 @@ struct commonstruct {
     Int ndofsdg; // number of degrees of freedom of sdg
     Int ndofodg; // number of degrees of freedom of odg
     Int ndofedg; // number of degrees of freedom of edg
+    Int ndofbou=0;
     Int ntau; // length of the stabilization
     
     Int ne0;  // number of interior elements
@@ -1576,6 +1585,7 @@ struct commonstruct {
     Int tdfunc;           // time-derivative function flag
     Int source;           // source function flag
     Int modelnumber;      // model number
+    Int builtinmodelID=0; // model ID
     Int ibs;              // boundary index to save solution 
     Int saveSolBouFreq=0; // number of time steps to save the solution on the boundary
     Int compudgavg=1;     // compute time-averaged solution udg

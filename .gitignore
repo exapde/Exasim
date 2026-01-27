@@ -213,3 +213,13 @@ examples/NavierStokes/nshtmach8/plot1.m
 examples/Poisson/coupledproblem/CMakeCache.txt
 examples/Poisson/coupledproblem/cpumpiEXASIM
 examples/Poisson/coupledproblem/Makefile
+/backend/Model/BuiltIn/build
+backend/Model/BuiltIn/genmodel1.m
+backend/Model/BuiltIn/genmodel2.m
+backend/Model/BuiltIn/genmodel3.m
+backend/Model/BuiltIn/pdemodel1.m
+backend/Model/BuiltIn/pdemodel2.m
+backend/Model/BuiltIn/pdemodel3.m
+doc/ExasimonFrontier.docx
+doc/ExasimonTuolumne.docx
+doc/Gov_eq_new_compr_NS_solver_Sandberg.pdf

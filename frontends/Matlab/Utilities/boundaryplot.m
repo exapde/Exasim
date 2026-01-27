@@ -64,7 +64,7 @@ for i = 1:nf
   bf(i,:) = mesh.t(face(:,fi),ei);
 end
 
-figure(1); 
+%figure(1); 
 patch('faces',bf,'vertices',mesh.p',pars{:});                            
 
 % if opts(1)==0 % plot boundary faces using p     

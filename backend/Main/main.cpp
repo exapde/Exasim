@@ -69,6 +69,10 @@
 #define HAVE_TEXT2CODE
 #endif
 
+#if defined(HAVE_TEXT2CODE) || defined(HAVE_BUILTINMODEL)
+#define HAVE_SHARED_MODEL_LIB
+#endif
+
 #ifdef _ENZYME
 #define HAVE_ENZYME
 #endif
@@ -108,7 +112,7 @@ MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
 MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
 #endif
 
-#ifdef HAVE_TEXT2CODE
+#ifdef HAVE_SHARED_MODEL_LIB
 #include <array>
 #include <regex>
 #include <unordered_map>
@@ -134,9 +138,8 @@ using namespace std;
 #include "../Visualization/visualization.cpp"  //  visualization class
 #include "../Solution/solution.cpp"             // solution class
 
-#ifdef HAVE_TEXT2CODE
+#ifdef HAVE_SHARED_MODEL_LIB
 #include "../Preprocessing/preprocessing.cpp" // preprocessing class
-//#include "../../text2code/text2code/readpdeapp.cpp"
 #endif
 
 int main(int argc, char** argv) 
@@ -271,8 +274,9 @@ int main(int argc, char** argv)
     string exasimpath = "";  
     int mpiprocs0 = 0;
     int restart = 0;
+    int builtinmodelID=0;
 
-#ifdef HAVE_TEXT2CODE
+#ifdef HAVE_SHARED_MODEL_LIB
     if (argc < 2) {
         if (mpirank==0) std::cerr << "Usage: ./Exasim <pdeapp.txt>\n";
         return 1;
@@ -290,6 +294,7 @@ int main(int argc, char** argv)
     filein[0] = pde.datainpath + "/";
     fileout[0] = make_path(pde.dataoutpath, "out");    
     exasimpath = pde.exasimpath;  
+    builtinmodelID = pde.builtinmodelID;
     
     if (pde.gendatain == 0) {
       CPreprocessing preproc(argv[1], mpirank, mpiprocs);
@@ -386,21 +391,21 @@ int main(int argc, char** argv)
             
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);                 
+          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend, builtinmodelID);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend, builtinmodelID);       
           }
           else {
             fileoffset = mpiprocs0;
             cout<<filein[1]<<endl;
             cout<<fileout[1]<<endl;
-            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend);       
+            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend, builtinmodelID);       
           }
         }
       
-        pdemodel[i]->disc.common.nomodels = nummodels;
+        pdemodel[i]->disc.common.nomodels = nummodels;        
 
         // can move these to the constructor 
         pdemodel[i]->disc.common.ncarray = new Int[nummodels]; 
@@ -488,6 +493,8 @@ int main(int argc, char** argv)
                     ArrayAXPBY(pdemodel[i]->disc.sol.udgavg, pdemodel[i]->disc.sol.udgavg, pdemodel[i]->disc.sol.udg, one, one, pdemodel[i]->disc.common.ndofudg1);            
                     ArrayAddScalar(&pdemodel[i]->disc.sol.udgavg[pdemodel[i]->disc.common.ndofudg1], one, 1);
                 }
+
+                pdemodel[i]->disc.computeAverageSolutionsOnBoundary(); 
 
                 // save solutions into binary files                
                 pdemodel[i]->SaveSolutions(backend); 

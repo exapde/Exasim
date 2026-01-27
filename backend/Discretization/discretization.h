@@ -54,7 +54,8 @@ public:
     // solstruct hsol;
 
     // constructor for both CPU and GPU
-    CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int ompthreads, Int omprank, Int backend); 
+    CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, 
+                    Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID); 
     
     // destructor        
     ~CDiscretization(); 
@@ -121,6 +122,7 @@ public:
     void getFieldsAtGaussPointsOnInterface(dstype* xdggint, dstype* xdgint, const Int nfaces, const Int ncx);
     void getInterfaceFluxesAtNodalPoints(dstype *flux, dstype* xdgint, dstype* nlint, const Int* faces, const Int nfaces);  
     void getInterfaceFluxesAtGaussPoints(dstype *flux, dstype* xdggint, dstype* nlgint, const Int* faces, const Int nfaces);  
+    void computeAverageSolutionsOnBoundary();
 };
 
 #endif        

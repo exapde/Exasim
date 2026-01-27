@@ -522,6 +522,9 @@ PDE initializePDE(InputParams& params, int mpirank=0)
         pde.platform = params.stringParams["platform"];
     }
 
+    if (params.intParams.count("builtinmodelID")) {
+        pde.builtinmodelID = params.intParams["builtinmodelID"];
+    }
     if (params.intParams.count("gendatain")) {
         pde.gendatain = params.intParams["gendatain"];
     }

@@ -92,6 +92,7 @@ struct PDE {
     std::string uhatfile = "";
     std::string partitionfile = "";
 
+    int builtinmodelID = 0;
     int gendatain = 1;
     int gencode = 1; // 1 for code generation, 0 for no code generation
     int writemeshsol = 1; // 1 for writing mesh solution, 0 for no writing

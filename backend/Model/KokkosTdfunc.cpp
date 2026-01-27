@@ -5,9 +5,6 @@ void KokkosTdfunc(dstype* f, const dstype* x, const dstype* uq, const dstype* v,
 
 
     f[0 * N + i] = 1;
-    f[1 * N + i] = 1;
-    f[2 * N + i] = 1;
-    f[3 * N + i] = 1;
   });
 }
 

@@ -31,6 +31,7 @@ pde.cpulibflags = "";
 pde.gpulibflags = "";
 pde.pdemodel="ModelD";
 pde.modelnumber = 0;
+pde.builtinmodelID = 0;
 
 pde.Cxxpreprocessing = 1;
 pde.preprocessmode = 1;

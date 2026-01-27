@@ -46,6 +46,8 @@ pde.torder = 2;
 pde.nstage = 2;
 pde.dt = [0.005 0.01 0.02 0.04 0.06 0.08*ones(1,195)];
 pde.saveSolFreq = 4;
+pde.saveSolBouFreq = 2;
+pde.ibs = 1;
 
 % naca mesh
 mesh = mkmesh_naca0012(porder,1,3);

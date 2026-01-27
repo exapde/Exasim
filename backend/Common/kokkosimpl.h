@@ -857,6 +857,22 @@ void GetElemNodes(dstype* unView, const dstype* uView, const int np, const int n
     });
 }
 
+void GetFaceNodesHDG(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
+{
+    int nn = np * (e2 - e1);
+    int ncu = nc2 - nc1;
+    int N = nn * ncu;
+    int K = np * nc;
+
+    Kokkos::parallel_for("GetFaceNodesHDG", N, KOKKOS_LAMBDA(const size_t idx) {
+        int i = idx % nn;  // [0, np*(e2-e1)]
+        int j = idx / nn;  // [0, ncu]
+        int k = i % np;    // [0, np]
+        int e = i / np + e1;
+        unView[idx] = uView[(j + nc1) + k * nc + e * K];
+    });
+}
+
 void PutElemNodes(dstype* u, const dstype* un, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
 {
     int nn = np * (e2 - e1);

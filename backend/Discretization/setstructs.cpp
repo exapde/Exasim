@@ -87,6 +87,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
         common.ncs = 0; // steady-state problem
         
     common.ncuext = 0;
+    common.FextCall = 0;
   
     common.nd = master.ndims[0];     // spatial dimension    
     common.elemtype = master.ndims[1]; 
@@ -228,6 +229,17 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     
     if (common.nvqoi > 0) common.qoivolume = (dstype*) malloc(common.nvqoi*sizeof(dstype));
     if (common.nsurf > 0) common.qoisurface = (dstype*) malloc(common.nsurf*sizeof(dstype));
+
+    if ( common.saveSolBouFreq>0 ) {
+        common.ndofbou = 0; 
+        for (Int j=0; j<common.nbf; j++) {            
+            if (common.fblks[3*j+2] == common.ibs) {     
+                Int f1 = common.fblks[3*j]-1;
+                Int f2 = common.fblks[3*j+1];                                  
+                common.ndofbou += common.npf*(f2-f1); 
+            }
+        }                                           
+    }  
 
     common.nf0 = 0;
     for (Int j=0; j<common.nbf; j++) {
@@ -594,6 +606,12 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         sol.szudgavg = common.npe*common.nc*common.ne1+1;
     }
     
+    if (common.ndofbou>0) {
+        sol.bouudgavg = (dstype*) malloc (sizeof (dstype)*(common.ndofbou*common.nc+1));  
+        if (common.ncw > 0) sol.bouwdgavg = (dstype*) malloc (sizeof (dstype)*(common.ndofbou*common.ncw+1));  
+        sol.bouuhavg = (dstype*) malloc (sizeof (dstype)*(common.ndofbou*common.ncu+1));                
+    }
+
     // allocate memory for uh
     if (!app.read_uh) {
     sol.uh = (dstype*) malloc (sizeof (dstype)*common.npf*common.ncu*common.nf);
@@ -1083,6 +1101,12 @@ void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         TemplateMalloc(&sol.udgavg, common.npe*common.nc*common.ne1+1, common.backend);
     }
     
+    if (common.ndofbou>0) {
+        TemplateMalloc(&sol.bouudgavg, common.ndofbou*common.nc+1, common.backend);
+        if (common.ncw > 0) TemplateMalloc(&sol.bouwdgavg, common.ndofbou*common.ncw+1, common.backend);
+        TemplateMalloc(&sol.bouuhavg, common.ndofbou*common.ncu+1, common.backend);
+    }
+  
     TemplateMalloc(&sol.uh, common.npf*common.ncu*common.nf, common.backend);    
     if (common.read_uh) {
         TemplateCopytoDevice(sol.uh, hsol.uh, common.npf*common.ncu*common.nf, common.backend);

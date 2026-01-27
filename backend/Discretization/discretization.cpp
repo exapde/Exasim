@@ -56,6 +56,8 @@
 
 #ifdef HAVE_TEXT2CODE
 #include "../Model/ModelDrivers.cpp"
+#elif defined(HAVE_BUILTINMODEL)
+#include "../Model/BuiltIn/BuiltinModelDrivers.cpp"
 #else
 #include "../Model/KokkosDrivers.cpp"
 #endif
@@ -158,10 +160,12 @@ void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int ne
       
 // Both CPU and GPU constructor
 CDiscretization::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
-        Int fileoffset, Int omprank, Int backend) 
+        Int fileoffset, Int omprank, Int backend, Int builtinmodelID) 
 {
     common.backend = backend;
     common.exasimpath = exasimpath;
+    common.builtinmodelID = builtinmodelID;
+    app.builtinmodelID = builtinmodelID;
 
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        
@@ -857,10 +861,10 @@ Int CDiscretization::getFacesOnInterface(Int **faces, const Int boundaryconditio
     int *intfaces = nullptr; 
     TemplateMalloc(&intfaces, nintfaces, 0);
 
-    getinterfacefaces(intfaces, mesh.bf, common.nfe, common.ne1, boundarycondition, common.nintfaces);
+    getinterfacefaces(intfaces, mesh.bf, common.nfe, common.ne1, boundarycondition, nintfaces);
 
-    TemplateMalloc(faces, common.nintfaces, common.backend);
-    TemplateCopytoDevice(*faces, intfaces, common.nintfaces, common.backend);                           
+    TemplateMalloc(faces, nintfaces, common.backend);
+    TemplateCopytoDevice(*faces, intfaces, nintfaces, common.backend);                           
 
     CPUFREE(intfaces);
 
@@ -963,13 +967,49 @@ void CDiscretization::getInterfaceFluxesAtGaussPoints(dstype *flux, dstype* xdgg
     dstype *wdggint = &tmp.tempg[ngf * nfaces * (common.nc + common.nco)];
     dstype *uhgint = &tmp.tempg[ngf * nfaces * (common.nc + common.nco + common.ncw)];
 
-    this->getFieldsAtGaussPointsOnInterface(udggint, udggint, nfaces, common.ncu);
-    this->getFieldsAtGaussPointsOnInterface(odggint, odggint, nfaces, common.nco);
-    this->getFieldsAtGaussPointsOnInterface(wdggint, wdggint, nfaces, common.ncw);
-    this->getFieldsAtGaussPointsOnInterface(uhgint, uhgint, nfaces, common.ncu);
+    this->getFieldsAtGaussPointsOnInterface(udggint, udgint, nfaces, common.ncu);
+    this->getFieldsAtGaussPointsOnInterface(odggint, odgint, nfaces, common.nco);
+    this->getFieldsAtGaussPointsOnInterface(wdggint, wdgint, nfaces, common.ncw);
+    this->getFieldsAtGaussPointsOnInterface(uhgint, uhint, nfaces, common.ncu);
     
     FintDriver(flux, xdggint, udggint, odggint, wdggint, uhgint, nlgint, mesh, 
         master, app, sol, tmp, common, nfaces*ngf, 1, common.backend);        
+}
+
+void CDiscretization::computeAverageSolutionsOnBoundary() 
+{   
+    if ( common.saveSolBouFreq>0 ) {
+        for (Int j=0; j<common.nbf; j++) {
+            Int ib = common.fblks[3*j+2];            
+            if (ib == common.ibs) {     
+                Int f1 = common.fblks[3*j]-1;
+                Int f2 = common.fblks[3*j+1];                      
+                Int npf = common.npf; // number of nodes on master face      
+                Int npe = common.npe; // number of nodes on master face      
+                Int nf = f2-f1;
+                Int nn = npf*nf; 
+                Int nc = common.nc; // number of compoments of (u, q, p)            
+                Int ncu = common.ncu;
+                Int ncw = common.ncw;
+                GetArrayAtIndex(tmp.tempn, sol.udg, &mesh.findudg1[npf*nc*f1], nn*nc);                
+                ArrayAXPBY(sol.bouudgavg, sol.bouudgavg, tmp.tempn, one, one, nn*nc);            
+                ArrayAddScalar(&sol.bouudgavg[nn*nc], one, 1);
+              
+                if (common.spatialScheme==1)
+                  GetFaceNodesHDG(tmp.tempn, sol.uh, npf, ncu, 0, ncu, f1, f2);
+                else
+                  GetElemNodes(tmp.tempn, sol.uh, npf, ncu, 0, ncu, f1, f2);
+                ArrayAXPBY(sol.bouuhavg, sol.bouuhavg, tmp.tempn, one, one, nn*ncu);            
+                ArrayAddScalar(&sol.bouuhavg[nn*ncu], one, 1);                              
+
+                if (ncw>0) {
+                    GetFaceNodes(tmp.tempn, sol.wdg, mesh.facecon, npf, ncw, npe, ncw, f1, f2, 1);      
+                    ArrayAXPBY(sol.bouwdgavg, sol.bouwdgavg, tmp.tempn, one, one, nn*ncw);            
+                    ArrayAddScalar(&sol.bouwdgavg[nn*ncw], one, 1);                                  
+                }
+            }
+        }                                        
+    }
 }
 
 #endif        
