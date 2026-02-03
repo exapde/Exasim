@@ -23,7 +23,7 @@ pde.model = "ModelD";          % ModelC, ModelD, ModelW
 pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
-pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
+pde.platform = "cpu";          % choose this option if NVIDIA GPUs are available
 pde.mpiprocs = 8;              % number of MPI processors
 pde.hybrid = 1;
 pde.debugmode = 0;

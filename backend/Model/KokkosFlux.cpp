@@ -1,14 +1,104 @@
-void KokkosFlux(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)
+void KokkosFlux(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)
 {
-
-  Kokkos::parallel_for("Flux", N, KOKKOS_LAMBDA(const size_t i) {
-    dstype uq1 = uq[1*N+i];
-    dstype uq2 = uq[2*N+i];
-    dstype mu0 = mu[0];
-
-
-    f[0 * N + i] = uq1*mu0;
-    f[1 * N + i] = uq2*mu0;
-  });
+	Kokkos::parallel_for("Flux", ng, KOKKOS_LAMBDA(const size_t i) {
+		dstype param1 = param[0];
+		dstype param2 = param[1];
+		dstype param3 = param[2];
+		dstype param4 = param[3];
+		dstype param10 = param[9];
+		dstype xdg2 = xdg[1*ng+i];
+		dstype udg1 = udg[0*ng+i];
+		dstype udg2 = udg[1*ng+i];
+		dstype udg3 = udg[2*ng+i];
+		dstype udg4 = udg[3*ng+i];
+		dstype udg5 = udg[4*ng+i];
+		dstype udg6 = udg[5*ng+i];
+		dstype udg7 = udg[6*ng+i];
+		dstype udg8 = udg[7*ng+i];
+		dstype udg9 = udg[8*ng+i];
+		dstype udg10 = udg[9*ng+i];
+		dstype udg11 = udg[10*ng+i];
+		dstype udg12 = udg[11*ng+i];
+		dstype odg1 = odg[0*ng+i];
+		dstype t2 = param4*param4;
+		dstype t3 = udg2*udg2;
+		dstype t4 = udg3*udg3;
+		dstype t5 = 1.0/3.141592653589793;
+		dstype t6 = param1-1.0;
+		dstype t7 = 1.0/param2;
+		dstype t8 = 1.0/param3;
+		dstype t9 = 1.0/xdg2;
+		dstype t10 = udg1*4.0E+3;
+		dstype t12 = udg1-1.0/2.0E+1;
+		dstype t13 = param10+5.52E+2/5.0;
+		dstype t11 = 1.0/t6;
+		dstype t14 = t10-2.0E+2;
+		dstype t15 = atan(t14);
+		dstype t16 = t5*t15;
+		dstype t17 = t16+1.0/2.0;
+		dstype t18 = t12*t17;
+		dstype t19 = t18*4.0E+3;
+		dstype t20 = t18+7.957746988807024E-5;
+		dstype t22 = t18+5.007957746988807E-2;
+		dstype t21 = t20*t20;
+		dstype t23 = t19+3.18309879552281E-1;
+		dstype t25 = 1.0/t22;
+		dstype t24 = atan(t23);
+		dstype t26 = t25*t25;
+		dstype t27 = t25*udg4;
+		dstype t29 = t25*udg2*udg3;
+		dstype t30 = t21*1.6E+7;
+		dstype t32 = t9*t25*udg3;
+		dstype t28 = t5*t24;
+		dstype t31 = t30+1.0;
+		dstype t33 = (t3*t26)/2.0;
+		dstype t34 = (t4*t26)/2.0;
+		dstype t35 = 1.0/t31;
+		dstype t37 = t33+t34;
+		dstype t36 = t5*t23*t35;
+		dstype t38 = t22*t37;
+		dstype t41 = t28+t36+1.0/2.0;
+		dstype t43 = t6*(t38-udg4)*-4.0E+3;
+		dstype t45 = t43-8.0;
+		dstype t49 = t25*t41*udg2*udg5;
+		dstype t50 = t25*t41*udg3*udg5;
+		dstype t51 = t25*t41*udg2*udg9;
+		dstype t52 = t25*t41*udg3*udg9;
+		dstype t46 = atan(t45);
+		dstype t65 = t25*(t49-udg6)*-2.0;
+		dstype t66 = t25*(t52-udg11)*-2.0;
+		dstype t67 = t25*(t49-udg6);
+		dstype t68 = t25*(t52-udg11);
+		dstype t47 = t5*t46;
+		dstype t88 = t32+t66+t67;
+		dstype t89 = t32+t65+t68;
+		dstype t48 = t47+1.0/2.0;
+		dstype t69 = -t48*(t6*(t38-udg4)+1.0/5.0E+2);
+		dstype t70 = t48*(t6*(t38-udg4)+1.0/5.0E+2)*-4.0E+3;
+		dstype t72 = pow(t48*(t6*(t38-udg4)+1.0/5.0E+2)-7.957746988807024E-5,2.0);
+		dstype t80 = -t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3);
+		dstype t85 = -1.0/(param1*param10*t2*t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)-5.52E+2/5.0);
+		dstype t73 = t70+3.18309879552281E-1;
+		dstype t74 = t69+2.07957746988807E-3;
+		dstype t76 = t72*1.6E+7;
+		dstype t81 = param1*t2*t80;
+		dstype t86 = t27+t80;
+		dstype t75 = atan(t73);
+		dstype t78 = t76+1.0;
+		dstype t83 = pow(t81,3.0/2.0);
+		dstype t77 = t5*t75;
+		dstype t79 = 1.0/t78;
+		dstype t92 = (t7*t13*t83*(t25*(t50-udg7)+t25*(t51-udg10)))/(param1*param10*t2*t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)-5.52E+2/5.0);
+		dstype t90 = -t5*t79*(t48*(t6*(t38-udg4)+1.0/5.0E+2)*4.0E+3-3.18309879552281E-1);
+		dstype t91 = t77+t90+1.0/2.0;
+		f[0*ng+i] = udg2+odg1*t41*udg5;
+		f[1*ng+i] = t74+odg1*udg6+t3*t25-(t7*t13*t83*t89*(2.0/3.0))/(param1*param10*t2*t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)-5.52E+2/5.0);
+		f[2*ng+i] = t29+t92+odg1*udg7;
+		f[3*ng+i] = odg1*udg8+t86*udg2+t25*t92*udg3-(t7*t13*t25*t83*t89*udg2*(2.0/3.0))/(param1*param10*t2*t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)-5.52E+2/5.0)+param1*t7*t8*t11*t13*t26*t83*t85*(t41*udg5*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)+t6*t22*t91*(udg8+t22*(t26*udg2*(t49-udg6)+t26*udg3*(t50-udg7))-t37*t41*udg5));
+		f[4*ng+i] = udg3+odg1*t41*udg9;
+		f[5*ng+i] = t29+t92+odg1*udg10;
+		f[6*ng+i] = t74+odg1*udg11+t4*t25-(t7*t13*t83*t88*(2.0/3.0))/(param1*param10*t2*t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)-5.52E+2/5.0);
+		f[7*ng+i] = odg1*udg12+t86*udg3+t25*t92*udg2-(t7*t13*t25*t83*t88*udg3*(2.0/3.0))/(param1*param10*t2*t25*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)-5.52E+2/5.0)+param1*t7*t8*t11*t13*t26*t83*t85*(t41*udg9*(t48*(t6*(t38-udg4)+1.0/5.0E+2)-2.07957746988807E-3)+t6*t22*t91*(udg12+t22*(t26*udg2*(t51-udg10)+t26*udg3*(t52-udg11))-t37*t41*udg9));
+	});
 }
 
