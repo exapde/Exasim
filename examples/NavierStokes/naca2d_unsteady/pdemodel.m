@@ -6,6 +6,8 @@ pde.fbou = @fbou;
 pde.fbouhdg = @fbouhdg;
 pde.ubou = @ubou;
 pde.initu = @initu;
+pde.visscalars = @visscalars;
+pde.visvectors = @visvectors;
 end
 
 function m = mass(u, q, w, v, x, t, mu, eta)
@@ -204,4 +206,14 @@ function u0 = initu(x, mu, eta)
     u0 = sym(mu(5:8)); % freestream flow   
 end
 
+function s = visscalars(u, q, w, v, x, t, mu, eta)
+s(1) = u(1);
+s(2) = u(2)/u(1);
+s(3) = u(3)/u(1);  
+s(4) = 0.4*(u(4) - 0.5*(u(2)*s(2) + u(3)*s(3)));
+end
+
+function s = visvectors(u, q, w, v, x, t, mu, eta)
+s = u(2:3);
+end
 

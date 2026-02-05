@@ -3,6 +3,7 @@
 #include <string>
 
 #include "readbinfiles.cpp"
+#include "visualization.cpp"
 
 static void checkMatlabIndices(const std::vector<int>& i_matlab,
                                const std::vector<int>& j_matlab,

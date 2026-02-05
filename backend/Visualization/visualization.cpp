@@ -142,6 +142,10 @@ public:
                 host_alloc_backend = 0;
             }
             
+            for (int i = 0; i < npoints*nsca; i++) scafields[i] = 0.0;
+            for (int i = 0; i < 3*npoints*nvec; i++) vecfields[i] = 0.0;
+            for (int i = 0; i < ntc*npoints*nten; i++) tenfields[i] = 0.0;
+
             //cout<<ne<<"  "<<npoints<<endl;
             if (disc.common.mpiRank == 0) printf("finish CVisualization constructor... \n");    
         }        
