@@ -1,4 +1,4 @@
-function boundaryplot(mesh,ib)
+function boundaryplot(mesh,ib,colors)
 %MESHPLOT  Plot mesh structure 
 %    MESHPLOT(MESH,[OPTS])
 %
@@ -33,7 +33,15 @@ if dim < 1 || dim > 3
     error('Only can handle dim=1, dim=2 or dim=3');
 end
 
-pars={'facecolor',[.8,1,.8],'edgecolor','b','Linew',1,'FaceAlpha',1,'EdgeAlpha',1};
+if nargin < 3
+  colors = 'b';
+end
+
+if dim <= 2
+  pars={'facecolor',[.8,1,.8],'edgecolor',colors,'Linew',1,'FaceAlpha',1,'EdgeAlpha',1};
+else
+  pars={'facecolor',colors,'edgecolor','k','Linew',1,'FaceAlpha',1,'EdgeAlpha',1};
+end
 
 % if exist('hh','var')==0
 %     hh=[];

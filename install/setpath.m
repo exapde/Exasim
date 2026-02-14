@@ -6,6 +6,7 @@ addpath(char(ExasimPath + "/install"));
 addpath(char(srcdir + "/Gencode"));
 addpath(char(srcdir + "/master"));
 addpath(char(srcdir + "/Mesh"));
+addpath(char(srcdir + "/Mesh/boundaryexpressions"));
 addpath(char(srcdir + "/Mesh/mkmesh"));
 addpath(char(srcdir + "/Mesh/cmesh"));
 addpath(char(srcdir + "/Mesh/lesmesh"));
