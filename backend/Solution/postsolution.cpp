@@ -213,6 +213,8 @@ void CSolution::ReadSolutions(Int backend)
             // else
                 readarrayfromfile(filename, &disc.sol.udg, disc.common.ndofudg1, backend);        
             
+            if (disc.common.mpiRank==0) cout<<"filename = "<<filename<<endl;
+          
             if (disc.common.ncw>0) {
                 string fn = disc.common.fileout+"wdg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";                    
                 readarrayfromfile(fn, &disc.sol.wdg, disc.common.ndofw1, backend);     
@@ -293,14 +295,17 @@ void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force
        if (nsca > 0) {        
             VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
+            if (disc.common.mpiRank==0) cout<<"scafields[0] = "<<vis.scafields[0]<<endl;
        }    
        if (nvec > 0) {        
             VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
+            if (disc.common.mpiRank==0) cout<<"vecfields[0] = "<<vis.vecfields[0]<<endl;
        }
        if (nten > 0) {        
             VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
-            VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
+            VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nten);
+            if (disc.common.mpiRank==0) cout<<"tenfields[0] = "<<vis.tenfields[0]<<endl;
        }
 
        string baseName = disc.common.fileout + "vis" + fname_modifier;
@@ -310,6 +315,8 @@ void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force
            baseName = baseName + "_" + ss.str();           
        }
        
+       if (disc.common.mpiRank==0) cout<<"baseName = "<<baseName<<endl;
+
        if (disc.common.mpiProcs==1)                
             vis.vtuwrite(baseName, vis.scafields, vis.vecfields, vis.tenfields);
        else 

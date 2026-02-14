@@ -1,7 +1,7 @@
 #ifndef __POSTDISCRETIZATION
 #define __POSTDISCRETIZATION
 
-#include "discretization.h"
+#include "postdiscretization.h"
 #include "ioutilities.cpp"
 
 #include "../Model/KokkosDrivers.cpp"
@@ -14,12 +14,12 @@
 
 // Both CPU and GPU constructor
 CDiscretization::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
-        Int fileoffset, Int omprank, Int backend, Int builtinmodelID) 
+        Int fileoffset, Int omprank, Int backend, Int builtinmodelID, Int nsca, Int nvec, Int nten, Int nsurf, Int nvqoi) 
 {
     common.backend = backend;
     common.exasimpath = exasimpath;
-    common.builtinmodelID = builtinmodelID;
-    app.builtinmodelID = builtinmodelID;
+    //common.builtinmodelID = builtinmodelID;
+    //app.builtinmodelID = builtinmodelID;
 
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        
@@ -67,6 +67,11 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
                 mpiprocs, mpirank, fileoffset, omprank);    
     }
     common.read_uh = app.read_uh;
+    if (nsca > 0) common.nsca = nsca;
+    if (nvec > 0) common.nvec = nvec;
+    if (nten > 0) common.nten = nten;
+    if (nsurf > 0) common.nsurf = nsurf;
+    if (nvqoi > 0) common.nvqoi = nvqoi;     
 
     // compute the geometry quantities
     if (common.mpiRank==0) printf("start compGeometry... \n");

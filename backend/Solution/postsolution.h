@@ -59,8 +59,10 @@ public:
     ofstream outqoi;
     
     // constructor 
-    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)   
-       : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID),
+    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
+              Int fileoffset, Int omprank, Int backend, Int builtinmodelID,
+              Int nsca, Int nvec, Int nten, Int nsurf, Int nvqoi)   
+       : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID, nsca, nvec, nten, nsurf, nvqoi),
          prec(disc, backend), solv(disc, backend), vis(disc, backend) 
     {   
         int ncx = disc.common.ncx;                            

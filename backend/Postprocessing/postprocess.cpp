@@ -86,8 +86,13 @@ int main(int argc, char** argv)
     int mpiprocs0 = 0;
     int restart = 0;
     int postmode = 0;
+    int nsca = 0;
+    int nvec = 0;
+    int nten = 0;
+    int nsurf = 0;
+    int nvqoi = 0;
     int builtinmodelID=0;
-
+    
     if (argc < 3) {
       printf("Usage: ./postprocess nummodels InputFile(s) OutputFile(s) [timestep] [postmode]\n");
       return 1;
@@ -133,6 +138,46 @@ int main(int argc, char** argv)
             if (mpirank==0) std::cerr << "Invalid postmode value: " << mystr << std::endl;
             return 1;
         }
+    }    
+    if (argc >= (2*nummodels + 5)) {
+        mystr = string(argv[2*nummodels+4]);
+        try { nsca = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid nsca value: " << mystr << std::endl;
+            return 1;
+        }
+    }
+    if (argc >= (2*nummodels + 6)) {
+        mystr = string(argv[2*nummodels+5]);
+        try { nvec = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid nvec value: " << mystr << std::endl;
+            return 1;
+        }
+    }
+    if (argc >= (2*nummodels + 7)) {
+        mystr = string(argv[2*nummodels+6]);
+        try { nten = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid nten value: " << mystr << std::endl;
+            return 1;
+        }
+    }
+    if (argc >= (2*nummodels + 8)) {
+        mystr = string(argv[2*nummodels+7]);
+        try { nsurf = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid nsurf value: " << mystr << std::endl;
+            return 1;
+        }
+    }
+    if (argc >= (2*nummodels + 9)) {
+        mystr = string(argv[2*nummodels+8]);
+        try { nvqoi = stoi(mystr); }
+        catch (...) {
+            if (mpirank==0) std::cerr << "Invalid nvqoi value: " << mystr << std::endl;
+            return 1;
+        }
     }
     
     std::filesystem::path cwd = std::filesystem::current_path();
@@ -164,17 +209,23 @@ int main(int argc, char** argv)
             
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend, builtinmodelID);                 
+          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, 
+                        mpiprocs, mpirank, fileoffset, gpuid, backend, 
+                        builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend, builtinmodelID);       
+            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, 
+                              mpiprocs, mpirank, fileoffset, gpuid, backend, 
+                              builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);       
           }
           else {
             fileoffset = mpiprocs0;
             cout<<filein[1]<<endl;
             cout<<fileout[1]<<endl;
-            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, mpiprocs, mpirank, fileoffset, gpuid, backend, builtinmodelID);       
+            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, 
+                              mpiprocs, mpirank, fileoffset, gpuid, backend, 
+                              builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);       
           }
         }
       

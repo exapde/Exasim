@@ -157,6 +157,114 @@ template <typename T> void writearray2file(std::string filename, T *a, int N)
     }
 }
 
+using std::ifstream;
+using std::ios;
+using std::string;
+using std::vector;
+
+int * readiarrayfromdouble(ifstream &in, int N)
+{
+    int *a;
+    if (N>0) {      
+        a = (int*) malloc (sizeof (int)*N);
+        double read;
+        for (unsigned i = 0; i < N; i++) {
+            in.read( reinterpret_cast<char*>( &read ), sizeof read );
+            a[i] = (int) round(read);
+        }        
+    }
+    else {
+        a = nullptr;
+    }
+    return a;
+}
+
+// Helper: read and immediately free an int array of length n
+static inline void skip_iarrayfromdouble(std::ifstream& in, int n)
+{
+    if (n <= 0) return;
+    int* tmp = readiarrayfromdouble(in, n);
+    free(tmp);
+}
+
+void readelempart(const string& filename, vector<int>& elempart, vector<int>& elempartpts)
+{
+    ifstream in(filename.c_str(), ios::in | ios::binary);
+    if (!in) error("Unable to open file " + filename);
+
+    int* lsize = nullptr;
+    int* nsize = nullptr;
+    int* ndims = nullptr;
+
+    // Read header sizes
+    lsize = readiarrayfromdouble(in, 1);
+    nsize = readiarrayfromdouble(in, lsize[0]);
+
+    // Need at least indices 0..10 in nsize to reach elempart/elempartpts
+    if (lsize[0] < 11) {
+        in.close();
+        free(lsize);
+        free(nsize);
+        error("readmeshstruct: unexpected mesh file layout (nsize too short) in " + filename);
+    }
+
+    // Read ndims block (length nsize[0])
+    ndims = readiarrayfromdouble(in, nsize[0]);
+
+    // Skip arrays 1..8
+    skip_iarrayfromdouble(in, nsize[1]); // facecon
+    skip_iarrayfromdouble(in, nsize[2]); // eblks
+    skip_iarrayfromdouble(in, nsize[3]); // fblks
+    skip_iarrayfromdouble(in, nsize[4]); // nbsd
+    skip_iarrayfromdouble(in, nsize[5]); // elemsend
+    skip_iarrayfromdouble(in, nsize[6]); // elemrecv
+    skip_iarrayfromdouble(in, nsize[7]); // elemsendpts
+    skip_iarrayfromdouble(in, nsize[8]); // elemrecvpts
+
+    // Read elempart (index 9) into vector
+    {
+        const int n = nsize[9];
+        int* tmp = readiarrayfromdouble(in, n);
+        elempart.assign(tmp, tmp + n);
+        free(tmp);
+    }
+
+    // Read elempartpts (index 10) into vector
+    {
+        const int n = nsize[10];
+        int* tmp = readiarrayfromdouble(in, n);
+        elempartpts.assign(tmp, tmp + n);
+        free(tmp);
+    }
+
+    in.close();
+
+    free(lsize);
+    free(nsize);
+    free(ndims);
+}
+
+void readelempart(const std::string& base,
+                  vector<vector<int>>& elempart,
+                  vector<vector<int>>& elempartpts,
+                  int nprocs)
+{
+    if (nprocs <= 0)
+        error("readelempart: nprocs must be positive");
+
+    // Resize outer containers: one entry per MPI rank
+    elempart.resize(nprocs);
+    elempartpts.resize(nprocs);
+
+    for (int p = 0; p < nprocs; ++p) {
+        // Construct filename: e.g. base0.bin, base1.bin, ...
+        std::ostringstream fname;
+        fname << base << p+1 << ".bin";
+
+        readelempart(fname.str(), elempart[p], elempartpts[p]);
+    }
+}
+
 // elempartpts: size nprocs; each entry must have >=2 integers, using only first two, summed.
 // elempart:    size nprocs; each entry length >= Nj, contains GLOBAL element indices.
 //              NOTE: MATLAB indices are 1-based; we convert to 0-based here.
@@ -774,6 +882,135 @@ void readsol_cpp(const std::string& base,
             for (int e = 0; e < n3; ++e) {
                 const int globalElem = elempart[r][e] - 1; // MATLAB 1-based -> 0-based
                 if (globalElem < 0 || globalElem >= ne) {
+                    std::cout<<globalElem<<std::endl;
+                    throw std::runtime_error("elempart out of range in rank " + std::to_string(r));
+                }
+
+                const double* src = tm.data() + static_cast<std::size_t>(e) * slice;
+                double* dst = sol3dGlobal.data() + sliceOffset4(n1, n2, ne, globalElem, s);
+
+                std::copy(src, src + slice, dst);
+            }
+        }
+    }
+}
+
+
+void readsolution(const std::string& base,
+                 const std::vector<std::vector<int>>& elempartpts,
+                 const std::vector<std::vector<int>>& elempart,
+                 std::vector<double>& sol3dGlobal,   // OUT
+                 int nsteps,
+                 int stepoffsets,
+                 int& n1_out,                         // OUT
+                 int& n2_out,                         // OUT
+                 int& ne_out)                         // OUT
+{
+    const int nprocs = static_cast<int>(elempartpts.size());
+    if (nprocs <= 0) throw std::runtime_error("elempartpts is empty.");
+    if (static_cast<int>(elempart.size()) != nprocs) throw std::runtime_error("elempart size mismatch.");
+    if (nsteps <= 0) throw std::runtime_error("nsteps must be positive.");
+    if (stepoffsets < 0) throw std::runtime_error("stepoffsets must be nonnegative.");
+
+    // ---- Pass 1: read headers and compute global sizes ----
+    std::vector<std::array<std::int64_t, 4>> k(static_cast<std::size_t>(nprocs)); // {n1,n2,n3,timesteps}
+    std::int64_t neTotal = 0;
+
+    for (int r = 0; r < nprocs; ++r) {
+        const std::string fname = base + "_np" + std::to_string(r) + ".bin";
+        std::ifstream in(fname, std::ios::binary);
+        if (!in) throw std::runtime_error("Cannot open file: " + fname);
+
+        double hdr[3] = {0,0,0};
+        readDoubles(in, hdr, 3, fname);
+
+        const std::int64_t n1 = static_cast<std::int64_t>(hdr[0]);
+        const std::int64_t n2 = static_cast<std::int64_t>(hdr[1]);
+        const std::int64_t n3 = static_cast<std::int64_t>(hdr[2]);
+        if (n1 <= 0 || n2 <= 0 || n3 <= 0) throw std::runtime_error("Invalid header in: " + fname);
+
+        const std::int64_t N = n1 * n2 * n3;
+
+        const std::int64_t bytes = fileSizeBytes(fname);
+        if (bytes % 8 != 0) throw std::runtime_error("File size not multiple of 8 in: " + fname);
+
+        const std::int64_t L = bytes / 8; // # of doubles
+        if (L < 3) throw std::runtime_error("File too small in: " + fname);
+        if ((L - 3) % N != 0) throw std::runtime_error("Payload not divisible by N in: " + fname);
+
+        const std::int64_t timesteps = (L - 3) / N;
+        k[static_cast<std::size_t>(r)] = {n1, n2, n3, timesteps};
+        neTotal += n3;
+
+        // std::cout << "N=" << N << " L=" << L<<"\n";
+        // std::cout << "n1=" << n1 << " n2=" << n2 << " n3=" << n3 << " timesteps=" << timesteps << "\n";
+
+        // Optional consistency check with elempartpts:
+        const int Nj_pts = elempartpts[r][0] + elempartpts[r][1];
+        if (Nj_pts != static_cast<int>(n3)) {
+            // Not fatal if your elempartpts isn't meant to match n3, but in your MATLAB it usually should.
+            // If you want strict, replace with throw.
+            // throw std::runtime_error("elempartpts sum != n3 in rank " + std::to_string(r));
+        }
+        if (static_cast<int>(elempart[r].size()) < static_cast<int>(n3)) {
+            throw std::runtime_error("elempart[" + std::to_string(r) + "] shorter than n3.");
+        }
+        if (timesteps < static_cast<std::int64_t>(stepoffsets + nsteps)) {
+            throw std::runtime_error("Requested steps exceed available timesteps in: " + fname);
+        }
+    }
+
+    const int n1 = static_cast<int>(k[0][0]);
+    const int n2 = static_cast<int>(k[0][1]);
+
+    for (int r = 0; r < nprocs; ++r) {
+        if (k[static_cast<std::size_t>(r)][0] != n1 || k[static_cast<std::size_t>(r)][1] != n2) {
+            throw std::runtime_error("n1/n2 mismatch across rank files.");
+        }
+    }
+
+    const int ne = static_cast<int>(neTotal);
+
+    n1_out = n1;
+    n2_out = n2;
+    ne_out = ne;
+
+    // Allocate sol(n1,n2,ne,nsteps) flattenedx, column-major
+    const std::size_t slice = static_cast<std::size_t>(n1) * static_cast<std::size_t>(n2);
+    const std::size_t total = slice * static_cast<std::size_t>(ne) * static_cast<std::size_t>(nsteps);
+    sol3dGlobal.assign(total, 0.0);
+
+    // ---- Pass 2: read each rank and scatter directly into global element indices ----
+    for (int r = 0; r < nprocs; ++r) {
+        const std::string fname = base + "_np" + std::to_string(r) + ".bin";
+        std::ifstream in(fname, std::ios::binary);
+        if (!in) throw std::runtime_error("Cannot open file: " + fname);
+
+        double hdr[3] = {0,0,0};
+        readDoubles(in, hdr, 3, fname);
+
+        const int n3 = static_cast<int>(hdr[2]);
+        const std::size_t N = slice * static_cast<std::size_t>(n3);
+
+        // Skip stepoffsets steps (each step = N doubles)
+        if (stepoffsets > 0) {
+            const std::int64_t skipBytes = static_cast<std::int64_t>(stepoffsets) *
+                                           static_cast<std::int64_t>(N) * 8;
+            in.seekg(skipBytes, std::ios::cur);
+            if (!in) throw std::runtime_error("seekg failed in: " + fname);
+        }
+
+        std::vector<double> tm(N);
+
+        for (int s = 0; s < nsteps; ++s) {
+            readDoubles(in, tm.data(), N, fname);
+
+            // tm is reshape(tm,[n1,n2,n3]) column-major:
+            // slice e is contiguous block tm[e*slice : (e+1)*slice)
+            for (int e = 0; e < n3; ++e) {
+                const int globalElem = elempart[r][e]; 
+                if (globalElem < 0 || globalElem >= ne) {
+                    std::cout<<globalElem<<std::endl;
                     throw std::runtime_error("elempart out of range in rank " + std::to_string(r));
                 }
 
