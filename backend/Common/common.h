@@ -1653,6 +1653,7 @@ struct commonstruct {
     Int* fblks=nullptr; // face blocks   
     Int* ncarray=nullptr;
     Int* nboufaces=nullptr;
+    Int* nextfaces=nullptr;
     
     Int nintfaces;
     Int nstgib;
@@ -1886,6 +1887,7 @@ struct commonstruct {
         CPUFREE(eblks); 
         CPUFREE(fblks);
         CPUFREE(nboufaces);
+        CPUFREE(nextfaces);
         CPUFREE(nbsd); 
         CPUFREE(elemsend); 
         CPUFREE(elemrecv); 

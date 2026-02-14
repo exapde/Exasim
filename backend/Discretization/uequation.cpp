@@ -393,8 +393,9 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
                          ngb, common.stgNmode, nd, ncu, nc, ncw);
         } else {     
           if (common.ncuext > 0 && sol.szuext > 0 && (ibc+1 == common.FextCall)) {
-            FextDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, sol.uext, 
-                 mesh, master, app, sol, tmp, common, ngb, 1, backend);                            
+            ArrayExtract(res.K, sol.uext, ngf, common.nextfaces[common.nbe1], common.ncuext, 0, ngf, common.nextfaces[jth], common.nextfaces[jth+1], 0, common.ncuext);  
+            FextDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, res.K, 
+                 mesh, master, app, sol, tmp, common, ngb, 1, backend);                       
           }          
           else
             FbouDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
@@ -1002,8 +1003,10 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
         if (ibc+1 == 1000) StgInflowHDG(fhb, &tmp.tempg[n8], xgb, ogb, uhb, app.physicsparam, app.stgdata, 
                                  app.stgparam, common.time, ngb, common.stgNmode, nd);          
         else {
-          if (common.ncuext > 0 && sol.szuext > 0  && (ibc+1 == common.FextCall)) 
-            FextDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, sol.uext, mesh, master, app, sol, tmp, common, ngb, 1, backend);    
+          if (common.ncuext > 0 && sol.szuext > 0  && (ibc+1 == common.FextCall)) {
+            ArrayExtract(Rb, sol.uext, ngf, common.nextfaces[common.nbe1], common.ncuext, 0, ngf, common.nextfaces[jth], common.nextfaces[jth+1], 0, common.ncuext);  
+            FextDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, Rb, mesh, master, app, sol, tmp, common, ngb, 1, backend);    
+          }                       
           else
             FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
         }

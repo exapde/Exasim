@@ -863,6 +863,19 @@ Int CDiscretization::getFacesOnInterface(Int **faces, const Int boundaryconditio
 
     getinterfacefaces(intfaces, mesh.bf, common.nfe, common.ne1, boundarycondition, nintfaces);
 
+    TemplateMalloc(&common.nextfaces, common.nbe1+1, 0);    
+    Int nfacestotal = 0;
+    common.nextfaces[0] = nfacestotal;
+    for (Int j=0; j<common.nbe1; j++) {    
+        Int e1 = common.eblks[3*j]-1;
+        Int e2 = common.eblks[3*j+1];                    
+        Int nfe = common.nfe;      
+        int nfaces = getinterfacefaces(&mesh.bf[nfe*e1], nfe, e2-e1, boundarycondition);  
+        nfacestotal += nfaces;
+        common.nextfaces[j+1] = nfacestotal;
+    }                                         
+    if (nfacestotal != nintfaces) error("getFacesOnInterface is wrong because the numbers of faces do not match.");
+  
     TemplateMalloc(faces, nintfaces, common.backend);
     TemplateCopytoDevice(*faces, intfaces, nintfaces, common.backend);                           
 
@@ -967,7 +980,7 @@ void CDiscretization::getInterfaceFluxesAtGaussPoints(dstype *flux, dstype* xdgg
     dstype *wdggint = &tmp.tempg[ngf * nfaces * (common.nc + common.nco)];
     dstype *uhgint = &tmp.tempg[ngf * nfaces * (common.nc + common.nco + common.ncw)];
 
-    this->getFieldsAtGaussPointsOnInterface(udggint, udgint, nfaces, common.ncu);
+    this->getFieldsAtGaussPointsOnInterface(udggint, udgint, nfaces, common.nc);
     this->getFieldsAtGaussPointsOnInterface(odggint, odgint, nfaces, common.nco);
     this->getFieldsAtGaussPointsOnInterface(wdggint, wdgint, nfaces, common.ncw);
     this->getFieldsAtGaussPointsOnInterface(uhgint, uhint, nfaces, common.ncu);
