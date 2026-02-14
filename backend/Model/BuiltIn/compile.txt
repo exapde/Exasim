@@ -1,1 +1,0 @@
-g++ -dynamiclib -std=c++17 -fPIC -I../../../kokkos/buildserial/include libbuiltinmodel.cpp model1/model.cpp model2/model.cpp ../../../kokkos/buildserial/lib/libkokkoscore.a -o libbuiltinmodelserial.dylib
