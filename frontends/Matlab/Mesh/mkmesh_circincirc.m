@@ -4,6 +4,7 @@ function mesh = mkmesh_circincirc(porder,m,n,r1,r2)
 nodetype = 1;
 elemtype = 1;
 [p,t] = squaremesh(m,n,1,elemtype);
+p = p'; t = t';
 p(:,2) = loginc(p(:,2),0.2);
 
 bndexpr = {'all(p(:,2)<1e-3)','all(p(:,1)>max(p0(:,1))-1e-3)', ...

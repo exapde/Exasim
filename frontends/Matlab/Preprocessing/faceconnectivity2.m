@@ -69,6 +69,12 @@ else
                 elseif (f1(1)==f2(2)) && (f1(2)==f2(1)) && (f1(3)==f2(4)) && (f1(4)==f2(3))
                     k = 4;    
                 else
+                    f1
+                    f2
+                    [e1 l1 e2 l2]
+                    [t(:,e1) t(:,e2)]
+                    [face(:,l1) face(:,l2)]     
+                    face                   
                     error("Mesh connectivity is wrong");
                 end
             end

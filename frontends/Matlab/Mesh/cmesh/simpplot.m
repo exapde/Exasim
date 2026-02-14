@@ -37,12 +37,16 @@ switch dim
       incl=find(eval(expr));
       tri1=tri1(any(ismember(tri1,incl),2),:);
     end
+    face = getelemface(3,1);
+    ne = size(t,1);
+    tri1 = reshape(tri1(:,face), [ne 4 6]);    
+    tri1 = reshape(permute(tri1,[1 3 2]),[], 4);
   end
   h=trimesh(tri1,p(:,1),p(:,2),p(:,3));
   hold off
   set(h,'facecolor',bcol,'edgecolor','k');
   axis equal
-%   fancycamera
+  %fancycamera
  otherwise
   error('Unimplemented dimension.');
 end
