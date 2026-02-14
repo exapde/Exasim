@@ -66,7 +66,7 @@ jac = dg2cg2(jac, cgelcon, colent2elem, rowent2elem);
 meshhm.vdg(:,2,:) = jac.^0.5;
 
 % call exasim to generate and run C++ code to solve the pdehm model
-pdehm.gencode = 0;
+pdehm.gencode = 1;
 [solhm,pdehm,meshhm] = exasim(pdehm,meshhm);
 s = solhm(:,1,:);
 s = s/max(s(:));
