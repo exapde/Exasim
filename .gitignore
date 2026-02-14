@@ -64,6 +64,7 @@ text2code/text2code/.DS_Store
 *.zip
 /examples/tests
 backend/Model/BuiltIn
+/backend/Model/BuiltIn/
 backend/Model/cpuInitu.cpp
 backend/Model/HdgFbou.cpp
 backend/Model/HdgFbouonly.cpp
@@ -227,6 +228,7 @@ doc/Gov_eq_new_compr_NS_solver_Sandberg.pdf
 /backend/Postprocessing/postprocess.dSYM
 /codex
 /frontends/Matlab/Mesh/adaptivity
+/frontends/Matlab/Modeling/
 backend/Model/cpuInitu.cpp
 backend/Model/HdgFbou.cpp
 /examples/NavierStokes/flaredplate3dsteady
