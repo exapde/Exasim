@@ -49,14 +49,12 @@ window.exasimContent = {
       description: "Mach 7 hypersonic flow simulation showing heat-flux evolution on the flared-wedge surface.",
       category: "Hypersonic Flow",
       src: "assets/videos/hypersonic_flow_mach7_flaredwedge_surface_heatflux.mp4",
-      poster: "assets/images/mach-adapt.png"
     },
     {
       title: "Hypersonic Flared Wedge: Surface Pressure",
       description: "Mach 7 hypersonic flow simulation showing pressure distribution on the flared-wedge surface.",
       category: "Hypersonic Flow",
       src: "assets/videos/hypersonic_flow_mach7_flaredwedge_surface_pressure.mp4",
-      poster: "assets/images/mach-adapt.png"
     }
   ]
 };
