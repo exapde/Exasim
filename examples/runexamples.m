@@ -54,12 +54,12 @@ cases{51} = cdir + "/ShallowWater/BickleyJet/";
 
 unittests = [1:12 14:39 41:51];
 
-for jj = 1:length(unittests)
-  ii = unittests(jj);
-  cd(cases{ii});
-  clearvars -except cases unittests ii jj
-  disp("RUNNING " + cases{ii});
-  run(cases{ii} + "pdeapp.m");
+for jjj = 1:length(unittests)
+  iii = unittests(jjj);
+  cd(cases{iii});
+  clearvars -except cases unittests iii jjj
+  disp("RUNNING " + cases{iii});
+  run(cases{iii} + "pdeapp.m");
 end
 
 
