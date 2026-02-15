@@ -48,13 +48,31 @@ window.exasimContent = {
       title: "Hypersonic Flared Wedge: Surface Heat Flux",
       description: "Mach 7 hypersonic flow simulation showing heat-flux evolution on the flared-wedge surface.",
       category: "Hypersonic Flow",
-      src: "assets/videos/hypersonic_flow_mach7_flaredwedge_surface_heatflux.mp4",
+      src: "assets/videos/hypersonic_flow_mach7_flaredwedge_surface_heatflux.mp4"
     },
     {
       title: "Hypersonic Flared Wedge: Surface Pressure",
       description: "Mach 7 hypersonic flow simulation showing pressure distribution on the flared-wedge surface.",
       category: "Hypersonic Flow",
-      src: "assets/videos/hypersonic_flow_mach7_flaredwedge_surface_pressure.mp4",
+      src: "assets/videos/hypersonic_flow_mach7_flaredwedge_surface_pressure.mp4"
+    },
+    {
+      title: "Kelvin-Helmholtz Instability",
+      description: "Vortex-rollup dynamics from instability growth in a shear layer.",
+      category: "Instability",
+      src: "assets/videos/Kelvin_Helmholtz_Instability.mov"
+    },
+    {
+      title: "Transonic Buffeting Turbulence (OAT15A)",
+      description: "Q-criterion visualization of transonic buffeting and turbulent structures.",
+      category: "Transonic Flow",
+      src: "assets/videos/Transonic_Buffeting_Turbulence_OAT15A_Q_Criterion.mov"
+    },
+    {
+      title: "Transonic T106C Turbine Cascade Temperature",
+      description: "Temperature field evolution in a transonic turbine cascade case.",
+      category: "Turbomachinery",
+      src: "assets/videos/Transonic_T106C_turbine_cascade_temperature.mov"
     }
   ]
 };
