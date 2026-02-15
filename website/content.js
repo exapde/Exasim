@@ -60,19 +60,19 @@ window.exasimContent = {
       title: "Kelvin-Helmholtz Instability",
       description: "Vortex-rollup dynamics from instability growth in a shear layer.",
       category: "Instability",
-      src: "assets/videos/Kelvin_Helmholtz_Instability.mov"
+      src: "assets/videos/Kelvin_Helmholtz_Instability.m4v"
     },
     {
       title: "Transonic Buffeting Turbulence (OAT15A)",
       description: "Q-criterion visualization of transonic buffeting and turbulent structures.",
       category: "Transonic Flow",
-      src: "assets/videos/Transonic_Buffeting_Turbulence_OAT15A_Q_Criterion.mov"
+      src: "assets/videos/Transonic_Buffeting_Turbulence_OAT15A_Q_Criterion.m4v"
     },
     {
       title: "Transonic T106C Turbine Cascade Temperature",
       description: "Temperature field evolution in a transonic turbine cascade case.",
       category: "Turbomachinery",
-      src: "assets/videos/Transonic_T106C_turbine_cascade_temperature.mov"
+      src: "assets/videos/Transonic_T106C_turbine_cascade_temperature.m4v"
     }
   ]
 };
