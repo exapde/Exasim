@@ -384,11 +384,6 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
       if (common.mpiRank==0) 
         printf("Finish GetFaceNodes ... \n");        
 
-      // print3darray(sol.udg, common.npe, common.nc, common.ne);
-      // print2darray(sol.uh, common.ncu*common.npf, common.nf);
-      // GetFaceNodes(tmp.tempg, sol.xdg, mesh.f2e, mesh.perm, common.npf, common.nd, common.npe, common.nd, common.nf);
-      // print3darray(tmp.tempg, common.nd, common.npf, common.nf);
-
       if (common.ncq > 0) {        
         if (common.coupledinterface>0) {
           res.szGi = npf*ncu12*npe*ncq*common.ncie;          
@@ -501,69 +496,7 @@ void CDiscretization::hdgAssembleLinearSystem(dstype *b, Int backend)
     }
     else if (common.preconditioner==2) {
       hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
-    }
-        
-//     if (common.preconditioner==0) {
-//       // assemble block Jacobi matrix from res.H using the FIRST elements in mesh.f2e
-//       BlockJacobi(res.K, res.H, mesh.f2e, npf, nfe, ncu, common.nf);
-// 
-//       // assemble block Jacobi matrix from res.H using the SECOND elements in mesh.f2e
-//       BlockJacobi(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
-// 
-//       // inverse block Jacobi matrix
-//       //Inverse(handle, res.K, tmp.tempn, res.ipiv, ncf, common.nf, backend); // fix bug here
-//       for (Int j=0; j<common.nbf; j++) {      
-//         Int f1 = common.fblks[3*j]-1;
-//         Int f2 = common.fblks[3*j+1];                  
-//         Inverse(common.cublasHandle, &res.K[ncf*ncf*f1], tmp.tempn, res.ipiv, ncf, f2-f1, backend); 
-//       }          
-//     }
-//     else if (common.preconditioner==1) { 
-//       ArrayCopy(res.K, res.H, ncf*nfe*ncf*nfe*common.ne); 
-//       ElementalAdditiveSchwarz(res.K, res.H, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf);       
-// 
-//       for (Int j=0; j<common.nbe; j++) {              
-//         Int e1 = common.eblks[3*j]-1;
-//         Int e2 = common.eblks[3*j+1];          
-//         Inverse(common.cublasHandle, &res.K[ncf*common.nfe*ncf*common.nfe*e1], tmp.tempn, res.ipiv, ncf*nfe, e2-e1, backend); 
-//       }          
-//     }
-//     else if (common.preconditioner==2) { // Block ILU0
-//       //hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
-//       Int nfse = common.nfse; // number of faces in each superelement
-//       Int nse  = common.nse;  // number of superelements
-//       Int N = nse*ncf*ncf;  
-// 
-//       AssembleBlockILU0(res.K, res.H, mesh.f2e, mesh.elemcon, mesh.face, mesh.row_ptr, mesh.col_ind, npf, nfe, ncu, nfse, nse);
-// 
-//       for (int i = 0; i < nfse; ++i) {
-//           int diag_idx = common.ind_ii[i];
-// 
-//           // Invert all diagonal blocks at diag_idx, in-place (batched)
-//           double *diag_blocks = &res.K[diag_idx * N];
-//           Inverse(common.cublasHandle, diag_blocks, tmp.tempn, res.ipiv, ncf, nse, backend); 
-// 
-//           int nj = common.num_ji[i];
-//           for (int j = 0; j < nj; ++j) {
-//               int idx_ji = common.ind_ji[j + i * nj];
-// 
-//               // Multiply all nse blocks: block_ji = block_ji * block_diag, in-place
-//               double *block_ji = &res.K[idx_ji * N];
-//               PGEMNMStridedBached(common.cublasHandle, ncf, 1, ncf, one, block_ji, ncf, diag_blocks, ncf, zero, tmp.tempn, ncf, nse, backend);             
-//               ArrayCopy(block_ji, tmp.tempn, N);
-// 
-//               int nl = common.num_jl[j + i * nj];
-//               for (int l = 0; l < nl; ++l) {
-//                   int idx_jl = common.ind_jl[l + j * nl + i * nj * nl];
-//                   int idx_il = common.ind_il[l + j * nl + i * nj * nl];
-// 
-//                   double *block_jl = &res.K[idx_jl * N];
-//                   double *block_il = &res.K[idx_il * N];
-//                   PGEMNMStridedBached(common.cublasHandle, ncf, 1, ncf, minusone, block_ji, ncf, block_il, ncf, one, block_jl, ncf, nse, backend);                             
-//               }
-//           }
-//       }      
-//     }    
+    }        
 }
 
 void CDiscretization::hdgAssembleResidual(dstype *b, Int backend)

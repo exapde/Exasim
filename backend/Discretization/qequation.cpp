@@ -86,10 +86,6 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     TemplateMalloc(&work, npe*npe*neb, backend);      
     TemplateMalloc(&ipiv, npe+1, backend);           
 
-//     print2darray(master.shapegw, npe, nge);
-//     print2darray(master.shapegt, nge, npe);
-//     print2darray(master.shapegwdotshapeg, npe, npe);
-
     for (Int j=0; j<nbe; j++) // for each block of elements
     {
         Int e1 = common.eblks[3*j]-1;
@@ -107,12 +103,6 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
         Gauss2Node(handle, &res.Minv2[npe*npe*e1], jac, master.shapegwdotshapeg, nge, npe*npe, ns, backend);                
 
         ArrayCopy(&res.Mass2[npe*npe*e1], &res.Minv2[npe*npe*e1], npe*npe*ns);
-
-//         print2darray(jac, nge, ns);
-//         cout<<e1<<" "<<e2<<endl;        
-//         cout<<"Mass2: "<<endl;
-//         print2darray(res.Mass2, npe, npe);
-//         error("here");
 
         Inverse(handle, &res.Minv2[npe*npe*e1], work, ipiv, npe, ns, backend);
 
@@ -196,10 +186,6 @@ void qEquationFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
       ArrayAXY(tmp.tempg, nlg, jac, one, nga);
       Gauss2Node(handle, Etmp, tmp.tempg, master.shapfgwdotshapfg, ngf, npf*npf, nf, backend);
       assembleMatrixE(Ex, Etmp, &mesh.facecon[2*npf*f1], &mesh.f2e[4*f1], npf, npe, nfe, f1, f2);
-
-      // print3darray(Etmp, npf, npf, nf);
-      // print3darray(Etmp, npf, npf, nf);
-      // print2darray(Ex, npe, npf*nfe);
 
       ArrayAXY(tmp.tempg, &nlg[nga], jac, one, nga);
       Gauss2Node(handle, Etmp, tmp.tempg, master.shapfgwdotshapfg, ngf, npf*npf, nf, backend);

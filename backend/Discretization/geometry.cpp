@@ -64,12 +64,7 @@ void ElemGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, temps
         Node2Gauss(handle, &tmp.tempg[n3], tmp.tempn, &master.shapegt[nge*npe], nge, npe, ne*nd, backend);                
         Node2Gauss(handle, &tmp.tempg[n3+nga*nd], tmp.tempn, &master.shapegt[2*nge*npe], nge, npe, ne*nd, backend);        
         ElemGeom2D(&tmp.tempg[n2], &tmp.tempg[n1], &tmp.tempg[n1+2*nga], &tmp.tempg[n1+nga], &tmp.tempg[n1+3*nga],
-        &tmp.tempg[n3], &tmp.tempg[n3+nga], &tmp.tempg[n3+2*nga], &tmp.tempg[n3+3*nga], nga);
-                    
-//         print2darray(sol.xdg, npe, ncx);
-//         print2darray(tmp.tempg, nge, ncx);
-//         print2darray(&tmp.tempg[n2], nge, 1);
-//         error("here");
+        &tmp.tempg[n3], &tmp.tempg[n3+nga], &tmp.tempg[n3+2*nga], &tmp.tempg[n3+3*nga], nga);                    
     }
     else if (nd==3) {
        Node2Gauss(handle, &tmp.tempg[n3], tmp.tempn, &master.shapegt[nge*npe], nge, npe, ne*nd, backend);        
@@ -126,11 +121,7 @@ void FaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, temps
     if (nd==1) {
         FaceGeom1D(&tmp.tempg[n2], &tmp.tempg[n1], &tmp.tempg[n3], nga);    
         // Change the direction of the normal vector on the left boundary to make it outward
-        FixNormal1D(&tmp.tempg[n1], &mesh.facecon[2*f1], nga);    
-        //printArray2D(&tmp.tempg[n1], ngf, nf, backend);       
-//         for (int i=0; i<nga; i++)
-//             if (mesh.facecon[2*(f1+i)]==0)
-//                 tmp.tempg[n1 + i] = -1.0;        
+        FixNormal1D(&tmp.tempg[n1], &mesh.facecon[2*f1], nga);      
     }
     else if (nd==2){
         Node2Gauss(handle, &tmp.tempg[n3], tmp.tempn, &master.shapfgt[ngf*npf], ngf, npf, nf*nd, backend);                
