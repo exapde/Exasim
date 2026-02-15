@@ -13,7 +13,6 @@
  * Methods:
  * - CPreconditioner(CDiscretization& disc, Int backend): Constructor that initializes the preconditioner with the given discretization and backend.
  * - ~CPreconditioner(): Destructor.
- * - ConstructPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend): Constructs the preconditioner based on the system and discretization.
  * - ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend): Computes the initial guess and constructs the preconditioner.
  * - ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend): Overloaded method to compute initial guess and preconditioner with additional parameters.
  * - ApplyPreconditioner(dstype* v, sysstruct& sys, CDiscretization& disc, Int backend): Applies the preconditioner to a vector.
@@ -34,9 +33,6 @@ public:
     
     // destructor        
     ~CPreconditioner(); 
-
-    // Construct the precontioner
-    void ConstructPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend);
             
     void ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend);
     

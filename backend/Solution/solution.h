@@ -219,39 +219,18 @@ public:
         if (outbouuhat.is_open()) { outbouuhat.close(); }
         if (outqoi.is_open()) { outqoi.close(); }
     }; 
-
-    // solve steady-state problems
-    void SteadyProblem(Int backend);
     
     void SteadyProblem(ofstream &out, Int backend);    
 
     void SteadyProblem_PTC(ofstream &out, Int backend);    
-            
-    void SteadyProblem(CSolution *subprob, Int backend);    
-    
-    // advance the solution to the next time step using DIRK and BDF schemes
-    void TimeStepping(ofstream &out, dstype time, Int istep, Int backend);
-        
-    // solve time-dependent problems
-    void UnsteadyProblem(ofstream &out, Int backend);    
-        
-    // solve time-dependent problems
-    void DIRK(Int backend);
-    
+                                    
     void DIRK(ofstream &out, Int backend);    
     
-    void DIRK(CSolution *subprob, Int backend);
-
     // precompute some quantities
     void InitSolution(Int backend);    
-    
-    // solve both steady-state and time-dependent problems
-    void SolveProblem(Int backend);    
-    
+        
     void SolveProblem(ofstream &out, Int backend);    
-    
-    void SolveProblem(CSolution *subprob, Int backend);    
-    
+        
     // save solutions in binary files
     void SaveSolutions(Int backend);    
 
@@ -268,10 +247,7 @@ public:
     
     // read solutions from binary files
     void ReadSolutions(Int backend);        
-    
-    // save output in binary files
-    void SaveOutputDG(Int backend);        
-    
+        
     // save output in binary files
     void SaveOutputCG(Int backend);   
 

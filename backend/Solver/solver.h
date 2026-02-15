@@ -35,10 +35,6 @@ public:
     // destructor        
     ~CSolver(); 
             
-    // Implement PTC to solve linear/nonlinear systems
-    void PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int backend);           
-
-    void NewtonSolver(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int N, Int spatialScheme, Int backend);       
 };
 
 #endif        

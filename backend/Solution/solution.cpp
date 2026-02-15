@@ -969,23 +969,6 @@ void CSolution::SaveQoI(Int backend)
     }
 }
 
-void CSolution::SaveOutputDG(Int backend) 
-{
-   if (disc.common.tdep==1) { 
-        if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
-        {                    
-            string filename1 = disc.common.fileout + "_outputDG_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";     
-            disc.evalOutput(solv.sys.v, backend);                        
-            writearray2file(filename1, solv.sys.v, disc.common.ndofedg1, backend);       
-        }                                
-   }
-   else {
-        string filename1 = disc.common.fileout + "_outputDG_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";                           
-        disc.evalOutput(solv.sys.v, backend);
-        writearray2file(filename1, solv.sys.v, disc.common.ndofedg1, backend);       
-   }    
-}
-
 void CSolution::SaveOutputCG(Int backend) 
 {
    if (disc.common.tdep==1) { 
