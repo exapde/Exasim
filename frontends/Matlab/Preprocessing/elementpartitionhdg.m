@@ -31,7 +31,7 @@ if coupledinterface>0
 end    
 
 for i = 1:nproc
-    dmd{i}.elem2rank = elem2cpu;
+    %dmd{i}.elem2rank = elem2cpu;
     disp(['element partition ' num2str(i)]); 
     intelem = find(elem2cpu == (i-1)); % elements in subdomain i    
     elem = neighboringelements(t2t, intelem); % all elements connected to elements in subdomain i         
