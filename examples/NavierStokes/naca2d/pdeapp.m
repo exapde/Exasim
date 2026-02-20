@@ -58,25 +58,18 @@ axis([-0.5 2 -0.62 0.62])
 set(gca,'fontsize', 16);
 %exportgraphics(gca,"nacap3M0025.png",'Resolution',200);
 
-
-
-
-[mesh.f, mesh.tprd, t2t] = facenumbering(mesh.p,mesh.t,1,mesh.boundaryexpr,mesh.periodicexpr);
-pde1.nd = 2;
-pde1.porder = 4;
-pde1.pgauss = 8;
-pde1.elemtype = 1;
-pde1.nodetype = 1;
-master1 = Master(pde1);
-mesh.xpe = master1.xpe;
-
-
-
-
-
-
+% [mesh.f, mesh.tprd, t2t] = facenumbering(mesh.p,mesh.t,1,mesh.boundaryexpr,mesh.periodicexpr);
+% pde1.nd = 2;
+% pde1.porder = 4;
+% pde1.pgauss = 8;
+% pde1.elemtype = 1;
+% pde1.nodetype = 1;
+% master1 = Master(pde1);
+% mesh.xpe = master1.xpe;
+% 
+% 
 % pde.codegenerator = "text2code";
-% pde.denseblock = 1;
+% pde.denseblock = 0;
 % pde.source = 'source';
 % pde.flux = 'flux';
 % pde.fbou = 'fbou';
@@ -93,7 +86,13 @@ mesh.xpe = master1.xpe;
 % master = Master(pde);
 % UDG0 = initu(mesh1,{ui(1),ui(2),ui(3),ui(4); 0,0,0,0; 0,0,0,0});
 % UH0 = getuhat(UDG0, mesh1.f2t, master.perm, 4);
-% [UDG,UH] = hdgsolve(master,mesh1,pde,UDG0,UH0,[]);
+% [UDG,UH,AE,FE,K,F] = hdgsolve(master,mesh1,pde,UDG0,UH0,[]);
+% 
+% ne = size(mesh1.elcon,2);
+% npe = master.npe;
+% npf = master.npf;
+% nfe  = size(master.perm,2);
+% BE = blockjacobi(AE, mesh1.f2t, reshape(mesh1.elcon, [npf nfe ne]));  
 % 
 % compareexasim(master, mesh1, pde);
 
