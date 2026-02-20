@@ -251,7 +251,6 @@ examples/NavierStokes/isoq/pressureadapt.png
 examples/NavierStokes/isoq3d/mesh.png
 examples/NavierStokes/isoq/mesh.png
 examples/NavierStokes/isoq/pdeapp_adapt.m
-/examples/NavierStokes/sharpb2
 backend/Model/cpuInitu.cpp
 backend/Model/HdgFbou.cpp
 backend/Model/HdgFbouonly.cpp
@@ -304,3 +303,9 @@ backend/Model/KokkosVisTensors.cpp
 backend/Model/SymbolicFunctions.cpp
 backend/Model/SymbolicFunctions.hpp
 backend/Model/SymbolicScalarsVectors.cpp
+examples/NavierStokes/reactingcylinder/AssessmentofCFDcapabilityforpredictionofhypersonicshockinteractions.pdf
+/examples/NavierStokes/sharpb2/hm
+examples/NavierStokes/sharpb2/mach.png
+examples/NavierStokes/sharpb2/mesh.png
+examples/NavierStokes/sharpb2/pressure.png
+examples/NavierStokes/sharpb2/temperature.png
