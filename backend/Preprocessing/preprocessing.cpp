@@ -19,6 +19,7 @@
 #include "readpdeapp.cpp"
 #include "readmesh.cpp"
 #include "makemeshexasim.cpp"
+#include "makemaster.cpp"
 #include "makemasterexasim.cpp"
 #include "domaindecomposition.cpp"
 #include "writebinaryfilesexasim.cpp"

@@ -130,3 +130,5 @@ runcode(pde, 1); % run C++ code
 sol = fetchsolution(pde,master,dmd, pde.buildpath + '/dataout');
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[0 Minf],1); colorbar;
 figure(2); clf; scaplot(mesh, mesh.vdg(:,1,:),[],2); colorbar;
+
+figure(3); clf; scaplot(mesh, sol(:,2,:),[],2); colorbar;

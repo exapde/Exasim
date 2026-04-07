@@ -19,14 +19,25 @@ for i = 1:length(ic)
   p = [p; dgnodes(perm(:,j),:,k)];  
 end
 nn = size(dgnodes,1);
+nd = size(dgnodes,2);
 ne = size(dgnodes,3);
 dist = zeros(nn,1,ne);
-for i = 1:ne
-    for j=1:nn
-        x = dgnodes(j,:,i);
-        s = sqrt((p(:,1)-x(1)).^2 + (p(:,2)-x(2)).^2);
-        dist(j,1,i) = min(s);
-    end
+if nd==2
+  for i = 1:ne
+      for j=1:nn
+          x = dgnodes(j,:,i);
+          s = sqrt((p(:,1)-x(1)).^2 + (p(:,2)-x(2)).^2);
+          dist(j,1,i) = min(s);
+      end
+  end
+elseif nd==3
+  for i = 1:ne
+      for j=1:nn
+          x = dgnodes(j,:,i);
+          s = sqrt((p(:,1)-x(1)).^2 + (p(:,2)-x(2)).^2 + (p(:,3)-x(3)).^2);
+          dist(j,1,i) = min(s);
+      end
+  end
 end
 
 end

@@ -2,10 +2,10 @@ function [mesh, xc, xd] = mkmesh_isoq2d(porder)
 
 [xl, xu] = isoq();
 
-ind = xl(:,2) >= 0.012;
+ind = xl(:,2) >= 0.004;
 xl = xl(ind,:);
 
-ind = xu(:,2) >= 0.015;
+ind = xu(:,2) >= 0.006;
 xu = xu(ind,:);
 
 x1 = -0.04;
@@ -23,10 +23,14 @@ xl1 = xl(ind,:);
 ind = (xl(:,1) > x2);
 xl2 = [xl1(end,:); xl(ind,:)];
 
-n1 = 48/2; m1 = 120/8;
-n2 = 48/2; m2 = 120/8;
-mesh1 = surfmesh2d(xl1, xu1, n1, m1, porder, [1.0 1.2], [2 0]);
-mesh2 = surfmesh2d(xl2, xu2, n2, m2, porder, [2.0 1.5], [2 0]);
+% n1 = 48/2; m1 = 120/8;
+% n2 = 48/2; m2 = 120/8;
+% mesh1 = surfmesh2d(xl1, xu1, n1, m1, porder, [1.0 1.2], [2 0]);
+% mesh2 = surfmesh2d(xl2, xu2, n2, m2, porder, [2.0 1.5], [2 0]);
+%n1 = 64; m1 = 120; n2 = 48; m2 = 120;
+n1 = 48; m1 = 80; n2 = 36; m2 = 80;
+mesh1 = surfmesh2d(xl1, xu1, n1, m1, porder, [2.0 1.2], [5 0]);
+mesh2 = surfmesh2d(xl2, xu2, n2, m2, porder, [2.0 1.5], [5 0]);
 
 xc = mesh1.p(:,1:n1+1:end);
 x = mesh1.dgnodes(:,1,:); x=x(:);
@@ -37,9 +41,12 @@ xd = [x(ind) y(ind)]';
 
 [mesh1, mesh2] = rightleft2d(mesh1, mesh2);
 
-figure(1); clf; meshplot(mesh1);
-hold on; meshplot(mesh2);
-axis equal; % axis tight;
+% figure(1); clf; meshplot(mesh1);
+% hold on; meshplot(mesh2);
+% axis equal; % axis tight;
+% hold on;
+% plot(xl1(:,1), xl1(:,2), 'o')
+% plot(xu1(:,1), xu1(:,2), 'o')
 
 mesh = mesh1;
 [mesh.p, mesh.t] = connectmesh(mesh1.p', mesh1.t', mesh2.p', mesh2.t', 1e-5);
@@ -48,12 +55,12 @@ mesh.p = mesh.p';
 mesh.t = mesh.t';
 mesh.telem = mesh.tlocal;
 
-figure(2); clf; meshplot(mesh);
-axis on; axis equal; %axis tight;
-%exportgraphics(gca,"mesh.png",'Resolution',200);
-hold on;
-plot(xc(1,:),xc(2,:),'o');
-plot(xd(1,:),xd(2,:),'*');
+% figure(2); clf; meshplot(mesh);
+% axis on; axis equal; %axis tight;
+% %exportgraphics(gca,"mesh.png",'Resolution',200);
+% hold on;
+% plot(xc(1,:),xc(2,:),'o');
+% plot(xd(1,:),xd(2,:),'*');
 
 deltay = min(mesh.p(2,:));
 L = max(mesh.p(1,:));
@@ -65,11 +72,11 @@ mesh.f = facenumbering(mesh.p,mesh.t,1,mesh.boundaryexpr,[]);
 mesh.periodicboundary = [];
 mesh.periodicexpr = {};
 
-figure(3); clf;
-boundaryplot(mesh,1);
-hold on;
-for i = 2:4
-  boundaryplot(mesh,i);
-end
-plot(xc(1,:),xc(2,:),'o');
-plot(xd(1,:),xd(2,:),'*');
+% figure(3); clf;
+% boundaryplot(mesh,1);
+% hold on;
+% for i = 2:4
+%   boundaryplot(mesh,i);
+% end
+% plot(xc(1,:),xc(2,:),'o');
+% plot(xd(1,:),xd(2,:),'*');

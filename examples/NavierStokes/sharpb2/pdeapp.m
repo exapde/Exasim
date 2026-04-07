@@ -21,7 +21,7 @@ Re = 9.84e5;                    % Reynolds number
 Pr = 0.71;                      % Prandtl number    
 Minf = 21.38;                   % Mach number
 Tref  = 260.6;
-Twall = 300;
+Twall = 1400;
 pinf = 1/(gam*Minf^2);
 Tinf = pinf/(gam-1);
 alpha = 0;                % angle of attack
@@ -72,7 +72,7 @@ mesh.udg = UDG;
 
 figure(3); clf; scaplot(mesh,TnearWall,[],1); axis on; axis equal; axis tight;
 
-pde.gencode = 0;
+pde.gencode = 1;
 [sol,pde,mesh,master,dmd] = exasim(pde,mesh);
 figure(1); clf; scaplot(mesh, eulereval(sol, 'M',gam,Minf),[0 Minf],1); colorbar;
 

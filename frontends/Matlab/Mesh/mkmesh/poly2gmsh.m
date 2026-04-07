@@ -1,10 +1,14 @@
-function poly2gmsh(fname, pv, h)
+function poly2gmsh(fname, pv, elemtype, h)
     
+    if nargin<3 
+        elemtype = 0;
+    end
+
     fid = fopen(fname, 'w');
     
     npv = size(pv,1);
     
-    if nargin>2
+    if nargin>3
         for i = 1:npv
             fprintf(fid, 'Point(%d) = {%g, %g, 0, %g};\n', i, [pv(i,:) h]);
         end        
@@ -24,8 +28,16 @@ function poly2gmsh(fname, pv, h)
     str(commapos) = ',';
 
     fprintf(fid, 'Line Loop(%d) = {%s};\n', npv, str);
-    fprintf(fid, 'Plane Surface(1) = {%d};\n', npv);
-    fprintf(fid, 'Recombine Surface {1};\n');    
+    fprintf(fid, 'Plane Surface(1) = {%d};\n', npv);    
+    if elemtype==1            
+        fprintf(fid, 'Transfinite Surface {1};\n'); 
+        fprintf(fid, 'Recombine Surface {1};\n');
+        fprintf(fid, 'Mesh.RecombineAll = 1;\n'); 
+        fprintf(fid, 'Mesh.RecombinationAlgorithm = 2;\n'); 
+        %fprintf(fid, 'Mesh.SubdivisionAlgorithm = 1;\n'); 
+    end    
+    % fprintf(fid, 'Plane Surface(1) = {%d};\n', npv);
+    % fprintf(fid, 'Recombine Surface {1};\n');    
     %fprintf(fid, 'Mesh.RecombineAll = 1;\n');    
 
     fclose(fid);

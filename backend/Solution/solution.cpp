@@ -52,6 +52,126 @@
 #include <sys/time.h>
 #endif
 
+namespace {
+
+void printFirstNonFiniteFlat(const char* label, const dstype* data, Int size, Int rank)
+{
+    dstype maxabs = 0.0;
+    Int imax = -1;
+    for (Int i = 0; i < size; ++i) {
+        dstype absval = std::abs(data[i]);
+        if (absval > maxabs) {
+            maxabs = absval;
+            imax = i;
+        }
+        if (!std::isfinite(data[i])) {
+            std::cout << "First non-finite entry in " << label
+                      << " on rank " << rank
+                      << " at flat index " << i
+                      << " with value " << data[i]
+                      << "; max abs entry is at index " << imax
+                      << " with value " << data[imax] << std::endl;
+            return;
+        }
+    }
+
+    std::cout << "No non-finite entry found in " << label
+              << " on rank " << rank
+              << "; max abs entry is at index " << imax
+              << " with value " << data[imax] << std::endl;
+}
+
+}
+
+void CSolution::SaveState()
+{
+    Int backend = disc.common.backend;
+
+    if (snapshot.udg == nullptr && disc.sol.szudg > 0)
+        TemplateMalloc(&snapshot.udg, disc.sol.szudg, backend);
+
+    if (disc.common.spatialScheme == 1 && snapshot.uh == nullptr && disc.sol.szuh > 0)
+        TemplateMalloc(&snapshot.uh, disc.sol.szuh, backend);
+
+    if (disc.common.ncw > 0 && snapshot.wdg == nullptr && disc.sol.szwdg > 0)
+        TemplateMalloc(&snapshot.wdg, disc.sol.szwdg, backend);
+
+    if (disc.common.nco > 0 && snapshot.odg == nullptr && disc.sol.szodg > 0)
+        TemplateMalloc(&snapshot.odg, disc.sol.szodg, backend);
+
+    if (disc.sol.szudg > 0)
+        ArrayCopy(disc.common.cublasHandle, snapshot.udg, disc.sol.udg, disc.sol.szudg, backend);
+
+    if (disc.common.spatialScheme == 1 && disc.sol.szuh > 0)
+        ArrayCopy(disc.common.cublasHandle, snapshot.uh, disc.sol.uh, disc.sol.szuh, backend);
+
+    if (disc.common.ncw > 0 && disc.sol.szwdg > 0)
+        ArrayCopy(disc.common.cublasHandle, snapshot.wdg, disc.sol.wdg, disc.sol.szwdg, backend);
+
+    if (disc.common.nco > 0 && disc.sol.szodg > 0)
+        ArrayCopy(disc.common.cublasHandle, snapshot.odg, disc.sol.odg, disc.sol.szodg, backend);
+
+    snapshot.initialized = true;
+}
+
+void CSolution::RestoreState()
+{
+    Int backend = disc.common.backend;
+
+    if (snapshot.initialized == false)
+        error("No saved PDE state is available to restore.");
+
+    if (disc.sol.szudg > 0)
+        ArrayCopy(disc.common.cublasHandle, disc.sol.udg, snapshot.udg, disc.sol.szudg, backend);
+
+    if (disc.common.spatialScheme == 1 && disc.sol.szuh > 0)
+        ArrayCopy(disc.common.cublasHandle, disc.sol.uh, snapshot.uh, disc.sol.szuh, backend);
+
+    if (disc.common.ncw > 0 && disc.sol.szwdg > 0)
+        ArrayCopy(disc.common.cublasHandle, disc.sol.wdg, snapshot.wdg, disc.sol.szwdg, backend);
+
+    if (disc.common.nco > 0 && disc.sol.szodg > 0)
+        ArrayCopy(disc.common.cublasHandle, disc.sol.odg, snapshot.odg, disc.sol.szodg, backend);
+
+    if (disc.common.spatialScheme == 0) {
+        ArrayExtract(solv.sys.u, disc.sol.udg, disc.common.npe, disc.common.nc, disc.common.ne1,
+              0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);
+    }
+    else if (disc.common.spatialScheme == 1) {
+        ArrayCopy(disc.common.cublasHandle, solv.sys.u, disc.sol.uh, disc.common.ndofuhat, backend);
+    }
+    else {
+        error("Spatial discretization scheme is not implemented");
+    }
+}
+
+void CSolution::ClearSavedState()
+{
+    Int backend = disc.common.backend;
+
+    if (snapshot.udg != nullptr) {
+        TemplateFree(snapshot.udg, backend);
+        snapshot.udg = nullptr;
+    }
+
+    if (snapshot.uh != nullptr) {
+        TemplateFree(snapshot.uh, backend);
+        snapshot.uh = nullptr;
+    }
+
+    if (snapshot.wdg != nullptr) {
+        TemplateFree(snapshot.wdg, backend);
+        snapshot.wdg = nullptr;
+    }
+
+    if (snapshot.odg != nullptr) {
+        TemplateFree(snapshot.odg, backend);
+        snapshot.odg = nullptr;
+    }
+
+    snapshot.initialized = false;
+}
+
 Int CSolution::PTCsolver(ofstream &out, Int backend)       
 {
     Int N = disc.common.ndof1;     
@@ -144,14 +264,56 @@ Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend
     if (spatialScheme == 1) { 
 
       if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);                
+      if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
       
       // compute the residual vector R = [Ru; Rh]
       disc.hdgAssembleResidual(solv.sys.b, backend);
             
       nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.b, backend);       
+      // cout<<"Rank = "<<disc.common.mpiRank<<", norm Rh = "<<NORM(disc.common.cublasHandle, N, solv.sys.b, backend)<<endl;          
+      // cout<<"Rank = "<<disc.common.mpiRank<<", norm Ru = "<<NORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend)<<endl;          
+      // if (IS_NAN(nrmr)) {
+      //   for (int m=0; m<N; m++) { 
+      //     nrm0 = solv.sys.b[m];
+      //     if (IS_NAN(nrm0)) 
+      //       cout<<"Rank = "<<disc.common.mpiRank<<", m = "<<m<<", Rh[m] = "<<solv.sys.b[m]<<endl;       
+      //   }
+      //   if (disc.common.mpiRank==0) cout<<"Rhat is nan"<<endl;
+      //   printFirstNonFiniteFlat("sys.b", solv.sys.b, N, disc.common.mpiRank);
+      // }
       nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);                 
+      // nrmr += nrmru;
+      // if (IS_NAN(nrmru)) {        
+      //   for (int m=0; m<disc.common.npe*disc.common.ncu*disc.common.ne1; m++) {
+      //     nrm0 = disc.res.Ru[m];
+      //     if (IS_NAN(nrm0)) 
+      //       cout<<"Rank = "<<disc.common.mpiRank<<", m = "<<m<<", Ru[m] = "<<disc.res.Ru[m]<<endl;       
+      //   }   
+      //   if (disc.common.mpiRank==0) cout<<"Ru is nan"<<endl;
+      //   printFirstNonFiniteFlat("res.Ru", disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.common.mpiRank);
+      // }
       if (disc.common.mpiRank==0)
-        cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;          
+        cout<<"Newton Iteration: "<<0<<",  Residual Norm: "<<nrmr<<endl;      
+
+      if (IS_NAN(nrmr)) {                        
+        string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+        writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);   
+        if (disc.common.ncw > 0) {
+          string filename1 = disc.common.fileout + "_wdg_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+          writearray2file(filename1, disc.sol.wdg, disc.common.npe*disc.common.ncw*disc.common.ne1, backend);   
+        }
+        if (vis.savemode > 0) this->SaveParaview(backend, "_CRASH", true);     
+        if (outsol.is_open()) { outsol.close(); }
+        if (outwdg.is_open()) { outwdg.close(); }
+        if (outuhat.is_open()) { outuhat.close(); }
+        if (outbouxdg.is_open()) { outbouxdg.close(); }
+        if (outboundg.is_open()) { outboundg.close(); }
+        if (outbouudg.is_open()) { outbouudg.close(); }
+        if (outbouwdg.is_open()) { outbouwdg.close(); }
+        if (outbouuhat.is_open()) { outbouuhat.close(); }
+        if (outqoi.is_open()) { outqoi.close(); }              
+        error("Residual norm is nan. Save and exit.");                                    
+      }
     }                
     
     // use PTC to solve the system: R(u) = 0
@@ -200,9 +362,13 @@ Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend
           nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.b, backend);           
           nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);   
                     
-          if (nrmr > nrm0 && nrmr > 1.0e6) {                        
+          if ((nrmr > nrm0 && nrmr > 1.0e6) || IS_NAN(nrmr)) {                        
             string filename = disc.common.fileout + "_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
             writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);   
+            if (disc.common.ncw > 0) {
+              string filename1 = disc.common.fileout + "_wdg_np" + NumberToString(disc.common.mpiRank) + ".bin";                    
+              writearray2file(filename1, disc.sol.wdg, disc.common.npe*disc.common.ncw*disc.common.ne1, backend);   
+            }
             if (vis.savemode > 0) this->SaveParaview(backend, "_CRASH", true);     
             if (outsol.is_open()) { outsol.close(); }
             if (outwdg.is_open()) { outwdg.close(); }
@@ -213,11 +379,11 @@ Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend
             if (outbouwdg.is_open()) { outbouwdg.close(); }
             if (outbouuhat.is_open()) { outbouuhat.close(); }
             if (outqoi.is_open()) { outqoi.close(); }              
-            error("Residual norm increases more than 1e6. Save and exit.");                                    
+            error("Residual norm increases more than 1e6 or nan. Save and exit.");                                    
           }
             
           // damped Newton loop to determine alpha
-          while ((nrmr>nrm0 && solv.sys.alpha > 0.1) || IS_NAN(nrmr)) 
+          while (nrmr>nrm0 && solv.sys.alpha > 0.1) 
           {
             if (disc.common.mpiRank==0)
               printf("Newton Iteration: %d, Alpha: %g, Original Norm: %g,  Updated Norm: %g\n", it+1, solv.sys.alpha, nrm0, nrmr);

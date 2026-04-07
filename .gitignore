@@ -309,3 +309,11 @@ examples/NavierStokes/sharpb2/mach.png
 examples/NavierStokes/sharpb2/mesh.png
 examples/NavierStokes/sharpb2/pressure.png
 examples/NavierStokes/sharpb2/temperature.png
+/examples/Poisson/circlerobin
+/apps/finance
+/examples/ReactingFlows/reactingorion
+/examples/MHD/NonLTECanonical
+/examples/NavierStokes/channelflow
+/examples/NavierStokes/idealgascylinder/hm
+examples/ReactingFlows/reactingcylinder/AssessmentofCFDcapabilityforpredictionofhypersonicshockinteractions.pdf
+/examples/Poisson/test

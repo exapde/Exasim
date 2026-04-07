@@ -28,6 +28,55 @@
 #ifndef __WEQUATION
 #define __WEQUATION
 
+static void ReportNanInHdgSourcewonlyOutput(const char* field, const dstype* data,
+      const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg,
+      Int ng, Int ncomp, Int nc, Int nco, Int ncw, Int nd, Int mpiRank, Int iter)
+{
+    for (Int comp = 0; comp < ncomp; ++comp) {
+        for (Int i = 0; i < ng; ++i) {
+            dstype value = data[i + ng * comp];
+            if (IS_NAN(value)) {
+                cout << "Rank = " << mpiRank
+                     << ", Iter = " << iter
+                     << ", stage = HdgSourcewonly"
+                     << ", field = " << field
+                     << ", gausspoint = " << i
+                     << ", component = " << comp
+                     << ", x = (";
+                for (Int d = 0; d < nd; ++d) {
+                    if (d > 0)
+                        cout << ", ";
+                    cout << xdg[i + ng * d];
+                }
+                cout << "), w = (";
+                for (Int k = 0; k < ncw; ++k) {
+                    if (k > 0)
+                        cout << ", ";
+                    cout << wdg[i + ng * k];
+                }
+                cout << "), u = (";
+                for (Int k = 0; k < nc; ++k) {
+                    if (k > 0)
+                        cout << ", ";
+                    cout << udg[i + ng * k];
+                }
+                cout << ")";
+                if (nco > 0) {
+                    cout << ", o = (";
+                    for (Int k = 0; k < nco; ++k) {
+                        if (k > 0)
+                            cout << ", ";
+                        cout << odg[i + ng * k];
+                    }
+                    cout << ")";
+                }
+                cout << ", value = " << value << endl;
+                //error("NaN detected in HdgSourcewonly");
+            }
+        }
+    }
+}
+
 void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
       dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
@@ -39,9 +88,10 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
     Int ncx = common.ncx;// number of compoments of (xdg)        
     //Int npe = common.npe; // number of nodes on master element    
     Int modelnumber = common.modelnumber;
+    if  (common.builtinmodelID > 0) modelnumber = common.builtinmodelID;
     dstype time = common.time;                
     dstype *uinf = app.uinf;
-    dstype *physicsparam = app.physicsparam;
+    dstype *physicsparam = app.physicsparam;    
 
     if (common.wave==1) {
         // dw/dt = u -> (dtfactor * w - wsrc) = u -> w = (1/dtfactor) * (u + wsrc)
@@ -58,8 +108,12 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
           // ->  (alpha * dtfactor + beta) w - alpha * wsrc - sourcew(u,q,w) = 0              
 
           // calculate the source term Sourcew(xdg, udg, odg, wdg)
-          HdgSourcewonly(s, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);            
-          
+          HdgSourcewonly(s, s_wdg, xdg, udg, odg, wdg, uinf, physicsparam, time, modelnumber, ng, nc, ncu, nd, ncx, nco, ncw);
+          // if (backend <= 1) {
+          //     ReportNanInHdgSourcewonlyOutput("f", s, xdg, udg, odg, wdg, ng, ncw, nc, nco, ncw, nd, common.mpiRank, iter);
+          //     ReportNanInHdgSourcewonlyOutput("f_wdg", s_wdg, xdg, udg, odg, wdg, ng, ncw*ncw, nc, nco, ncw, nd, common.mpiRank, iter);
+          // }
+                    
           // alpha*dirkd/dt + beta
           dstype scalar = common.dae_alpha*common.dtfactor + common.dae_beta;
 
@@ -69,6 +123,21 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
           // compute jacobian matrix = (alpha * dtfactor + beta) - s_wdg
           ArrayAXPB(s_wdg, s_wdg, minusone, scalar, ng*ncw*ncw);                
 
+          // check convergence
+          dstype nrm = NORM(common.cublasHandle, ng*ncw, s, backend);
+          if (nrm < 1e-6) {
+            // if (common.mpiRank==2) {
+            //   cout << std::fixed << std::setprecision(15);
+            //   cout<<common.dae_alpha<<"  "<<common.dae_beta<<"  "<<scalar<<endl;
+            //   cout<<"Iter = "<<iter<<", norm = "<<nrm<<", s[0] = "<<s[0]<<endl;
+            //   cout<<wdg[0];
+            //   for (int m=0; m<8; m++)
+            //     cout<<"   "<<udg[ng*m];
+            //   cout<<endl;
+            // }
+            break;              
+          }
+          
           // solve the linear system jacobian * dw = residual
           if (ncw==1) {                
             SmallMatrixSolve11(s, s_wdg, ng, 1);
@@ -90,11 +159,7 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
           }              
 
           // update w = w + dw
-          ArrayAXPBY(wdg, wdg, s, one, one, ng*ncw);
-
-          // check convergence
-          dstype nrm = NORM(common.cublasHandle, ng*ncw, s, backend);
-          if (nrm < 1e-6) break;              
+          ArrayAXPBY(wdg, wdg, s, one, one, ng*ncw);          
         }                        
     }            
 }
@@ -110,6 +175,7 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
     Int ncx = common.ncx;// number of compoments of (xdg)        
     //Int npe = common.npe; // number of nodes on master element    
     Int modelnumber = common.modelnumber;
+    if  (common.builtinmodelID > 0) modelnumber = common.builtinmodelID;
     dstype time = common.time;                
     dstype *uinf = app.uinf;
     dstype *physicsparam = app.physicsparam;
@@ -231,4 +297,3 @@ void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstru
 }
 
 #endif
-

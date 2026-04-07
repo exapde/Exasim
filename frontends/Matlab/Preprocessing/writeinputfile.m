@@ -22,8 +22,16 @@ pde.externalparam = pde.externalparam(:)';
 
 pde.boundaryconditions = mesh.boundarycondition(:)';
 pde.boundaryexpressions = convertHandlesToStrings(mesh.boundaryexpr);
-pde.curvedboundaries = mesh.curvedboundary;
-pde.curvedboundaryexprs = mesh.curvedboundaryexpr;
+if isfield(mesh, "curvedboundary")
+  pde.curvedboundaries = mesh.curvedboundary;
+else
+  pde.curvedboundaries = [];
+end
+if isfield(mesh, "curvedboundaryexprs")
+  pde.curvedboundaryexprs = mesh.curvedboundaryexprs;
+else
+  pde.curvedboundaryexprs = [];
+end
 
 if isfield(pde, 'curvedboundaries') == 0 || isempty(pde.curvedboundaries)
   pde.curvedboundaries = 0*pde.boundaryconditions;

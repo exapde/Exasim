@@ -107,6 +107,15 @@ void printinterfaceinfo(CDiscretization &disc)
 
 class CSolution {
 private:
+    struct PDEStateSnapshot {
+        bool initialized = false;
+        dstype *udg = nullptr;
+        dstype *uh = nullptr;
+        dstype *wdg = nullptr;
+        dstype *odg = nullptr;
+    };
+
+    PDEStateSnapshot snapshot;
 public:
     CDiscretization disc;  // spatial discretization class
     CPreconditioner prec;  // precondtioner class 
@@ -209,6 +218,7 @@ public:
     
     // destructor        
     ~CSolution() { 
+        this->ClearSavedState();
         if (outsol.is_open()) { outsol.close(); }
         if (outwdg.is_open()) { outwdg.close(); }
         if (outuhat.is_open()) { outuhat.close(); }
@@ -251,10 +261,12 @@ public:
     // save output in binary files
     void SaveOutputCG(Int backend);   
 
+    void SaveState();
+    void RestoreState();
+    void ClearSavedState();
+
     Int PTCsolver(ofstream &out, Int backend);
     Int NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend);       
 };
 
 #endif        
-
-

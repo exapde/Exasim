@@ -1,4 +1,4 @@
-function [xl, xu, Rn] = isoq()
+function [xl, xu, Rn, xc0, yc0] = isoq()
 
 Rn = 0.102;
 Rs = Rn/16; 
@@ -32,12 +32,12 @@ yT = max(xl1(:,2));
 
 xl2 = [linspace(xT, xE, n3)' yT*ones(n3,1)];
 
-figure(1); clf;
-hold on;
-plot(xl0(:,1), xl0(:,2), 'or');
-plot(xl1(:,1), xl1(:,2), 'ob');
-plot(xl2(:,1), xl2(:,2), 'og');
-axis equal;
+% figure(1); clf;
+% hold on;
+% plot(xl0(:,1), xl0(:,2), 'or');
+% plot(xl1(:,1), xl1(:,2), 'ob');
+% plot(xl2(:,1), xl2(:,2), 'og');
+% axis equal;
 
 xl = [xl0(1:end-1,:); xl1(1:end-1,:); xl2(1:end,:)];
 
@@ -50,11 +50,11 @@ ind = xu(:,1) <= xE;
 xu = xu(ind,:);
 xu(end,1) = xE;
 
-figure(2); clf;
-hold on;
-plot(xl(:,1), xl(:,2), 'or');
-plot(xu(:,1), xu(:,2), 'ob');
-axis equal;
+% figure(2); clf;
+% hold on;
+% plot(xl(:,1), xl(:,2), 'or');
+% plot(xu(:,1), xu(:,2), 'ob');
+% axis equal;
 
 
 

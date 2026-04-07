@@ -1,0 +1,52 @@
+model = "ModelD";
+modelfile = "pdemodel_axialns.txt";
+meshfile = "grid.bin";
+xdgfile = "xdg.bin";
+udgfile = "udg.bin";
+vdgfile = "vdg.bin";
+discretization = "hdg";
+platform = "cpu";
+
+mpiprocs = 4;
+debugmode = 0;
+runmode = 0;
+modelnumber = 0;
+
+porder = 2;
+pgauss = 4;
+torder = 1;
+nstage = 1;
+
+ncu = 4;
+ncw = 0;
+neb = 4096;
+nfb = 8192;
+
+NewtonIter = 10;
+NewtonTol = 1e-06;
+GMRESiter = 500;
+GMRESrestart = 250;
+GMREStol = 1e-06;
+GMRESortho = 1;
+ppdegree = 0;
+RBdim = 0;
+matvecorder = 1;
+matvectol = 1e-06;
+precMatrixType = 0;
+preconditioner = 1;
+
+time = 0;
+tau = [4];
+dt = [0];
+physicsparam = [1.4, 984000, 0.71, 21.38, 1, 1, 0, 0.50391, 0.0039066, 260.6, 1400];
+externalparam = [0, 0];
+
+boundaryconditions = [5, 1, 1, 3, 2];
+boundaryexpressions = ["abs(y-ymin)<1e-6", "y>ymin+(y4-ymin)/(x4-xmin)*(x-xmin)-1e-4", "y>y4+(y2-y4)/(x2-x4)*(x-x4)-1e-4", "y<y3+1e-4", "abs(x)<20+1e-6"];
+curvedboundaries = [0, 0, 0, 0, 0];
+curvedboundaryexprs = ["", "", "", "", ""];
+periodicboundaries1 = [];
+periodicexprs1 = [];
+periodicboundaries2 = [];
+periodicexprs2 = [];
+interfaceconditions = [];

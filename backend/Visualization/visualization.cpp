@@ -338,7 +338,7 @@ public:
                 times.push_back(t);
             }
         }
-        cout<<nt<<",  "<<nm<<",  "<<base<<endl;        
+        //cout<<nt<<",  "<<nm<<",  "<<base<<endl;        
         pvdwrite(base, files, times);
     }
 

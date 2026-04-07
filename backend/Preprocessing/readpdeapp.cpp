@@ -745,6 +745,7 @@ PDE initializePDE(InputParams& params, int mpirank=0)
     
     if (pde.dt.size() > 0) {if (pde.dt[0]> 0) pde.tdep = 1;}    
     
+  
     if (pde.discretization == "ldg" || pde.discretization == "LDG")
       pde.hybrid = 0;
     else if (pde.discretization == "hdg" || pde.discretization == "HDG")

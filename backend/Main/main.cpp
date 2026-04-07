@@ -136,6 +136,7 @@ using namespace std;
 #include "../Preconditioning/preconditioner.cpp" // preconditioner class
 #include "../Solver/solver.cpp"                 // solver class
 #include "../Visualization/visualization.cpp"  //  visualization class
+#include "../PointLocator/pointlocator.cpp"  //  point locator class
 #include "../Solution/solution.cpp"             // solution class
 
 #ifdef HAVE_SHARED_MODEL_LIB
@@ -295,7 +296,8 @@ int main(int argc, char** argv)
     fileout[0] = make_path(pde.dataoutpath, "out");    
     exasimpath = pde.exasimpath;  
     builtinmodelID = pde.builtinmodelID;
-    
+    if (mpirank==0) std::cout << "builtinmodelID = "<< builtinmodelID << "\n";
+
     if (pde.gendatain == 0) {
       CPreprocessing preproc(argv[1], mpirank, mpiprocs);
       if (mpiprocs == 1) 

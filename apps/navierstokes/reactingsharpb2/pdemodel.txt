@@ -1,0 +1,55 @@
+scalars t
+
+vectors x(2), uq(24), v(1), w(1), uhat(8), n(2), tau(1), mu(12), eta(18)
+
+jacobian uq, w, uhat 
+
+hessian 
+
+batch x, uq, v, w, uhat, n
+
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars, VisVectors, VisTensors
+
+function Flux(x, uq, v, w, eta, mu, t)  
+    output_size(f) = 16;
+end
+
+function Source(x, uq, v, w, eta, mu, t)  
+    output_size(s) = 8;  
+end
+
+function Tdfunc(x, uq, v, w, eta, mu, t)  
+  output_size(m) = 8;
+  ones(m);
+end
+
+function Fbou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(fb) = 8;
+  zeros(fb);
+end
+
+function Ubou(x, uq, v, w, uhat, n, tau, eta, mu, t)
+  output_size(ub) = 8;
+  zeros(ub);
+end
+
+function FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t)
+    output_size(fb) = 40;    
+end
+
+function Initu(x, eta, mu)
+  output_size(ui) = 8;
+end
+
+function VisScalars(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 8;
+end
+
+function VisVectors(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 6;
+end
+
+function VisTensors(x, uq, v, w, eta, mu, t)  
+  output_size(s) = 4;
+end
+

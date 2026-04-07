@@ -6,7 +6,7 @@ function mesh = mkmesh_isoq3d(porder, ns)
 xc = [xc; 0*xc(1,:)];
 xd = [xd; 0*xd(1,:)];
 [xl, ~, Rn] = isoq();
-mesh1 = mkmesh_sphericalfrustum(xc, porder, ns, Rn, 0, xd);
+mesh1 = mkmesh_sphericalfrustum(xc, porder, ns, Rn, xd);
 
 [mesh2.p, mesh2.t, mesh2.dgnodes] = rotate_mesh(mesh2d.p, mesh2d.t, ns, mesh2d.dgnodes);
 % mesh2 = mkmesh(mesh2.p',mesh2.t',porder,{'true'},1,1);

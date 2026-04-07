@@ -1,32 +1,34 @@
-function kkgenmodel(app)
+function kkgenmodel(app, kkdir)
 
-id = app.builtinmodelID;
-app.modelnumber = app.builtinmodelID;
-
-kkdir = app.backendpath + "/Model/BuiltIn/model" + num2str(app.modelnumber);
-strn = "";
+if nargin<=1
+  id = app.builtinmodelID;
+  app.modelnumber = app.builtinmodelID;
+  
+  kkdir = app.backendpath + "/Model/BuiltIn/model" + num2str(app.modelnumber);  
+    
+  text = fileread(char(app.backendpath + "/Model/BuiltIn/model.hpp")); 
+  fid = fopen(app.backendpath + "/Model/BuiltIn/model" + num2str(id) + "/model.hpp", 'w');  
+  t = string(text);          % ensure scalar string
+  t = strrep(t, "exasim_model_1", "exasim_model_" + num2str(id));
+  t = replace(t, newline, sprintf('\n'));  % normalize newlines
+  fwrite(fid, char(t), 'char');
+  fclose(fid);
+  
+  text = fileread(char(app.backendpath + "/Model/BuiltIn/model.cpp")); 
+  fid = fopen(app.backendpath + "/Model/BuiltIn/model" + num2str(id) + "/model.cpp", 'w');  
+  t = string(text);          % ensure scalar string
+  t = strrep(t, "exasim_model_1", "exasim_model_" + num2str(id));
+  t = replace(t, newline, sprintf('\n'));  % normalize newlines
+  fwrite(fid, char(t), 'char');
+  fclose(fid);
+  
+  editlibbuiltinmodel(id, app.backendpath + "/Model/BuiltIn/libbuiltinmodel.cpp");
+end
 
 if ~isfolder(kkdir)
     mkdir(kkdir);
 end
-
-text = fileread(char(app.backendpath + "/Model/BuiltIn/model.hpp")); 
-fid = fopen(app.backendpath + "/Model/BuiltIn/model" + num2str(id) + "/model.hpp", 'w');  
-t = string(text);          % ensure scalar string
-t = strrep(t, "exasim_model_1", "exasim_model_" + num2str(id));
-t = replace(t, newline, sprintf('\n'));  % normalize newlines
-fwrite(fid, char(t), 'char');
-fclose(fid);
-
-text = fileread(char(app.backendpath + "/Model/BuiltIn/model.cpp")); 
-fid = fopen(app.backendpath + "/Model/BuiltIn/model" + num2str(id) + "/model.cpp", 'w');  
-t = string(text);          % ensure scalar string
-t = strrep(t, "exasim_model_1", "exasim_model_" + num2str(id));
-t = replace(t, newline, sprintf('\n'));  % normalize newlines
-fwrite(fid, char(t), 'char');
-fclose(fid);
-
-editlibbuiltinmodel(id, app.backendpath + "/Model/BuiltIn/libbuiltinmodel.cpp");
+strn = "";
 
 disp("generate C++ code in " + kkdir);
 

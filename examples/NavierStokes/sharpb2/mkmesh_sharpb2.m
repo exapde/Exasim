@@ -17,8 +17,8 @@ xl2 = [xl1(end,:); xl(ind,:)];
 ind = (xu(:,1) > x2) & (xu(:,1) <= 1.22);
 xu2 = [xu1(end,:); xu(ind,:)];
 
-mesh1 = surfmesh2d(xl1, xu1, 36, 100, porder, [2.0 1.2], [5 0]);
-mesh2 = surfmesh2d(xl2, xu2, 120, 100, porder, [3.5 1.5], [5 0]);
+mesh1 = surfmesh2d(xl1, xu1, 36, 100, porder, [2.0 1.2], [5.5 0]);
+mesh2 = surfmesh2d(xl2, xu2, 120, 100, porder, [3.5 1.5], [5.5 0]);
 
 [mesh1, mesh2] = rightleft2d(mesh1, mesh2);
 

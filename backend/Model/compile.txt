@@ -1,0 +1,1 @@
+g++ -dynamiclib -std=c++17 -fPIC -I../../kokkos/buildserial/include libpdemodel.cpp ../../kokkos/buildserial/lib/libkokkoscore.a -o libpdemodelserial.dylib

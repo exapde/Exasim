@@ -167,6 +167,16 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
     common.builtinmodelID = builtinmodelID;
     app.builtinmodelID = builtinmodelID;
 
+    if (mpirank==0) {      
+#ifdef HAVE_TEXT2CODE
+      cout<< "Model Driver = ../Model/ModelDrivers.cpp"<<endl;
+#elif defined(HAVE_BUILTINMODEL)
+      cout<< "Model Driver = ../Model/BuiltIn/BuiltinModelDrivers.cpp"<<endl;
+#else
+      cout<< "Model Driver = ../Model/KokkosDrivers.cpp"<<endl;
+#endif      
+    }
+
     if (backend>1) { // GPU
 #ifdef HAVE_GPU        
         // host structs
