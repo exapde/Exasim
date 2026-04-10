@@ -9,7 +9,7 @@ Exasim is an open-source software for generating high-order discontinuous Galerk
    - Generate stand-alone C++ production code via the mathematical expressions of the PDEs
    - Implement local DG and hybridized DG methods for spatial discretization
    - Implement diagonally implicit Runge-Kutta methods for temporal discretization
-   - Implement parallel Newton-GMRES solvers and scalable preconditioners using reduced basis method and polynomial preconditioners
+   - Implement parallel Newton-GMRES solvers and scalable preconditioners using reduced basis method, additive Schwarz method, block ILU, and polynomial preconditioners
    - Implement monolithic multi-physics solvers for the HDG discretization    
    - Employ Kokkos to provide full GPU functionality for all code components from discretization schemes to iterative solvers
    - Provide auto-gen tools to calculate thermodynamic, transport, chemistry, and energy transfer properties for chemically-reacting flows 
