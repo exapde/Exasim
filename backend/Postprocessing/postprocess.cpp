@@ -48,7 +48,7 @@ using namespace std;
 #include "../Discretization/postdiscretization.cpp" // discretization class
 #include "../Preconditioning/postpreconditioner.cpp" // preconditioner class
 #include "../Solver/postsolver.cpp"                 // solver class
-#include "../Visualization/visualization.cpp"  //  visualization class
+#include "../Visualization/visualization.hpp"  //  visualization class
 #include "../Solution/postsolution.cpp"             // solution class
 
 int main(int argc, char** argv) 

@@ -184,16 +184,12 @@ model.hpp                                             (NEW — Phase 3, model co
 kernels/*.hpp                                         (NEW — Phase 3, templated kernels)
 ```
 
-#### Phase 1.1 status (this commit)
+#### Phase 1.1 status
 
 The shim files exist and forward to `backend/<dir>/*.h`. They let a future
 TU `#include <exasim/foo.hpp>` and pick up the same declarations as today.
-
-`visualization.hpp` is **not** shipped yet: `backend/Visualization/` has only
-a `.cpp` file with the class body inline, so a forwarding shim would either
-(a) include a `.cpp` and re-introduce the unity-build / ODR problem we are
-trying to fix, or (b) need a brand-new `visualization.h` carved out — that
-work belongs in Phase 1.2.
+`visualization.hpp` was deferred from Phase 1.1 and added in Phase 1.2c
+(see below) once the backing file was renamed `.cpp` → `.hpp`.
 
 ### Private (compiled into `exasim_core`, not installed)
 

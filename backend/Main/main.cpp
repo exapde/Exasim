@@ -135,7 +135,7 @@ using namespace std;
 #include "../Discretization/discretization.cpp" // discretization class
 #include "../Preconditioning/preconditioner.cpp" // preconditioner class
 #include "../Solver/solver.cpp"                 // solver class
-#include "../Visualization/visualization.cpp"  //  visualization class
+#include "../Visualization/visualization.hpp"  //  visualization class
 #include "../PointLocator/pointlocator.cpp"  //  point locator class
 #include "../Solution/solution.cpp"             // solution class
 
