@@ -7,6 +7,7 @@
 
 // The nodal shape-evaluation routine is implemented in backend/Preprocessing/makemaster*.cpp.
 // This declaration allows the interpolation utilities to reuse the same basis definition.
+// (Not `inline` here — `mkshape`'s definition isn't `inline` either; declaration must match.)
 void mkshape(std::vector<double> &shap, std::vector<double> &plocal, std::vector<double> &pts,
              int npoints, int elemtype, int porder, int nd, int numNodes);
 

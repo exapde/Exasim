@@ -133,7 +133,7 @@ using namespace std;
 #include "../Preconditioning/preconditioner.hpp" // preconditioner class
 #include "../Solver/solver.hpp"                 // solver class
 #include "../Visualization/visualization.hpp"  //  visualization class
-#include "../PointLocator/pointlocator.cpp"  //  point locator class
+#include "../PointLocator/pointlocator.hpp"  //  point locator class
 #include "../Solution/solution.hpp"             // solution class
 
 #ifdef HAVE_SHARED_MODEL_LIB

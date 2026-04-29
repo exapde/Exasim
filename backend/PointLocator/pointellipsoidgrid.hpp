@@ -2,7 +2,7 @@
 #define __ELLIPSOIDGRID_H__
 
 #include "../Common/common.h"
-#include "pointcandidates.cpp"
+#include "pointcandidates.hpp"
 
 /*
  * Uniform-grid broad-phase index for element ellipsoids.

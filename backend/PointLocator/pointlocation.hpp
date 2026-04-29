@@ -3,9 +3,9 @@
 
 #include "../Common/common.h"
 #include "../Preprocessing/makemaster.cpp"
-#include "pointellipsoidgrid.cpp"
-#include "pointcandidates.cpp"
-#include "pointinterpolation.cpp"
+#include "pointellipsoidgrid.hpp"
+#include "pointcandidates.hpp"
+#include "pointinterpolation.hpp"
 
 #include <algorithm>
 #include <cmath>

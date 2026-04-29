@@ -1,8 +1,8 @@
 #include "pointlocator.h"
-#include "pointlocation.cpp"
-#include "pointwallmodel.cpp"
+#include "pointlocation.hpp"
+#include "pointwallmodel.hpp"
 
-CPointLocator::CPointLocator()
+inline CPointLocator::CPointLocator()
     : m_xdg(nullptr),
       m_xpe(nullptr),
       m_U(nullptr),
@@ -28,7 +28,7 @@ CPointLocator::CPointLocator()
 {
 }
 
-CPointLocator::CPointLocator(
+inline CPointLocator::CPointLocator(
     const dstype* xdg,
     const dstype* xpe,
     Int nd,
@@ -41,7 +41,7 @@ CPointLocator::CPointLocator(
     SetGeometry(xdg, xpe, nd, npe, ncx, elemtype, porder);
 }
 
-void CPointLocator::SetGeometry(
+inline void CPointLocator::SetGeometry(
     const dstype* xdg,
     const dstype* xpe,
     Int nd,
@@ -59,7 +59,7 @@ void CPointLocator::SetGeometry(
     m_porder = porder;
 }
 
-void CPointLocator::SetElementFaceConnectivity(
+inline void CPointLocator::SetElementFaceConnectivity(
     const Int* e2f,
     const Int* f2e,
     Int nfe)
@@ -69,7 +69,7 @@ void CPointLocator::SetElementFaceConnectivity(
     m_nfe = nfe;
 }
 
-void CPointLocator::SetEllipsoidGrid(
+inline void CPointLocator::SetEllipsoidGrid(
     const Int* binOffsets,
     const Int* binElems,
     const dstype* gridMin,
@@ -87,7 +87,7 @@ void CPointLocator::SetEllipsoidGrid(
     m_ellipTol = ellipTol;
 }
 
-void CPointLocator::SetField(
+inline void CPointLocator::SetField(
     const dstype* U,
     Int nc)
 {
@@ -95,7 +95,7 @@ void CPointLocator::SetField(
     m_nc = nc;
 }
 
-void CPointLocator::SetSearchParameters(
+inline void CPointLocator::SetSearchParameters(
     Int maxNewtonIter,
     dstype newtonTol,
     dstype insideTol)
@@ -105,7 +105,7 @@ void CPointLocator::SetSearchParameters(
     m_insideTol = insideTol;
 }
 
-bool CPointLocator::BuildWallModelSamplingData(
+inline bool CPointLocator::BuildWallModelSamplingData(
     CDiscretization& disc,
     Int ibc,
     dstype y1)
@@ -119,7 +119,7 @@ bool CPointLocator::BuildWallModelSamplingData(
         wm, disc, ibc, y1, m_maxNewtonIter, m_newtonTol, m_insideTol);
 }
 
-bool CPointLocator::FindPointAndShapeFunctionsFromElementFaces(
+inline bool CPointLocator::FindPointAndShapeFunctionsFromElementFaces(
     Int* elem,
     dstype* xi,
     dstype* N,
@@ -137,7 +137,7 @@ bool CPointLocator::FindPointAndShapeFunctionsFromElementFaces(
         m_maxNewtonIter, m_newtonTol, m_insideTol);
 }
 
-bool CPointLocator::FindPointShapeAndFieldFromEllipsoidGrid(
+inline bool CPointLocator::FindPointShapeAndFieldFromEllipsoidGrid(
     Int* elem,
     dstype* xi,
     dstype* N,
