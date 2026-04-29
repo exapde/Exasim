@@ -10,6 +10,11 @@
 // `exasim_core` once that static library exists (Phase 1.3).
 #include "common.h"
 
+#ifdef HAVE_MPI
+MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
+MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
+#endif
+
 dstype one      =  1.0;
 dstype minusone = -1.0;
 dstype zero     =  0.0;

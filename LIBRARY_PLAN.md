@@ -65,6 +65,44 @@ Kokkos build was selected.
 
 ---
 
+## Strategy revision (recorded mid-execution)
+
+The original Phase 1 plan was: split each `backend/<dir>` into a proper
+`.hpp/.cpp` pair, then assemble the bunch into `exasim_core`.
+Common (Phase 1.2a–b) and Visualization (1.2c) flipped cleanly. The
+attempt to flip **Discretization** revealed structural blockers:
+
+- `Discretization/ioutilities.cpp` defines templates (`writearray`,
+  `NumberToString`) that are reached only via main.cpp's pre-include
+  chain and silently used from `Solver/ptcsolver.cpp`,
+  `Preconditioning/applymatrix.cpp`, etc. Compiling Discretization
+  standalone breaks every consumer.
+- `Discretization/discretization.cpp` calls `hdgMatVec`, defined
+  later in the chain in `matvec.cpp`. Out-of-class member definitions
+  spill across the `#include "*.cpp"` chain in non-obvious ways.
+- `PointLocator/pointlocator.cpp` reaches into Preprocessing for
+  `xiny2`, which is also separately defined in Discretization's
+  `connectivity.cpp` — different copies, intersecting consumers.
+
+Per-subdir splitting is therefore much larger than originally scoped
+(every shared utility template needs a header carve-out, every
+out-of-class definition needs a single-TU home). It is not on the
+critical path for the user-visible goal — *Exasim as a library*.
+
+**Revised approach** (replaces Phase 1.2c onward and most of 1.3):
+
+Keep main.cpp's existing unity-build structure as a **single
+translation unit** wrapped into `exasim_core`. The library is one big
+`.cpp` internally; no per-subdir splits required. The user's
+executable links it and provides their own `int main()`. This
+preserves the existing `#include "*.cpp"` chain (which works), adds a
+real static library boundary, and unblocks Phase 2 (install +
+find_package), Phase 3 (templated kernels), and Phase 4 (the
+user-facing example).
+
+Per-subdir splitting becomes Phase 6 polish: optional, driven by
+compile-time concerns, and addressed one shared utility at a time.
+
 ## Phase 1 — Split runtime into a real static library (3–5 days)
 
 ### 1.1 Move headers into a public include tree

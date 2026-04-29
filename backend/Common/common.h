@@ -58,6 +58,61 @@
 
 #include <Kokkos_Core.hpp>
 
+// Translate the CMake target compile definitions (-D_MPI, -D_CUDA, -D_HIP,
+// -D_TEXT2CODE, -D_BUILTINMODEL, -D_ENZYME, -D_MUTATIONPP) into the HAVE_*
+// macros the runtime sources test against. Historically main.cpp held this
+// translation, which meant only main.cpp saw the HAVE_* names; any other
+// TU compiled into exasim_core would silently miss the guards. With
+// multi-TU compilation (Phase 1.2c) the translation lives here so every
+// TU that includes common.h sees the same gate set.
+//
+// Idempotent guards (#ifndef … #define … #endif) so this header coexists
+// with main.cpp's pre-existing identical translation block without
+// triggering "macro redefined" warnings during the transition.
+#if defined(_OPENMP) && !defined(HAVE_OPENMP)
+#  define HAVE_OPENMP
+#endif
+#if !defined(_OPENMP) && !defined(HAVE_OPENMP) && !defined(HAVE_ONETHREAD)
+#  define HAVE_ONETHREAD
+#endif
+
+#if defined(_CUDA) && !defined(HAVE_CUDA)
+#  define HAVE_GPU
+#  define HAVE_CUDA
+#endif
+
+#if defined(_HIP) && !defined(HAVE_HIP)
+#  define HAVE_GPU
+#  define HAVE_HIP
+#endif
+
+#if defined(_TEXT2CODE) && !defined(HAVE_TEXT2CODE)
+#  define HAVE_TEXT2CODE
+#endif
+
+#if (defined(HAVE_TEXT2CODE) || defined(HAVE_BUILTINMODEL)) && !defined(HAVE_SHARED_MODEL_LIB)
+#  define HAVE_SHARED_MODEL_LIB
+#endif
+
+#if defined(_ENZYME) && !defined(HAVE_ENZYME)
+#  define HAVE_ENZYME
+#endif
+
+#if defined(_MUTATIONPP) && !defined(HAVE_MPP)
+#  define HAVE_MPP
+#endif
+
+#if defined(_MPI) && !defined(HAVE_MPI)
+#  define HAVE_MPI
+#endif
+
+#ifdef HAVE_MPI
+#  include <mpi.h>
+// Defined in backend/Common/common.cpp.
+extern MPI_Comm EXASIM_COMM_WORLD;
+extern MPI_Comm EXASIM_COMM_LOCAL;
+#endif
+
 #define SCOPY scopy_
 #define SSCAL sscal_
 #define SAXPY saxpy_

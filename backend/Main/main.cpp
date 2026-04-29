@@ -106,11 +106,8 @@
 #include <mutation++.h>
 #endif
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
-MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
-#endif
+// HAVE_MPI is now defined in common.h; <mpi.h> and the EXASIM_COMM_*
+// extern declarations come along with it. Definitions live in common.cpp.
 
 #ifdef HAVE_SHARED_MODEL_LIB
 #include <array>
