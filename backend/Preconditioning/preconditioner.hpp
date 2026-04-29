@@ -48,31 +48,31 @@
     - Designed for high-performance scientific computing applications.
 
 */
-#ifndef __POSTPRECONDITIONER
-#define __POSTPRECONDITIONER
+#ifndef __PRECONDITIONER
+#define __PRECONDITIONER
 
 #include "preconditioner.h"
-#include "setprecondstruct.cpp"
-#include "applymatrix.cpp"
+#include "setprecondstruct.hpp"
+#include "applymatrix.hpp"
 
 
 // constructor
-CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
+inline CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 {
     mpiRank = disc.common.mpiRank;
-    //setprecondstruct(precond, disc, backend);    
+    setprecondstruct(precond, disc, backend);    
     if ((disc.common.mpiRank==0) && (disc.common.debugMode==1)) precond.printinfo();
     if (disc.common.mpiRank == 0) printf("finish CPreconditioner constructor... \n");    
 }
 
 // destructor
-CPreconditioner::~CPreconditioner()
+inline CPreconditioner::~CPreconditioner()
 {            
     precond.freememory(precond.backend);
     if (mpiRank==0) printf("CPreconditioner destructor: precond memory is freed successfully.\n");
 }
 
-void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)
+inline void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)
 {       
     // P = B + V*W^T  
     // P*W = B*W + V*W^T*W = A*W -> V = (A-B)*W
@@ -123,7 +123,7 @@ void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDisc
             inc1, &zero, sys.x, inc1, backend);                                                 
 }
 
-void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int backend)
+inline void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int backend)
 {        
     Int N = disc.common.ndof1;        
     
@@ -132,7 +132,7 @@ void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretiza
         disc.common.ne1, disc.common.precMatrixType, disc.common.curvedMesh, backend);                
 }
 
-void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend)
+inline void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend)
 {     
     Int RBdim = disc.common.RBcurrentdim;
     dstype *RBcoef = &disc.tmp.tempn[0];
@@ -176,7 +176,7 @@ void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDisc
             inc1, &zero, sys.x, inc1, backend);                                                 
 }
 
-void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commonstruct& common) 
+inline void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commonstruct& common) 
 {    
     Int nfe = common.nfe; 
     Int ncu = common.ncu;// number of compoments of (u)
@@ -264,7 +264,7 @@ void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commo
     }
 }
 
-void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int spatialScheme, Int backend)
+inline void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int spatialScheme, Int backend)
 {                
     if (spatialScheme==0) {
       Int N = disc.common.ndof1;        

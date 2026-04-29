@@ -20,7 +20,7 @@
 #ifndef __SETPRECSTRUCT
 #define __SETPRECSTRUCT
 
-void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend)
+inline void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend)
 {    
     Int N = max(disc.common.ndof1, disc.common.ndofuhat);
     Int M = disc.common.RBdim;    

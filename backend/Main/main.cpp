@@ -130,7 +130,7 @@ using namespace std;
 #include "../Common/pblas.h"         // wrappers for blas libaries and MPI     
 
 #include "../Discretization/discretization.cpp" // discretization class
-#include "../Preconditioning/preconditioner.cpp" // preconditioner class
+#include "../Preconditioning/preconditioner.hpp" // preconditioner class
 #include "../Solver/solver.hpp"                 // solver class
 #include "../Visualization/visualization.hpp"  //  visualization class
 #include "../PointLocator/pointlocator.cpp"  //  point locator class
