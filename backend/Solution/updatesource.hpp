@@ -29,7 +29,7 @@
 #ifndef __UPDATESOURCE
 #define __UPDATESOURCE
 
-void UpdateSourceDIRK(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+inline void UpdateSourceDIRK(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
 {   
     Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncs = common.ncs;// number of compoments of (s)    
@@ -101,7 +101,7 @@ void UpdateSourceDIRK(solstruct &sol, sysstruct &sys, appstruct &app, resstruct 
     }       
 }
 
-void UpdateSourceBDF(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+inline void UpdateSourceBDF(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
 {   
     //Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncs = common.ncs;// number of compoments of (s)    
@@ -138,7 +138,7 @@ void UpdateSourceBDF(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &
     }        
 }
 
-void UpdateSource(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
+inline void UpdateSource(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, commonstruct &common, Int backend)
 {           
     if (common.temporalScheme==0) // DIRK
         UpdateSourceDIRK(sol, sys, app, res, common, backend);

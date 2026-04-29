@@ -49,7 +49,7 @@ using namespace std;
 #include "../Preconditioning/postpreconditioner.cpp" // preconditioner class
 #include "../Solver/postsolver.cpp"                 // solver class
 #include "../Visualization/visualization.hpp"  //  visualization class
-#include "../Solution/postsolution.cpp"             // solution class
+#include "../Solution/postsolution.hpp"             // solution class
 
 int main(int argc, char** argv) 
 {   

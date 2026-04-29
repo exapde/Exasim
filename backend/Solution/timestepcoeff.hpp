@@ -32,7 +32,7 @@
 #ifndef __TIMESTEPCOEFF
 #define __TIMESTEPCOEFF
 
-void DIRKcoeff(dstype * c, dstype * d, dstype * t, Int nstage, Int torder) 
+inline void DIRKcoeff(dstype * c, dstype * d, dstype * t, Int nstage, Int torder) 
 {
     if (nstage == 1 && torder == 1) {   //DIRK(1,1)
         d[0] = 1.0;
@@ -103,7 +103,7 @@ void DIRKcoeff(dstype * c, dstype * d, dstype * t, Int nstage, Int torder)
     }                
 }
 
-void BDFcoeff(dstype * c, dstype * t, Int torder) 
+inline void BDFcoeff(dstype * c, dstype * t, Int torder) 
 {
     if (torder == 1) {   //BDF1        
         c[0] = 1.0;
@@ -129,7 +129,7 @@ void BDFcoeff(dstype * c, dstype * t, Int torder)
     }                    
 }
 
-void TimestepCoefficents(commonstruct common) 
+inline void TimestepCoefficents(commonstruct common) 
 {    
     if (common.temporalScheme==0)  // DIRK 
     {

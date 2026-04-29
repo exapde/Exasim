@@ -134,7 +134,7 @@ using namespace std;
 #include "../Solver/solver.cpp"                 // solver class
 #include "../Visualization/visualization.hpp"  //  visualization class
 #include "../PointLocator/pointlocator.cpp"  //  point locator class
-#include "../Solution/solution.cpp"             // solution class
+#include "../Solution/solution.hpp"             // solution class
 
 #ifdef HAVE_SHARED_MODEL_LIB
 #include "../Preprocessing/preprocessing.cpp" // preprocessing class

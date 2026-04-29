@@ -45,7 +45,7 @@
 #ifndef __UPDATESOLUTION
 #define __UPDATESOLUTION
 
-void UpdateSolutionDIRK(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
+inline void UpdateSolutionDIRK(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {                                   
     Int N = common.ndof1;
     Int N2 = common.npe*common.nc*common.ne2;            
@@ -78,7 +78,7 @@ void UpdateSolutionDIRK(solstruct &sol, sysstruct &sys, commonstruct &common, In
     }    
 }
 
-void UpdateSolutionBDF(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
+inline void UpdateSolutionBDF(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {       
     Int N = common.ndof1;
     
@@ -106,7 +106,7 @@ void UpdateSolutionBDF(solstruct &sol, sysstruct &sys, commonstruct &common, Int
     }
 }
 
-void UpdateSolution(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
+inline void UpdateSolution(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {           
     if (common.temporalScheme==0) // DIRK
         UpdateSolutionDIRK(sol, sys, common, backend);
@@ -115,7 +115,7 @@ void UpdateSolution(solstruct &sol, sysstruct &sys, commonstruct &common, Int ba
 }
 
 
-void UpdateSolution(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, tempstruct &tmp, commonstruct &common, Int backend)
+inline void UpdateSolution(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, tempstruct &tmp, commonstruct &common, Int backend)
 {                                   
     Int N = common.ndof1;
     Int N2 = common.npe*common.nc*common.ne2;                        

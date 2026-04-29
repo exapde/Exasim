@@ -20,7 +20,7 @@
 #ifndef __PREVIOUSSOLUTIONS
 #define __PREVIOUSSOLUTIONS
 
-void PreviousSolutions(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
+inline void PreviousSolutions(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {   
     Int nc = common.nc; // number of compoments of (u, q, p)
     Int ncu = common.ncu;// number of compoments of (u)    

@@ -42,11 +42,11 @@
 #define __SOLUTION
 
 #include "solution.h"
-#include "previoussolutions.cpp"
-#include "updatesolution.cpp"
-#include "updatesource.cpp"
-#include "timestepcoeff.cpp"
-#include "avsolution.cpp"
+#include "previoussolutions.hpp"
+#include "updatesolution.hpp"
+#include "updatesource.hpp"
+#include "timestepcoeff.hpp"
+#include "avsolution.hpp"
 
 #ifdef TIMESTEP  
 #include <sys/time.h>
@@ -54,7 +54,7 @@
 
 namespace {
 
-void printFirstNonFiniteFlat(const char* label, const dstype* data, Int size, Int rank)
+inline void printFirstNonFiniteFlat(const char* label, const dstype* data, Int size, Int rank)
 {
     dstype maxabs = 0.0;
     Int imax = -1;
@@ -83,7 +83,7 @@ void printFirstNonFiniteFlat(const char* label, const dstype* data, Int size, In
 
 }
 
-void CSolution::SaveState()
+inline void CSolution::SaveState()
 {
     Int backend = disc.common.backend;
 
@@ -114,7 +114,7 @@ void CSolution::SaveState()
     snapshot.initialized = true;
 }
 
-void CSolution::RestoreState()
+inline void CSolution::RestoreState()
 {
     Int backend = disc.common.backend;
 
@@ -145,7 +145,7 @@ void CSolution::RestoreState()
     }
 }
 
-void CSolution::ClearSavedState()
+inline void CSolution::ClearSavedState()
 {
     Int backend = disc.common.backend;
 
@@ -172,7 +172,7 @@ void CSolution::ClearSavedState()
     snapshot.initialized = false;
 }
 
-Int CSolution::PTCsolver(ofstream &out, Int backend)       
+inline Int CSolution::PTCsolver(ofstream &out, Int backend)       
 {
     Int N = disc.common.ndof1;     
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
@@ -241,7 +241,7 @@ Int CSolution::PTCsolver(ofstream &out, Int backend)
     return it;
 }
 
-Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend)       
+inline Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend)       
 {
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
     dstype nrmr, nrm0, tol;
@@ -414,7 +414,7 @@ Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend
     return it;
 }
 
-void CSolution::SteadyProblem(ofstream &out, Int backend) 
+inline void CSolution::SteadyProblem(ofstream &out, Int backend) 
 {   
     INIT_TIMING;        
 #ifdef TIMING    
@@ -563,7 +563,7 @@ void CSolution::SteadyProblem(ofstream &out, Int backend)
 #endif    
 }
 
-void CSolution::InitSolution(Int backend) 
+inline void CSolution::InitSolution(Int backend) 
 {    
 //     // compute the geometry quantities
 //     disc.compGeometry(backend);
@@ -623,7 +623,7 @@ void CSolution::InitSolution(Int backend)
     }  
 }
 
-void CSolution::DIRK(ofstream &out, Int backend)
+inline void CSolution::DIRK(ofstream &out, Int backend)
 {    
     INIT_TIMING;        
     
@@ -716,7 +716,7 @@ void CSolution::DIRK(ofstream &out, Int backend)
     }           
 }
 
-void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
+inline void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
 
     // initial time
     double time = disc.common.time;           
@@ -872,7 +872,7 @@ void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
     }
 }
 
-void CSolution::SolveProblem(ofstream &out, Int backend) 
+inline void CSolution::SolveProblem(ofstream &out, Int backend) 
 {          
     this->InitSolution(backend); 
         
@@ -895,7 +895,7 @@ void CSolution::SolveProblem(ofstream &out, Int backend)
     }        
 }
 
-void CSolution::SaveSolutions(Int backend) 
+inline void CSolution::SaveSolutions(Int backend) 
 {
     bool save = false;
     if (disc.common.tdep==0) save = true;
@@ -999,7 +999,7 @@ void CSolution::SaveSolutions(Int backend)
    // }    
 }
 
-void CSolution::ReadSolutions(Int backend) 
+inline void CSolution::ReadSolutions(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)             
@@ -1048,7 +1048,7 @@ void CSolution::ReadSolutions(Int backend)
    }    
 }
  
-void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
+inline void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
 {
     // Decide whether we should write a file on this step
     bool writeSolution = false;
@@ -1118,7 +1118,7 @@ void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force
    }
 }
 
-void CSolution::SaveQoI(Int backend) 
+inline void CSolution::SaveQoI(Int backend) 
 {
     if (disc.common.nvqoi > 0) qoiElement(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
     if (disc.common.nsurf > 0) qoiFace(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
@@ -1135,7 +1135,7 @@ void CSolution::SaveQoI(Int backend)
     }
 }
 
-void CSolution::SaveOutputCG(Int backend) 
+inline void CSolution::SaveOutputCG(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
@@ -1162,7 +1162,7 @@ void CSolution::SaveOutputCG(Int backend)
    }    
 }        
 
-void CSolution::SaveSolutionsOnBoundary(Int backend) 
+inline void CSolution::SaveSolutionsOnBoundary(Int backend) 
 {   
     if ( disc.common.saveSolBouFreq>0 ) {
         if (((disc.common.currentstep+1) % disc.common.saveSolBouFreq) == 0)             
@@ -1196,7 +1196,7 @@ void CSolution::SaveSolutionsOnBoundary(Int backend)
     }
 }
 
-void CSolution::SaveNodesOnBoundary(Int backend) 
+inline void CSolution::SaveNodesOnBoundary(Int backend) 
 {   
     if ( disc.common.saveSolBouFreq>0 ) {
         for (Int j=0; j<disc.common.nbf; j++) {
