@@ -41,10 +41,22 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-// #include <cstdint>
-// #include <cstring>
-// #include <chrono>
-// #include <cmath>
+// Standard-library prerequisites. Historically this header relied on the
+// includer (main.cpp) having pre-included these; with Phase 1.2 of the
+// library port, common.h is consumed by multiple translation units in
+// exasim_core, so it must be self-contained.
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <chrono>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <filesystem>
+
+#include <Kokkos_Core.hpp>
 
 #define SCOPY scopy_
 #define SSCAL sscal_
@@ -152,7 +164,7 @@ template <typename T>
 bool is_nan_bitwise(T x);
 
 // Specialization for double
-template <> bool is_nan_bitwise<double>(double x) {
+template <> inline bool is_nan_bitwise<double>(double x) {
     uint64_t bits;
     std::memcpy(&bits, &x, sizeof(bits));
     return ((bits & 0x7ff0000000000000ULL) == 0x7ff0000000000000ULL) &&  // exponent all 1s
@@ -160,7 +172,7 @@ template <> bool is_nan_bitwise<double>(double x) {
 }
 
 // Specialization for float
-template <> bool is_nan_bitwise<float>(float x) {
+template <> inline bool is_nan_bitwise<float>(float x) {
     uint32_t bits;
     std::memcpy(&bits, &x, sizeof(bits));
     return ((bits & 0x7f800000U) == 0x7f800000U) &&                       // exponent all 1s
@@ -174,25 +186,22 @@ template <> bool is_nan_bitwise<float>(float x) {
 #define M_PI 3.14159265358979323846
 #endif
 
-// global variables for BLAS  
-dstype one = 1.0;
-dstype minusone = -1.0;
-dstype zero = 0.0;
-char chn = 'N';
-char cht = 'T';
-char chl = 'L';
-char chu = 'U';
-char chr = 'R';
-char chv = 'V';
-Int inc1 = 1;
-
-// global variables for CUBLAS  
-// dstype *cublasOne;
-// dstype *cublasMinusone;
-// dstype *cublasZero;
-dstype cublasOne[1] = {one};
-dstype cublasMinusone[1] = {minusone};
-dstype cublasZero[1] = {zero};
+// Global sentinel values for BLAS / CUBLAS / HIPBLAS calls.
+// Definitions live in backend/Common/common.cpp so this header can be
+// included from multiple translation units without ODR violations.
+extern dstype one;
+extern dstype minusone;
+extern dstype zero;
+extern char chn;
+extern char cht;
+extern char chl;
+extern char chu;
+extern char chr;
+extern char chv;
+extern Int inc1;
+extern dstype cublasOne[1];
+extern dstype cublasMinusone[1];
+extern dstype cublasZero[1];
 
 #ifdef HAVE_CUDA       
    #define CUDA_SYNC cudaDeviceSynchronize();  
@@ -554,60 +563,60 @@ static inline void PrintErrorAndExit(const std::string& errmsg, const char* file
 // -----------------------------------------------------------------------------
 #define error(msg)  PrintErrorAndExit((msg), __FILE__, __LINE__)
 
-std::string trim_dir(const std::string& s) {
+inline std::string trim_dir(const std::string& s) {
     return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes
 }
 
-bool ensure_dir(const std::string& dir) {
+inline bool ensure_dir(const std::string& dir) {
     std::filesystem::path p(dir);
     if (std::filesystem::exists(p)) return std::filesystem::is_directory(p);  // false if it's a file
     return std::filesystem::create_directories(p);               // creates parents as needed
 }
 
-std::string make_path(const std::string& str1, const std::string& str2) {
+inline std::string make_path(const std::string& str1, const std::string& str2) {
     std::filesystem::path base = str1;
     std::filesystem::path tail = str2;
 
-    // If tail is absolute, strip its root so it becomes relative    
+    // If tail is absolute, strip its root so it becomes relative
     tail = tail.relative_path();
 
     std::filesystem::path full = base / tail;
     return full.lexically_normal().string();
 }
 
-std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
+inline std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.find(keyword);  // Use find to get the first occurrence
     if (pos != std::string::npos) {
         return fullPath.substr(0, pos + keyword.length());
     }
-    else {      
+    else {
       return "";
     }
 }
 
-std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
+inline std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
     const std::string s = fullPath.generic_string();
     std::size_t pos = s.find(keyword);  // Use find to get the first occurrence
     if (pos != std::string::npos) {
         return s.substr(0, pos + keyword.length());
     }
-    else {      
+    else {
       return "";
     }
 }
 
-std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
+inline std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
     if (pos != std::string::npos) {
         return fullPath.substr(0, pos + keyword.length());
     }
-    else {      
+    else {
       return "";
     }
 }
 
-std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
-                                           const std::string& keyword)
+inline std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                                  const std::string& keyword)
 {
     // generic_string uses forward slashes on all platforms (nice for substring ops)
     const std::string s = fullPath.generic_string();
@@ -1469,10 +1478,10 @@ struct precondstruct {
     }            
 };
 
-struct commonstruct {     
-    string exasimpath = "";  
-    string filein;       // Name of binary file with input data
-    string fileout;      // Name of binary file to write the solution            
+struct commonstruct {
+    std::string exasimpath = "";
+    std::string filein;       // Name of binary file with input data
+    std::string fileout;      // Name of binary file to write the solution
     
     Int backend;   // 0: Serial; 1: OpenMP; 2: CUDA  
     Int maxnbc;    // maximum number of boundary conditions

@@ -14,9 +14,14 @@ project(exasim LANGUAGES CXX)
 
 get_filename_component(EXASIM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 
-# Exasim's main program is located here  
+# Exasim's main program is located here
 set(EXASIM_MAIN_DIR ${EXASIM_DIR}/backend/Main)
 file(GLOB MAIN_SOURCES ${EXASIM_MAIN_DIR}/main.cpp)
+
+# Carved-out backend translation units. Today these are appended to every
+# executable source list; once exasim_core (Phase 1.3) lands they move into
+# the static library and the executables just link it.
+list(APPEND MAIN_SOURCES ${EXASIM_DIR}/backend/Common/common.cpp)
 
 # Text2Code shared libraries live here
 set(Model_LIB_DIR   ${EXASIM_DIR}/backend/Model)
