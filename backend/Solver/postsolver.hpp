@@ -38,13 +38,13 @@
 #define __POSTSOLVER
 
 #include "solver.h"
-#include "setsysstruct.cpp"
-#include "getpoly.cpp"
-#include "gmres.cpp"
-#include "ptcsolver.cpp"
+#include "setsysstruct.hpp"
+#include "getpoly.hpp"
+#include "gmres.hpp"
+#include "ptcsolver.hpp"
 
 // constructor
-CSolver::CSolver(CDiscretization& disc, Int backend)
+inline CSolver::CSolver(CDiscretization& disc, Int backend)
 {
     mpiRank = disc.common.mpiRank;
     //setsysstruct(sys, disc.common, disc.res, disc.mesh, disc.tmp, backend);   
@@ -54,7 +54,7 @@ CSolver::CSolver(CDiscretization& disc, Int backend)
 }
 
 // destructor
-CSolver::~CSolver()
+inline CSolver::~CSolver()
 {        
     sys.freememory(sys.backend);    
     if (mpiRank==0) printf("CSolver destructor: sys memory is freed successfully.\n");

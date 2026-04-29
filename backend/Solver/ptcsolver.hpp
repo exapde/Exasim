@@ -47,7 +47,7 @@
 #ifndef __PTCSOLVER
 #define __PTCSOLVER
 
-int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int it, Int backend)
+inline int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int it, Int backend)
 {    
         
 #ifdef TIMING    
@@ -212,7 +212,7 @@ int LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, o
     //disc.common.Wcurrentdim = disc.common.RBcurrentdim;
 }
 
-void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int backend)
+inline void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int backend)
 {
     Int N = disc.common.ndof1;
                     
@@ -233,7 +233,7 @@ void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int 
     }
 }
 
-void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int N, Int backend)
+inline void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int N, Int backend)
 {                       
     dstype nrmr = PNORM(disc.common.cublasHandle, N, sys.x, backend);
     if (nrmr>zero) {
@@ -252,7 +252,7 @@ void UpdateRB(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, Int 
     }
 }
 
-void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
+inline void LinearSolver(sysstruct &sys, CDiscretization& disc, CPreconditioner& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
 {            
     // evaluate the residual R(u) and set it to sys.b
     if (spatialScheme==0) {

@@ -30,7 +30,7 @@
 #ifndef __GETPOLY
 #define __GETPOLY
 
-void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int backend)
+inline void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int backend)
 {
     for (Int k = 0; k < m; k++) {
         PDOT(handle, N, &V[m*N], inc1, &V[k*N], inc1, &H[k], backend);
@@ -41,7 +41,7 @@ void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int backend)
     ArrayMultiplyScalar(handle, &V[m*N], one/H[m], N, backend);
 }
 
-void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int L, Int backend)
+inline void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int L, Int backend)
 {
     if (L==0) {
       MGS(handle, V, H, N, m, backend);
@@ -63,7 +63,7 @@ void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int L, Int b
     ArrayMultiplyScalar(handle, &V[m*N], one/H[m], N, backend);
 }
 
-void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+inline void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
         dstype *H, dstype *r, Int N, Int m, Int backend)
 {
     int m1 = m + 1;
@@ -80,14 +80,14 @@ void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     }
 }
 
-void ArrayTranspose(dstype  *A, dstype  *B, int m, int n, int m1)
+inline void ArrayTranspose(dstype  *A, dstype  *B, int m, int n, int m1)
 {  
     for (int i=0; i<m; i++)
         for (int j=0; j<n; j++)
             A[j+n*i] = B[i + m1*j];     
 }
 
-void MatMul(dstype *c, dstype *a, dstype *b, int r1, int c1, int c2) 
+inline void MatMul(dstype *c, dstype *a, dstype *b, int r1, int c1, int c2) 
 {
     int i, j, k;
 
@@ -101,7 +101,7 @@ void MatMul(dstype *c, dstype *a, dstype *b, int r1, int c1, int c2)
                 c[i + r1*j] += a[i + r1*k] * b[k + c1*j];            
 }
 
-void eigH(dstype  *HT, dstype  *H, dstype *em, dstype *work, int *ipiv, int m)
+inline void eigH(dstype  *HT, dstype  *H, dstype *em, dstype *work, int *ipiv, int m)
 {
     int m1 = m+1;
     
@@ -115,11 +115,11 @@ void eigH(dstype  *HT, dstype  *H, dstype *em, dstype *work, int *ipiv, int m)
             HT[i + m*j] = H[i + m1*j] + Beta2*work[i]*em[j]; 
 }
 
-dstype complexabs(dstype a, dstype b) {
+inline dstype complexabs(dstype a, dstype b) {
     return sqrt(a*a + b*b);
 }
 
-void LejaSort(dstype *sr, dstype *si, dstype *lr, dstype *li, dstype *product, int n)
+inline void LejaSort(dstype *sr, dstype *si, dstype *lr, dstype *li, dstype *product, int n)
 {
     sr[0] = lr[0];
     si[0] = li[0];
@@ -171,7 +171,7 @@ void LejaSort(dstype *sr, dstype *si, dstype *lr, dstype *li, dstype *product, i
     }            
 }
 
-void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+inline void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
         dstype  *lam, dstype *r, int *ipiv, int N, int m, int backend)
 {
     dstype *Hm = &lam[0];    
@@ -197,7 +197,7 @@ void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     LejaSort(lamr, lami, wr, wi, work, m);
 }
 
-void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+inline void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
         dstype *H, dstype *r, Int N, Int m, Int spatialScheme, Int backend)
 {
     int m1 = m + 1;
@@ -214,7 +214,7 @@ void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     }
 }
 
-void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+inline void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
         dstype  *lam, dstype *r, int *ipiv, int N, int m, int spatialScheme, int backend)
 {
     dstype *Hm = &lam[0];    

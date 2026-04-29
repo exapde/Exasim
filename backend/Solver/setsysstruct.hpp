@@ -51,7 +51,7 @@ Notes:
 #ifndef __SETSYSSTRUCT
 #define __SETSYSSTRUCT
 
-dstype rand_normal(dstype mean, dstype stddev)
+inline dstype rand_normal(dstype mean, dstype stddev)
 {   //Box muller method
     static dstype n2 = 0.0;
     static int n2_cached = 0;
@@ -81,7 +81,7 @@ dstype rand_normal(dstype mean, dstype stddev)
     }
 }
 
-void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstruct mesh, tempstruct tmp, Int backend)
+inline void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstruct mesh, tempstruct tmp, Int backend)
 {
     int N = common.npe*common.ncu*common.ne;          
     
@@ -202,7 +202,7 @@ void randomfield(dstype *randvect, commonstruct &common, resstruct res, meshstru
 #endif        
 }
 
-void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruct mesh, tempstruct tmp, Int backend)
+inline void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, meshstruct mesh, tempstruct tmp, Int backend)
 {
     Int ncu = common.ncu;// number of compoments of (u)    
     Int npe = common.npe; // number of nodes on master element    

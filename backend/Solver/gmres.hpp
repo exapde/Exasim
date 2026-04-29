@@ -78,7 +78,7 @@ via the 'common' member of CDiscretization.
 #ifndef __GMRESSOLVER
 #define __GMRESSOLVER 
 
-void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N, Int m, Int backend)
+inline void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N, Int m, Int backend)
 {
     PGEMTV(handle, N, m, &one, V, N, &V[m*N], inc1, &zero, H, inc1, temp, backend);
     PGEMNV(handle, N, m, &minusone, V, N, H, inc1, &one, &V[m*N], inc1, backend);
@@ -87,7 +87,7 @@ void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N, Int m
     ArrayMultiplyScalar(&V[m*N], one/H[m], N);
 }
 
-void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+inline void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
         sysstruct &sys, dstype *q, dstype *p, int N, int backend)
 {
     int m = disc.common.ppdegree;
@@ -128,14 +128,14 @@ void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
         ArrayAXPBY(w, w, q, 1.0, 1.0/sr[m-1], N);                  
 }
 
-void UpdateSolution(cublasHandle_t handle, dstype *x, dstype *y, dstype *H, dstype *s, dstype *V,
+inline void UpdateSolution(cublasHandle_t handle, dstype *x, dstype *y, dstype *H, dstype *s, dstype *V,
         Int i, Int N, Int n, Int backend)
 {
     cpuBackSolve(y, H, s, i, n);
     PGEMNV(handle, N, i+1, &one, V, N, y, inc1, &one, x, inc1, backend);
 }
 
-Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int backend)
+inline Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int backend)
 {
     INIT_TIMING;    
     
@@ -313,7 +313,7 @@ Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int back
     return j;
 }
 
-void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+inline void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
         sysstruct &sys, dstype *q, dstype *p, int N, Int spatialScheme, int backend)
 {
     int m = disc.common.ppdegree;
@@ -354,7 +354,7 @@ void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
         ArrayAXPBY(w, w, q, 1.0, 1.0/sr[m-1], N);                  
 }
 
-Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, Int spatialScheme, Int backend)
+inline Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, Int spatialScheme, Int backend)
 {
     INIT_TIMING;    
     
