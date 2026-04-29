@@ -116,8 +116,41 @@ common.h:195:  dstype cublasZero[1] = {zero};
 3. Mark `static` (internal-linkage; only if the function is genuinely
    per-TU — unlikely here since the whole point is shared across modules).
 
-For Phase 1 we expect most of these to move into `cpuimpl.cpp` and
-`kokkosimpl.cpp` — **header keeps declarations, .cpp gets bodies**.
+**Decision (Phase 1.2b)**: take option 2 — mark every header-defined free
+function `inline`. Smallest diff, lowest risk, keeps headers self-contained.
+Option 1 ("move to .cpp") is recorded in `LIBRARY_PLAN.md` Phase 6 as a
+deferred follow-up; it's the better long-term answer if/when per-TU compile
+cost on the 5k header lines becomes a concern, but it doesn't unblock
+anything in Phases 1.3–4 so we are not paying that cost up front.
+
+**Update during execution**: the `inline` sweep was applied to both
+`cpuimpl.h` and `kokkosimpl.h`. Result on `baseline/verify.sh`:
+
+- `cpuimpl.h` only marked → both serial and MPI reproduce baseline
+  bit-for-bit. ✓
+- `kokkosimpl.h` also marked → serial reproduces; MPI 2-rank produces
+  **deterministically different** binary outputs (`outudg_np*.bin`,
+  `outuhat_np*.bin`, `outbouudg_np*.bin`). The QoI / L² error is
+  unchanged at `4.99e-13`, so the math is preserved — what shifts is the
+  per-rank file content, consistent with a partition-order reshuffle.
+
+Bisect confirmed `kokkosimpl.h` is solely responsible. Plausible mechanism:
+`kokkosimpl.h` wraps `Kokkos::parallel_for` calls; marking those wrappers
+`inline` lets the compiler inline them into more call sites, changing
+register / stack layout, which changes pointer values fed into ParMETIS,
+which produces a different (still-valid) graph partition.
+
+**Resolution applied**: commit the `cpuimpl.h` half (verified safe). Treat
+`kokkosimpl.h` as a Phase 1.2c sub-task with three candidate paths, decided
+later when we have more context:
+
+1. Move bodies into a new `kokkosimpl.cpp` (option 1 from the list above —
+   then `inline` is irrelevant). Bigger diff but bit-preserves MPI baseline.
+2. Mark `inline` and update the MPI baseline to QoI-equivalence rather than
+   md5 identity. Smaller diff; documents that MPI partition order is
+   compiler-driven.
+3. Decide per-function: only mark `inline` the wrappers that don't drive
+   ParMETIS input. Risky; requires call-graph tracing.
 
 ### `Model/ModelDrivers.cpp`, `Model/KokkosDrivers.cpp`
 

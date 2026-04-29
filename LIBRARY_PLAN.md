@@ -349,6 +349,12 @@ CI: build this example, run it, diff against the baseline.
   (it almost certainly doesn't — these are coarse-grained calls).
 - Ship a CMake function `exasim_add_model(target MODEL Poisson2D HEADER ...)`
   that wires up the glue file generation automatically.
+- **Move `cpuimpl.h` / `kokkosimpl.h` function bodies into `.cpp`**
+  (deferred from Phase 1.2b — see below). Today those headers stay
+  fully `inline`-marked to keep the diff small. Splitting them would
+  reduce per-TU compile cost (every consumer parses ~5k lines today)
+  and keep the public include surface lean. Mechanical work; only
+  worth doing if compile times start to bite.
 
 ---
 
