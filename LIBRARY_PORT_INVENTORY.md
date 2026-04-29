@@ -227,14 +227,25 @@ Each picks up the matching pre-built Kokkos under `kokkos/build{serial,cuda,hip}
 
 ## Phase 1 execution order
 
+Order is dependency-driven (lowest first). It was revised mid-flight
+after a PointLocator-first attempt failed: `pointlocator.cpp` pulls in
+`Preprocessing/makemaster.cpp`, which uses the `xiny2` template defined
+in `Discretization/connectivity.cpp` *and* in `Preprocessing/helpers.cpp`.
+In unity-build mode `discretization.cpp` is included before `pointlocator.cpp`
+so the symbol is in scope; in separate compilation it is not. Therefore
+**Discretization must come before PointLocator**.
+
 1. **Common/** — fix ODR landmines, produce `common.cpp` /
    `cpuimpl.cpp` / `kokkosimpl.cpp`, install headers under
    `include/exasim/`. Lowest dependency, surfaces most of the build risk.
 2. **Visualization/** — single file, no chain. Easy second.
-3. **PointLocator/** — three .cpp files, no cross-deps to other backend modules.
-4. **Discretization/** — biggest chain (12 files + Model drivers). The
-   `Model/{Kokkos,Model}Drivers.cpp` move with it.
-5. **Preconditioning/**, **Solver/**, **Solution/** — depend on Discretization.
+3. **Discretization/** — biggest chain (12 files + Model drivers). The
+   `Model/{Kokkos,Model}Drivers.cpp` move with it. Provides `xiny2` and
+   `CDiscretization` to consumers.
+4. **Preconditioning/**, **Solver/**, **Solution/** — depend on Discretization.
+5. **PointLocator/** — three top-level `.cpp` files plus 4 helper-includes.
+   Depends on Discretization (full `CDiscretization` type used in
+   `pointwallmodel.cpp`) and on `xiny2` reachable via `connectivity.cpp`.
 6. **Preprocessing/** — depends on text2code-shared headers (`TextParser.hpp`,
    `structs.hpp`); compile-gated by `_TEXT2CODE` / `_BUILTINMODEL`.
 7. **`backend/Main/main.cpp`** body moves to `<exasim/run.hpp>` +
