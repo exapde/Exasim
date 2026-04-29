@@ -1,7 +1,7 @@
 #ifndef __GPUDEVICEINFO
 #define __GPUDEVICEINFO
 
-int getcores(cudaDeviceProp devProp)
+inline int getcores(cudaDeviceProp devProp)
 {  
     int cores = 0;
     int mp = devProp.multiProcessorCount;
@@ -32,7 +32,7 @@ int getcores(cudaDeviceProp devProp)
     return cores;
 }
 
-void gpuDeviceInfo(int mpirank)
+inline void gpuDeviceInfo(int mpirank)
 {
     int deviceCount = 0;
     cudaGetDeviceCount(&deviceCount);

@@ -38,16 +38,16 @@
 #ifndef __RESIDUAL
 #define __RESIDUAL
 
-#include "geometry.cpp"
-#include "massinv.cpp"
-#include "qequation.cpp"
-#include "wequation.cpp"
-#include "uequation.cpp"
-#include "qresidual.cpp"
-#include "uresidual.cpp"
-#include "getuhat.cpp"
+#include "geometry.hpp"
+#include "massinv.hpp"
+#include "qequation.hpp"
+#include "wequation.hpp"
+#include "uequation.hpp"
+#include "qresidual.hpp"
+#include "uresidual.hpp"
+#include "getuhat.hpp"
 
-void DG2CGAVField(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void DG2CGAVField(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, dstype* avcg, dstype* avdg, Int backend)
 {
     Int ncavdg = common.nco;
@@ -69,7 +69,7 @@ void DG2CGAVField(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     }
 }
 
-void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
 {    
@@ -124,7 +124,7 @@ void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
     // END_TIMING(18);       
 }
 
-void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
 {        
@@ -211,7 +211,7 @@ void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
     }
 }
 
-void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
     AvfieldDriver(sol.odg, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend); 
@@ -245,7 +245,7 @@ void GetAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
     }       
 }
 
-void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
    Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
 {    
@@ -287,7 +287,7 @@ void RuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
 
 #ifdef  HAVE_MPI
 
-void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {  
     // non-blocking send and receive solutions on exterior and outer elements to neighbors
@@ -359,7 +359,7 @@ void GetQMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
         GetQ(sol, res, app, master, mesh, tmp, common, handle, common.nbe0, common.nbe2, 0, common.nbf, backend);                
 }
 
-void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {      
     // non-blocking send and receive solutions on exterior and outer elements to neighbors    
@@ -494,7 +494,7 @@ void RuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     //ArrayMultiplyScalar(res.Ru, minusone, common.ndof1, backend);      
 }
 
-void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {      
     // non-blocking send and receive solutions on exterior and outer elements to neighbors    
@@ -578,7 +578,7 @@ void RuResidualMPI1(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 
 #endif
 
-void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     if (common.mpiProcs>1) { // mpi processes
@@ -609,7 +609,7 @@ void Residual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mast
 //// Calculate just dR(u)/du v, with u, q, uhat, R(u) already precalculated /////
 ///////////////////////////////////////////////////////////////////////////////////////////
 #ifdef HAVE_ENZYME
-void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int nbf1, Int nbf2, Int backend)
 {    
@@ -652,7 +652,7 @@ void GetdQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
     ArrayInsert(sol.dudg, &res.dRq[N], npe, nc, ne, 0, npe, ncu, ncu+ncq, e1, e2);           
 }
 
-void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
         tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
     AvfieldDriver(sol.odg, sol.dodg, sol.xdg, sol.udg, sol.dudg, sol.odg, sol.wdg, sol.dwdg, mesh, master, app, sol, tmp, common, backend); 
@@ -686,7 +686,7 @@ void GetdAv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
 }
 
 
-void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
    Int nbe1u, Int nbe2u, Int nbe1q, Int nbe2q, Int nbf1, Int nbf2, Int backend)
 {   
@@ -724,7 +724,7 @@ void dRuResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 
 #ifdef  HAVE_MPI
 
-void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, 
    tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {      
     // non-blocking send and receive solutions on exterior and outer elements to neighbors    
@@ -822,7 +822,7 @@ void dRuResidualMPI(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 
 #endif
 
-void dResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     
@@ -850,7 +850,7 @@ void dResidual(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
 
 #endif
 
-void ComputeQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void ComputeQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
     if (common.mpiProcs>1) {

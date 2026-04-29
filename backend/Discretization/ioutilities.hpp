@@ -39,14 +39,14 @@ template <typename T> string NumberToString ( T Number )
     return ss.str();
 }
 
-void print1iarray(Int* a, Int m)
+inline void print1iarray(Int* a, Int m)
 {    
     for (Int i=0; i<m; i++)
         cout << a[i] << "   ";
     cout << endl;
 }
 
-void print2iarray(Int* a, Int m, Int n)
+inline void print2iarray(Int* a, Int m, Int n)
 {
     for (Int i=0; i<m; i++) {
         for (Int j=0; j<n; j++)
@@ -56,7 +56,7 @@ void print2iarray(Int* a, Int m, Int n)
     cout << endl;
 }
 
-void print3iarray(Int* a, Int m, Int n, Int p)
+inline void print3iarray(Int* a, Int m, Int n, Int p)
 {    
     for (Int k=0; k<p; k++) {
         for (Int i=0; i<m; i++) {
@@ -70,7 +70,7 @@ void print3iarray(Int* a, Int m, Int n, Int p)
 }
 
 
-void print1darray(dstype* a, Int m)
+inline void print1darray(dstype* a, Int m)
 {
     //cout.precision(4);
     for (Int i=0; i<m; i++)
@@ -78,7 +78,7 @@ void print1darray(dstype* a, Int m)
     cout << endl;
 }
 
-void print2darray(dstype* a, Int m, Int n)
+inline void print2darray(dstype* a, Int m, Int n)
 {
     //cout.precision(4);
     for (Int i=0; i<m; i++) {
@@ -89,7 +89,7 @@ void print2darray(dstype* a, Int m, Int n)
     cout << endl;
 }
 
-void print2darray(dstype* a, Int m, Int n, Int M, Int N)
+inline void print2darray(dstype* a, Int m, Int n, Int M, Int N)
 {
     //cout.precision(4);
     for (Int i=0; i<m; i++) {
@@ -100,7 +100,7 @@ void print2darray(dstype* a, Int m, Int n, Int M, Int N)
     cout << endl;
 }
 
-void print3darray(dstype* a, Int m, Int n, Int p)
+inline void print3darray(dstype* a, Int m, Int n, Int p)
 {
     //cout.precision(8);
     for (Int k=0; k<p; k++) {
@@ -114,7 +114,7 @@ void print3darray(dstype* a, Int m, Int n, Int p)
     cout << endl;
 }
 
-void printArray2D(Int* a, Int m, Int n, Int backend)
+inline void printArray2D(Int* a, Int m, Int n, Int backend)
 {
     if (backend==2) {
 #ifdef HAVE_CUDA
@@ -138,7 +138,7 @@ void printArray2D(Int* a, Int m, Int n, Int backend)
         print2iarray(a, m, n);
 }
 
-void printArray3D(Int* a, Int m, Int n, Int p, Int backend)
+inline void printArray3D(Int* a, Int m, Int n, Int p, Int backend)
 {
     if (backend==2) {
 #ifdef HAVE_CUDA
@@ -162,7 +162,7 @@ void printArray3D(Int* a, Int m, Int n, Int p, Int backend)
         print3iarray(a, m, n, p);
 }
 
-void printArray2D(dstype* a, Int m, Int n, Int backend)
+inline void printArray2D(dstype* a, Int m, Int n, Int backend)
 {
     if (backend==2) {
 #ifdef  HAVE_CUDA        
@@ -186,7 +186,7 @@ void printArray2D(dstype* a, Int m, Int n, Int backend)
         print2darray(a, m, n);
 }
 
-void printArray3D(dstype* a, Int m, Int n, Int p, Int backend)
+inline void printArray3D(dstype* a, Int m, Int n, Int p, Int backend)
 {
     if (backend==2) {
 #ifdef  HAVE_CUDA        
@@ -336,7 +336,7 @@ template <typename T> void writearray(ofstream &out, T *a, Int N, Int backend)
     }
 }
 
-void writeiarraytodouble(ofstream &out, Int *a, Int N)
+inline void writeiarraytodouble(ofstream &out, Int *a, Int N)
 {
     if (N>0) {
         double b;
@@ -347,7 +347,7 @@ void writeiarraytodouble(ofstream &out, Int *a, Int N)
     }
 }
 
-bool fileexists(string filename) 
+inline bool fileexists(string filename) 
 {
     ifstream ifile(filename.c_str());
     return (bool)ifile;
@@ -485,7 +485,7 @@ template <typename T> void writearray2file(string filename, T *a, Int N, Int bac
     }
 }
 
-void writeTimeStepSize2File(string filename, Int timeStep, Int DIRKstage, double time, double dt)
+inline void writeTimeStepSize2File(string filename, Int timeStep, Int DIRKstage, double time, double dt)
 {
     ofstream out(filename.c_str(), ios::out | ios::app);
     if (!out)
@@ -495,7 +495,7 @@ void writeTimeStepSize2File(string filename, Int timeStep, Int DIRKstage, double
     out.close();
 }
 
-void writeScalarField2File(string filename, double* field, Int ne, Int* ndims)
+inline void writeScalarField2File(string filename, double* field, Int ne, Int* ndims)
 {
     Int npv = ndims[9];
     
@@ -509,7 +509,7 @@ void writeScalarField2File(string filename, double* field, Int ne, Int* ndims)
 }
 
 #ifdef  HAVE_MPI    
-void print2iarray(const int* a,
+inline void print2iarray(const int* a,
                   int m, int n,
                   const std::string& msg,
                   MPI_Comm comm)
@@ -541,7 +541,7 @@ void print2iarray(const int* a,
     MPI_Barrier(comm);
 }
 
-void print2darray(const double* a,
+inline void print2darray(const double* a,
                   int m, int n,
                   const std::string& msg,
                   MPI_Comm comm)
@@ -575,7 +575,7 @@ void print2darray(const double* a,
     MPI_Barrier(comm);
 }
 
-void print3darray(const double* a,
+inline void print3darray(const double* a,
                   int m, int n, int p,
                   const std::string& msg,
                   MPI_Comm comm)

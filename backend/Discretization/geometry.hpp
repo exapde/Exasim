@@ -41,7 +41,7 @@
 #ifndef __GEOMETRY
 #define __GEOMETRY
 
-void ElemGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
+inline void ElemGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
         commonstruct &common, cublasHandle_t handle, Int nd, 
         Int npe, Int nge, Int ncx, Int e1, Int e2, Int backend)
 {            
@@ -79,7 +79,7 @@ void ElemGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, temps
     }
 }
 
-void ElemGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
+inline void ElemGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
         commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     Int ncx = common.ncx;// number of compoments of (xdg)        
@@ -98,7 +98,7 @@ void ElemGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct
     }                     
 }
 
-void FaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
+inline void FaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
         commonstruct &common, cublasHandle_t handle, Int f1, Int f2, Int backend)
 {            
     Int ncx = common.ncx;// number of compoments of (xdg)        
@@ -134,7 +134,7 @@ void FaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, temps
     }
 }
 
-void FaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, commonstruct &common,
+inline void FaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         cublasHandle_t handle, Int backend)
 {           
     
@@ -155,7 +155,7 @@ void FaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct
     }        
 }
 
-void ElemFaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
+inline void ElemFaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
         commonstruct &common, cublasHandle_t handle, Int e1, Int e2, Int backend)
 {            
     Int ncx = common.ncx;// number of compoments of (xdg)        
@@ -192,7 +192,7 @@ void ElemFaceGeomBlock(solstruct &sol, masterstruct &master, meshstruct &mesh, t
     }
 }
 
-void ElemFaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
+inline void ElemFaceGeom(solstruct &sol, masterstruct &master, meshstruct &mesh, tempstruct &tmp, 
         commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     Int ncx = common.ncx;// number of compoments of (xdg)        

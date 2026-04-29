@@ -43,7 +43,7 @@
 #ifndef __GETUHAT
 #define __GETUHAT
 
-bool isin(Int ib, Int *a, Int n)
+inline bool isin(Int ib, Int *a, Int n)
 {
     bool in = false;
     for (int i=0; i<n; i++) {        
@@ -56,7 +56,7 @@ bool isin(Int ib, Int *a, Int n)
     return in;
 }        
 
-void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
 {        
@@ -127,7 +127,7 @@ void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &mas
     }
 }
 
-void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)
 {        
@@ -151,7 +151,7 @@ void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 
 #ifdef HAVE_ENZYME
 //// Method 2
-void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
 {        
@@ -216,7 +216,7 @@ void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
     }
 }
 
-void GetdUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void GetdUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)
 {        

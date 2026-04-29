@@ -36,8 +36,8 @@
 #ifndef __MATVEC
 #define __MATVEC
 
-#include "ioutilities.cpp"
-void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
+#include "ioutilities.hpp"
+inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
       meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, dstype *v, 
       dstype *u, dstype *Ru, Int backend)
 {   
@@ -99,7 +99,7 @@ void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstr
 #endif
 }
 
-void hdgAssembleRHS(dstype *R, dstype *Rh, meshstruct &mesh, commonstruct &common)
+inline void hdgAssembleRHS(dstype *R, dstype *Rh, meshstruct &mesh, commonstruct &common)
 {   
     Int nf = common.nf; // number of faces in this subdomain
     Int ncu = common.ncu;// number of compoments of (u)
@@ -115,7 +115,7 @@ void hdgAssembleRHS(dstype *R, dstype *Rh, meshstruct &mesh, commonstruct &commo
     }
 }
 
-void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+inline void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
   Int ncu = common.ncu;// number of compoments of (u)
   Int npf = common.npf; // number of nodes on master face           
@@ -164,7 +164,7 @@ void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, temp
 //   error("here");
 }
 
-void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+inline void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {   
     Int nf = common.nf; // number of faces in this subdomain
     Int ncu = common.ncu;// number of compoments of (u)
@@ -186,7 +186,7 @@ void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstr
     }
 }
 
-void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
+inline void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {   
     Int nf = common.nf; // number of faces in this subdomain
     Int ncu = common.ncu;// number of compoments of (u)
@@ -215,7 +215,7 @@ void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, te
     }
 }
 
-void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct &mesh, 
+inline void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct &mesh, 
         commonstruct &common,  Int backend)
 {   
     Int ne = common.ne1; // number of elements in this subdomain 
@@ -236,7 +236,7 @@ void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct &mesh,
     }
 }
 
-void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstruct &res, appstruct &app, 
+inline void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstruct &res, appstruct &app, 
         meshstruct &mesh, commonstruct &common, tempstruct &tmp, cublasHandle_t handle, Int backend)
 {   
     Int ne1 = common.ne1; // number of elements in this subdomain 
@@ -388,7 +388,7 @@ void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstru
 }
 
 #ifdef  HAVE_MPI     
-void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
 {
     Int ncu = common.ncu;// number of compoments of (u)
@@ -540,7 +540,7 @@ void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appst
     PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
 }
 
-void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
 {
     Int ncu = common.ncu;// number of compoments of (u)

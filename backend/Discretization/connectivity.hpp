@@ -37,7 +37,7 @@
 #ifndef __CONNECTIVITY
 #define __CONNECTIVITY
     
-void select_columns(int* a_new, const int* a, const int* ind, int m, int k) 
+inline void select_columns(int* a_new, const int* a, const int* ind, int m, int k) 
 {
     for (int j = 0; j < k; ++j) {
         int col = ind[j];
@@ -47,7 +47,7 @@ void select_columns(int* a_new, const int* a, const int* ind, int m, int k)
     }
 }
 
-int find(const int* a, int b, int m, int n, int k, int opts) 
+inline int find(const int* a, int b, int m, int n, int k, int opts) 
 {
     int count = 0;
     if (opts==0) {
@@ -68,7 +68,7 @@ int find(const int* a, int b, int m, int n, int k, int opts)
     return count;
 }
 
-int find(int* indices, const int* a, int b, int m, int n, int k, int opts) 
+inline int find(int* indices, const int* a, int b, int m, int n, int k, int opts) 
 {
     int count = 0;
     if (opts==0) {
@@ -96,7 +96,7 @@ int find(int* indices, const int* a, int b, int m, int n, int k, int opts)
     return count;
 }
 
-int unique_count(int *b, int *c, const int *a, int n)
+inline int unique_count(int *b, int *c, const int *a, int n)
 {
     if (n == 0) return 0;
 
@@ -126,7 +126,7 @@ int unique_count(int *b, int *c, const int *a, int n)
     return uniq;              /* number of unique values */
 }
 
-void permute_columns(int* a, const int* ind, int m, int k) 
+inline void permute_columns(int* a, const int* ind, int m, int k) 
 {    
   if ((k > 0) && (m > 0)) {
     int* a_new = (int*)malloc(m * k * sizeof(int));
@@ -146,7 +146,7 @@ void permute_columns(int* a, const int* ind, int m, int k)
   }
 }
 
-int unique_ints(int* arr, int n) {
+inline int unique_ints(int* arr, int n) {
     if (n <= 1) return n;
     std::sort(arr, arr + n);                       // introsort (quick+heap+insertion)
     int* last = std::unique(arr, arr + n);         // compacts uniques to front
@@ -179,7 +179,7 @@ struct FaceKeyHash {
     }
 };
 
-int mkf2e_hash(int* f2e,
+inline int mkf2e_hash(int* f2e,
                const int* e2n, const int* local_faces,
                int ne, int nne, int nnf, int nfe)
 {
@@ -230,7 +230,7 @@ int mkf2e_hash(int* f2e,
 
 // ---- Build e2e: for each element 'e' and local face 'lf', write neighbor element id or -1 ----
 // e2e must be sized to ne * nfe (ints).
-int mke2e_hash(int* e2e,
+inline int mke2e_hash(int* e2e,
                const int* e2n,          // [ne * nne] global node ids per element
                const int* local_faces,  // [nfe * nnf] local node indices per local face
                int ne, int nne, int nnf, int nfe)
@@ -282,7 +282,7 @@ int mke2e_hash(int* e2e,
     return out; 
 }
 
-void apply_bcm(int* bf, const int* fi, const int* bcm, int n, int nbcm) 
+inline void apply_bcm(int* bf, const int* fi, const int* bcm, int n, int nbcm) 
 {
     // initialize bf to 0
     for (int i = 0; i < n; ++i)
@@ -298,7 +298,7 @@ void apply_bcm(int* bf, const int* fi, const int* bcm, int n, int nbcm)
     }
 }
 
-void fix_f2t_consistency(int* f2t, const int* elempart, int nf) 
+inline void fix_f2t_consistency(int* f2t, const int* elempart, int nf) 
 {
     for (int n = 0; n < nf; ++n) {
         int e1 = f2t[0 + 4 * n];
@@ -334,7 +334,7 @@ void fix_f2t_consistency(int* f2t, const int* elempart, int nf)
     }
 }
   
-void build_connectivity(int* elemcon, int* facecon, const int* f2t, const int* face, const int* t,        
+inline void build_connectivity(int* elemcon, int* facecon, const int* f2t, const int* face, const int* t,        
                         const int* perm, const int* permind, int dim, int elemtype, int npf, int nfe, int npe, int ne, int nf) 
 {
     int* facenode1 = (int*) malloc(sizeof(int) * npf);
@@ -423,7 +423,7 @@ void build_connectivity(int* elemcon, int* facecon, const int* f2t, const int* f
     CPUFREE(facenode2);
 }
 
-int connectivity(int*& elemcon, int*& facecon, int*& f2t, int*& facepartpts, int*& facepartbnd, 
+inline int connectivity(int*& elemcon, int*& facecon, int*& f2t, int*& facepartpts, int*& facepartbnd, 
                  int* sizes, const int* bf, const int* ti, const int* elempart, 
                  const int* localfaces,  const int* perm, const int* permind,  
                  const int* bcm, int dim, int elemtype, int nve, int nvf, int nfe, 
@@ -496,14 +496,14 @@ int connectivity(int*& elemcon, int*& facecon, int*& f2t, int*& facepartpts, int
     return nf;      
 }
 
-int equal_row(const double* a, const double* b, int dim, double tol) {
+inline int equal_row(const double* a, const double* b, int dim, double tol) {
     for (int i = 0; i < dim; ++i)
         if (fabs(a[i] - b[i]) > tol)
             return 0;
     return 1;
 }
 
-void get_node_coord(double* out, const double* dgnodes, int npe, int dim, int e, int a) {
+inline void get_node_coord(double* out, const double* dgnodes, int npe, int dim, int e, int a) {
     for (int d = 0; d < dim; ++d)
         out[d] = dgnodes[a + npe * (d + dim * e)];
 }
@@ -515,7 +515,7 @@ void get_node_coord(double* out, const double* dgnodes, int npe, int dim, int e,
  * @param cgelcon   - output array [npe][ne], preallocated by user
  * @return number of unique CG nodes (i.e., used portion of cgnodes)
  */
-int mkelconcg(
+inline int mkelconcg(
     double* cgnodes,        // [dim][max_nodes], user-allocated
     int* cgelcon,            // [npe][ne], user-allocated        
     const double* dgnodes,  // [npe][dim][ne]
@@ -616,7 +616,7 @@ static inline CellKey make_cell_key(const double* p, int dim, double inv_h) {
  * cgelcon   - [npe][ne] indices into cgnodes
  * returns number of unique CG nodes
  */
-int mkelconcg_hashgrid(
+inline int mkelconcg_hashgrid(
     double* cgnodes,       // [dim][max_nodes], user-allocated
     int*    cgelcon,       // [npe][ne], user-allocated
     const double* dgnodes, // [npe][dim][ne]
@@ -706,7 +706,7 @@ int mkelconcg_hashgrid(
     return ncg;
 }
 
-int mkent2elem(
+inline int mkent2elem(
     int*& rowent2elem, // output [ndof+1], allocated inside
     int*& colent2elem,  // output [nnz], allocated inside        
     const int* cgelcon, // [nrow * ne], column-major
@@ -791,7 +791,7 @@ int mkent2elem(
 }
 
 // Helper function to match a point xcg to a row in xdg: returns 0-based index
-int xiny(const double* xcg, const double* xdg, int npe, int dim) 
+inline int xiny(const double* xcg, const double* xdg, int npe, int dim) 
 {
     for (int i = 0; i < npe; ++i) {
         int match = 1;
@@ -807,7 +807,7 @@ int xiny(const double* xcg, const double* xdg, int npe, int dim)
 }
 
 // Maps CG node to corresponding DG node via CRS connectivity
-void map_cgent2dgent(
+inline void map_cgent2dgent(
     int*& cgent2dgent,        // [nnz], output mapping (same shape as colent2elem)
     int*& rowent2elem, // [nent+1]
     int*& colent2elem, // [nnz]    
@@ -837,7 +837,7 @@ void map_cgent2dgent(
     }
 }
 
-int mkdge2dgf(int*& rowdge2dgf, int*& coldge2dgf, int*& ent2ind,
+inline int mkdge2dgf(int*& rowdge2dgf, int*& coldge2dgf, int*& ent2ind,
               const int* facecon, int ndgf, int entmax) 
 {
     // Step 1: Extract positive entries from facecon
@@ -902,7 +902,7 @@ int mkdge2dgf(int*& rowdge2dgf, int*& coldge2dgf, int*& ent2ind,
     return nent;
 }
 
-int removeBoundaryFaces(int* facecon, const int* fblks, int m, int npf, int nf) 
+inline int removeBoundaryFaces(int* facecon, const int* fblks, int m, int npf, int nf) 
 {
     std::vector<bool> keep(nf, true);
 
@@ -945,7 +945,7 @@ int removeBoundaryFaces(int* facecon, const int* fblks, int m, int npf, int nf)
     return new_nf;
 }
 
-int divide_interval(int*& intervals, int n, int m) 
+inline int divide_interval(int*& intervals, int n, int m) 
 {
     if (n <= 0 || m <= 0) return 0;
 
@@ -967,7 +967,7 @@ int divide_interval(int*& intervals, int n, int m)
     return num_intervals;
 }
 
-int mkfaceblocks(int*& nm, const int* mf, const int* bcm, int nmf_len, int ns) 
+inline int mkfaceblocks(int*& nm, const int* mf, const int* bcm, int nmf_len, int ns) 
 {
     if (ns <= 0) ns = 2048;  // default value
 
@@ -1007,7 +1007,7 @@ int mkfaceblocks(int*& nm, const int* mf, const int* bcm, int nmf_len, int ns)
  * @return           int* (column-major face matrix of size nvf × nfe)
  *                   Caller must free() the returned pointer.
  */
-void getelemface(int* face, int dim, int elemtype)
+inline void getelemface(int* face, int dim, int elemtype)
 {
     int nvf = (dim == 3) ? (dim + elemtype) : dim;     
     int nfe = dim + (dim-1)*elemtype + 1;    
@@ -1106,7 +1106,7 @@ void getelemface(int* face, int dim, int elemtype)
 }
 
 template<typename T>
-void xiny2(int* out, const T* A, const T* B, int m, int n, int dim, double tol = 1e-12) {
+inline void xiny2(int* out, const T* A, const T* B, int m, int n, int dim, double tol = 1e-12) {
     for (int i = 0; i < m; ++i) {
         out[i] = -1;
         for (int j = 0; j < n; ++j) {
@@ -1125,7 +1125,7 @@ void xiny2(int* out, const T* A, const T* B, int m, int n, int dim, double tol =
     }
 }
 
-int permindex(int*& permind, const double* plocfc, int npf, int dim, int elemtype) 
+inline int permindex(int*& permind, const double* plocfc, int npf, int dim, int elemtype) 
 {
     int ncols_out = 1;
     if (dim == 1) {         
@@ -1204,12 +1204,12 @@ int permindex(int*& permind, const double* plocfc, int npf, int dim, int elemtyp
     return ncols_out;
 }
 
-void compare(int a, int b, string s)
+inline void compare(int a, int b, string s)
 {
     cout<<s<<": ("<<a<<", " <<b<<")\n";
 }
 
-void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
+inline void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
                int* ti, int* boundaryConditions, int* intepartpts, int nbcm)
 {                  
     int nd = master.ndims[0];     // spatial dimension    
@@ -1384,7 +1384,7 @@ struct Conn
     //int ncgnodes, ncgdof, nbe, nbf, neb, nfb, nf;
 };
 
-void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
+inline void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
                int* ti, int* boundaryConditions, int* intepartpts, int nbcm)
 {                  
     int nd = master.ndims[0];     // spatial dimension    
@@ -1524,7 +1524,7 @@ void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstruct& ap
     CPUFREE(facepartbnd);
 }
 
-void maxdiff(const dstype *a, const dstype *b, int n, string s)
+inline void maxdiff(const dstype *a, const dstype *b, int n, string s)
 {
     dstype e = 0.0;
     for (int i = 0; i < n; i++) {
@@ -1534,7 +1534,7 @@ void maxdiff(const dstype *a, const dstype *b, int n, string s)
     cout<<"Maximum error in "<<s<<" = "<<e<<", length = "<<n<<endl;
 }
 
-void maxdiff(const int *a, const int *b, int n, string s)
+inline void maxdiff(const int *a, const int *b, int n, string s)
 {
     int e = 0;
     for (int i = 0; i < n; i++) {
@@ -1544,7 +1544,7 @@ void maxdiff(const int *a, const int *b, int n, string s)
     cout<<"Maximum error in "<<s<<" = "<<e<<", length = "<<n<<endl;
 }
 
-void checkConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
+inline void checkConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
                int* ti, int* boundaryConditions, int* intepartpts, int nbcm)
 {
     Conn conn;

@@ -1,7 +1,7 @@
 #ifndef __QOICALCULATION
 #define __QOICALCULATION
 
-void qoiElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qoiElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -54,7 +54,7 @@ void qoiElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     }    
 }
 
-void qoiElement(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qoiElement(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common)
 {    
     for (int i = 0; i<common.nvqoi; i++) common.qoivolume[i] = 0.0;
@@ -64,7 +64,7 @@ void qoiElement(solstruct &sol, resstruct &res, appstruct &app, masterstruct &ma
     }                     
 }
 
-void qoiFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qoiFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, 
         cublasHandle_t handle, Int f1, Int f2, Int ib, Int backend)
 {            
@@ -109,7 +109,7 @@ void qoiFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     }        
 }
 
-void qoiFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qoiFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common)
 {    
     for (int i = 0; i<common.nsurf; i++) common.qoisurface[i] = 0.0;

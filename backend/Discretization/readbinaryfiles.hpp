@@ -62,7 +62,7 @@
 #include <mutation++.h>
 #endif
 
-void readappstruct(string filename, appstruct &app)
+inline void readappstruct(string filename, appstruct &app)
 {
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
@@ -172,7 +172,7 @@ void readappstruct(string filename, appstruct &app)
     in.close();
 }
 
-void writeappstruct(string filename, appstruct &app)
+inline void writeappstruct(string filename, appstruct &app)
 {
     // Open file to write
     ofstream out(filename.c_str(), ios::out | ios::binary);
@@ -205,7 +205,7 @@ void writeappstruct(string filename, appstruct &app)
     out.close();
 }
 
-void readmasterstruct(string filename, masterstruct &master)
+inline void readmasterstruct(string filename, masterstruct &master)
 {
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
@@ -276,7 +276,7 @@ void readmasterstruct(string filename, masterstruct &master)
 }
 
 
-void writemasterstruct(string filename, masterstruct &master)
+inline void writemasterstruct(string filename, masterstruct &master)
 {
     // Open file to write
     ofstream out(filename.c_str(), ios::out | ios::binary);
@@ -317,7 +317,7 @@ void writemasterstruct(string filename, masterstruct &master)
 }
 
 
-void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct &app, masterstruct &master, Int mpirank)
+inline void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct &app, masterstruct &master, Int mpirank)
 {
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
@@ -410,7 +410,7 @@ void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct
 }
 
 
-void writemeshstruct(string filename, meshstruct &mesh)
+inline void writemeshstruct(string filename, meshstruct &mesh)
 {    
     // Open file to write
     ofstream out(filename.c_str(), ios::out | ios::binary);
@@ -449,7 +449,7 @@ void writemeshstruct(string filename, meshstruct &mesh)
     out.close();    
 }
 
-void readsolstruct(string filename, solstruct &sol)
+inline void readsolstruct(string filename, solstruct &sol)
 {
     // Open file to read
     ifstream in(filename.c_str(), ios::in | ios::binary);
@@ -471,7 +471,7 @@ void readsolstruct(string filename, solstruct &sol)
     in.close();            
 }
 
-void writesolstruct(string filename, solstruct &sol)
+inline void writesolstruct(string filename, solstruct &sol)
 {    
     // Open file to write
     ofstream out(filename.c_str(), ios::out | ios::binary);
@@ -494,7 +494,7 @@ void writesolstruct(string filename, solstruct &sol)
     out.close();    
 }
 
-void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, string filemesh, Int mpirank)
+inline void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, string filemesh, Int mpirank)
 {
     // Open file to read
     ifstream inmesh(filemesh.c_str(), ios::in | ios::binary);
@@ -619,7 +619,7 @@ void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct
     in.close();            
 }
 
-void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, 
+inline void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, 
         Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {   
     if (mpirank==0) printf("Reading app from binary files \n");  
@@ -664,7 +664,7 @@ void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct
     }    
 }
 
-void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, 
+inline void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, 
         Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {
     string fileoutapp = fileout + "app.bin";        

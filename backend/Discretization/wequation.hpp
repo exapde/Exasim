@@ -77,7 +77,7 @@ static void ReportNanInHdgSourcewonlyOutput(const char* field, const dstype* dat
     }
 }
 
-void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
+inline void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
       dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
     Int ncu = common.ncu; // number of compoments of (u)
@@ -164,7 +164,7 @@ void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc,
     }            
 }
 
-void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
+inline void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
        dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
     Int ncu = common.ncu; // number of compoments of (u)
@@ -270,7 +270,7 @@ void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *o
     }            
 }
 
-void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
+inline void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
 {
   for (Int j=0; j<common.nbe; j++) {         
       Int e1 = common.eblks[3*j]-1;

@@ -41,7 +41,7 @@
 #ifndef __UEQUATION
 #define __UEQUATION
 
-void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -201,7 +201,7 @@ void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     } 
 }
 
-void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {            
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -561,7 +561,7 @@ void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
   }
 }
 
-void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
     Int ncu = common.ncu;// number of compoments of (u)
@@ -780,7 +780,7 @@ void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     } 
 }
 
-void uEquationHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void uEquationHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int backend)
 {    
@@ -791,7 +791,7 @@ void uEquationHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
     }                     
 }
 
-void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -883,7 +883,7 @@ void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     Gauss2Node(handle, &res.Ru[npe*ncu*e1], tmp.tempn, master.shapegw, nge*(nd+1), npe, ncu*ne, backend); // fixed bug here                   
 }
 
-void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {            
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -1086,7 +1086,7 @@ void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mas
     }            
 }
 
-void ResidualHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void ResidualHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int backend)
 {    

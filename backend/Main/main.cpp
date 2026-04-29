@@ -129,7 +129,7 @@ using namespace std;
 #include "../Common/kokkosimpl.h"    // interface to kokkos functions
 #include "../Common/pblas.h"         // wrappers for blas libaries and MPI     
 
-#include "../Discretization/discretization.cpp" // discretization class
+#include "../Discretization/discretization.hpp" // discretization class
 #include "../Preconditioning/preconditioner.hpp" // preconditioner class
 #include "../Solver/solver.hpp"                 // solver class
 #include "../Visualization/visualization.hpp"  //  visualization class

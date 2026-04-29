@@ -45,7 +45,7 @@ using namespace std;
 #include "../Common/kokkosimpl.h"    // interface to kokkos functions
 #include "../Common/pblas.h"         // wrappers for blas libaries and MPI     
 
-#include "../Discretization/postdiscretization.cpp" // discretization class
+#include "../Discretization/postdiscretization.hpp" // discretization class
 #include "../Preconditioning/postpreconditioner.hpp" // preconditioner class
 #include "../Solver/postsolver.hpp"                 // solver class
 #include "../Visualization/visualization.hpp"  //  visualization class

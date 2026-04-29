@@ -43,7 +43,7 @@
 #ifndef __URESIDUAL
 #define __URESIDUAL
 
-void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int e1, Int e2, Int backend)
 {        
@@ -129,7 +129,7 @@ void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 #endif                  
 }
 
-void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int nbe1, Int nbe2, Int backend)
 {    
@@ -142,7 +142,7 @@ void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
 
 #ifdef HAVE_ENZYME
 //// Method 2
-void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int e1, Int e2, Int backend)
 {        
@@ -240,7 +240,7 @@ void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
 #endif                  
 }
 
-void dRuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int nbe1, Int nbe2, Int backend)
 {    
@@ -254,7 +254,7 @@ void dRuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 
 
 // Calculate Ruf = <fhat(xdg, uhat, udg, odg, nl), w>_F 
-void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, 
         cublasHandle_t handle, Int f1, Int f2, Int ib, Int backend)
 {            
@@ -329,7 +329,7 @@ void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 #endif              
 }
 
-void RuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
 {    
@@ -344,7 +344,7 @@ void RuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
 #ifdef HAVE_ENZYME
 //// Method 2
 // Calculate Ruf = <fhat(xdg, uhat, udg, odg, nl), w>_F 
-void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, 
         cublasHandle_t handle, Int f1, Int f2, Int ib, Int backend)
 {            
@@ -449,7 +449,7 @@ void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
 #endif              
 }
 
-void dRuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
 {    

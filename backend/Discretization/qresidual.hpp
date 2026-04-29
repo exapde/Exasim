@@ -60,7 +60,7 @@
 
 
 // Calculate Rqe = (u, nabla dot v)_K for a given u
-void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nd, 
         Int npe, Int nge, Int nc, Int ncu, Int ncx, Int e1, Int e2, Int backend)
 {            
@@ -90,7 +90,7 @@ void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 #endif              
 }
 
-void RqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int backend)
 {
@@ -111,7 +111,7 @@ void RqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
 }
 
 // Calculate Rqf = <uhat, v dot n>_F for a given uhat
-void RqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int ngf, Int nc, Int ncu, Int ncx, Int f1, Int f2, Int ib, Int backend)
 {        
@@ -143,7 +143,7 @@ void RqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
 #endif              
 }
 
-void RqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void RqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
 {    
     Int nc = common.nc; // number of compoments of (u, q, p)
@@ -166,7 +166,7 @@ void RqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master
 }
 
 #ifdef HAVE_ENZYME
-void dRqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nd, 
         Int npe, Int nge, Int nc, Int ncu, Int ncx, Int e1, Int e2, Int backend)
 {            
@@ -196,7 +196,7 @@ void dRqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
 #endif              
 }
 
-void dRqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int backend)
 {
@@ -217,7 +217,7 @@ void dRqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 }
 
 // Calculate Rqf = <uhat, v dot n>_F for a given uhat
-void dRqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int ngf, Int nc, Int ncu, Int ncx, Int f1, Int f2, Int ib, Int backend)
 {        
@@ -250,7 +250,7 @@ void dRqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &
 }
 
 
-void dRqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void dRqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
 {    
     Int nc = common.nc; // number of compoments of (u, q, p)

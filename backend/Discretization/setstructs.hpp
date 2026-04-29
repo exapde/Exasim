@@ -40,9 +40,9 @@
 #ifndef __SETSTRUCTS
 #define __SETSTRUCTS
 
-#include "ismeshcurved.cpp"
+#include "ismeshcurved.hpp"
 
-void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, 
+inline void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, 
         string filein, string fileout, Int curvedMesh, Int fileoffset)
 {                   
     common.filein = filein;
@@ -337,7 +337,7 @@ void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master,
     }                
 }
 
-void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
+inline void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
 {
     Int ncu = app.ndims[6];    // number of compoments of (u)
     Int ncq = app.ndims[7];    // number of compoments of (q)
@@ -376,7 +376,7 @@ void setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstru
 #endif                   
 }
 
-void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
+inline void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
 {               
     Int nc = app.ndims[5]; // number of compoments of (u, q, p)
     Int ncu = app.ndims[6];// number of compoments of (u)        
@@ -451,7 +451,7 @@ void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshst
 #endif
 }
 
-void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {
@@ -729,7 +729,7 @@ void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &maste
 
 #ifdef HAVE_GPU
 
-void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
+inline void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
 {        
     TemplateMalloc(&dapp.nsize, app.lsize[0], common.backend);
     TemplateMalloc(&dapp.ndims, app.nsize[0], common.backend);
@@ -807,7 +807,7 @@ void devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
     }                    
 }
 
-void devsolstruct(solstruct &dsol, solstruct &sol, commonstruct &common)
+inline void devsolstruct(solstruct &dsol, solstruct &sol, commonstruct &common)
 {    
     TemplateMalloc(&dsol.nsize, sol.lsize[0], common.backend);
     TemplateMalloc(&dsol.ndims, sol.nsize[0], common.backend);
@@ -840,7 +840,7 @@ void devsolstruct(solstruct &dsol, solstruct &sol, commonstruct &common)
     #endif
 }
 
-void devmasterstruct(masterstruct &dmaster, masterstruct &master, commonstruct &common)
+inline void devmasterstruct(masterstruct &dmaster, masterstruct &master, commonstruct &common)
 {    
     TemplateMalloc(&dmaster.nsize, master.lsize[0], common.backend);
     TemplateMalloc(&dmaster.ndims, master.nsize[0], common.backend);
@@ -891,7 +891,7 @@ void devmasterstruct(masterstruct &dmaster, masterstruct &master, commonstruct &
     TemplateCopytoDevice( dmaster.gw1d, master.gw1d, master.nsize[21], common.backend );          
 }
 
-void devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
+inline void devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
 {
     TemplateMalloc(&dmesh.nsize, mesh.lsize[0], common.backend);
     TemplateMalloc(&dmesh.ndims, mesh.nsize[0], common.backend);
@@ -1022,7 +1022,7 @@ void devmeshstruct(meshstruct &dmesh, meshstruct &mesh, commonstruct &common)
     }
 }
 
-void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void gpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
        meshstruct &mesh, tempstruct &tmp, commonstruct &common, solstruct &hsol, resstruct &hres, 
        appstruct &happ, masterstruct &hmaster, meshstruct &hmesh, tempstruct &htmp, commonstruct &hcommon) 
 {    

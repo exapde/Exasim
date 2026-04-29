@@ -63,7 +63,7 @@
 #ifndef __QEQUATION
 #define __QEQUATION
 
-void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {        
     Int ncx = common.ncx;// number of compoments of (xdg) 
@@ -161,7 +161,7 @@ void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
 }
 
 // Calculate Rqf = <uhat, v dot n>_F for a given uhat
-void qEquationFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qEquationFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int nfe, Int npe, Int npf, Int ngf, Int ncx, Int f1, Int f2, Int ib, Int backend)
 {        
@@ -210,7 +210,7 @@ void qEquationFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     }        
 }
 
-void qEquationFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qEquationFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     Int ncx = common.ncx;// number of compoments of (xdg)        
@@ -241,7 +241,7 @@ void qEquationFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
 }
 
 // Calculate Rqf = <uhat, v dot n>_F for a given uhat
-void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int nfe, Int npe, Int npf, Int ngf, Int ncx, Int e1, Int e2, Int backend)
 {          
@@ -313,7 +313,7 @@ void qEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, mast
     TemplateFree(Etmp, backend);
 }
 
-void qEquationElemFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qEquationElemFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {    
     Int ncx = common.ncx;// number of compoments of (xdg)        
@@ -348,14 +348,14 @@ void qEquationElemFace(solstruct &sol, resstruct &res, appstruct &app, masterstr
     }    
 }
 
-void qEquation(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void qEquation(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, Int backend)
 {
     qEquationElem(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
     qEquationElemFace(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 }
 
-void hdgGetQ(dstype *udg, dstype *uhat, solstruct &sol, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, Int backend)
+inline void hdgGetQ(dstype *udg, dstype *uhat, solstruct &sol, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, Int backend)
 {
     Int nc = common.nc;// number of compoments of (udg)        
     Int ncu = common.ncu; // number of compoments of (u)

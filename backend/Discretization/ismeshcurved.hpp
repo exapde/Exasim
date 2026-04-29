@@ -1,4 +1,4 @@
-int IsElemCurved(dstype *jac, int ns, int nge)
+inline int IsElemCurved(dstype *jac, int ns, int nge)
 {
     int curvedmesh = 0;
     for (int i=0; i<ns; i++) {
@@ -12,7 +12,7 @@ int IsElemCurved(dstype *jac, int ns, int nge)
     return curvedmesh;
 }
 
-int IsMeshCurved(solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, tempstruct &tmp)
+inline int IsMeshCurved(solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, tempstruct &tmp)
 {            
     dstype *xn, *Xx, *jac, *Jg;  
     

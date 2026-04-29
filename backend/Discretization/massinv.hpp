@@ -29,7 +29,7 @@
 #ifndef __MASSINV
 #define __MASSINV
 
-void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+inline void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle,  Int backend)
 {   
     dstype *work=NULL;  
@@ -124,7 +124,7 @@ void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     TemplateFree(ipiv, backend);        
 }
 
-void ApplyMinv(dstype* MinvR, dstype* Minv, dstype* R, dstype scalar, Int curvedmesh, Int npe, Int ncr, Int e1, Int e2)
+inline void ApplyMinv(dstype* MinvR, dstype* Minv, dstype* R, dstype scalar, Int curvedmesh, Int npe, Int ncr, Int e1, Int e2)
 {    
     Int ns = e2-e1;
     Int N = npe*ncr*ns;        
