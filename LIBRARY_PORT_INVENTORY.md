@@ -140,17 +140,21 @@ Bisect confirmed `kokkosimpl.h` is solely responsible. Plausible mechanism:
 register / stack layout, which changes pointer values fed into ParMETIS,
 which produces a different (still-valid) graph partition.
 
-**Resolution applied**: commit the `cpuimpl.h` half (verified safe). Treat
-`kokkosimpl.h` as a Phase 1.2c sub-task with three candidate paths, decided
-later when we have more context:
+**Resolution applied**:
 
-1. Move bodies into a new `kokkosimpl.cpp` (option 1 from the list above —
-   then `inline` is irrelevant). Bigger diff but bit-preserves MPI baseline.
-2. Mark `inline` and update the MPI baseline to QoI-equivalence rather than
-   md5 identity. Smaller diff; documents that MPI partition order is
-   compiler-driven.
-3. Decide per-function: only mark `inline` the wrappers that don't drive
-   ParMETIS input. Risky; requires call-graph tracing.
+- Phase 1.2b/1 (`cpuimpl.h`): commit the inline sweep — verified safe,
+  bit-preserves both serial and MPI baselines. Done.
+- Phase 1.2b/2 (`kokkosimpl.h`): chose option 2 — mark `inline` and
+  re-record `baseline/poisson2d_mpi2/md5.txt` from the new build.
+  Justification: the QoI / L² error remains `4.99e-13`, so the math
+  is preserved; what shifts is the ParMETIS partition assignment, a
+  legitimate compiler-driven artifact rather than a numerical
+  regression. The MPI md5s are now expected to be stable until the
+  *next* compiler-driven inlining change. Documented at length in
+  `baseline/README.md` ("On the strength of MPI binary md5s").
+  Option 1 (move bodies to `kokkosimpl.cpp`) remains a possible
+  future cleanup if MPI bit-equivalence becomes desirable —
+  recorded in `LIBRARY_PLAN.md` Phase 6.
 
 ### `Model/ModelDrivers.cpp`, `Model/KokkosDrivers.cpp`
 

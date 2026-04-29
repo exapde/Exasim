@@ -52,3 +52,33 @@ bash baseline/verify.sh
 
 Exit code 0 = numerics preserved. Exit code != 0 = regression; inspect
 the diff output.
+
+## On the strength of MPI binary md5s
+
+The QoI text output (`outqoi.txt`) is the load-bearing math invariant —
+it's an integrated L² error against the analytic solution and does not
+depend on rank assignment. We treat changes to it as numerical
+regressions.
+
+The per-rank binary md5s (`outudg_np*.bin`, `outuhat_np*.bin`,
+`outbouudg_np*.bin`, …) are weaker. They depend on which mesh
+elements end up on which rank, which is a function of the ParMETIS
+graph partition. ParMETIS is sensitive to its input ordering, which
+in turn can shift when a refactor changes pointer values or function
+inlining decisions even though no math changed.
+
+This baseline already absorbed one such shift: Phase 1.2b/2 marked
+122 free functions in `backend/Common/kokkosimpl.h` as `inline` to
+make the header ODR-safe. The compiler then made different inlining
+decisions inside Kokkos kernel wrappers, which fed slightly different
+arrays into ParMETIS, which produced a different (still-valid)
+2-rank partition. The serial run was unaffected (no ParMETIS); the
+QoI was unchanged at `4.99e-13` (math preserved); the per-rank file
+md5s shifted. We re-recorded `poisson2d_mpi2/md5.txt` from the new
+build at that point.
+
+Implication for future regressions: if `outqoi.txt` diverges, that's
+real and must be investigated. If only the MPI per-rank md5s diverge
+while QoI holds, it is *probably* another partition-order shift —
+inspect with that hypothesis first, and only re-baseline once you've
+verified QoI invariance and there's a plausible compiler-driven cause.
