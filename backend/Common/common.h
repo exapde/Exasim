@@ -108,9 +108,11 @@
 
 #ifdef HAVE_MPI
 #  include <mpi.h>
-// Defined in backend/Common/common.cpp.
-extern MPI_Comm EXASIM_COMM_WORLD;
-extern MPI_Comm EXASIM_COMM_LOCAL;
+// C++17 `inline` variables: definitions in a header, ODR-safe across
+// multiple TUs. Replaces the previous extern + common.cpp definition
+// pair so Exasim can ship as a header-only library (HOT.1).
+inline MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
+inline MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
 #endif
 
 #define SCOPY scopy_
@@ -242,21 +244,22 @@ template <> inline bool is_nan_bitwise<float>(float x) {
 #endif
 
 // Global sentinel values for BLAS / CUBLAS / HIPBLAS calls.
-// Definitions live in backend/Common/common.cpp so this header can be
-// included from multiple translation units without ODR violations.
-extern dstype one;
-extern dstype minusone;
-extern dstype zero;
-extern char chn;
-extern char cht;
-extern char chl;
-extern char chu;
-extern char chr;
-extern char chv;
-extern Int inc1;
-extern dstype cublasOne[1];
-extern dstype cublasMinusone[1];
-extern dstype cublasZero[1];
+// C++17 `inline` variables: defined here in the header, ODR-safe
+// across multiple TUs. Replaces the previous extern + common.cpp
+// definition pair so Exasim can ship as a header-only library (HOT.1).
+inline dstype one      =  1.0;
+inline dstype minusone = -1.0;
+inline dstype zero     =  0.0;
+inline char   chn      = 'N';
+inline char   cht      = 'T';
+inline char   chl      = 'L';
+inline char   chu      = 'U';
+inline char   chr      = 'R';
+inline char   chv      = 'V';
+inline Int    inc1     =  1;
+inline dstype cublasOne     [1] = { 1.0};
+inline dstype cublasMinusone[1] = {-1.0};
+inline dstype cublasZero    [1] = { 0.0};
 
 #ifdef HAVE_CUDA       
    #define CUDA_SYNC cudaDeviceSynchronize();  

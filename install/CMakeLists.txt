@@ -18,10 +18,10 @@ get_filename_component(EXASIM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 set(EXASIM_MAIN_DIR ${EXASIM_DIR}/backend/Main)
 file(GLOB MAIN_SOURCES ${EXASIM_MAIN_DIR}/main.cpp)
 
-# Carved-out backend translation units. Today these are appended to every
-# executable source list; once exasim_core (Phase 1.3) lands they move into
-# the static library and the executables just link it.
-list(APPEND MAIN_SOURCES ${EXASIM_DIR}/backend/Common/common.cpp)
+# Phase HOT.1: backend/Common/common.cpp was deleted — its contents
+# (BLAS sentinels, EXASIM_COMM_* MPI globals) are now C++17 `inline`
+# variables in backend/Common/common.h, ODR-safe across multiple TUs
+# without a definition TU. The MAIN_SOURCES list is back to just main.cpp.
 
 # Text2Code shared libraries live here
 set(Model_LIB_DIR   ${EXASIM_DIR}/backend/Model)
