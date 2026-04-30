@@ -61,7 +61,7 @@ void source_kernel(dstype*       s,
             }
 
             double s_local[ncu];
-            M::source(s_local, x, uq, w, param, t);
+            M::source(s_local, x, uq, w, param, /*uinf=*/nullptr, t);
 
             for (int k = 0; k < ncu; ++k) s[k * ng + i] = s_local[k];
         });
@@ -113,18 +113,18 @@ void hdg_source_kernel(dstype*       s,
 
             // Value
             double s_local[ncu];
-            M::source(s_local, x, uq, w, param, t);
+            M::source(s_local, x, uq, w, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu; ++k) s[k * ng + i] = s_local[k];
 
             // ∂s/∂uq
             double s_uq[ncu * Nq];
-            M::source_jac_uq(s_uq, x, uq, w, param, t);
+            M::source_jac_uq(s_uq, x, uq, w, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu * Nq; ++k) s_udg[k * ng + i] = s_uq[k];
 
             // ∂s/∂w (only when present)
             if constexpr (ncw > 0) {
                 double s_w[ncu * ncw];
-                M::source_jac_w(s_w, x, uq, w, param, t);
+                M::source_jac_w(s_w, x, uq, w, param, /*uinf=*/nullptr, t);
                 for (int k = 0; k < ncu * ncw; ++k) s_wdg[k * ng + i] = s_w[k];
             }
         });

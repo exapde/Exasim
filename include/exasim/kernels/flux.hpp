@@ -87,7 +87,7 @@ void flux_kernel(dstype*       f,
             }
 
             double f_local[ncu * nd];
-            M::flux(f_local, x, uq, w, param, t);
+            M::flux(f_local, x, uq, w, param, /*uinf=*/nullptr, t);
 
             for (int k = 0; k < ncu * nd; ++k) f[k * ng + i] = f_local[k];
         });
@@ -153,18 +153,18 @@ void hdg_flux_kernel(dstype*       f,
 
             // Value
             double f_local[ncu * nd];
-            M::flux(f_local, x, uq, w, param, t);
+            M::flux(f_local, x, uq, w, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu * nd; ++k) f[k * ng + i] = f_local[k];
 
             // ∂f/∂uq
             double f_uq[ncu * nd * Nq];
-            M::flux_jac_uq(f_uq, x, uq, w, param, t);
+            M::flux_jac_uq(f_uq, x, uq, w, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu * nd * Nq; ++k) f_udg[k * ng + i] = f_uq[k];
 
             // ∂f/∂w (only when present)
             if constexpr (ncw > 0) {
                 double f_w[ncu * nd * ncw];
-                M::flux_jac_w(f_w, x, uq, w, param, t);
+                M::flux_jac_w(f_w, x, uq, w, param, /*uinf=*/nullptr, t);
                 for (int k = 0; k < ncu * nd * ncw; ++k) f_wdg[k * ng + i] = f_w[k];
             }
         });
