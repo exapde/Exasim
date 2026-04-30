@@ -63,7 +63,8 @@ inline void MGS(cublasHandle_t handle, dstype *V, dstype *H, Int N, Int m, Int L
     ArrayMultiplyScalar(handle, &V[m*N], one/H[m], N, backend);
 }
 
-inline void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+template <class M>
+inline void makeH(CDiscretization<M> &disc, CPreconditioner<M>& prec, sysstruct &sys, 
         dstype *H, dstype *r, Int N, Int m, Int backend)
 {
     int m1 = m + 1;
@@ -171,7 +172,8 @@ inline void LejaSort(dstype *sr, dstype *si, dstype *lr, dstype *li, dstype *pro
     }            
 }
 
-inline void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+template <class M>
+inline void getPoly(CDiscretization<M> &disc, CPreconditioner<M>& prec, sysstruct &sys, 
         dstype  *lam, dstype *r, int *ipiv, int N, int m, int backend)
 {
     dstype *Hm = &lam[0];    
@@ -197,7 +199,8 @@ inline void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys
     LejaSort(lamr, lami, wr, wi, work, m);
 }
 
-inline void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+template <class M>
+inline void makeH(CDiscretization<M> &disc, CPreconditioner<M>& prec, sysstruct &sys, 
         dstype *H, dstype *r, Int N, Int m, Int spatialScheme, Int backend)
 {
     int m1 = m + 1;
@@ -214,7 +217,8 @@ inline void makeH(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys,
     }
 }
 
-inline void getPoly(CDiscretization &disc, CPreconditioner& prec, sysstruct &sys, 
+template <class M>
+inline void getPoly(CDiscretization<M> &disc, CPreconditioner<M>& prec, sysstruct &sys, 
         dstype  *lam, dstype *r, int *ipiv, int N, int m, int spatialScheme, int backend)
 {
     dstype *Hm = &lam[0];    

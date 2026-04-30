@@ -205,17 +205,17 @@ int main(int argc, char** argv)
     Int gpuid = 0;            
       
     // initialize PDE models
-    CSolution** pdemodel = new CSolution*[nummodels];     
+    CSolution<>** pdemodel = new CSolution<>*[nummodels];
             
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, 
+          pdemodel[i] = new CSolution<>(filein[i], fileout[i], exasimpath, 
                         mpiprocs, mpirank, fileoffset, gpuid, backend, 
                         builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, 
+            pdemodel[i] = new CSolution<>(filein[0], fileout[0], exasimpath, 
                               mpiprocs, mpirank, fileoffset, gpuid, backend, 
                               builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);       
           }
@@ -223,7 +223,7 @@ int main(int argc, char** argv)
             fileoffset = mpiprocs0;
             cout<<filein[1]<<endl;
             cout<<fileout[1]<<endl;
-            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, 
+            pdemodel[i] = new CSolution<>(filein[1], fileout[1], exasimpath, 
                               mpiprocs, mpirank, fileoffset, gpuid, backend, 
                               builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);       
           }

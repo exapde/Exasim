@@ -41,6 +41,9 @@
 #ifndef __POSTDISCRETIZATION_H__
 #define __POSTDISCRETIZATION_H__
 
+#include "../../include/exasim/detail/abi_adapter.hpp"
+
+template <class M = exasim::detail::AbiAdapter>
 class CDiscretization {
 private:
 public:

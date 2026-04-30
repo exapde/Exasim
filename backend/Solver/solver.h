@@ -22,19 +22,24 @@
 #ifndef __SOLVER_H__
 #define __SOLVER_H__
 
+#include "../../include/exasim/detail/abi_adapter.hpp"
+
+template <class M> class CDiscretization;   // forward decl
+
+template <class M = exasim::detail::AbiAdapter>
 class CSolver {
 private:
 public:
     sysstruct sys; // system struct
-    
+
     int mpiRank;
-    
-    // constructor 
-    CSolver(CDiscretization& disc, Int backend); 
-    
-    // destructor        
-    ~CSolver(); 
-            
+
+    // constructor
+    CSolver(CDiscretization<M>& disc, Int backend);
+
+    // destructor
+    ~CSolver();
+
 };
 
 #endif        

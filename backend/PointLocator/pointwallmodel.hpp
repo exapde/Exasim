@@ -76,10 +76,11 @@ static inline void ComputeOffWallPoints(
     }
 }
 
+template <class M>
 static inline Int getFacesOnInterface(
     std::vector<Int>& faces,
     std::vector<Int>& nextfaces,
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     const Int boundarycondition)
 {
     const Int nintfaces = getinterfacefaces(
@@ -136,10 +137,11 @@ static inline void getNodesOnInterface(
     }
 }
 
+template <class M>
 static inline void getFieldsAtGaussPointsOnInterface(
     dstype* ugint,
     dstype* uint,
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     const Int nfaces,
     const Int ncomp)
 {
@@ -148,10 +150,11 @@ static inline void getFieldsAtGaussPointsOnInterface(
         disc.common.ngf, disc.common.npf, nfaces * ncomp, 0);
 }
 
+template <class M>
 static inline void getNormalVectorOnInterface(
     dstype* nlint,
     dstype* xdgint,
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     const Int nfaces)
 {  
     const Int nd = disc.common.nd;
@@ -187,9 +190,10 @@ static inline void getNormalVectorOnInterface(
     cpuFaceGeom3D(jacg, nlint, Jg, nn);
 }
 
+template <class M>
 static inline void GatherWallGaussPointsAndNormals(
     WallModelSamplingData& wm,
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     const Int ibc)
 {
     wm.ibc = ibc;
@@ -239,9 +243,10 @@ static inline void GatherWallGaussPointsAndNormals(
     TemplateFree(nlint, 0);
 }
 
+template <class M>
 static inline bool ComputeXi1AndShapeFunctionsFromElementFaces(
     WallModelSamplingData& wm,
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     Int maxNewtonIter,
     dstype newtonTol,
     dstype insideTol)
@@ -290,9 +295,10 @@ static inline bool ComputeXi1AndShapeFunctionsFromElementFaces(
         insideTol);
 }
 
+template <class M>
 static inline bool BuildWallModelSamplingData(
     WallModelSamplingData& wm,
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     Int ibc,
     dstype y1,
     Int maxNewtonIter,

@@ -41,12 +41,15 @@
 #ifndef __POSTSOLUTION_H__
 #define __POSTSOLUTION_H__
 
+#include "../../include/exasim/detail/abi_adapter.hpp"
+
+template <class M = exasim::detail::AbiAdapter>
 class CSolution {
 private:
 public:
-    CDiscretization disc;  // spatial discretization class
-    CPreconditioner prec;  // precondtioner class 
-    CSolver solv;          // linear and nonlinear solvers
+    CDiscretization<M> disc;  // spatial discretization class
+    CPreconditioner<M> prec;  // precondtioner class
+    CSolver<M> solv;          // linear and nonlinear solvers
     CVisualization vis;    // visualization class
     ofstream outsol;       // storing solutions
     ofstream outwdg;  

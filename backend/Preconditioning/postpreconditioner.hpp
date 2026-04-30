@@ -7,27 +7,27 @@
 
     Main Components:
     ----------------
-    - CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
+    - CPreconditioner<M>::CPreconditioner(CDiscretization<M>& disc, Int backend)
         Constructor: Initializes the preconditioner structure and prints info if in debug mode.
 
-    - CPreconditioner::~CPreconditioner()
+    - CPreconditioner<M>::~CPreconditioner()
         Destructor: Frees memory allocated for the preconditioner.
 
-    - CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)
+    - CPreconditioner<M>::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization<M>& disc, Int backend)
         Computes the initial guess and sets up the preconditioner using reduced basis techniques.
         Involves matrix-vector multiplications and small matrix inversions.
 
-    - CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int backend)
+    - CPreconditioner<M>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization<M>& disc, Int backend)
         Applies the preconditioner to the input vector x, storing the result in disc.res.Ru.
 
-    - CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend)
+    - CPreconditioner<M>::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization<M>& disc, Int N, Int spatialScheme, Int backend)
         Variant of the initial guess and preconditioner computation supporting different spatial schemes.
 
     - ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C, commonstruct& common)
         Implements block ILU(0) factorization and solve for super-element additive Schwarz preconditioner.
         Performs forward and backward solves with block matrices.
 
-    - CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int spatialScheme, Int backend)
+    - CPreconditioner<M>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization<M>& disc, Int spatialScheme, Int backend)
         Applies the preconditioner based on the spatial scheme and preconditioner type:
             - Block Jacobi
             - Elemental additive Schwarz
@@ -57,7 +57,8 @@
 
 
 // constructor
-inline CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
+template <class M>
+inline CPreconditioner<M>::CPreconditioner(CDiscretization<M>& disc, Int backend)
 {
     mpiRank = disc.common.mpiRank;
     //setprecondstruct(precond, disc, backend);    
@@ -66,13 +67,15 @@ inline CPreconditioner::CPreconditioner(CDiscretization& disc, Int backend)
 }
 
 // destructor
-inline CPreconditioner::~CPreconditioner()
+template <class M>
+inline CPreconditioner<M>::~CPreconditioner()
 {            
     precond.freememory(precond.backend);
     if (mpiRank==0) printf("CPreconditioner destructor: precond memory is freed successfully.\n");
 }
 
-inline void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int backend)
+template <class M>
+inline void CPreconditioner<M>::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization<M>& disc, Int backend)
 {       
     // P = B + V*W^T  
     // P*W = B*W + V*W^T*W = A*W -> V = (A-B)*W
@@ -123,7 +126,8 @@ inline void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys
             inc1, &zero, sys.x, inc1, backend);                                                 
 }
 
-inline void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int backend)
+template <class M>
+inline void CPreconditioner<M>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization<M>& disc, Int backend)
 {        
     Int N = disc.common.ndof1;        
     
@@ -132,7 +136,8 @@ inline void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDis
         disc.common.ne1, disc.common.precMatrixType, disc.common.curvedMesh, backend);                
 }
 
-inline void CPreconditioner::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization& disc, Int N, Int spatialScheme, Int backend)
+template <class M>
+inline void CPreconditioner<M>::ComputeInitialGuessAndPreconditioner(sysstruct& sys, CDiscretization<M>& disc, Int N, Int spatialScheme, Int backend)
 {     
     Int RBdim = disc.common.RBcurrentdim;
     dstype *RBcoef = &disc.tmp.tempn[0];
@@ -264,7 +269,8 @@ inline void ApplyBlockILU0(double* x, double* A, double* b, double *B, double *C
     }
 }
 
-inline void CPreconditioner::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization& disc, Int spatialScheme, Int backend)
+template <class M>
+inline void CPreconditioner<M>::ApplyPreconditioner(dstype* x, sysstruct& sys, CDiscretization<M>& disc, Int spatialScheme, Int backend)
 {                
     if (spatialScheme==0) {
       Int N = disc.common.ndof1;        

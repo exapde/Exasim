@@ -69,7 +69,8 @@ public:
     //     }
     // }
 
-    CVisualization(CDiscretization& disc, int backend) {      
+    template <class M>
+    CVisualization(CDiscretization<M>& disc, int backend) {
         rank = disc.common.mpiRank;
         int nd_in   = disc.common.nd;
         int npoints_in = disc.sol.szxcg / nd_in;

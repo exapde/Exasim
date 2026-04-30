@@ -6,7 +6,7 @@
     different solution strategies.
 
     Members:
-    - CSolver(CDiscretization& disc, Int backend)
+    - CSolver(CDiscretization<M>& disc, Int backend)
         Constructor. Initializes the solver system structure using the provided discretization
         and backend. Optionally prints system information if in debug mode.
 
@@ -14,11 +14,11 @@
         Destructor. Frees memory allocated for the system structure and prints a message
         if running on the root MPI rank.
 
-    - void PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int backend)
+    - void PseudoTransientContinuation(CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream& out, Int backend)
         Solves the nonlinear system using the Pseudo-Transient Continuation (PTC) method.
         Updates the solution vector and the discretization's UDG field.
 
-    - void NewtonSolver(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int N, Int spatialScheme, Int backend)
+    - void NewtonSolver(CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream& out, Int N, Int spatialScheme, Int backend)
         Solves the nonlinear system using a Newton-based solver. The number of iterations (N)
         and the spatial discretization scheme can be specified. Updates the UDG field if
         spatialScheme is zero.
@@ -44,7 +44,8 @@
 #include "ptcsolver.hpp"
 
 // constructor
-inline CSolver::CSolver(CDiscretization& disc, Int backend)
+template <class M>
+inline CSolver<M>::CSolver(CDiscretization<M>& disc, Int backend)
 {
     mpiRank = disc.common.mpiRank;
     setsysstruct(sys, disc.common, disc.res, disc.mesh, disc.tmp, backend);   
@@ -54,7 +55,8 @@ inline CSolver::CSolver(CDiscretization& disc, Int backend)
 }
 
 // destructor
-inline CSolver::~CSolver()
+template <class M>
+inline CSolver<M>::~CSolver()
 {        
     sys.freememory(sys.backend);    
     if (mpiRank==0) printf("CSolver destructor: sys memory is freed successfully.\n");

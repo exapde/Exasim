@@ -20,15 +20,16 @@
 #ifndef __SETPRECSTRUCT
 #define __SETPRECSTRUCT
 
-inline void setprecondstruct(precondstruct &precond, CDiscretization& disc, Int backend)
-{    
+template <class Model>
+inline void setprecondstruct(precondstruct &precond, CDiscretization<Model>& disc, Int backend)
+{
     Int N = max(disc.common.ndof1, disc.common.ndofuhat);
-    Int M = disc.common.RBdim;    
-    
-    TemplateMalloc(&precond.W, N*M, backend); 
-    TemplateMalloc(&precond.U, N*M, backend);   
-    TemplateMalloc(&precond.ipiv, M+1, backend);                
-    
+    Int M = disc.common.RBdim;
+
+    TemplateMalloc(&precond.W, N*M, backend);
+    TemplateMalloc(&precond.U, N*M, backend);
+    TemplateMalloc(&precond.ipiv, M+1, backend);
+
     precond.szipiv = M+1;
     precond.szW = N*M;
     precond.szU = N*M;

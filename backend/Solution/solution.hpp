@@ -83,7 +83,8 @@ inline void printFirstNonFiniteFlat(const char* label, const dstype* data, Int s
 
 }
 
-inline void CSolution::SaveState()
+template <class M>
+inline void CSolution<M>::SaveState()
 {
     Int backend = disc.common.backend;
 
@@ -114,7 +115,8 @@ inline void CSolution::SaveState()
     snapshot.initialized = true;
 }
 
-inline void CSolution::RestoreState()
+template <class M>
+inline void CSolution<M>::RestoreState()
 {
     Int backend = disc.common.backend;
 
@@ -145,7 +147,8 @@ inline void CSolution::RestoreState()
     }
 }
 
-inline void CSolution::ClearSavedState()
+template <class M>
+inline void CSolution<M>::ClearSavedState()
 {
     Int backend = disc.common.backend;
 
@@ -172,7 +175,8 @@ inline void CSolution::ClearSavedState()
     snapshot.initialized = false;
 }
 
-inline Int CSolution::PTCsolver(ofstream &out, Int backend)       
+template <class M>
+inline Int CSolution<M>::PTCsolver(ofstream &out, Int backend)       
 {
     Int N = disc.common.ndof1;     
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
@@ -241,7 +245,8 @@ inline Int CSolution::PTCsolver(ofstream &out, Int backend)
     return it;
 }
 
-inline Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend)       
+template <class M>
+inline Int CSolution<M>::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend)       
 {
     Int it = 0, maxit = disc.common.nonlinearSolverMaxIter;  
     dstype nrmr, nrm0, tol;
@@ -414,7 +419,8 @@ inline Int CSolution::NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int 
     return it;
 }
 
-inline void CSolution::SteadyProblem(ofstream &out, Int backend) 
+template <class M>
+inline void CSolution<M>::SteadyProblem(ofstream &out, Int backend) 
 {   
     INIT_TIMING;        
 #ifdef TIMING    
@@ -563,7 +569,8 @@ inline void CSolution::SteadyProblem(ofstream &out, Int backend)
 #endif    
 }
 
-inline void CSolution::InitSolution(Int backend) 
+template <class M>
+inline void CSolution<M>::InitSolution(Int backend) 
 {    
 //     // compute the geometry quantities
 //     disc.compGeometry(backend);
@@ -623,7 +630,8 @@ inline void CSolution::InitSolution(Int backend)
     }  
 }
 
-inline void CSolution::DIRK(ofstream &out, Int backend)
+template <class M>
+inline void CSolution<M>::DIRK(ofstream &out, Int backend)
 {    
     INIT_TIMING;        
     
@@ -716,7 +724,8 @@ inline void CSolution::DIRK(ofstream &out, Int backend)
     }           
 }
 
-inline void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
+template <class M>
+inline void CSolution<M>::SteadyProblem_PTC(ofstream &out, Int backend) {
 
     // initial time
     double time = disc.common.time;           
@@ -872,7 +881,8 @@ inline void CSolution::SteadyProblem_PTC(ofstream &out, Int backend) {
     }
 }
 
-inline void CSolution::SolveProblem(ofstream &out, Int backend) 
+template <class M>
+inline void CSolution<M>::SolveProblem(ofstream &out, Int backend) 
 {          
     this->InitSolution(backend); 
         
@@ -895,7 +905,8 @@ inline void CSolution::SolveProblem(ofstream &out, Int backend)
     }        
 }
 
-inline void CSolution::SaveSolutions(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveSolutions(Int backend) 
 {
     bool save = false;
     if (disc.common.tdep==0) save = true;
@@ -999,7 +1010,8 @@ inline void CSolution::SaveSolutions(Int backend)
    // }    
 }
 
-inline void CSolution::ReadSolutions(Int backend) 
+template <class M>
+inline void CSolution<M>::ReadSolutions(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)             
@@ -1048,7 +1060,8 @@ inline void CSolution::ReadSolutions(Int backend)
    }    
 }
  
-inline void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
+template <class M>
+inline void CSolution<M>::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
 {
     // Decide whether we should write a file on this step
     bool writeSolution = false;
@@ -1118,7 +1131,8 @@ inline void CSolution::SaveParaview(Int backend, std::string fname_modifier, boo
    }
 }
 
-inline void CSolution::SaveQoI(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveQoI(Int backend) 
 {
     if (disc.common.nvqoi > 0) qoiElement(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
     if (disc.common.nsurf > 0) qoiFace(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
@@ -1135,7 +1149,8 @@ inline void CSolution::SaveQoI(Int backend)
     }
 }
 
-inline void CSolution::SaveOutputCG(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveOutputCG(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
@@ -1162,7 +1177,8 @@ inline void CSolution::SaveOutputCG(Int backend)
    }    
 }        
 
-inline void CSolution::SaveSolutionsOnBoundary(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveSolutionsOnBoundary(Int backend) 
 {   
     if ( disc.common.saveSolBouFreq>0 ) {
         if (((disc.common.currentstep+1) % disc.common.saveSolBouFreq) == 0)             
@@ -1196,7 +1212,8 @@ inline void CSolution::SaveSolutionsOnBoundary(Int backend)
     }
 }
 
-inline void CSolution::SaveNodesOnBoundary(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveNodesOnBoundary(Int backend) 
 {   
     if ( disc.common.saveSolBouFreq>0 ) {
         for (Int j=0; j<disc.common.nbf; j++) {
@@ -1236,7 +1253,7 @@ inline void CSolution::SaveNodesOnBoundary(Int backend)
     }
 }
 
-// void CSolution::SaveSolutionsOnBoundary(Int backend) 
+// void CSolution<M>::SaveSolutionsOnBoundary(Int backend) 
 // {   
 //     if ( disc.common.saveSolBouFreq>0 ) {
 //         if (((disc.common.currentstep+1) % disc.common.saveSolBouFreq) == 0)             
@@ -1259,7 +1276,7 @@ inline void CSolution::SaveNodesOnBoundary(Int backend)
 //     }
 // }
 // 
-// void CSolution::SaveNodesOnBoundary(Int backend) 
+// void CSolution<M>::SaveNodesOnBoundary(Int backend) 
 // {   
 //     if ( disc.common.saveSolBouFreq>0 ) {
 //         for (Int j=0; j<disc.common.nbf; j++) {

@@ -52,7 +52,8 @@
 #include <sys/time.h>
 #endif
 
-inline void CSolution::InitSolution(Int backend) 
+template <class M>
+inline void CSolution<M>::InitSolution(Int backend) 
 {            
     if (disc.common.spatialScheme==0) {
         ArrayExtract(solv.sys.u, disc.sol.udg, disc.common.npe, disc.common.nc, disc.common.ne1, 
@@ -94,7 +95,8 @@ inline void CSolution::InitSolution(Int backend)
     }  
 }
 
-inline void CSolution::SaveSolutions(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveSolutions(Int backend) 
 {
     bool save = false;
     if (disc.common.tdep==0) save = true;
@@ -198,7 +200,8 @@ inline void CSolution::SaveSolutions(Int backend)
    // }    
 }
 
-inline void CSolution::ReadSolutions(Int backend) 
+template <class M>
+inline void CSolution<M>::ReadSolutions(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)             
@@ -249,7 +252,8 @@ inline void CSolution::ReadSolutions(Int backend)
    }    
 }
  
-inline void CSolution::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
+template <class M>
+inline void CSolution<M>::SaveParaview(Int backend, std::string fname_modifier, bool force_tdep_write) 
 {  
     // Decide whether we should write a file on this step
     bool writeSolution = false;
@@ -324,7 +328,8 @@ inline void CSolution::SaveParaview(Int backend, std::string fname_modifier, boo
    }
 }
 
-inline void CSolution::SaveQoI(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveQoI(Int backend) 
 {
     if (disc.common.nvqoi > 0) qoiElement(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
     if (disc.common.nsurf > 0) qoiFace(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
@@ -341,7 +346,8 @@ inline void CSolution::SaveQoI(Int backend)
     }
 }
 
-inline void CSolution::SaveOutputDG(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveOutputDG(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
@@ -358,7 +364,8 @@ inline void CSolution::SaveOutputDG(Int backend)
    }    
 }
 
-inline void CSolution::SaveOutputCG(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveOutputCG(Int backend) 
 {
    if (disc.common.tdep==1) { 
         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0)             
@@ -385,7 +392,8 @@ inline void CSolution::SaveOutputCG(Int backend)
    }    
 }        
 
-inline void CSolution::SaveSolutionsOnBoundary(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveSolutionsOnBoundary(Int backend) 
 {   
     if ( disc.common.saveSolBouFreq>0 ) {
         if (((disc.common.currentstep+1) % disc.common.saveSolBouFreq) == 0)             
@@ -419,7 +427,8 @@ inline void CSolution::SaveSolutionsOnBoundary(Int backend)
     }
 }
 
-inline void CSolution::SaveNodesOnBoundary(Int backend) 
+template <class M>
+inline void CSolution<M>::SaveNodesOnBoundary(Int backend) 
 {   
     if ( disc.common.saveSolBouFreq>0 ) {
         for (Int j=0; j<disc.common.nbf; j++) {
@@ -459,7 +468,7 @@ inline void CSolution::SaveNodesOnBoundary(Int backend)
     }
 }
 
-// void CSolution::SaveSolutionsOnBoundary(Int backend) 
+// void CSolution<M>::SaveSolutionsOnBoundary(Int backend) 
 // {   
 //     if ( disc.common.saveSolBouFreq>0 ) {
 //         if (((disc.common.currentstep+1) % disc.common.saveSolBouFreq) == 0)             
@@ -482,7 +491,7 @@ inline void CSolution::SaveNodesOnBoundary(Int backend)
 //     }
 // }
 // 
-// void CSolution::SaveNodesOnBoundary(Int backend) 
+// void CSolution<M>::SaveNodesOnBoundary(Int backend) 
 // {   
 //     if ( disc.common.saveSolBouFreq>0 ) {
 //         for (Int j=0; j<disc.common.nbf; j++) {

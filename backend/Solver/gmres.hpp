@@ -16,7 +16,7 @@ Functions:
     - Performs Classical Gram-Schmidt orthogonalization on Krylov vectors.
     - Computes the projection and normalization of the new vector.
 
-2. void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+2. void ApplyPoly(dstype *w, CDiscretization<M> &disc, CPreconditioner<M>& prec,
                         sysstruct &sys, dstype *q, dstype *p, int N, int backend)
     - Applies a polynomial preconditioner to a vector using Ritz values.
     - Handles both real and complex Ritz values for improved convergence.
@@ -25,17 +25,17 @@ Functions:
                              Int i, Int N, Int n, Int backend)
     - Updates the solution vector using the computed Krylov basis and coefficients.
 
-4. Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int backend)
+4. Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& prec, Int backend)
     - Main GMRES solver routine.
     - Handles initialization, polynomial preconditioning, orthogonalization, 
       convergence checks, and solution updates.
     - Supports restart and timing of key operations.
 
-5. void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+5. void ApplyPoly(dstype *w, CDiscretization<M> &disc, CPreconditioner<M>& prec,
                         sysstruct &sys, dstype *q, dstype *p, int N, Int spatialScheme, int backend)
     - Overloaded version of ApplyPoly with spatialScheme parameter for flexibility.
 
-6. Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, Int spatialScheme, Int backend)
+6. Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& prec, Int N, Int spatialScheme, Int backend)
     - Overloaded GMRES routine supporting additional spatial scheme parameter.
     - Provides detailed timing for matrix-vector products, preconditioning, 
       orthogonalization, and solution updates.
@@ -87,7 +87,8 @@ inline void CGS(cublasHandle_t handle, dstype *V, dstype *H, dstype *temp, Int N
     ArrayMultiplyScalar(&V[m*N], one/H[m], N);
 }
 
-inline void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+template <class M>
+inline void ApplyPoly(dstype *w, CDiscretization<M> &disc, CPreconditioner<M>& prec,
         sysstruct &sys, dstype *q, dstype *p, int N, int backend)
 {
     int m = disc.common.ppdegree;
@@ -135,7 +136,8 @@ inline void UpdateSolution(cublasHandle_t handle, dstype *x, dstype *y, dstype *
     PGEMNV(handle, N, i+1, &one, V, N, y, inc1, &one, x, inc1, backend);
 }
 
-inline Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int backend)
+template <class M>
+inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& prec, Int backend)
 {
     INIT_TIMING;    
     
@@ -313,7 +315,8 @@ inline Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, I
     return j;
 }
 
-inline void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
+template <class M>
+inline void ApplyPoly(dstype *w, CDiscretization<M> &disc, CPreconditioner<M>& prec,
         sysstruct &sys, dstype *q, dstype *p, int N, Int spatialScheme, int backend)
 {
     int m = disc.common.ppdegree;
@@ -354,7 +357,8 @@ inline void ApplyPoly(dstype *w, CDiscretization &disc, CPreconditioner& prec,
         ArrayAXPBY(w, w, q, 1.0, 1.0/sr[m-1], N);                  
 }
 
-inline Int GMRES(sysstruct &sys, CDiscretization &disc, CPreconditioner& prec, Int N, Int spatialScheme, Int backend)
+template <class M>
+inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& prec, Int N, Int spatialScheme, Int backend)
 {
     INIT_TIMING;    
     

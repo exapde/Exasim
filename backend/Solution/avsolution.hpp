@@ -1,4 +1,5 @@
-inline void avdistfunc(CSolution** pdemodel, ofstream* out, Int nummodels, Int backend)
+template <class M>
+inline void avdistfunc(CSolution<M>** pdemodel, ofstream* out, Int nummodels, Int backend)
 {  
   for (int i=0; i<nummodels; i++) 
     pdemodel[i]->InitSolution(backend); 

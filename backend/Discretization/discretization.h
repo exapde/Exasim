@@ -41,6 +41,9 @@
 #ifndef __DISCRETIZATION_H__
 #define __DISCRETIZATION_H__
 
+#include "../../include/exasim/detail/abi_adapter.hpp"
+
+template <class M = exasim::detail::AbiAdapter>
 class CDiscretization {
 private:
 public:

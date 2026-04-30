@@ -105,8 +105,9 @@ inline void CPointLocator::SetSearchParameters(
     m_insideTol = insideTol;
 }
 
+template <class M>
 inline bool CPointLocator::BuildWallModelSamplingData(
-    CDiscretization& disc,
+    CDiscretization<M>& disc,
     Int ibc,
     dstype y1)
 {

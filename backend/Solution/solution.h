@@ -57,7 +57,8 @@ void open_and_write(std::ofstream& ofs,
     writearray(ofs, a, 3);
 }
 
-void printinterfaceinfo(CDiscretization &disc)
+template <class M>
+inline void printinterfaceinfo(CDiscretization<M> &disc)
 {
     disc.common.printinfo();
     
@@ -105,6 +106,7 @@ void printinterfaceinfo(CDiscretization &disc)
     // print2darray(disc.sol.udg, disc.common.npe, disc.common.ne*disc.common.nc);                      
 }
 
+template <class M = exasim::detail::AbiAdapter>
 class CSolution {
 private:
     struct PDEStateSnapshot {
@@ -117,9 +119,9 @@ private:
 
     PDEStateSnapshot snapshot;
 public:
-    CDiscretization disc;  // spatial discretization class
-    CPreconditioner prec;  // precondtioner class 
-    CSolver solv;          // linear and nonlinear solvers
+    CDiscretization<M> disc;  // spatial discretization class
+    CPreconditioner<M> prec;  // precondtioner class
+    CSolver<M> solv;          // linear and nonlinear solvers
     CVisualization vis;    // visualization class
     ofstream outsol;       // storing solutions
     ofstream outwdg;  
