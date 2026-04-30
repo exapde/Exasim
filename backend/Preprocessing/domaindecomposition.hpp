@@ -103,7 +103,7 @@ DMD initializeDMD(const PDE& pde, const Mesh& mesh)
     return dmd;
 }
 
-void xiny(std::vector<int>& indices, const std::vector<int>& x, const std::vector<int>& y) {
+inline void xiny(std::vector<int>& indices, const std::vector<int>& x, const std::vector<int>& y) {
     indices.resize(x.size());
     for (int i = 0; i < x.size(); ++i) {
         auto it = std::find(y.begin(), y.end(), x[i]);
@@ -132,7 +132,7 @@ std::vector<int> neighboringelements(const int* e2e, const int* elem, int nfe, i
     return neighbors;
 }
 
-void create_elemsend(std::vector<DMD>& dmd) 
+inline void create_elemsend(std::vector<DMD>& dmd) 
 {
     int nproc = dmd.size();
 
@@ -193,7 +193,7 @@ void create_elemsend(std::vector<DMD>& dmd)
     }
 }
 
-void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, int nfe, int ne, const PDE& pde) 
+inline void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, int nfe, int ne, const PDE& pde) 
 {
     int nproc = static_cast<int>(dmd.size());
 
@@ -307,7 +307,7 @@ void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, in
     std::cout << "Finished build_dmdldg.\n";
 }
 
-void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, const int* inte, int nfe, int ne, const PDE& pde) 
+inline void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2cpu, const int* inte, int nfe, int ne, const PDE& pde) 
 {
     int coupledinterface = pde.coupledinterface;
     int nproc = static_cast<int>(dmd.size());

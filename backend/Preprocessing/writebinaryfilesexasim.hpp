@@ -47,7 +47,7 @@
 #ifndef __WRITEBINARYFILES
 #define __WRITEBINARYFILES
 
-void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const vector<int>& elempart, const std::string& filename) 
+inline void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const vector<int>& elempart, const std::string& filename) 
 {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) error("Error opening file: " + filename);
@@ -134,7 +134,7 @@ inline void writeDouble(std::ofstream& out, double v) {
     out.write(reinterpret_cast<const char*>(&v), sizeof(double));
 }
 
-void writeVectorAsDoubles(std::ofstream& out, const vector<int>& a) {
+inline void writeVectorAsDoubles(std::ofstream& out, const vector<int>& a) {
     for (size_t i = 0; i < a.size(); ++i) {
         double v = static_cast<double>(a[i]);
         out.write(reinterpret_cast<const char*>(&v), sizeof(double));
@@ -146,7 +146,7 @@ inline int max_of_vector_or_zero(const std::vector<int>& v) {
     return *std::max_element(v.begin(), v.end());
 }
 
-void writemesh(const PDE& pde,
+inline void writemesh(const PDE& pde,
                const Mesh& mesh,
                const Master& master,               
                const DMD& dmd,
@@ -258,7 +258,7 @@ void writemesh(const PDE& pde,
 }
 
 #ifdef HAVE_PARMETIS
-void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector<int>& eind, 
+inline void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector<int>& eind, 
          int ne, int np, int nve, int nvf, int nparts) 
 { 
     std::vector<int> eptr(ne+1);
@@ -288,7 +288,7 @@ void partitionMesh(std::vector<int>& epart, std::vector<int>& npart, std::vector
 }
 #endif
 
-void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSpec& spec) 
+inline void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSpec& spec) 
 {
     bool callbuildConn = false;
 

@@ -1145,7 +1145,7 @@ Master initializeMaster(PDE& pde, Mesh& mesh, int rank=0)
     return master;
 }
          
-void writemaster(const Master& master, const std::string& filename) 
+inline void writemaster(const Master& master, const std::string& filename) 
 {
     //std::cout << "Writing master into file..." << std::endl;
 
@@ -1224,7 +1224,7 @@ void writemaster(const Master& master, const std::string& filename)
     std::cout << "Finished writing master to " << filename << std::endl;
 }
 
-void buildMesh(Mesh& mesh, const PDE& pde, const Master& master)
+inline void buildMesh(Mesh& mesh, const PDE& pde, const Master& master)
 {
     mesh.npe = master.npe;
     mesh.npf = master.npf;

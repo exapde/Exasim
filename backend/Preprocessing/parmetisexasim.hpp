@@ -63,7 +63,7 @@ std::vector<idx_t> buildElmdistFromLocalCount(idx_t ne_local, MPI_Comm comm)
 /// Output:
 ///   epart_local[e] = partition ID of local element e
 ///
-void partitionMeshParMETIS(std::vector<idx_t>       &epart_local,
+inline void partitionMeshParMETIS(std::vector<idx_t>       &epart_local,
                            std::vector<idx_t>       &e2n,      // local connectivity
                            const std::vector<idx_t> &elmdist,
                            idx_t                     nve,
@@ -156,7 +156,7 @@ void partitionMeshParMETIS(std::vector<idx_t>       &epart_local,
     }
 }
 
-void migrateMeshWithParMETIS(const Mesh& mesh_in,
+inline void migrateMeshWithParMETIS(const Mesh& mesh_in,
                              const std::vector<idx_t>& epart_local,
                              Mesh& mesh_out,
                              MPI_Comm comm)
@@ -541,7 +541,7 @@ void migrateMeshWithParMETIS(const Mesh& mesh_in,
 //     return out; 
 // }
 
-void mke2e_global(int* e2e,                 // [ne * nfe], output GLOBAL neighbor IDs
+inline void mke2e_global(int* e2e,                 // [ne * nfe], output GLOBAL neighbor IDs
                     const int* e2n,         // [ne * nne], local node IDs
                     const int* local_faces, // [nfe * nnf]
                     const int* elemGlobalID,// [ne]        global element IDs
@@ -578,7 +578,7 @@ void mke2e_global(int* e2e,                 // [ne * nfe], output GLOBAL neighbo
     }    
 }
 
-void callParMetis(Mesh& mesh, const PDE& pde, MPI_Comm comm) 
+inline void callParMetis(Mesh& mesh, const PDE& pde, MPI_Comm comm) 
 {
     int rank, size;
     MPI_Comm_rank(comm, &rank);
@@ -634,7 +634,7 @@ void callParMetis(Mesh& mesh, const PDE& pde, MPI_Comm comm)
 // nnf, nfe     : #nodes per face, #faces per element
 // nbinfo: output array of 6*nbinfoSize ints with records:
 //   (eLoc, lf, self_rank, eglonb, lfnb, neighbor_rank)
-void mke2e_fill_first_neighbors(int*       e2e,
+inline void mke2e_fill_first_neighbors(int*       e2e,
                                  const int* e2n,
                                  const int* local_faces,
                                  const int* elemGlobalID,
@@ -923,7 +923,7 @@ void mke2e_fill_first_neighbors(int*       e2e,
 // - nbndexpr: number of boundary expressions
 //
 // Assumes eval_expr(char* expr, const double* x, int dim) is available.
-int setboundaryfaces(
+inline int setboundaryfaces(
     int* t2t,                  // [nfe x ne], element-to-element; boundary faces initially -1
     const int* e2n,            // [nve x ne], element-to-node connectivity
     const int* localfaces,     // [nvf x nfe], local face connectivity
@@ -1005,7 +1005,7 @@ int setboundaryfaces(
 // nbinfoVec: will be appended with records
 //            (eLoc, lf, self_rank, eglonb, lfnb, neighbor_rank)
 //            for cross-rank periodic neighbors.
-void setperiodicfaces(
+inline void setperiodicfaces(
     int*       t2t,
     const int* t,
     const int* localfaces,
@@ -1293,7 +1293,7 @@ void setperiodicfaces(
     } // ip
 }
 
-void computeElementToGlobalNodeMap(Mesh& mesh, const vector<int> &elempart)
+inline void computeElementToGlobalNodeMap(Mesh& mesh, const vector<int> &elempart)
 {
     const int nve = mesh.nve;
     const int ne  = mesh.ne;
@@ -1314,7 +1314,7 @@ void computeElementToGlobalNodeMap(Mesh& mesh, const vector<int> &elempart)
     }
 }
 
-void sortWithReordering(std::vector<int>& a, std::vector<int>& b)
+inline void sortWithReordering(std::vector<int>& a, std::vector<int>& b)
 {
     // Ensure same size
     if (a.size() != b.size()) {
@@ -1346,7 +1346,7 @@ void sortWithReordering(std::vector<int>& a, std::vector<int>& b)
 }
 
 // nbinfo layout per record: 6 ints
-void classifyElementsWithE2EAndNbinfo(const int* e2e,       // [mesh.ne * nfe], global IDs or -1
+inline void classifyElementsWithE2EAndNbinfo(const int* e2e,       // [mesh.ne * nfe], global IDs or -1
                                       const int* elemGlobalID,
                                       int        nfe,
                                       int        ne_local,
@@ -1466,7 +1466,7 @@ void classifyElementsWithE2EAndNbinfo(const int* e2e,       // [mesh.ne * nfe], 
 }
 
 
-void buildElempartFromClassification(ElementClassification& cls, DMD& dmd, int rank)
+inline void buildElempartFromClassification(ElementClassification& cls, DMD& dmd, int rank)
 {
     // -------------------------------------------------------------
     // 1. Clear previous data
@@ -1590,7 +1590,7 @@ void buildElempartFromClassification(ElementClassification& cls, DMD& dmd, int r
     }        
 }
 
-void buildElem2CpuFromClassification(const ElementClassification& cls,
+inline void buildElem2CpuFromClassification(const ElementClassification& cls,
                                      DMD&                        dmd,
                                      MPI_Comm                    comm)
 {
@@ -1668,7 +1668,7 @@ void buildElem2CpuFromClassification(const ElementClassification& cls,
     }          
 }
 
-void buildElemRecv(DMD& dmd, MPI_Comm comm)
+inline void buildElemRecv(DMD& dmd, MPI_Comm comm)
 {
     int rank, size;
     MPI_Comm_rank(comm, &rank);
@@ -1787,7 +1787,7 @@ void buildElemRecv(DMD& dmd, MPI_Comm comm)
     //   - dmd.elemrecvpts[i] is #ghost elements received from dmd.nbsd[i]
 }
 
-void buildElemsend(const Mesh& mesh, DMD& dmd, MPI_Comm comm)
+inline void buildElemsend(const Mesh& mesh, DMD& dmd, MPI_Comm comm)
 {
     int rank, size;
     MPI_Comm_rank(comm, &rank);
@@ -1999,7 +1999,7 @@ template<>
 inline MPI_Datatype mpi_type<int>()    { return MPI_INT; }
 
 template<typename T>
-void sendrecvdata(
+inline void sendrecvdata(
     MPI_Comm comm,
     const std::vector<int>   &nbsd,       // neighbor ranks (size = nnbsd)
     const std::vector<int> &elemsendpts,  // #elements to send to each neighbor
@@ -2115,7 +2115,7 @@ void sendrecvdata(
 //   ifaceNeighGlobal[k * nfe + lf] = global neighbor ID for
 //   element eLoc = cls.interfaceLocal[k], face lf (or -1 if boundary).
 //
-void collectInterfaceNeighborGlobals(const int*                e2e,
+inline void collectInterfaceNeighborGlobals(const int*                e2e,
                                      int                       nfe,
                                      const ElementClassification& cls,
                                      std::vector<int>&         ifaceNeighGlobal)
@@ -2148,7 +2148,7 @@ void collectInterfaceNeighborGlobals(const int*                e2e,
 // Assumption: every non-negative entry in ifaceNeighGlobal belongs to either
 //   mesh.elemGlobalID (local elements) or cls.neighborElemGlobal (1-hop neighbors).
 //
-void determineOwnersForInterfaceNeighborsLocal(const Mesh&                  mesh,
+inline void determineOwnersForInterfaceNeighborsLocal(const Mesh&                  mesh,
                                                const ElementClassification& cls,
                                                const std::vector<int>&      ifaceNeighGlobal,
                                                std::vector<int>&            ifaceNeighOwner,
@@ -2221,7 +2221,7 @@ void determineOwnersForInterfaceNeighborsLocal(const Mesh&                  mesh
 //   [2 .. 2+nfe-1]           = ifaceNeighGlobal_row_from_remote[nfe ints]
 //   [2+nfe .. 2+2*nfe-1]     = ifaceNeighOwner_row_from_remote [nfe ints]
 //
-void exchangeInterfaceNeighborRows(const Mesh&                  mesh,
+inline void exchangeInterfaceNeighborRows(const Mesh&                  mesh,
                                    const ElementClassification& cls,
                                    const std::vector<int>&      ifaceNeighGlobal,
                                    const std::vector<int>&      ifaceNeighOwner,
@@ -2364,7 +2364,7 @@ void exchangeInterfaceNeighborRows(const Mesh&                  mesh,
 }
 
 
-void exchangeInterfaceNeighborRowsP2P(const Mesh&                  mesh,
+inline void exchangeInterfaceNeighborRowsP2P(const Mesh&                  mesh,
                                    const ElementClassification& cls,
                                    const std::vector<int>&      ifaceNeighGlobal,
                                    const std::vector<int>&      ifaceNeighOwner,
@@ -2608,7 +2608,7 @@ void exchangeInterfaceNeighborRowsP2P(const Mesh&                  mesh,
 //
 // The function updates cls.outerElemGlobal / cls.outerElemRank, deduplicated.
 // -----------------------------------------------------------------------------
-void updateOuterElementsFromRecvBuf(ElementClassification&      cls,
+inline void updateOuterElementsFromRecvBuf(ElementClassification&      cls,
                                     const Mesh&                mesh,
                                     const std::vector<int>&    recvBuf,
                                     const std::vector<int>&    recvCounts,
@@ -2713,7 +2713,7 @@ void updateOuterElementsFromRecvBuf(ElementClassification&      cls,
 // in ElementClassification (assuming cls is already filled with interior,
 // boundary, interface, neighbor elements).
 // -----------------------------------------------------------------------------
-void updateOuterElements(ElementClassification& cls,
+inline void updateOuterElements(ElementClassification& cls,
                          const Mesh&           mesh,
                          const int*            e2e,        // [mesh.ne * nfe], global IDs or -1
                          int                   nfe,
@@ -2806,7 +2806,7 @@ DMD initializeDMD(Mesh& mesh, const Master& master, const PDE& pde, MPI_Comm com
     return dmd;
 }
 
-void writemesh(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& master, MPI_Comm comm)
+inline void writemesh(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& master, MPI_Comm comm)
 {    
     int nve = mesh.nve;
     int nfe = mesh.nfe;
@@ -2892,7 +2892,7 @@ void writemesh(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& master,
     std::cout << "Finished writing mesh to " + filename << std::endl;
 }
 
-void writesol(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& master, MPI_Comm comm)
+inline void writesol(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& master, MPI_Comm comm)
 {
     int rank, size;
     MPI_Comm_rank(comm, &rank);

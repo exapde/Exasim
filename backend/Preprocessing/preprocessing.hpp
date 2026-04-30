@@ -14,24 +14,24 @@
 #include "preprocessing.h"
 
 #include "TextParser.hpp"
-#include "tinyexpr.cpp"
-#include "helpersexasim.cpp"
-#include "readpdeapp.cpp"
-#include "readmesh.cpp"
-#include "makemeshexasim.cpp"
-#include "makemaster.cpp"
-#include "makemasterexasim.cpp"
-#include "domaindecomposition.cpp"
-#include "writebinaryfilesexasim.cpp"
+#include "tinyexpr.hpp"
+#include "helpersexasim.hpp"
+#include "readpdeapp.hpp"
+#include "readmesh.hpp"
+#include "makemeshexasim.hpp"
+#include "makemaster.hpp"
+#include "makemasterexasim.hpp"
+#include "domaindecomposition.hpp"
+#include "writebinaryfilesexasim.hpp"
 
 #ifdef HAVE_PARMETIS
 #ifdef HAVE_MPI
-#include "parmetisexasim.cpp"
+#include "parmetisexasim.hpp"
 #endif
 #endif
 
 // constructor
-CPreprocessing::CPreprocessing(string filein, int rank, int commsize)
+inline CPreprocessing::CPreprocessing(string filein, int rank, int commsize)
 {
   mpirank = rank;
 
@@ -43,7 +43,7 @@ CPreprocessing::CPreprocessing(string filein, int rank, int commsize)
   spec.exasimpath = pde.exasimpath;        
 }
 
-void CPreprocessing::SerialPreprocessing()
+inline void CPreprocessing::SerialPreprocessing()
 {  
     mesh = initializeMesh(params, pde);        
     master = initializeMaster(pde, mesh);                                    
@@ -56,7 +56,7 @@ void CPreprocessing::SerialPreprocessing()
 }
 
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
-void CPreprocessing::ParallelPreprocessing(MPI_Comm comm)
+inline void CPreprocessing::ParallelPreprocessing(MPI_Comm comm)
 {  
     Mesh mesh = initializeParMesh(params, spec, pde, comm);   
 
@@ -84,7 +84,7 @@ void CPreprocessing::ParallelPreprocessing(MPI_Comm comm)
 #endif
 
 // destructor
-CPreprocessing::~CPreprocessing()
+inline CPreprocessing::~CPreprocessing()
 {            
     if (mpirank==0) printf("CPreprocessing destructor is called successfully.\n");
 }

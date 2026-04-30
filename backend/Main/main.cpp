@@ -137,7 +137,7 @@ using namespace std;
 #include "../Solution/solution.hpp"             // solution class
 
 #ifdef HAVE_SHARED_MODEL_LIB
-#include "../Preprocessing/preprocessing.cpp" // preprocessing class
+#include "../Preprocessing/preprocessing.hpp" // preprocessing class
 #endif
 
 int main(int argc, char** argv) 

@@ -150,7 +150,7 @@
 // - int* t2lf:    [nvf * nfe * ne], allocated by caller
 // - double* pf:   [dim * nvf * nfe * ne], allocated by caller
 
-void compute_pf(int* t2lf, double* pf,        
+inline void compute_pf(int* t2lf, double* pf,        
     const int* t, const double* p, const int* localfaces, 
     int nve, int nvf, int nfe, int dim, int ne   
 ) {
@@ -181,7 +181,7 @@ void compute_pf(int* t2lf, double* pf,
 }
 
 // Helper to evaluate expression string at a point x[dim]
-bool eval_expr(const char* expr_str, const double* x, int dim) {
+inline bool eval_expr(const char* expr_str, const double* x, int dim) {
     double x0 = x[0], x1 = (dim > 1 ? x[1] : 0), x2 = (dim > 2 ? x[2] : 0);
     te_parser tep;
     tep.set_variables_and_functions({{"x", &x0}, {"y", &x1}, {"z", &x2}});
@@ -213,7 +213,7 @@ bool eval_expr(const char* expr_str, const double* x, int dim) {
 //     return result != 0.0;
 }
 
-void assignboundaryfaces(
+inline void assignboundaryfaces(
     int* f,                     // [nfe x ne], zero-based, must be initialized to -1
     const int* f2t,             // [4 x nf], face-to-element connectivity
     const int* ind,             // [nb], indices of boundary faces   
@@ -256,7 +256,7 @@ void assignboundaryfaces(
     }
 }
 
-void assignboundaryfaces(
+inline void assignboundaryfaces(
     int* f,                     // [nfe x ne], zero-based, must be initialized to -1
     const int* t,               // [nve x ne], element-to-node connectivity
     const int* f2t,             // [4 x nf], face-to-element connectivity
@@ -552,7 +552,7 @@ void assignboundaryfaces(
 //     return out; 
 // }
 
-int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t,                    
+inline int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t,                    
     char** bndexpr, int dim, int elemtype, int ne, int nbndexpr) 
 {
     int nve = (elemtype==0) ? (dim + 1) : std::pow(2, dim);    
@@ -590,7 +590,7 @@ int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t
     return nf;
 }
 
-void setperiodicfaces(int* f, int* t, const double* p, const int* t2fl, 
+inline void setperiodicfaces(int* f, int* t, const double* p, const int* t2fl, 
     const int* prd_f1, const int* prd_f2, char** expr1, char** expr2,    
     int dim, int elemtype, int np, int ne, int nprd, int ncomp) 
 {  
@@ -765,7 +765,7 @@ void setperiodicfaces(int* f, int* t, const double* p, const int* t2fl,
     }
 }
 
-void interface_elements(vector<int>& inte, vector<int>& intl, vector<int>& f, int nfe, int ne, int coupledinterface)
+inline void interface_elements(vector<int>& inte, vector<int>& intl, vector<int>& f, int nfe, int ne, int coupledinterface)
 {
     int n=0;
     for (int i=0; i<ne; i++)
@@ -785,7 +785,7 @@ void interface_elements(vector<int>& inte, vector<int>& intl, vector<int>& f, in
 }
 
 // Function to convert vector<string> A to char** B
-void assignVectorToCharArray(const std::vector<std::string>& A, char*** B) {
+inline void assignVectorToCharArray(const std::vector<std::string>& A, char*** B) {
     *B = new char*[A.size()];
     for (size_t i = 0; i < A.size(); ++i) {
         (*B)[i] = new char[A[i].size() + 1];  // +1 for null terminator
@@ -794,7 +794,7 @@ void assignVectorToCharArray(const std::vector<std::string>& A, char*** B) {
 }
 
 // Optional: helper function to free the allocated memory
-void freeCharArray(char** B, size_t size) {
+inline void freeCharArray(char** B, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         delete[] B[i];
     }
@@ -806,7 +806,7 @@ void freeCharArray(char** B, size_t size) {
 // t    : int[nve * ne]               -- connectivity: t[node + nve * e]
 // philocal: double[npl * nve]        -- shape function values: phi[i + npl * node]
 // dgnodes : double[npl * nd * ne]    -- output array
-void compute_dgnodes(double* dgnodes, const double* p, const int* t, 
+inline void compute_dgnodes(double* dgnodes, const double* p, const int* t, 
                      const double* philocal, int npl, int nd, int ne, int nve)
 {
     // Zero out dgnodes
@@ -826,7 +826,7 @@ void compute_dgnodes(double* dgnodes, const double* p, const int* t,
     }        
 }
 
-void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const int* perm, const int* curvedboundary,
+inline void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const int* perm, const int* curvedboundary,
                          char** fd_exprs, int nd, int porder, int npe, int npf, int nfe, int ne, int factor=1) 
 {
     if (porder <= 1) return;

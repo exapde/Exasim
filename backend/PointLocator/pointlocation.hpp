@@ -2,7 +2,7 @@
 #define __POINTLOCATION_H__
 
 #include "../Common/common.h"
-#include "../Preprocessing/makemaster.cpp"
+#include "../Preprocessing/makemaster.hpp"
 #include "pointellipsoidgrid.hpp"
 #include "pointcandidates.hpp"
 #include "pointinterpolation.hpp"

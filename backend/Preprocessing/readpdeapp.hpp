@@ -127,7 +127,7 @@ std::vector<std::string> parseStringList(const std::string& buffer) {
     return result;
 }
 
-std::string trim(const std::string& s) {
+inline std::string trim(const std::string& s) {
     size_t start = s.find_first_not_of(" \t");
     size_t end = s.find_last_not_of(" \t");
     return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
@@ -303,7 +303,7 @@ InputParams parseInputFile(const std::string& filename, int mpirank=0)
     return params;
 }
 
-void printInputParams(InputParams& params) 
+inline void printInputParams(InputParams& params) 
 {
     auto printVec = [](const auto& vec, const std::string& name) {
         std::cout << name << ": ";
@@ -443,7 +443,7 @@ void printInputParams(InputParams& params)
 //     std::vector<double> stgparam;    
 // };
 
-void extractCoupledData(
+inline void extractCoupledData(
     const std::vector<int>& interfacecondition,
     const std::vector<int>& boundarycondition,
     std::vector<int>& coupledinterface,
@@ -834,7 +834,7 @@ PDE initializePDE(InputParams& params, int mpirank=0)
     return pde;
 }
 
-void writepde(const PDE& pde, const std::string& filename) 
+inline void writepde(const PDE& pde, const std::string& filename) 
 {    
     std::vector<double> avparam;
     avparam.insert(avparam.end(), pde.avparam1.begin(), pde.avparam1.end());

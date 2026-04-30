@@ -129,7 +129,7 @@
 // }
 
 template <typename T> 
-void readarray(ifstream &in, vector<T> &a, int N)
+inline void readarray(ifstream &in, vector<T> &a, int N)
 {    
     if (N>0) {        
         a.resize(N);
@@ -137,7 +137,7 @@ void readarray(ifstream &in, vector<T> &a, int N)
     }    
 }
 
-void readiarrayfromdouble(ifstream &in, vector<int> &a, int N) {
+inline void readiarrayfromdouble(ifstream &in, vector<int> &a, int N) {
     if (N > 0) {
         a.resize(N);
         double read;
@@ -149,7 +149,7 @@ void readiarrayfromdouble(ifstream &in, vector<int> &a, int N) {
 }
 
 template <typename T>
-void readarrayfrombinaryfile(const std::string &filename, std::vector<T> &a)
+inline void readarrayfrombinaryfile(const std::string &filename, std::vector<T> &a)
 {
     static_assert(std::is_trivially_copyable<T>::value,
                   "readarrayfromfile(binary) requires trivially copyable T");
@@ -193,7 +193,7 @@ void readarrayfrombinaryfile(const std::string &filename, std::vector<T> &a)
     }
 }
 
-void readfile(string filename, vector<int> &ndims, vector<int> &data, int m) 
+inline void readfile(string filename, vector<int> &ndims, vector<int> &data, int m) 
 {
     ifstream in(filename, ios::in | ios::binary);
     if (!in) error("Unable to open file " + filename);
@@ -206,7 +206,7 @@ void readfile(string filename, vector<int> &ndims, vector<int> &data, int m)
     in.close();
 }    
 
-void readfile(string filename, vector<int> &ndims, vector<double> &data, int m) 
+inline void readfile(string filename, vector<int> &ndims, vector<double> &data, int m) 
 {
     ifstream in(filename, ios::in | ios::binary);
     if (!in) error("Unable to open file " + filename);
@@ -241,7 +241,7 @@ void readfile(string filename, vector<int> &ndims, vector<double> &data, int m)
 // }
 
 template<typename T>
-void xiny(int* out, const T* A, const T* B, int m, int n, int dim, double tol = 1e-12) {
+inline void xiny(int* out, const T* A, const T* B, int m, int n, int dim, double tol = 1e-12) {
     for (int i = 0; i < m; ++i) {
         out[i] = -1;
         for (int j = 0; j < n; ++j) {
@@ -280,7 +280,7 @@ void xiny(int* out, const T* A, const T* B, int m, int n, int dim, double tol = 
 //     }
 // }
 
-void cumsum_int(const int* in, int* out, int n) {
+inline void cumsum_int(const int* in, int* out, int n) {
     if (n <= 0) return;
     out[0] = in[0];
     for (int i = 1; i < n; ++i) {
@@ -317,7 +317,7 @@ void cumsum_int(const int* in, int* out, int n) {
 //     return int(last - arr);                        // new length m
 // }
 
-void extract_subset(int* b, const int* a, const int* ind, size_t k) 
+inline void extract_subset(int* b, const int* a, const int* ind, size_t k) 
 {
     for (size_t i = 0; i < k; ++i) {
         b[i] = a[ind[i]];
@@ -437,7 +437,7 @@ void extract_subset(int* b, const int* a, const int* ind, size_t k)
 //     }
 // }
 
-void select_columns(double* a_new, const double* a, const int* ind, int m, int k) 
+inline void select_columns(double* a_new, const double* a, const int* ind, int m, int k) 
 {
     for (int j = 0; j < k; ++j) {
         int col = ind[j];
@@ -447,7 +447,7 @@ void select_columns(double* a_new, const double* a, const int* ind, int m, int k
     }
 }
 
-void insert_columns(int* a, const int* a_new, const int* ind, int m, int k) 
+inline void insert_columns(int* a, const int* a_new, const int* ind, int m, int k) 
 {
     for (int j = 0; j < k; ++j) {
         int col = ind[j];
@@ -457,7 +457,7 @@ void insert_columns(int* a, const int* a_new, const int* ind, int m, int k)
     }
 }
 
-void insert_columns(double* a, const double* a_new, const int* ind, int m, int k) 
+inline void insert_columns(double* a, const double* a_new, const int* ind, int m, int k) 
 {
     for (int j = 0; j < k; ++j) {
         int col = ind[j];

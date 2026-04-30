@@ -85,7 +85,7 @@
 //     char** periodicExprs2 = nullptr;        
 // };
 
-void readMeshFromBinaryFile(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromBinaryFile(const std::string& filename, Mesh& mesh) 
 {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (!in) error("Unable to open file " + filename);
@@ -103,7 +103,7 @@ void readMeshFromBinaryFile(const std::string& filename, Mesh& mesh)
     in.close();   
 }
 
-void readMeshFromTextFile(const std::string& filename, Mesh& mesh)
+inline void readMeshFromTextFile(const std::string& filename, Mesh& mesh)
 {    
     std::ifstream infile(filename);
     if (!infile.is_open()) {
@@ -140,7 +140,7 @@ void readMeshFromTextFile(const std::string& filename, Mesh& mesh)
     infile.close();   
 }
 
-void readMeshFromMshV2File(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromMshV2File(const std::string& filename, Mesh& mesh) 
 {
     std::ifstream infile(filename);
     if (!infile.is_open()) error("Error opening file: " + filename);
@@ -260,7 +260,7 @@ void readMeshFromMshV2File(const std::string& filename, Mesh& mesh)
     infile.close();   
 }
 
-void readMeshFromMshV4File(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromMshV4File(const std::string& filename, Mesh& mesh) 
 {
     std::ifstream infile(filename);
     if (!infile.is_open()) error("Error opening file: " + filename);
@@ -378,7 +378,7 @@ void readMeshFromMshV4File(const std::string& filename, Mesh& mesh)
     infile.close();   
 }
 
-void readMeshFromGmshFile(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromGmshFile(const std::string& filename, Mesh& mesh) 
 {
     std::ifstream infile(filename);
     if (!infile.is_open()) error("Error opening file: " + filename);
@@ -418,7 +418,7 @@ void readMeshFromGmshFile(const std::string& filename, Mesh& mesh)
     }
 }
 
-void readMeshFromVTKFile(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromVTKFile(const std::string& filename, Mesh& mesh) 
 {
     std::ifstream infile(filename);
     if (!infile.is_open()) error("Error opening file: " + filename);
@@ -504,7 +504,7 @@ void readMeshFromVTKFile(const std::string& filename, Mesh& mesh)
     infile.close();   
 }
 
-void readMeshFromVTUFile(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromVTUFile(const std::string& filename, Mesh& mesh) 
 {
     std::ifstream infile(filename);
     if (!infile.is_open()) error("Error opening file: " + filename);
@@ -611,7 +611,7 @@ void readMeshFromVTUFile(const std::string& filename, Mesh& mesh)
     infile.close();   
 }
 
-std::string getFileExtension(const std::string& filename) 
+inline std::string getFileExtension(const std::string& filename) 
 {
     size_t dot = filename.find_last_of('.');
     if (dot == std::string::npos)
@@ -621,7 +621,7 @@ std::string getFileExtension(const std::string& filename)
     return ext;
 }
 
-void readMeshFromFile(const std::string& filename, Mesh& mesh) 
+inline void readMeshFromFile(const std::string& filename, Mesh& mesh) 
 {
     std::string ext = getFileExtension(filename);
 
@@ -650,7 +650,7 @@ void readMeshFromFile(const std::string& filename, Mesh& mesh)
     mesh.nfe = mesh.nd + (mesh.nd - 1) * mesh.elemtype + 1;                    
 }
 
-void readFieldFromBinaryFile(const std::string& filename, vector<double>& xdg, vector<int>& ndims) 
+inline void readFieldFromBinaryFile(const std::string& filename, vector<double>& xdg, vector<int>& ndims) 
 {
     std::string ext = getFileExtension(filename);
     
@@ -666,7 +666,7 @@ void readFieldFromBinaryFile(const std::string& filename, vector<double>& xdg, v
     }
 }
 
-void readPartitionFromFile(const std::string& filename, vector<int>& elem2cpu, int ne) 
+inline void readPartitionFromFile(const std::string& filename, vector<int>& elem2cpu, int ne) 
 {
     std::string ext = getFileExtension(filename);
     
@@ -693,7 +693,7 @@ void readPartitionFromFile(const std::string& filename, vector<int>& elem2cpu, i
 // -----------------------------------------------------------------------------
 // Parallel reader: each rank reads *its portion* of p and t from the same file
 // -----------------------------------------------------------------------------
-void readParMeshFromBinaryFile(const std::string& filename,
+inline void readParMeshFromBinaryFile(const std::string& filename,
                                Mesh& mesh,
                                MPI_Comm comm)
 {
@@ -826,7 +826,7 @@ void readParMeshFromBinaryFile(const std::string& filename,
 //  - tagBase: MPI tag base (tagBase for p, tagBase+1 for t)
 // ----------------------------------------------------------
 template <typename ReaderFunc>
-void readParMeshGeneric(const std::string& filename,
+inline void readParMeshGeneric(const std::string& filename,
                         Mesh& mesh,
                         MPI_Comm comm,
                         ReaderFunc reader,
@@ -977,7 +977,7 @@ void readParMeshGeneric(const std::string& filename,
 }
 
 // Text
-void readParMeshFromTextFile(const std::string& filename,
+inline void readParMeshFromTextFile(const std::string& filename,
                             Mesh& mesh,
                             MPI_Comm comm)
 {
@@ -988,7 +988,7 @@ void readParMeshFromTextFile(const std::string& filename,
 }
 
 // VTK
-void readParMeshFromVTKFile(const std::string& filename,
+inline void readParMeshFromVTKFile(const std::string& filename,
                             Mesh& mesh,
                             MPI_Comm comm)
 {
@@ -999,7 +999,7 @@ void readParMeshFromVTKFile(const std::string& filename,
 }
 
 // VTU
-void readParMeshFromVTUFile(const std::string& filename,
+inline void readParMeshFromVTUFile(const std::string& filename,
                             Mesh& mesh,
                             MPI_Comm comm)
 {
@@ -1010,7 +1010,7 @@ void readParMeshFromVTUFile(const std::string& filename,
 }
 
 // Gmsh v2
-void readParMeshFromMshV2File(const std::string& filename,
+inline void readParMeshFromMshV2File(const std::string& filename,
                               Mesh& mesh,
                               MPI_Comm comm)
 {
@@ -1021,7 +1021,7 @@ void readParMeshFromMshV2File(const std::string& filename,
 }
 
 // Gmsh v4
-void readParMeshFromMshV4File(const std::string& filename,
+inline void readParMeshFromMshV4File(const std::string& filename,
                               Mesh& mesh,
                               MPI_Comm comm)
 {
@@ -1031,7 +1031,7 @@ void readParMeshFromMshV4File(const std::string& filename,
                        200);
 }
 
-void readParMeshFromGmshFile(const std::string& filename, Mesh& mesh, MPI_Comm comm)
+inline void readParMeshFromGmshFile(const std::string& filename, Mesh& mesh, MPI_Comm comm)
 {
     int rank;
     MPI_Comm_rank(comm, &rank);
@@ -1101,7 +1101,7 @@ void readParMeshFromGmshFile(const std::string& filename, Mesh& mesh, MPI_Comm c
     }
 }
 
-void readParMeshFromFile(const std::string& filename, Mesh& mesh, MPI_Comm comm) 
+inline void readParMeshFromFile(const std::string& filename, Mesh& mesh, MPI_Comm comm) 
 {
     std::string ext = getFileExtension(filename);
 
@@ -1143,7 +1143,7 @@ void readParMeshFromFile(const std::string& filename, Mesh& mesh, MPI_Comm comm)
 //   - epart_local[i] is the *global element index* (0-based, < ne) of the
 //     i-th local element on this rank.
 //
-void readParFieldFromBinaryFile(const std::string& filename,
+inline void readParFieldFromBinaryFile(const std::string& filename,
                                 const std::vector<int>& elemGlobalID,
                                 std::vector<double>& xdg,
                                 std::vector<int>& ndims)
@@ -1223,7 +1223,7 @@ void readParFieldFromBinaryFile(const std::string& filename,
     in.close();
 }
 
-void readLocalMeshFromBinaryFile(const std::string& filename,
+inline void readLocalMeshFromBinaryFile(const std::string& filename,
                                  Mesh& mesh,
                                  const std::vector<idx_t>& epart_local,
                                  MPI_Comm comm)

@@ -66,7 +66,7 @@
 #ifndef __MAKEMASTER
 #define __MAKEMASTER
 
-void pascalindex2d(int *pq, int numPoly)
+inline void pascalindex2d(int *pq, int numPoly)
 {
     int i, j, counter = 0, done = 0;
     
@@ -85,7 +85,7 @@ void pascalindex2d(int *pq, int numPoly)
     }
 }
 
-void pascalindex3d(int *pq, int numPoly)
+inline void pascalindex3d(int *pq, int numPoly)
 {
     int i, j, k, counter = 0, done = 0;
     
@@ -109,7 +109,7 @@ void pascalindex3d(int *pq, int numPoly)
     }
 }
 
-void legendre(double *coeff, int porder)
+inline void legendre(double *coeff, int porder)
 {
     int i;
     
@@ -142,7 +142,7 @@ void legendre(double *coeff, int porder)
 //     }
 }
 
-void jacobi(double *coeff, int porder, double alpha, double beta)
+inline void jacobi(double *coeff, int porder, double alpha, double beta)
 {
     //error("jacobi not validated yet.\n");
     
@@ -180,13 +180,13 @@ void jacobi(double *coeff, int porder, double alpha, double beta)
     }
 }
 
-void polyder(double *Dcoeff, double *coeff, int porder)
+inline void polyder(double *Dcoeff, double *coeff, int porder)
 {
     for (int i = 0; i < porder; i++)
         Dcoeff[i] = ((double) (porder - i) ) * coeff[i];
 }
 
-void polyval(double *pval, double *coeff, double *x, int porder, int numPoints)
+inline void polyval(double *pval, double *coeff, double *x, int porder, int numPoints)
 {
     for (int i = 0; i < numPoints; i++) {
         pval[i] = 0.0;
@@ -195,7 +195,7 @@ void polyval(double *pval, double *coeff, double *x, int porder, int numPoints)
     }
 }
 
-void conv(double *output, double *input1, int lenInput1, double *input2, int lenInput2)
+inline void conv(double *output, double *input1, int lenInput1, double *input2, int lenInput2)
 {
     int i, j, lenOutput;
     
@@ -211,7 +211,7 @@ void conv(double *output, double *input1, int lenInput1, double *input2, int len
             output[i+j+1+lenOutput-lenInput1-lenInput2] += input1[i]*input2[j];
 }
 
-void koornwinder1d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
+inline void koornwinder1d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
 {
     // f: numPoints / (porder+1) / 2
     // x: numPoints
@@ -254,7 +254,7 @@ void koornwinder1d(double *f,double *x, int numPoints, int porder, int derivativ
     delete[] pval; delete[] dpval;
 }
 
-void koornwinder2d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
+inline void koornwinder2d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
 {
     // f: numPoints / numPoly / nd+1
     // x: numPoints / nd
@@ -374,7 +374,7 @@ void koornwinder2d(double *f,double *x, int numPoints, int porder, int derivativ
     delete[] pq;
 }
 
-void koornwinder3d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
+inline void koornwinder3d(double *f,double *x, int numPoints, int porder, int derivativesFlag)
 {
     // f: numPoints / numPoly / nd+1
     // x: numPoints / nd
@@ -531,7 +531,7 @@ void koornwinder3d(double *f,double *x, int numPoints, int porder, int derivativ
     delete[] pq;
 }
 
-void koornwinder(double *f, double *x, int numPoints, int porder, int nd, int derivativesFlag)
+inline void koornwinder(double *f, double *x, int numPoints, int porder, int nd, int derivativesFlag)
 {
     if (nd == 1)
         koornwinder1d(&f[0], &x[0], numPoints, porder, derivativesFlag);
@@ -543,7 +543,7 @@ void koornwinder(double *f, double *x, int numPoints, int porder, int nd, int de
         error("Number of dimensions not implemented.\n");
 }
 
-void tensorproduct(double *f, double *x, int npoints, int porder, int nd, int derivativesFlag)
+inline void tensorproduct(double *f, double *x, int npoints, int porder, int nd, int derivativesFlag)
 {
     // f: npoints / npv / nd+1
     // x: npoints / nd
@@ -607,7 +607,7 @@ void tensorproduct(double *f, double *x, int npoints, int porder, int nd, int de
     }
 }
 
-void mkshape(vector<double> &shap, vector<double> &plocal, vector<double> &pts, int npoints, int elemtype, int porder, int nd, int numNodes)
+inline void mkshape(vector<double> &shap, vector<double> &plocal, vector<double> &pts, int npoints, int elemtype, int porder, int nd, int numNodes)
 {
     // porder: Polynomial order
     // plocal: Node positions. numNodes / nd
@@ -681,7 +681,7 @@ void mkshape(vector<double> &shap, vector<double> &plocal, vector<double> &pts, 
     delete[] A; delete[] nf;
 }
 
-void localbasis(double *phielem, double *phiface, const double *plocvl, const double *plocfc,
+inline void localbasis(double *phielem, double *phiface, const double *plocvl, const double *plocfc,
                 int dim, int elemtype, int nne, int nnf)
 {
     int i;
@@ -773,7 +773,7 @@ void localbasis(double *phielem, double *phiface, const double *plocvl, const do
     }
 }
 
-int permindex(vector<int>& permind, const double* plocfc, int npf, int dim, int elemtype) 
+inline int permindex(vector<int>& permind, const double* plocfc, int npf, int dim, int elemtype) 
 {
     int ncols_out = 1;
     if (dim == 1) {         
