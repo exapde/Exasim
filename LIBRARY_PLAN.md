@@ -239,3 +239,90 @@ The first concrete step of HOT.1 is to convert
 static-library track) into C++17 `inline` variables in `common.h`,
 removing the file. After that, work proceeds subdir by subdir through
 HOT.1.
+
+## Status update — landed through HOT.2 step 3.3
+
+Completed (all green against `baseline/verify.sh`):
+
+- HOT.1: `backend/` headerized (every `.cpp` → `.hpp`, all bodies
+  marked `inline`).
+- HOT.2 step 1: `<exasim/model.hpp>` Model contract + ModelDefaults<Self>.
+- HOT.2 step 2: 29 kernel templates in `<exasim/kernels/*.hpp>`,
+  cross-example contract fixes (separate `fbou_hdg`, `nco`, naming).
+- HOT.2 step 3.1: `<exasim/drivers.hpp>` — templated `*Driver<M>` wrappers.
+- HOT.2 step 3.2: `<exasim/detail/abi_adapter.hpp>` — AbiAdapter marker.
+- HOT.2 step 3.3: **the four FEM classes are templated on M** with default
+  `M = AbiAdapter`. CDiscretization<M>, CSolver<M>, CPreconditioner<M>,
+  CSolution<M> all exist. main.cpp uses `CSolution<>` (default arg)
+  and the existing build is bit-identical to baseline.
+
+## HOT.2 step 3.4 — remaining work, scoped precisely
+
+The four FEM classes are templated, but `M` is currently a **phantom**
+type parameter inside their member functions: bodies still call the
+old non-templated `FluxDriver(...)`, `SourceDriver(...)`, etc.
+defined in `backend/Model/{KokkosDrivers,ModelDrivers}.cpp`. So
+`CSolution<MyModel>` *compiles* but doesn't actually invoke the
+user's pointwise math — it goes through the libpdemodel.hpp ABI.
+
+To make M actually flow through to the kernels, the FEM-internal
+**chain free functions** also need templating, because they're the
+ones that call the driver functions from inside a context where M
+must be selected. Audit (after step 3.3 commit `e8c261a4`):
+
+| File                                                | inline funcs | driver calls |
+|-----------------------------------------------------|--------------|--------------|
+| `Discretization/discretization.hpp`                 | (member fns) | 7            |
+| `Discretization/postdiscretization.hpp`             | (member fns) | 7            |
+| `Discretization/residual.hpp`                       | 13           | 5            |
+| `Discretization/uequation.hpp`                      | 7            | 15           |
+| `Discretization/uresidual.hpp`                      | 8            | 12           |
+| `Discretization/qoicalculation.hpp`                 | 4            | 2            |
+| `Discretization/getuhat.hpp`                        | 5            | 2            |
+| `Discretization/qresidual.hpp`                      | 8            | 0            |
+| `Discretization/wequation.hpp`                      | 3            | 0 (calls Hdg*) |
+| `Discretization/qequation.hpp`                      | 7            | 0 (calls Hdg*) |
+| `Solution/solution.hpp`                             | (member fns) | 3            |
+| `Solution/postsolution.hpp`                         | (member fns) | 3            |
+| **Total**                                           | **55**       | **56**       |
+
+The 56 driver call sites are the leaf operations. The 55 free
+functions (and the ~70 CDiscretization/CSolution member functions
+already templated in 3.3) form the path between
+`CSolution<M>::SolveProblem()` and a leaf driver call.
+
+### Concrete plan for step 3.4
+
+1. **Add a dispatch helper** `<exasim/detail/driver_dispatch.hpp>`
+   defining `EXASIM_DRIVER_CALL(Name, ...)` — an `if constexpr` macro
+   that routes to `::Name(...)` when `M = AbiAdapter` and to
+   `::exasim::Name<M>(...)` otherwise. This was prototyped in this
+   session and reverted; design is settled.
+
+2. **Template the 55 chain free functions** on `M`:
+   `inline void uEquationElemBlock(...)` →
+   `template <class M> inline void uEquationElemBlock(...)`.
+   Mechanical sed pass over the 8 chain files.
+
+3. **Update the call sites of the chain functions** inside
+   `CDiscretization<M>::method()` bodies to specify `<M>`:
+   `uEquationElemBlock(args)` → `uEquationElemBlock<M>(args)`.
+   Several hundred sites; mechanical sed pass.
+
+4. **Replace the 56 leaf driver calls** with `EXASIM_DRIVER_CALL`
+   invocations.
+
+5. **Drop `libpdemodel.hpp`** in step 3.5 once nothing references it.
+
+Estimated effort: 1–2 focused sessions (~3–6 hours). All edits are
+mechanical. Risk: low (sed sweeps + compile error iteration), but
+volume is high. Numerical baseline gates each step.
+
+### What this session did not commit
+
+A first attempt at step 3.4 — adding the dispatch header and macro,
+sweeping driver call sites in 9 files — was reverted because the chain
+free functions were not yet templated, leaving the macro expansion
+referring to an undeclared `M`. The reverted edits are mechanically
+correct in shape; they just need the chain templating to land first.
+The branch is at the stable `e8c261a4` state.
