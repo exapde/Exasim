@@ -114,4 +114,6 @@ int main()
       }
     }
   }
+
+  ssv.generateModelHeader(ssv.modelpath + "my_model.hpp");
 }

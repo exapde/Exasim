@@ -442,6 +442,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
   add_codegen_example(poisson2d)
   add_codegen_example(poisson3d)
   add_codegen_example(periodic)
+  add_codegen_example(naca0012steady)
 endif()
 
 # ======================================================================
