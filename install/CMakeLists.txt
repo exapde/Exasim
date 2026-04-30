@@ -453,14 +453,14 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
   add_codegen_example(isoq3d)
   add_codegen_example(cone)
   add_codegen_example(orion)
+  add_codegen_example(nsmach8)
+  add_codegen_example(isoq)
+  add_codegen_example(sharpb2)
   # Apps not supported by the current codegen contract:
   #   - poisson1d: pdemodel.txt declares `vectors x(2)` but runtime has
   #     nd=1 — codegen bakes nd=2 from pdemodel, runtime asserts ncu/nd
   #     mismatch and aborts. (Latent bug in the source pdemodel — fix
   #     would be to read nd from grid.bin, not vector x size.)
-  #   - nsmach8/isoq/sharpb2: use `v(>0)` (auxiliary `odg` field) which
-  #     <exasim/model.hpp> doesn't expose to user methods. Adding `odg`
-  #     to the contract is its own task.
   #   - naca0012unsteady: torder=2 / DIRK time stepping needs Sourcew +
   #     time-derivative kernels not yet emitted by the retargeted
   #     text2code. Code path otherwise works.

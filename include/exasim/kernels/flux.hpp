@@ -42,7 +42,7 @@ template <class M>
 void flux_kernel(dstype*       f,
                  const dstype* xdg,
                  const dstype* udg,
-                 const dstype* /*odg*/,
+                 const dstype* odg,
                  const dstype* wdg,
                  const dstype* /*uinf*/,
                  const dstype* param,
@@ -63,6 +63,7 @@ void flux_kernel(dstype*       f,
     constexpr int nd  = M::nd;
     constexpr int ncu = M::ncu;
     constexpr int ncw = M::ncw;
+    constexpr int nco = M::nco;
     constexpr int Nq  = ncu * (1 + nd);
 
     assert(ncu_runtime == ncu && nd_runtime == nd && ncw_runtime == ncw &&
@@ -70,24 +71,29 @@ void flux_kernel(dstype*       f,
            "constants. The model and the dataset disagree about dimensions.");
     (void)ncu_runtime; (void)nd_runtime; (void)ncw_runtime;
 
-    // C++ requires array sizes to be > 0; clamp the unused-when-ncw==0
-    // local buffer to 1 element to keep the lambda body well-formed.
+    // C++ requires array sizes to be > 0; clamp unused-when-zero local
+    // buffers to 1 element to keep the lambda body well-formed.
     constexpr int ncw_buf = (ncw > 0) ? ncw : 1;
+    constexpr int nco_buf = (nco > 0) ? nco : 1;
 
     Kokkos::parallel_for("exasim::flux_kernel", ng,
         KOKKOS_LAMBDA(const size_t i) {
             double x [nd];
             double uq[Nq];
+            double v [nco_buf];
             double w [ncw_buf];
 
             for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
             for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
+            if constexpr (nco > 0) {
+                for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+            }
             if constexpr (ncw > 0) {
                 for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
             }
 
             double f_local[ncu * nd];
-            M::flux(f_local, x, uq, w, param, /*uinf=*/nullptr, t);
+            M::flux(f_local, x, uq, v, w, param, /*uinf=*/nullptr, t);
 
             for (int k = 0; k < ncu * nd; ++k) f[k * ng + i] = f_local[k];
         });
@@ -112,7 +118,7 @@ void hdg_flux_kernel(dstype*       f,
                      dstype*       f_wdg,
                      const dstype* xdg,
                      const dstype* udg,
-                     const dstype* /*odg*/,
+                     const dstype* odg,
                      const dstype* wdg,
                      const dstype* /*uinf*/,
                      const dstype* param,
@@ -132,39 +138,45 @@ void hdg_flux_kernel(dstype*       f,
     constexpr int nd  = M::nd;
     constexpr int ncu = M::ncu;
     constexpr int ncw = M::ncw;
+    constexpr int nco = M::nco;
     constexpr int Nq  = ncu * (1 + nd);
 
     assert(ncu_runtime == ncu && nd_runtime == nd && ncw_runtime == ncw);
     (void)ncu_runtime; (void)nd_runtime; (void)ncw_runtime;
 
     constexpr int ncw_buf = (ncw > 0) ? ncw : 1;
+    constexpr int nco_buf = (nco > 0) ? nco : 1;
 
     Kokkos::parallel_for("exasim::hdg_flux_kernel", ng,
         KOKKOS_LAMBDA(const size_t i) {
             double x [nd];
             double uq[Nq];
+            double v [nco_buf];
             double w [ncw_buf];
 
             for (int k = 0; k < nd; ++k) x [k] = xdg[k * ng + i];
             for (int k = 0; k < Nq; ++k) uq[k] = udg[k * ng + i];
+            if constexpr (nco > 0) {
+                for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+            }
             if constexpr (ncw > 0) {
                 for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
             }
 
             // Value
             double f_local[ncu * nd];
-            M::flux(f_local, x, uq, w, param, /*uinf=*/nullptr, t);
+            M::flux(f_local, x, uq, v, w, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu * nd; ++k) f[k * ng + i] = f_local[k];
 
             // ∂f/∂uq
             double f_uq[ncu * nd * Nq];
-            M::flux_jac_uq(f_uq, x, uq, w, param, /*uinf=*/nullptr, t);
+            M::flux_jac_uq(f_uq, x, uq, v, w, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu * nd * Nq; ++k) f_udg[k * ng + i] = f_uq[k];
 
             // ∂f/∂w (only when present)
             if constexpr (ncw > 0) {
                 double f_w[ncu * nd * ncw];
-                M::flux_jac_w(f_w, x, uq, w, param, /*uinf=*/nullptr, t);
+                M::flux_jac_w(f_w, x, uq, v, w, param, /*uinf=*/nullptr, t);
                 for (int k = 0; k < ncu * nd * ncw; ++k) f_wdg[k * ng + i] = f_w[k];
             }
         });

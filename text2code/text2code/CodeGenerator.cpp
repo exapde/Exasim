@@ -1900,12 +1900,12 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "    // ----- Volume value methods -----\n";
     os << "    static const std::vector<std::tuple<std::string, std::string, std::string>>\n";
     os << "        volume_methods = {\n";
-    os << "        {\"Flux\",       \"flux\",        \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"Source\",     \"source\",      \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"Tdfunc\",     \"tdfunc\",      \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"VisScalars\", \"vis_scalars\", \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"VisVectors\", \"vis_vectors\", \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"QoIvolume\",  \"qoi_volume\",  \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"Flux\",       \"flux\",        \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"Source\",     \"source\",      \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"Tdfunc\",     \"tdfunc\",      \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"VisScalars\", \"vis_scalars\", \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"VisVectors\", \"vis_vectors\", \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"QoIvolume\",  \"qoi_volume\",  \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
     os << "    };\n";
     os << "    for (const auto& [funcname, method_name, sig] : volume_methods) {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
@@ -1945,8 +1945,8 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "        {\"QoIboundary\", \"qoi_boundary\"},\n";
     os << "    };\n";
     os << "    const std::string boundary_sig =\n";
-    os << "        \"double f[], int ib, const double x[], const double uq[], const double w[],\"\n";
-    os << "        \" const double uh[], const double n[], const double tau[],\"\n";
+    os << "        \"double f[], int ib, const double x[], const double uq[], const double v[],\"\n";
+    os << "        \" const double w[], const double uh[], const double n[], const double tau[],\"\n";
     os << "        \" const double mu[], const double uinf[], double t\";\n";
     os << "    for (const auto& [funcname, method_name] : boundary_methods) {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
@@ -1988,7 +1988,7 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "        {\"Source\", \"source\", {\"source_jac_uq\", \"source_jac_w\"}},\n";
     os << "    };\n";
     os << "    const std::string volume_sig =\n";
-    os << "        \"double f[], const double x[], const double uq[], const double w[],\"\n";
+    os << "        \"double f[], const double x[], const double uq[], const double v[], const double w[],\"\n";
     os << "        \" const double mu[], const double uinf[], double t\";\n";
     os << "    for (const auto& [funcname, value_name, jac_names] : volume_jac_methods) {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";

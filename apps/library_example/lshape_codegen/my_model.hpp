@@ -20,7 +20,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     static constexpr int Nq = ncu * (1 + nd);
 
     KOKKOS_INLINE_FUNCTION static
-    void flux(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+    void flux(double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t) {
         const double uq1 = uq[1];
         const double uq2 = uq[2];
         const double mu0 = mu[0];
@@ -30,13 +30,13 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void source(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+    void source(double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t) {
 
         f[0] = 1.0;
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void tdfunc(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+    void tdfunc(double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t) {
 
         f[0] = 1;
     }
@@ -48,7 +48,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void fbou(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+    void fbou(double f[], int ib, const double x[], const double uq[], const double v[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
         if (ib == 1) {
             const double uq0 = uq[0];
             const double uq1 = uq[1];
@@ -64,7 +64,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void ubou(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+    void ubou(double f[], int ib, const double x[], const double uq[], const double v[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
         if (ib == 1) {
 
             f[0] = 0.0;
@@ -72,7 +72,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void fbou_hdg(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+    void fbou_hdg(double f[], int ib, const double x[], const double uq[], const double v[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
         if (ib == 1) {
             const double uhat0 = uh[0];
             const double tau0 = tau[0];
@@ -82,7 +82,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void flux_jac_uq(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+    void flux_jac_uq(double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t) {
         const double mu0 = mu[0];
 
         f[0] = 0;
@@ -94,7 +94,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void source_jac_uq(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+    void source_jac_uq(double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t) {
 
         f[0] = 0;
         f[1] = 0;
@@ -102,7 +102,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void fbou_hdg_jac_uq(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+    void fbou_hdg_jac_uq(double f[], int ib, const double x[], const double uq[], const double v[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
         if (ib == 1) {
 
             f[0] = 0;
@@ -112,7 +112,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void fbou_hdg_jac_uh(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+    void fbou_hdg_jac_uh(double f[], int ib, const double x[], const double uq[], const double v[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
         if (ib == 1) {
             const double tau0 = tau[0];
 

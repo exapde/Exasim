@@ -36,7 +36,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     // Flux f = μ ∇u
     KOKKOS_INLINE_FUNCTION static
     void flux(double f[], const double /*x*/[], const double uq[],
-              const double /*w*/[], const double mu[],
+              const double /*v*/[], const double /*w*/[], const double mu[],
               const double /*uinf*/[], double /*t*/) {
         const double mu0  = mu[0];
         const double udg2 = uq[1];
@@ -50,7 +50,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     // SymEngine output exactly.
     KOKKOS_INLINE_FUNCTION static
     void source(double s[], const double x[], const double /*uq*/[],
-                const double /*w*/[], const double /*mu*/[],
+                const double /*v*/[], const double /*w*/[], const double /*mu*/[],
                 const double /*uinf*/[], double /*t*/) {
         const double xdg1 = x[0];
         const double xdg2 = x[1];
@@ -86,7 +86,8 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     // All others zero.  This matches text2code's HdgFlux output exactly.
     KOKKOS_INLINE_FUNCTION static
     void flux_jac_uq(double f_uq[], const double /*x*/[],
-                     const double /*uq*/[], const double /*w*/[],
+                     const double /*uq*/[],
+                     const double /*v*/[], const double /*w*/[],
                      const double mu[], const double /*uinf*/[],
                      double /*t*/) {
         for (int k = 0; k < ncu * nd * Nq; ++k) f_uq[k] = 0.0;
@@ -102,7 +103,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     KOKKOS_INLINE_FUNCTION static
     void fbou_hdg(double fb[], int /*ib*/,
                   const double /*x*/[],  const double /*uq*/[],
-                  const double /*w*/[],  const double uh[],
+                  const double /*v*/[],  const double /*w*/[],  const double uh[],
                   const double /*n*/[],  const double tau[],
                   const double /*mu*/[], const double /*uinf*/[],
                   double /*t*/) {
@@ -116,7 +117,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     KOKKOS_INLINE_FUNCTION static
     void fbou_hdg_jac_uh(double fb_uh[], int /*ib*/,
                          const double /*x*/[],  const double /*uq*/[],
-                         const double /*w*/[],  const double /*uh*/[],
+                         const double /*v*/[],  const double /*w*/[],  const double /*uh*/[],
                          const double /*n*/[],  const double tau[],
                          const double /*mu*/[], const double /*uinf*/[],
                          double /*t*/) {
@@ -131,11 +132,11 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     KOKKOS_INLINE_FUNCTION static
     void fbou(double fb[], int /*ib*/,
               const double x[],  const double uq[],
-              const double w[],  const double uh[],
+              const double v[],  const double w[],  const double uh[],
               const double n[],  const double tau[],
               const double mu[], const double uinf[], double t) {
         double f_local[ncu * nd];
-        flux(f_local, x, uq, w, mu, uinf, t);
+        flux(f_local, x, uq, v, w, mu, uinf, t);
         fb[0] = f_local[0] * n[0] + f_local[1] * n[1]
               + tau[0] * (uq[0] - uh[0]);
     }
@@ -144,7 +145,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     KOKKOS_INLINE_FUNCTION static
     void ubou(double ub[], int /*ib*/,
               const double /*x*/[],  const double /*uq*/[],
-              const double /*w*/[],  const double /*uh*/[],
+              const double /*v*/[],  const double /*w*/[],  const double /*uh*/[],
               const double /*n*/[],  const double /*tau*/[],
               const double /*mu*/[], const double /*uinf*/[],
               double /*t*/) {
@@ -155,7 +156,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
 
     KOKKOS_INLINE_FUNCTION static
     void vis_scalars(double s[], const double /*x*/[], const double uq[],
-                     const double /*w*/[], const double /*mu*/[],
+                     const double /*v*/[], const double /*w*/[], const double /*mu*/[],
                      const double /*uinf*/[], double /*t*/) {
         s[0] = uq[0];
         s[1] = uq[1] + uq[2];
@@ -163,7 +164,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
 
     KOKKOS_INLINE_FUNCTION static
     void vis_vectors(double s[], const double /*x*/[], const double uq[],
-                     const double /*w*/[], const double /*mu*/[],
+                     const double /*v*/[], const double /*w*/[], const double /*mu*/[],
                      const double /*uinf*/[], double /*t*/) {
         s[0] = uq[1];
         s[1] = uq[2];
@@ -171,7 +172,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
 
     KOKKOS_INLINE_FUNCTION static
     void qoi_volume(double s[], const double x[], const double uq[],
-                    const double /*w*/[], const double /*mu*/[],
+                    const double /*v*/[], const double /*w*/[], const double /*mu*/[],
                     const double /*uinf*/[], double /*t*/) {
         // s[0] = (uq[0] - u_exact)^2  with u_exact = sin(πx) sin(πy)
         // s[1] = uq[0]
@@ -186,12 +187,12 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     KOKKOS_INLINE_FUNCTION static
     void qoi_boundary(double fb[], int /*ib*/,
                       const double x[],  const double uq[],
-                      const double w[],  const double uh[],
+                      const double v[],  const double w[],  const double uh[],
                       const double n[],  const double tau[],
                       const double mu[], const double uinf[],
                       double t) {
         double f_local[ncu * nd];
-        flux(f_local, x, uq, w, mu, uinf, t);
+        flux(f_local, x, uq, v, w, mu, uinf, t);
         fb[0] = f_local[0] * n[0] + f_local[1] * n[1]
               + tau[0] * (uq[0] - uh[0]);
     }
