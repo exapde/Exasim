@@ -420,22 +420,28 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
     set_target_properties(poisson2d_template_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
 
-  # HOT.4: same poisson2d but with `my_model.hpp` produced by retargeted
-  # text2code (not hand-written). Validates the codegen output against
-  # the same legacy baseline.
-  if(EXASIM_NOMPI)
-    add_executable(poisson2d_codegen
-        ${EXASIM_DIR}/apps/library_example/poisson2d_codegen/main.cpp)
-    target_compile_definitions(poisson2d_codegen PRIVATE _TEXT2CODE)
-    target_compile_options(poisson2d_codegen PRIVATE -std=c++17 -w -O2)
-    target_include_directories(poisson2d_codegen PRIVATE
-        ${EXASIM_DIR}/include)
-    target_link_directories(poisson2d_codegen PRIVATE ${Model_LIB_DIR})
-    target_link_libraries(poisson2d_codegen PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
-    link_metis(poisson2d_codegen)
-    set_target_properties(poisson2d_codegen PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
-  endif()
+  # HOT.4 / HOT.4b: codegen examples — `my_model.hpp` produced by
+  # retargeted text2code (not hand-written). Each gates against
+  # the corresponding legacy baseline by `outqoi.txt` match.
+  function(add_codegen_example name)
+    if(EXASIM_NOMPI)
+      add_executable(${name}_codegen
+          ${EXASIM_DIR}/apps/library_example/${name}_codegen/main.cpp)
+      target_compile_definitions(${name}_codegen PRIVATE _TEXT2CODE)
+      target_compile_options(${name}_codegen PRIVATE -std=c++17 -w -O2)
+      target_include_directories(${name}_codegen PRIVATE
+          ${EXASIM_DIR}/include)
+      target_link_directories(${name}_codegen PRIVATE ${Model_LIB_DIR})
+      target_link_libraries(${name}_codegen PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+      link_metis(${name}_codegen)
+      set_target_properties(${name}_codegen PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+  endfunction()
+
+  add_codegen_example(poisson2d)
+  add_codegen_example(poisson3d)
+  add_codegen_example(periodic)
 endif()
 
 # ======================================================================
