@@ -78,4 +78,93 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         f[0] = 0.0;
     }
 
+    KOKKOS_INLINE_FUNCTION static
+    void fbou(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+        if (ib == 1) {
+            const double uq0 = uq[0];
+            const double uq1 = uq[1];
+            const double uq2 = uq[2];
+            const double uhat0 = uh[0];
+            const double n0 = n[0];
+            const double n1 = n[1];
+            const double tau0 = tau[0];
+            const double mu0 = mu[0];
+
+            f[0] = tau0*(-uhat0 + uq0) + n0*uq1*mu0 + n1*uq2*mu0;
+        }
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void ubou(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+        if (ib == 1) {
+
+            f[0] = 0.0;
+        }
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+        if (ib == 1) {
+            const double uhat0 = uh[0];
+            const double tau0 = tau[0];
+
+            f[0] = -tau0*uhat0;
+        }
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void qoi_boundary(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+        if (ib == 1) {
+            const double uq0 = uq[0];
+            const double uq1 = uq[1];
+            const double uq2 = uq[2];
+            const double uhat0 = uh[0];
+            const double n0 = n[0];
+            const double n1 = n[1];
+            const double tau0 = tau[0];
+            const double mu0 = mu[0];
+
+            f[0] = tau0*(-uhat0 + uq0) + n0*uq1*mu0 + n1*uq2*mu0;
+        }
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void flux_jac_uq(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+        const double mu0 = mu[0];
+
+        f[0] = 0;
+        f[1] = 0;
+        f[2] = mu0;
+        f[3] = 0;
+        f[4] = 0;
+        f[5] = mu0;
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void source_jac_uq(double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t) {
+
+        f[0] = 0;
+        f[1] = 0;
+        f[2] = 0;
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg_jac_uq(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+        if (ib == 1) {
+
+            f[0] = 0;
+            f[1] = 0;
+            f[2] = 0;
+        }
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg_jac_uh(double f[], int ib, const double x[], const double uq[], const double w[], const double uh[], const double n[], const double tau[], const double mu[], const double uinf[], double t) {
+        if (ib == 1) {
+            const double tau0 = tau[0];
+
+            f[0] = -tau0;
+        }
+    }
+
 };

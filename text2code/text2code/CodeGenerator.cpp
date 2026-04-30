@@ -667,6 +667,9 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     os << "    void emit_pointwise_value(std::ostream& os, const std::string& method_name,\n";
     os << "                              const std::string& cpp_signature,\n";
     os << "                              const std::vector<Expression>& f, int functionid);\n";
+    os << "    void emit_pointwise_value_per_ib(std::ostream& os, const std::string& method_name,\n";
+    os << "                                     const std::string& cpp_signature,\n";
+    os << "                                     const std::vector<Expression>& f, int functionid, int szuhat);\n";
     os << "    void emit_pointwise_value_and_jac(std::ostream& os, const std::string& value_method_name,\n";
     os << "                                     const std::vector<std::string>& jac_method_names,\n";
     os << "                                     const std::string& cpp_signature_value,\n";
@@ -1747,6 +1750,78 @@ void emitEmitPointwiseValue(std::ostream& os) {
     os << "}\n\n";
 }
 
+// HOT.4: per-ib-dispatched boundary method emitter. Wraps per-bnd
+// bodies (from the legacy `f.size() / szuhat` slicing) into a single
+// method body with `if (ib == 1) {...} else if (ib == 2) {...}`
+// dispatch — what the templated kernels in `boundary.hpp` expect.
+void emitEmitPointwiseValuePerIb(std::ostream& os) {
+    os << "void SymbolicScalarsVectors::emit_pointwise_value_per_ib(\n";
+    os << "    std::ostream& os, const std::string& method_name,\n";
+    os << "    const std::string& cpp_signature,\n";
+    os << "    const std::vector<Expression>& f, int functionid, int szuhat)\n";
+    os << "{\n";
+    os << "    os << \"    KOKKOS_INLINE_FUNCTION static\\n\";\n";
+    os << "    os << \"    void \" << method_name << \"(\" << cpp_signature << \") {\\n\";\n\n";
+
+    os << "    int nbc = (szuhat > 0) ? (int)f.size() / szuhat : 0;\n";
+    os << "    if (nbc == 0) {\n";
+    os << "        os << \"    }\\n\\n\";\n";
+    os << "        return;\n";
+    os << "    }\n\n";
+
+    os << "    auto rename_input = [](const std::string& name) -> std::string {\n";
+    os << "        if (name == \"eta\")  return \"uinf\";\n";
+    os << "        if (name == \"uhat\") return \"uh\";\n";
+    os << "        return name;\n";
+    os << "    };\n\n";
+
+    os << "    C99CodePrinter cpp;\n";
+    os << "    for (int n = 0; n < nbc; ++n) {\n";
+    os << "        std::vector<Expression> g(szuhat);\n";
+    os << "        for (int m = 0; m < szuhat; ++m) g[m] = f[m + n * szuhat];\n\n";
+
+    os << "        os << \"        \" << ((n == 0) ? \"if\" : \"else if\")\n";
+    os << "           << \" (ib == \" << (n + 1) << \") {\\n\";\n\n";
+
+    os << "        vec_pair replacements;\n";
+    os << "        vec_basic reduced_exprs;\n";
+    os << "        func2cse(replacements, reduced_exprs, g);\n\n";
+
+    os << "        std::unordered_set<RCP<const Basic>, SymEngine::RCPBasicHash, SymEngine::RCPBasicKeyEq> used;\n";
+    os << "        for (const auto& expr : g) {\n";
+    os << "            auto symbols = free_symbols(*expr.get_basic());\n";
+    os << "            used.insert(symbols.begin(), symbols.end());\n";
+    os << "        }\n";
+    os << "        auto depends_on = [&](const Expression& sym) {\n";
+    os << "            return used.count(sym.get_basic()) > 0;\n";
+    os << "        };\n\n";
+
+    os << "        std::vector<std::pair<std::string, std::vector<Expression>>> inputs = inputvectors[functionid];\n";
+    os << "        for (const auto& [name, vec] : inputs) {\n";
+    os << "            for (size_t j = 0; j < vec.size(); ++j) {\n";
+    os << "                if (depends_on(vec[j])) {\n";
+    os << "                    os << \"            const double \" << name << j\n";
+    os << "                       << \" = \" << rename_input(name) << \"[\" << j << \"];\\n\";\n";
+    os << "                }\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "        if (!replacements.empty()) os << \"\\n\";\n";
+    os << "        for (size_t k = 0; k < replacements.size(); ++k) {\n";
+    os << "            std::string var_name = cpp.apply(*replacements[k].first);\n";
+    os << "            std::string rhs      = cpp.apply(*replacements[k].second);\n";
+    os << "            os << \"            const double \" << var_name << \" = \" << rhs << \";\\n\";\n";
+    os << "        }\n";
+    os << "        os << \"\\n\";\n";
+    os << "        for (size_t k = 0; k < g.size(); ++k) {\n";
+    os << "            os << \"            f[\" << k << \"] = \" << cpp.apply(*reduced_exprs[k]) << \";\\n\";\n";
+    os << "        }\n";
+    os << "        os << \"        }\\n\";\n";
+    os << "    }\n\n";
+
+    os << "    os << \"    }\\n\\n\";\n";
+    os << "}\n\n";
+}
+
 // HOT.4: emit `SymbolicScalarsVectors::emit_pointwise_value`,
 // `emit_pointwise_value_and_jac`, and `generateModelHeader` into the
 // generated `SymbolicScalarsVectors.cpp`. These produce a single
@@ -1856,6 +1931,114 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "        }\n";
     os << "    }\n\n";
 
+    // Boundary methods (per-ib dispatch) — fbou, ubou, fbou_hdg, qoi_boundary.
+    // These all share the same signature shape: (double f[], int ib,
+    // const double x[], const double uq[], const double w[],
+    // const double uh[], const double n[], const double tau[],
+    // const double mu[], const double uinf[], double t).
+    os << "    // ----- Boundary methods (per-ib dispatch) -----\n";
+    os << "    static const std::vector<std::tuple<std::string, std::string>>\n";
+    os << "        boundary_methods = {\n";
+    os << "        {\"Fbou\",        \"fbou\"},\n";
+    os << "        {\"Ubou\",        \"ubou\"},\n";
+    os << "        {\"FbouHdg\",     \"fbou_hdg\"},\n";
+    os << "        {\"QoIboundary\", \"qoi_boundary\"},\n";
+    os << "    };\n";
+    os << "    const std::string boundary_sig =\n";
+    os << "        \"double f[], int ib, const double x[], const double uq[], const double w[],\"\n";
+    os << "        \" const double uh[], const double n[], const double tau[],\"\n";
+    os << "        \" const double mu[], const double uinf[], double t\";\n";
+    os << "    for (const auto& [funcname, method_name] : boundary_methods) {\n";
+    os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
+    os << "        if (it == funcnames.end()) continue;\n";
+    os << "        int idx = it - funcnames.begin();\n";
+    os << "        if (!outputfunctions[idx]) continue;\n";
+    os << "        std::vector<Expression> f = evaluateSymbolicFunctions(idx);\n";
+    os << "        emit_pointwise_value_per_ib(hfile, method_name, boundary_sig, f, idx, szuhat);\n";
+    os << "    }\n\n";
+
+    // Jacobians (HDG path) — flux_jac_uq/_w, source_jac_uq/_w,
+    // fbou_hdg_jac_uq/_w/_uh. Each is just `f[i].diff(input[j])` in
+    // column-major (j outer, i inner) order, fed through the same
+    // pointwise emitter as a value method. The column-major order
+    // matches what `<exasim/kernels/*.hpp>` expects (see flux.hpp's
+    // `f_uq[j * (ncu*nd) + i]` doc).
+    //
+    // Volume Jacobians (Flux, Source): single body (no per-ib).
+    // Boundary HDG Jacobians (FbouHdg): per-ib dispatch.
+    os << "    // ----- HDG Jacobians (column-major: j outer, i inner) -----\n";
+    os << "    auto diff_to_exprs = [&](const std::vector<Expression>& f,\n";
+    os << "                             const std::vector<Expression>& input)\n";
+    os << "        -> std::vector<Expression> {\n";
+    os << "        std::vector<Expression> result;\n";
+    os << "        result.reserve(f.size() * input.size());\n";
+    os << "        for (size_t j = 0; j < input.size(); ++j) {\n";
+    os << "            for (size_t i = 0; i < f.size(); ++i) {\n";
+    os << "                result.emplace_back(f[i].diff(input[j]).get_basic());\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "        return result;\n";
+    os << "    };\n\n";
+
+    // Map: funcname → (value_method_name, list of (jac_input_index, jac_method_suffix))
+    // jacobianInputs ordering matches the legacy emission (uq, w, then uhat for boundary methods).
+    os << "    static const std::vector<std::tuple<std::string, std::string, std::vector<std::string>>>\n";
+    os << "        volume_jac_methods = {\n";
+    os << "        {\"Flux\",   \"flux\",   {\"flux_jac_uq\",   \"flux_jac_w\"}},\n";
+    os << "        {\"Source\", \"source\", {\"source_jac_uq\", \"source_jac_w\"}},\n";
+    os << "    };\n";
+    os << "    const std::string volume_sig =\n";
+    os << "        \"double f[], const double x[], const double uq[], const double w[],\"\n";
+    os << "        \" const double mu[], const double uinf[], double t\";\n";
+    os << "    for (const auto& [funcname, value_name, jac_names] : volume_jac_methods) {\n";
+    os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
+    os << "        if (it == funcnames.end()) continue;\n";
+    os << "        int idx = it - funcnames.begin();\n";
+    os << "        if (!outputfunctions[idx]) continue;\n";
+    os << "        std::vector<Expression> f = evaluateSymbolicFunctions(idx);\n";
+    os << "        // Skip Jacobians whose input vector is empty (e.g., w when ncw=0).\n";
+    os << "        const auto& jac_inputs = jacobianInputs[idx];\n";
+    os << "        for (size_t k = 0; k < jac_inputs.size() && k < jac_names.size(); ++k) {\n";
+    os << "            if (jac_inputs[k].empty()) continue;\n";
+    os << "            std::vector<Expression> jac = diff_to_exprs(f, jac_inputs[k]);\n";
+    os << "            emit_pointwise_value(hfile, jac_names[k], volume_sig, jac, idx);\n";
+    os << "        }\n";
+    os << "    }\n\n";
+
+    // FbouHdg Jacobians (per-ib).
+    os << "    // FbouHdg Jacobians: per-ib dispatch, three Jacs (uq, w, uh).\n";
+    os << "    {\n";
+    os << "        auto it = std::find(funcnames.begin(), funcnames.end(), std::string(\"FbouHdg\"));\n";
+    os << "        if (it != funcnames.end()) {\n";
+    os << "            int idx = it - funcnames.begin();\n";
+    os << "            if (outputfunctions[idx]) {\n";
+    os << "                std::vector<Expression> f = evaluateSymbolicFunctions(idx);\n";
+    os << "                int nbc = (szuhat > 0) ? (int)f.size() / szuhat : 0;\n";
+    os << "                const auto& jac_inputs = jacobianInputs[idx];\n";
+    os << "                static const std::vector<std::string> fbou_jac_names = {\n";
+    os << "                    \"fbou_hdg_jac_uq\", \"fbou_hdg_jac_w\", \"fbou_hdg_jac_uh\"};\n";
+    os << "                for (size_t k = 0; k < jac_inputs.size() && k < fbou_jac_names.size(); ++k) {\n";
+    os << "                    if (jac_inputs[k].empty()) continue;\n";
+    os << "                    // Build Jacobian per ib, concat into one vector with the\n";
+    os << "                    // same szuhat*njac slicing convention so the per-ib emitter\n";
+    os << "                    // can split it back out. Here we widen szuhat to the Jacobian\n";
+    os << "                    // block size for that input.\n";
+    os << "                    int jblock = szuhat * (int)jac_inputs[k].size();\n";
+    os << "                    std::vector<Expression> jac_all;\n";
+    os << "                    jac_all.reserve(jblock * nbc);\n";
+    os << "                    for (int n = 0; n < nbc; ++n) {\n";
+    os << "                        std::vector<Expression> g(szuhat);\n";
+    os << "                        for (int m = 0; m < szuhat; ++m) g[m] = f[m + n * szuhat];\n";
+    os << "                        std::vector<Expression> j_n = diff_to_exprs(g, jac_inputs[k]);\n";
+    os << "                        for (auto& e : j_n) jac_all.push_back(e);\n";
+    os << "                    }\n";
+    os << "                    emit_pointwise_value_per_ib(hfile, fbou_jac_names[k],\n";
+    os << "                        boundary_sig, jac_all, idx, jblock);\n";
+    os << "                }\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "    }\n\n";
+
     os << "    hfile << \"};\\n\";\n";
     os << "    hfile.close();\n";
     os << "}\n\n";
@@ -1894,6 +2077,7 @@ void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filenam
 
     // HOT.4: emit the `my_model.hpp` writer alongside the legacy emitters.
     emitEmitPointwiseValue(os);
+    emitEmitPointwiseValuePerIb(os);
     emitGenerateModelHeader(os, spec);
 
     os.close();
