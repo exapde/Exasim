@@ -291,7 +291,7 @@ inline void CPreconditioner<M>::ApplyPreconditioner(dstype* x, sysstruct& sys, C
         PGEMNMStridedBached(disc.common.cublasHandle, ncf, 1, ncf, one, disc.res.K, ncf, disc.res.Rh, ncf, zero, x, ncf, nf, backend);         
       }
       else if (disc.common.preconditioner==1) { // Elemental additive Schwarz preconditioner        
-        hdgMatVec(x, disc.res.K, x, disc.res.Rh, disc.res.Rq, disc.res, disc.app, disc.mesh, disc.common, disc.tmp, disc.common.cublasHandle, backend);
+        hdgMatVec<M>(x, disc.res.K, x, disc.res.Rh, disc.res.Rq, disc.res, disc.app, disc.mesh, disc.common, disc.tmp, disc.common.cublasHandle, backend);
       }
       else if (disc.common.preconditioner==2) { // super-element additive Schwarz preconditioner with BLIU0
         Int nf = disc.common.nf; // number of faces in this subdomain

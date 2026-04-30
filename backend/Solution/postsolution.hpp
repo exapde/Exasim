@@ -297,17 +297,17 @@ inline void CSolution<M>::SaveParaview(Int backend, std::string fname_modifier, 
        if (ncw > 0) GetElemNodes(wdg, disc.sol.wdg, npe, ncw, 0, ncw, 0, ne);
     
        if (nsca > 0) {        
-            VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            EXASIM_DRIVER_CALL(VisScalarsDriver, f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
             if (disc.common.mpiRank==0) cout<<"scafields[0] = "<<vis.scafields[0]<<endl;
        }    
        if (nvec > 0) {        
-            VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            EXASIM_DRIVER_CALL(VisVectorsDriver, f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
             if (disc.common.mpiRank==0) cout<<"vecfields[0] = "<<vis.vecfields[0]<<endl;
        }
        if (nten > 0) {        
-            VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            EXASIM_DRIVER_CALL(VisTensorsDriver, f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nten);
             if (disc.common.mpiRank==0) cout<<"tenfields[0] = "<<vis.tenfields[0]<<endl;
        }
@@ -331,8 +331,8 @@ inline void CSolution<M>::SaveParaview(Int backend, std::string fname_modifier, 
 template <class M>
 inline void CSolution<M>::SaveQoI(Int backend) 
 {
-    if (disc.common.nvqoi > 0) qoiElement(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
-    if (disc.common.nsurf > 0) qoiFace(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
+    if (disc.common.nvqoi > 0) qoiElement<M>(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
+    if (disc.common.nsurf > 0) qoiFace<M>(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
 
     if (disc.common.mpiRank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
         if (disc.common.tdep==1) 

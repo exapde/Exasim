@@ -1,6 +1,9 @@
 #ifndef __POSTDISCRETIZATION
 #define __POSTDISCRETIZATION
 
+#include "../../include/exasim/drivers.hpp"            // exasim::*Driver<M>
+#include "../../include/exasim/detail/driver_dispatch.hpp"  // EXASIM_DRIVER_CALL
+
 #include "postdiscretization.h"
 #include "ioutilities.hpp"
 
@@ -122,14 +125,14 @@ inline CDiscretization<M>::CDiscretization(string filein, string fileout, string
       }
 
       if (common.ncq > 0) {                
-        qEquation(sol, res, app, master, mesh, tmp, common, backend);      
+        qEquation<M>(sol, res, app, master, mesh, tmp, common, backend);      
 
         if (common.mpiRank==0) 
           printf("Finish qEquation ... \n");        
 
         // compute the flux q = -nabla u and store it in sol.udg
         if (common.wave == 0 && sol.szudg != npe*nc*ne) {
-            hdgGetQ(sol.udg, sol.uh, sol, res, mesh, tmp, common, backend);
+            hdgGetQ<M>(sol.udg, sol.uh, sol, res, mesh, tmp, common, backend);
             if (common.mpiRank==0) printf("Finish hdgGetQ ... \n");     
         }        
       }
@@ -214,21 +217,21 @@ inline void CDiscretization<M>::hdgAssembleLinearSystem(dstype *b, Int backend)
     ArraySetValue(res.F, zero, n*m*ne);    
 
 #ifdef HAVE_MPI     
-    hdgAssembleLinearSystemMPI(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
+    hdgAssembleLinearSystemMPI<M>(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 #else    
-    uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
-    hdgAssembleRHS(b, res.Rh, mesh, common);
+    uEquationHDG<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
+    hdgAssembleRHS<M>(b, res.Rh, mesh, common);
 #endif
 
     if (common.preconditioner==0) {
       // fix bug here: tmp.tempn is not enough memory to store ncu*npf*ncu*npf*nf 
-      hdgBlockJacobi(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
+      hdgBlockJacobi<M>(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
     }
     else if (common.preconditioner==1) {
-      hdgElementalAdditiveSchwarz(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
+      hdgElementalAdditiveSchwarz<M>(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);      
     }
     else if (common.preconditioner==2) {
-      hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
+      hdgBlockILU0<M>(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
     }
         
 //     if (common.preconditioner==0) {
@@ -257,7 +260,7 @@ inline void CDiscretization<M>::hdgAssembleLinearSystem(dstype *b, Int backend)
 //       }          
 //     }
 //     else if (common.preconditioner==2) { // Block ILU0
-//       //hdgBlockILU0(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
+//       //hdgBlockILU0<M>(res.K, res.H, res, mesh, tmp, common, common.cublasHandle, backend);
 //       Int nfse = common.nfse; // number of faces in each superelement
 //       Int nse  = common.nse;  // number of superelements
 //       Int N = nse*ncf*ncf;  
@@ -304,12 +307,12 @@ inline void CDiscretization<M>::hdgAssembleResidual(dstype *b, Int backend)
     ArraySetValue(res.Ru, zero, n*ne);
 
 #ifdef HAVE_MPI     
-    hdgAssembleResidualMPI(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
+    hdgAssembleResidualMPI<M>(b, sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);    
 #else    
     // b, K, H, F, Ru    
-    ResidualHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
-    //uEquationHDG(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
-    hdgAssembleRHS(b, res.Rh, mesh, common);      
+    ResidualHDG<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    //uEquationHDG<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    hdgAssembleRHS<M>(b, res.Rh, mesh, common);      
 #endif
 }
 
@@ -318,7 +321,7 @@ template <class M>
 inline void CDiscretization<M>::evalResidual(Int backend)
 {
     // compute the residual vector
-    Residual(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    Residual<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
 // residual evaluation
@@ -330,7 +333,7 @@ inline void CDiscretization<M>::evalResidual(dstype* Ru, dstype* u, Int backend)
             0, common.ncu, 0, common.ne1);  
 
     // compute the residual vector R(u)
-    Residual(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    Residual<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // copy the residual vector to Ru
     ArrayCopy(Ru, res.Ru, common.ndof1);
@@ -341,15 +344,15 @@ template <class M>
 inline void CDiscretization<M>::evalQ(Int backend)
 {
     // compute the flux q
-    ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    ComputeQ<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
 template <class M>
 inline void CDiscretization<M>::evalQSer(Int backend)
 {
     // compute the flux q    
-    GetUhat(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbf, backend);        
-    GetQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbe, 0, common.nbf, backend);        
+    GetUhat<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbf, backend);        
+    GetQ<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 0, common.nbe, 0, common.nbf, backend);        
 }
 
 template <class M>
@@ -360,7 +363,7 @@ inline void CDiscretization<M>::evalQ(dstype* q, dstype* u, Int backend)
             0, common.ncu, 0, common.ne1);
 
     // compute the flux q
-    ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+    ComputeQ<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // get q from udg
     ArrayExtract(q, sol.udg, common.npe, common.nc, common.ne, 0, common.npe, 
@@ -371,7 +374,7 @@ inline void CDiscretization<M>::evalQ(dstype* q, dstype* u, Int backend)
 template <class M>
 inline void CDiscretization<M>::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, Int backend)
 {    
-    MatVec(Jv, sol, res, app, master, mesh, tmp, common, common.cublasHandle, v, u, Ru, backend); 
+    MatVec<M>(Jv, sol, res, app, master, mesh, tmp, common, common.cublasHandle, v, u, Ru, backend); 
 }
 
 // matrix-vector product
@@ -379,10 +382,10 @@ template <class M>
 inline void CDiscretization<M>::evalMatVec(dstype* Jv, dstype* v, dstype* u, dstype* Ru, Int spatialScheme, Int backend)
 {    
     if (spatialScheme == 0) {// LDG
-      MatVec(Jv, sol, res, app, master, mesh, tmp, common, common.cublasHandle, v, u, Ru, backend); 
+      MatVec<M>(Jv, sol, res, app, master, mesh, tmp, common, common.cublasHandle, v, u, Ru, backend); 
     }
     else if (spatialScheme == 1) { // HDG  
-      hdgMatVec(Jv, res.H, v, res.Rh, res.Rq, res, app, mesh, common, tmp, common.cublasHandle, backend);
+      hdgMatVec<M>(Jv, res.H, v, res.Rh, res.Rq, res, app, mesh, common, tmp, common.cublasHandle, backend);
     }
 }
 
@@ -395,7 +398,7 @@ inline void CDiscretization<M>::updateUDG(dstype* u, Int backend)
 
     if (common.ncq>0)
         // compute the flux q
-        ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+        ComputeQ<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 }
 
 template <class M>
@@ -415,10 +418,10 @@ inline void CDiscretization<M>::evalAVfield(dstype* avField, dstype* u, Int back
     
     // compute the flux q
     if (common.ncq>0)        
-        ComputeQ(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
+        ComputeQ<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, backend);
 
     // compute the av field
-    AvfieldDriver(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+    EXASIM_DRIVER_CALL(AvfieldDriver, avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
 template <class M>
@@ -480,7 +483,7 @@ inline void CDiscretization<M>::evalAVfield(dstype* avField, Int backend)
 #endif
   
     // compute the av field
-    AvfieldDriver(avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);           
+    EXASIM_DRIVER_CALL(AvfieldDriver, avField, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);           
 }
 
 template <class M>
@@ -537,8 +540,8 @@ inline void CDiscretization<M>::evalOutput(dstype* output, Int backend)
 #endif
             
     // compute the output field
-    OutputDriver(output, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
-//     void OutputDriver(dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, meshstruct &mesh, 
+    EXASIM_DRIVER_CALL(OutputDriver, output, sol.xdg, sol.udg, sol.odg, sol.wdg, mesh, master, app, sol, tmp, common, backend);    
+//     void EXASIM_DRIVER_CALL(OutputDriver, dstype *f, dstype *xg, dstype *udg, dstype *odg, dstype *wdg, meshstruct &mesh, 
 //         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
 //         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 
@@ -549,7 +552,7 @@ template <class M>
 inline void CDiscretization<M>::evalMonitor(dstype* output,  dstype* udg, dstype* wdg, Int nc, Int backend)
 {
     // compute the output field
-    MonitorDriver(output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
+    EXASIM_DRIVER_CALL(MonitorDriver, output, nc, sol.xdg, udg, sol.odg, wdg, mesh, master, app, sol, tmp, common, backend);    
 }
 
 template <class M>
@@ -697,7 +700,7 @@ inline void CDiscretization<M>::getInterfaceFluxesAtNodalPoints(dstype *flux, ds
     this->getWDGOnInterface(wdgint, faces, nfaces);
     this->getUHATOnInterface(uhint, faces, nfaces);
     
-    FintDriver(flux, xdgint, udgint, odgint, wdgint, uhint, nlint, mesh, 
+    EXASIM_DRIVER_CALL(FintDriver, flux, xdgint, udgint, odgint, wdgint, uhint, nlint, mesh, 
         master, app, sol, tmp, common, nfaces*npf, 1, common.backend);        
 }
 
@@ -727,7 +730,7 @@ inline void CDiscretization<M>::getInterfaceFluxesAtGaussPoints(dstype *flux, ds
     this->getFieldsAtGaussPointsOnInterface(wdggint, wdgint, nfaces, common.ncw);
     this->getFieldsAtGaussPointsOnInterface(uhgint, uhint, nfaces, common.ncu);
     
-    FintDriver(flux, xdggint, udggint, odggint, wdggint, uhgint, nlgint, mesh, 
+    EXASIM_DRIVER_CALL(FintDriver, flux, xdggint, udggint, odggint, wdggint, uhgint, nlgint, mesh, 
         master, app, sol, tmp, common, nfaces*ngf, 1, common.backend);        
 }
 

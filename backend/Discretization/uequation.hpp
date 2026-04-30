@@ -1,3 +1,7 @@
+#include "../../include/exasim/drivers.hpp"
+#include "../../include/exasim/detail/abi_adapter.hpp"
+#include "../../include/exasim/detail/driver_dispatch.hpp"
+
 /*
   uequation.cpp
 
@@ -41,6 +45,7 @@
 #ifndef __UEQUATION
 #define __UEQUATION
 
+template <class M>
 inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
@@ -109,7 +114,7 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
         Node2Gauss(handle, wsrc, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        
         
         // solve the w equation to get wg and wg_uq
-        wEquation(wg, wg_uq, xg, uqg, og, wsrc, tmp.tempn, app, common, nga, backend);                
+        wEquation<M>(wg, wg_uq, xg, uqg, og, wsrc, tmp.tempn, app, common, nga, backend);                
 //         print2darray(uqg, nga, nc);
 //         print2darray(wg, 1, nga);
 //         print2darray(wg_uq, nga, nc);        
@@ -120,7 +125,7 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
     ArraySetValue(sg, 0.0, nga*ncu);
     ArraySetValue(sg_uq, 0.0, nga*ncu*nc);
     if ((ncw>0) & (common.wave==0)) ArraySetValue(sg_w, 0.0, nga*ncu*ncw);
-    SourceDriver(sg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
+    EXASIM_DRIVER_CALL(SourceDriver, sg, sg_uq, sg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
     
     if (common.tdep) { // for time-dependent problem                
         // calculate sdg - udg*dtfactor
@@ -128,7 +133,7 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
       
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver(fg_uq, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);            
+            EXASIM_DRIVER_CALL(TdfuncDriver, fg_uq, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);            
         }
         else
             ArraySetValue(fg_uq, one, nga*ncu);;
@@ -153,7 +158,7 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
     ArraySetValue(fg, 0.0, nga*ncu*nd);
     ArraySetValue(fg_uq, 0.0, nga*ncu*nd*nc);
     if ((ncw>0) & (common.wave==0)) ArraySetValue(fg_w, 0.0, nga*ncu*nd*ncw); 
-    FluxDriver(fg, fg_uq, fg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
+    EXASIM_DRIVER_CALL(FluxDriver, fg, fg_uq, fg_w, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
     
     if ((ncw>0) & (common.wave==0)) {
         // sg_uq = sg_uq + sg_w * wg_uq -> ng * ncu * nc = ng * ncu * nc + (ng * ncu * ncw) * (ng * ncw * nc)
@@ -201,6 +206,7 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
     } 
 }
 
+template <class M>
 inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {            
@@ -272,13 +278,13 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
         ArrayCopy(tmp.tempn, uhg, nga*ncu);
             
         // solve the w equation to get wg and wg_uq
-        wEquation(wdg, wdg_uq, xg, tmp.tempn, odg, wsrc, &tmp.tempn[nga*nc], app, common, nga, backend);
+        wEquation<M>(wdg, wdg_uq, xg, tmp.tempn, odg, wsrc, &tmp.tempn[nga*nc], app, common, nga, backend);
                 
 //         print2darray(wdg, ngf*nfe, ncw, nga, ncw);
 //         error("here");
         
         // solve the w equation to get wg and wg_uq
-        // wEquation(wdg, wdg_uq, xg, udg, odg, wsrc, tmp.tempn, app, common, nga, backend);
+        // wEquation<M>(wdg, wdg_uq, xg, udg, odg, wsrc, tmp.tempn, app, common, nga, backend);
     }
 
     ArraySetValue(fh, 0.0, nga*ncu);    
@@ -287,7 +293,7 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
     
     if (ncw > 0) ArraySetValue(fh_w, 0.0, nga*ncu*ncw);       
             
-    FhatDriver(fh, fh_uq, fh_w, fh_uh, xg, udg, odg, wdg, uhg, nlg, 
+    EXASIM_DRIVER_CALL(FhatDriver, fh, fh_uq, fh_w, fh_uh, xg, udg, odg, wdg, uhg, nlg, 
         mesh, master, app, sol, tmp, common, nga, backend);      
         
     if ((ncw>0) & (common.wave==0)) {
@@ -377,9 +383,9 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
           // replace u with uhat 
           ArrayCopy(res.K, uhb, ngb*ncu);
         
-          wEquation(wgb, wgb_uq, xgb, res.K, ogb, wsb, &res.K[ngb*nc], app, common, ngb, backend);          
+          wEquation<M>(wgb, wgb_uq, xgb, res.K, ogb, wsb, &res.K[ngb*nc], app, common, ngb, backend);          
           
-          // wEquation(wgb, wgb_uq, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
+          // wEquation<M>(wgb, wgb_uq, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
         // intialize fhb, fhb_uq, fhb_w, fhb_uh to zero 
@@ -394,11 +400,11 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
         } else {     
           if (common.ncuext > 0 && sol.szuext > 0 && (ibc+1 == common.FextCall)) {
             ArrayExtract(res.K, sol.uext, ngf, common.nextfaces[common.nbe1], common.ncuext, 0, ngf, common.nextfaces[jth], common.nextfaces[jth+1], 0, common.ncuext);  
-            FextDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, res.K, 
+            EXASIM_DRIVER_CALL(FextDriver, fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, res.K, 
                  mesh, master, app, sol, tmp, common, ngb, 1, backend);                       
           }          
           else
-            FbouDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
+            EXASIM_DRIVER_CALL(FbouDriver, fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
                  mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
         }
 
@@ -496,7 +502,7 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
           // replace u with uhat 
           ArrayCopy(temp1, uhb, ngb*ncu);
         
-          wEquation(wgb, wgb_uq, xgb, temp1, ogb, wsb, temp2, app, common, ngb, backend);                    
+          wEquation<M>(wgb, wgb_uq, xgb, temp1, ogb, wsb, temp2, app, common, ngb, backend);                    
         }                
                 
         // intialize fhb, fhb_uq, fhb_w, fhb_uh to zero 
@@ -504,7 +510,7 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
         ArraySetValue(fhb_uq, 0.0, ngb*ncu12*nc);
         ArraySetValue(fhb_uh, 0.0, ngb*ncu12*ncu);
         if (ncw > 0) ArraySetValue(fhb_w, 0.0, ngb*ncu12*ncw);        
-        FintDriver(fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
+        EXASIM_DRIVER_CALL(FintDriver, fhb, fhb_uq, fhb_w, fhb_uh, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, common.coupledcondition, backend);    
                         
         if ((ncw>0) & (common.wave==0)) {          
@@ -561,6 +567,7 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
   }
 }
 
+template <class M>
 inline void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
@@ -780,17 +787,19 @@ inline void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, 
     } 
 }
 
+template <class M>
 inline void uEquationHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int backend)
 {    
     for (Int j=0; j<common.nbe; j++) {         
-        uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-        uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-        uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        uEquationElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        uEquationElemFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        uEquationSchurBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
     }                     
 }
 
+template <class M>
 inline void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
@@ -841,7 +850,7 @@ inline void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, 
         Node2Gauss(handle, wsrcg, tmp.tempn, master.shapegt, nge, npe, ne*ncw, backend);        
 
         // solve the w equation to get wg 
-        wEquation(wg, xg, uqg, og, wsrcg, tmp.tempn, app, common, nga, backend); // fix bug here        
+        wEquation<M>(wg, xg, uqg, og, wsrcg, tmp.tempn, app, common, nga, backend); // fix bug here        
 //         print2darray(wg, 1, 10);
 //         print2darray(uqg, 1, 10);        
 //         //exp(w) - sym(1.0) - u*u
@@ -854,7 +863,7 @@ inline void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, 
         
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
+            EXASIM_DRIVER_CALL(TdfuncDriver, fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
             ArrayAXY(sg, sg, fg, one, nga*ncu);                
@@ -863,7 +872,7 @@ inline void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, 
         if (common.source==1) {            
             ArraySetValue(fg, 0.0, nga*ncu);
             // calculate the source term Source(xdg, udg, odg, wdg)
-            SourceDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
+            EXASIM_DRIVER_CALL(SourceDriver, fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate Source(xdg, udg, odg) + (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
             ArrayAXPBY(sg, sg, fg, one, one, nga*ncu);            
@@ -872,17 +881,18 @@ inline void RuEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, 
     else {  // steady state problem      
         ArraySetValue(sg, 0.0, nga*ncu);
         // calculate the source term Source(xdg, udg, odg, wdg)
-        SourceDriver(sg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
+        EXASIM_DRIVER_CALL(SourceDriver, sg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
     }                
                 
     ArraySetValue(fg, 0.0, nga*ncu*nd);    
-    FluxDriver(fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
+    EXASIM_DRIVER_CALL(FluxDriver, fg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
     
     // Ru = npe * ne * ncu 
     ApplyXxJac(tmp.tempn, sg, fg, Xx, jac, nge, nd, ncu, ne);
     Gauss2Node(handle, &res.Ru[npe*ncu*e1], tmp.tempn, master.shapegw, nge*(nd+1), npe, ncu*ne, backend); // fixed bug here                   
 }
 
+template <class M>
 inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {            
@@ -950,13 +960,13 @@ inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &a
         ArrayCopy(tmp.tempn, uhg, nga*ncu);
           
         // solve the w equation to get wg 
-        wEquation(wdg, xg, tmp.tempn, odg, wsrcg, &tmp.tempn[nga*nc], app, common, nga, backend);                
+        wEquation<M>(wdg, xg, tmp.tempn, odg, wsrcg, &tmp.tempn[nga*nc], app, common, nga, backend);                
         
         // solve the w equation to get wg 
-        // wEquation(wdg, xg, udg, odg, wsrcg, tmp.tempn, app, common, nga, backend);                
+        // wEquation<M>(wdg, xg, udg, odg, wsrcg, tmp.tempn, app, common, nga, backend);                
     }
     
-    FhatDriver(fh, tmp.tempn, xg, udg, odg, wdg, uhg, nlg, mesh, master, app, sol, tmp, common, nga, backend);      
+    EXASIM_DRIVER_CALL(FhatDriver, fh, tmp.tempn, xg, udg, odg, wdg, uhg, nlg, mesh, master, app, sol, tmp, common, nga, backend);      
     columnwiseMultiply(fh, fh, jac, nga, ncu);
 
     dstype *Rutmp = &tmp.tempn[0];
@@ -996,8 +1006,8 @@ inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &a
           // replace u with uhat 
           ArrayCopy(Rb, uhb, ngb*ncu);
           
-          wEquation(wgb, xgb, Rb, ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
-          //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
+          wEquation<M>(wgb, xgb, Rb, ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
+          //wEquation<M>(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
         if (ibc+1 == 1000) StgInflowHDG(fhb, &tmp.tempg[n8], xgb, ogb, uhb, app.physicsparam, app.stgdata, 
@@ -1005,10 +1015,10 @@ inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &a
         else {
           if (common.ncuext > 0 && sol.szuext > 0  && (ibc+1 == common.FextCall)) {
             ArrayExtract(Rb, sol.uext, ngf, common.nextfaces[common.nbe1], common.ncuext, 0, ngf, common.nextfaces[jth], common.nextfaces[jth+1], 0, common.ncuext);  
-            FextDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, Rb, mesh, master, app, sol, tmp, common, ngb, 1, backend);    
+            EXASIM_DRIVER_CALL(FextDriver, fhb, xgb, ugb, ogb, wgb, uhb, nlb, Rb, mesh, master, app, sol, tmp, common, ngb, 1, backend);    
           }                       
           else
-            FbouDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
+            EXASIM_DRIVER_CALL(FbouDriver, fhb, xgb, ugb, ogb, wgb, uhb, nlb, mesh, master, app, sol, tmp, common, ngb, ibc+1, backend);    
         }
 
         dstype *jacb = &tmp.tempg[n8];
@@ -1066,11 +1076,11 @@ inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &a
           // replace u with uhat 
           ArrayCopy(Rb, uhb, ngb*ncu);
           
-          wEquation(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
-          //wEquation(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
+          wEquation<M>(wgb, xgb, &tmp.tempn[npf*nfe*ne*ncu], ogb, wsb, &Rb[ngb*nc], app, common, ngb, backend);          
+          //wEquation<M>(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
-        FintDriver(fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
+        EXASIM_DRIVER_CALL(FintDriver, fhb, xgb, ugb, ogb, wgb, uhb, nlb, 
              mesh, master, app, sol, tmp, common, ngb, common.coupledcondition, backend);    
 
         dstype *jacb = &tmp.tempg[n8];
@@ -1086,13 +1096,14 @@ inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &a
     }            
 }
 
+template <class M>
 inline void ResidualHDG(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int backend)
 {    
     for (Int j=0; j<common.nbe; j++) {        
-        RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-        RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
+        RuEquationElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+        RuEquationElemFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                     
 }
 

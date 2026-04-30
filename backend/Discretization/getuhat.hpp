@@ -1,3 +1,6 @@
+#include "../../include/exasim/drivers.hpp"
+#include "../../include/exasim/detail/driver_dispatch.hpp"
+
 /*
     getuhat.cpp
 
@@ -9,20 +12,20 @@
     - int isin(Int ib, Int *a, Int n)
         Utility function to check if integer ib is present in array a of length n.
 
-    - void UhatBlock(...)
+    - void UhatBlock<M>(...)
         Computes the numerical trace (uhat) on a block of faces, handling both interior and boundary faces.
         For boundary faces, it computes geometric quantities, gathers solution and auxiliary data, and calls
         the boundary condition driver (UbouDriver). For interior faces, it directly copies solution data.
 
-    - void GetUhat(...)
+    - void GetUhat<M>(...)
         Loops over face blocks and calls UhatBlock for each block to compute uhat for all faces in the specified range.
 
-    - void dUhatBlock(...) [ifdef HAVE_ENZYME]
+    - void dUhatBlock<M>(...) [ifdef HAVE_ENZYME]
         Computes the derivative of the numerical trace (duhat) with respect to the solution variables, for use in
         automatic differentiation (Enzyme). Handles both interior and boundary faces, gathering necessary data and
         calling the boundary condition driver for derivatives.
 
-    - void GetdUhat(...) [ifdef HAVE_ENZYME]
+    - void GetdUhat<M>(...) [ifdef HAVE_ENZYME]
         Loops over face blocks and calls dUhatBlock for each block to compute duhat for all faces in the specified range.
 
     Notes:
@@ -43,6 +46,7 @@
 #ifndef __GETUHAT
 #define __GETUHAT
 
+template <class M>
 inline bool isin(Int ib, Int *a, Int n)
 {
     bool in = false;
@@ -56,6 +60,7 @@ inline bool isin(Int ib, Int *a, Int n)
     return in;
 }        
 
+template <class M>
 inline void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
@@ -77,7 +82,7 @@ inline void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstru
         GetFaceNodes(tmp.tempn, sol.udg, mesh.facecon, npf, ncu, npe, nc, f1, f2, 0);
         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2);
     }
-    else if (isin(ib, common.stgib, common.nstgib)) {        
+    else if (isin<M>(ib, common.stgib, common.nstgib)) {        
         //if (common.mpiRank==0 && ib > 0) printf("ib = %d \n", ib);
         dstype *xgb = &tmp.tempg[0];
         dstype *ogb = &tmp.tempg[nga*ncx];
@@ -120,13 +125,14 @@ inline void UhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstru
             GetFaceNodes(&tmp.tempg[n5], sol.odg, mesh.facecon, npf, nco, npe, nco, f1, f2, 1);       
         }
                 
-        UbouDriver(tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n3], 
+        EXASIM_DRIVER_CALL(UbouDriver, tmp.tempn, &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n3], 
                  &tmp.tempg[n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
                                
         PutElemNodes(sol.uh, tmp.tempn, npf, ncu, 0, ncu, f1, f2);
     }
 }
 
+template <class M>
 inline void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)
@@ -143,14 +149,15 @@ inline void GetUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        //UhatBlock(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
-        UhatBlock(sol, res, app, master, mesh, tmp, common,
+        //UhatBlock<M>(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
+        UhatBlock<M>(sol, res, app, master, mesh, tmp, common,
                 handle, nd, npe, npf, nc, ncu, ncx, nco, f1, f2, ib, backend);
     }                           
 }
 
 #ifdef HAVE_ENZYME
 //// Method 2
+template <class M>
 inline void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int nc, Int ncu, Int ncx, Int nco, Int f1, Int f2, Int ib, Int backend)
@@ -207,7 +214,7 @@ inline void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstr
         ArraySetValue(tmp.tempn, zero, 2*nn*ncu);
 
         // uhat = tempn[0], duhat = tempn[nn*ncu]
-        UbouDriver(&tmp.tempn[0], &tmp.tempn[nn*ncu], &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n8],
+        EXASIM_DRIVER_CALL(UbouDriver, &tmp.tempn[0], &tmp.tempn[nn*ncu], &tmp.tempg[n0], &tmp.tempg[n4], &tmp.tempg[n8],
                 &tmp.tempg[n5], &tmp.tempg[n6], &tmp.tempg[n9], &tmp.tempg[n3], 
                 &tmp.tempg[n1], mesh, master, app, sol, tmp, common, npf, f1, f2, ib, backend);
 
@@ -216,6 +223,7 @@ inline void dUhatBlock(solstruct &sol, resstruct &res, appstruct &app, masterstr
     }
 }
 
+template <class M>
 inline void GetdUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbf1, Int nbf2, Int backend)
@@ -232,7 +240,7 @@ inline void GetdUhat(solstruct &sol, resstruct &res, appstruct &app, masterstruc
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        dUhatBlock(sol, res, app, master, mesh, tmp, common,
+        dUhatBlock<M>(sol, res, app, master, mesh, tmp, common,
                 handle, nd, npe, npf, nc, ncu, ncx, nco, f1, f2, ib, backend);
     }                           
 }

@@ -5,18 +5,18 @@
 
   Functions:
 
-  1. void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
+  1. void wEquation<M>(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
     - Solves for the auxiliary variable w (wdg) given the solution variables (udg), coordinates (xdg), other variables (odg), and source term (wsrc).
     - Handles both wave-type equations (explicit update) and general DAE systems (Newton iteration).
     - Uses temporary storage (tempg) for intermediate calculations.
     - Supports up to five auxiliary variables (ncw <= 5).
 
-  2. void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
+  2. void wEquation<M>(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
     - Extended version of wEquation that also computes the sensitivity of w with respect to udg (wdg_udg).
     - Uses Newton iteration for nonlinear systems and computes the Jacobian of the source term.
     - Supports up to five auxiliary variables (ncw <= 5).
 
-  3. void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
+  3. void GetW<M>(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
     - Loops over element blocks and computes the auxiliary variable w for each element.
     - Extracts element-wise data from global arrays, solves the w-equation, and writes the results back to the global array.
 
@@ -77,6 +77,7 @@ static void ReportNanInHdgSourcewonlyOutput(const char* field, const dstype* dat
     }
 }
 
+template <class M>
 inline void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
       dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
@@ -164,6 +165,7 @@ inline void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype
     }            
 }
 
+template <class M>
 inline void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, dstype *odg, dstype *wsrc, 
        dstype *tempg, appstruct &app, commonstruct &common, Int ng, Int backend)
 {        
@@ -270,6 +272,7 @@ inline void wEquation(dstype *wdg, dstype *wdg_udg, dstype *xdg, dstype *udg, ds
     }            
 }
 
+template <class M>
 inline void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, commonstruct &common, Int backend)
 {
   for (Int j=0; j<common.nbe; j++) {         
@@ -291,7 +294,7 @@ inline void GetW(dstype *w, solstruct &sol, tempstruct &tmp, appstruct &app, com
       GetElemNodes(udg, sol.udg, common.npe, nc, 0, nc, e1, e2);
       GetElemNodes(odg, sol.odg, common.npe, nco, 0, nco, e1, e2);
       GetElemNodes(sdg, sol.wsrc, common.npe, ncw, 0, ncw, e1, e2);
-      wEquation(wdg, xdg, udg, odg, sdg, tmp.tempg, app, common, ng, common.backend);
+      wEquation<M>(wdg, xdg, udg, odg, sdg, tmp.tempg, app, common, ng, common.backend);
       PutElemNodes(w, wdg, common.npe, ncw, 0, ncw, e1, e2);
   }   
 }

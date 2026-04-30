@@ -45,6 +45,7 @@
 #ifndef __UPDATESOLUTION
 #define __UPDATESOLUTION
 
+template <class M>
 inline void UpdateSolutionDIRK(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {                                   
     Int N = common.ndof1;
@@ -78,6 +79,7 @@ inline void UpdateSolutionDIRK(solstruct &sol, sysstruct &sys, commonstruct &com
     }    
 }
 
+template <class M>
 inline void UpdateSolutionBDF(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {       
     Int N = common.ndof1;
@@ -106,15 +108,17 @@ inline void UpdateSolutionBDF(solstruct &sol, sysstruct &sys, commonstruct &comm
     }
 }
 
+template <class M>
 inline void UpdateSolution(solstruct &sol, sysstruct &sys, commonstruct &common, Int backend)
 {           
     if (common.temporalScheme==0) // DIRK
-        UpdateSolutionDIRK(sol, sys, common, backend);
+        UpdateSolutionDIRK<M>(sol, sys, common, backend);
     else // BDF
-        UpdateSolutionBDF(sol, sys, common, backend);
+        UpdateSolutionBDF<M>(sol, sys, common, backend);
 }
 
 
+template <class M>
 inline void UpdateSolution(solstruct &sol, sysstruct &sys, appstruct &app, resstruct &res, tempstruct &tmp, commonstruct &common, Int backend)
 {                                   
     Int N = common.ndof1;
@@ -160,7 +164,7 @@ inline void UpdateSolution(solstruct &sol, sysstruct &sys, appstruct &app, resst
                 GetElemNodes(udg, sol.udg, common.npe, nc, 0, nc, e1, e2);
                 GetElemNodes(odg, sol.odg, common.npe, nco, 0, nco, e1, e2);
                 GetElemNodes(sdg, sol.wsrc, common.npe, ncw, 0, ncw, e1, e2);
-                wEquation(wdg, xdg, udg, odg, sdg, tmp.tempg, app, common, ng, common.backend);
+                wEquation<M>(wdg, xdg, udg, odg, sdg, tmp.tempg, app, common, ng, common.backend);
                 PutElemNodes(sol.wdg, wdg, common.npe, ncw, 0, ncw, e1, e2);
             }   
         }

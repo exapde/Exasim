@@ -60,6 +60,7 @@
 
 
 // Calculate Rqe = (u, nabla dot v)_K for a given u
+template <class M>
 inline void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nd, 
         Int npe, Int nge, Int nc, Int ncu, Int ncx, Int e1, Int e2, Int backend)
@@ -90,6 +91,7 @@ inline void RqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
 #endif              
 }
 
+template <class M>
 inline void RqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int backend)
@@ -105,12 +107,13 @@ inline void RqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];    
-        RqElemBlock(sol, res, app, master, mesh, tmp, common, common.cublasHandle, nd, npe, nge, nc, 
+        RqElemBlock<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, nd, npe, nge, nc, 
             ncu, ncx, e1, e2, backend);
     }                     
 }
 
 // Calculate Rqf = <uhat, v dot n>_F for a given uhat
+template <class M>
 inline void RqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int ngf, Int nc, Int ncu, Int ncx, Int f1, Int f2, Int ib, Int backend)
@@ -143,6 +146,7 @@ inline void RqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
 #endif              
 }
 
+template <class M>
 inline void RqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
 {    
@@ -160,12 +164,13 @@ inline void RqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
         //printf("%i %i %i\n", f1, f2, ib);
-        RqFaceBlock(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 
+        RqFaceBlock<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 
                 nd, npe, npf, ngf, nc, ncu, ncx, f1, f2, ib, backend);
     }                       
 }
 
 #ifdef HAVE_ENZYME
+template <class M>
 inline void dRqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nd, 
         Int npe, Int nge, Int nc, Int ncu, Int ncx, Int e1, Int e2, Int backend)
@@ -196,6 +201,7 @@ inline void dRqElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 #endif              
 }
 
+template <class M>
 inline void dRqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nbe1, Int nbe2, Int backend)
@@ -211,12 +217,13 @@ inline void dRqElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];    
-        dRqElemBlock(sol, res, app, master, mesh, tmp, common, common.cublasHandle, nd, npe, nge, nc, 
+        dRqElemBlock<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, nd, npe, nge, nc, 
             ncu, ncx, e1, e2, backend);
     }                     
 }
 
 // Calculate Rqf = <uhat, v dot n>_F for a given uhat
+template <class M>
 inline void dRqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int nd, Int npe, Int npf, Int ngf, Int nc, Int ncu, Int ncx, Int f1, Int f2, Int ib, Int backend)
@@ -250,6 +257,7 @@ inline void dRqFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 }
 
 
+template <class M>
 inline void dRqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
 {    
@@ -267,7 +275,7 @@ inline void dRqFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
         //printf("%i %i %i\n", f1, f2, ib);
-        dRqFaceBlock(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 
+        dRqFaceBlock<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, 
                 nd, npe, npf, ngf, nc, ncu, ncx, f1, f2, ib, backend);
     }                       
 }

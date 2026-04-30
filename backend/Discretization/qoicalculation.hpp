@@ -1,6 +1,10 @@
+#include "../../include/exasim/drivers.hpp"
+#include "../../include/exasim/detail/driver_dispatch.hpp"
+
 #ifndef __QOICALCULATION
 #define __QOICALCULATION
 
+template <class M>
 inline void qoiElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int jth, Int backend)
 {        
@@ -41,7 +45,7 @@ inline void qoiElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     
     int nvqoi = common.nvqoi;     
     ArraySetValue(sg, 0.0, nga*nvqoi);     
-    QoIvolumeDriver(sg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
+    EXASIM_DRIVER_CALL(QoIvolumeDriver, sg, xg, uqg, og, wg, mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
     
     ApplyJac(sg, jac, nge*ne, nge*ne*nvqoi);     
     Gauss2Node(handle, tmp.tempn, sg, master.gwe, nge, 1, nvqoi*ne, backend); 
@@ -54,16 +58,18 @@ inline void qoiElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     }    
 }
 
+template <class M>
 inline void qoiElement(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common)
 {    
     for (int i = 0; i<common.nvqoi; i++) common.qoivolume[i] = 0.0;
     for (Int j=0; j<common.nbe; j++) {              
         Int e2 = common.eblks[3*j+1];            
-        if (e2 <= common.ne1) qoiElemBlock(sol, res, app, master, mesh, tmp, common, common.cublasHandle, j, common.backend);        
+        if (e2 <= common.ne1) qoiElemBlock<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, j, common.backend);        
     }                     
 }
 
+template <class M>
 inline void qoiFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, 
         cublasHandle_t handle, Int f1, Int f2, Int ib, Int backend)
@@ -94,7 +100,7 @@ inline void qoiFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         
     int nsurf = common.nsurf;     
     ArraySetValue(tmp.tempn, 0.0, nga*nsurf);     
-    QoIboundaryDriver(tmp.tempn, &sol.faceg[nm], &tmp.tempg[nga*ncu], &sol.og1[ngf*nco*f1], 
+    EXASIM_DRIVER_CALL(QoIboundaryDriver, tmp.tempn, &sol.faceg[nm], &tmp.tempg[nga*ncu], &sol.og1[ngf*nco*f1], 
             &tmp.tempg[nga*(ncu+nc)], &tmp.tempg[0], &sol.faceg[nm+n1], mesh, master, app, 
             sol, tmp, common, ngf, f1, f2, ib, backend);        
 
@@ -109,6 +115,7 @@ inline void qoiFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     }        
 }
 
+template <class M>
 inline void qoiFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common)
 {    
@@ -118,7 +125,7 @@ inline void qoiFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
         if ((common.ibs > 0) && (ib == common.ibs))
-            qoiFaceBlock(sol, res, app, master, mesh, tmp, common, common.cublasHandle, f1, f2, 1, common.backend);
+            qoiFaceBlock<M>(sol, res, app, master, mesh, tmp, common, common.cublasHandle, f1, f2, 1, common.backend);
     }                          
 }
 

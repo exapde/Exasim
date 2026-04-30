@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <utility>   // std::forward (for Fint/Fext stubs)
+
 #include <Kokkos_Core.hpp>
 
 #include "common.h"
@@ -478,4 +480,59 @@ inline void InitwdgDriver(dstype* f, const dstype* xg,
                       common.ncx, common.nce, common.npe, common.ne);
 }
 
-} // namespace exasim
+} // namespace exasim — end of templated *Driver<M> wrappers
+
+// ===== Fint / Fext (multi-domain coupling, deferred to v2) =====
+//
+// Variadic stubs that forward to whatever ::FintDriver / ::FextDriver
+// overload exists at the call site (resolved at instantiation time
+// once Model/ModelDrivers.cpp has provided definitions).
+//
+// The real templated kernels for multi-domain coupling are recorded
+// in <exasim/model.hpp>'s "Deferred surface" notes; until then, the
+// stubs keep the templating cascade compilable so single-domain
+// models (which never reach the multi-domain code paths at runtime)
+// still build and run unchanged.
+
+// Forward-declare the global Fint/Fext drivers so the variadic stubs
+// below can reference them. Declaration order: callers in
+// backend/Discretization/*.hpp will see them via the discretization.hpp
+// chain (Model/ModelDrivers.cpp included before residual.hpp etc).
+// We skip declaring exact signatures here — the actual overloads
+// (LDG-only, HDG with Jacobians, etc.) live in ModelDrivers.cpp and
+// resolve via overload resolution at the call site.
+
+namespace exasim::detail {
+
+// Trick: the body of these forward stubs uses unqualified
+// FintDriver / FextDriver and forwards via a helper that is
+// instantiation-dependent on M. This delays name lookup until
+// instantiation time, by which point Model/ModelDrivers.cpp has
+// provided the global definitions.
+template <class M>
+struct multidomain_forward {
+    template <class... Args>
+    static void Fint(Args&&... args) {
+        FintDriver(std::forward<Args>(args)...);   // ADL + unqualified -> picks ::FintDriver at instantiation
+    }
+    template <class... Args>
+    static void Fext(Args&&... args) {
+        FextDriver(std::forward<Args>(args)...);
+    }
+};
+
+} // namespace exasim::detail
+
+namespace exasim {
+
+template <class M, class... Args>
+inline void FintDriver(Args&&... args) {
+    ::exasim::detail::multidomain_forward<M>::Fint(std::forward<Args>(args)...);
+}
+
+template <class M, class... Args>
+inline void FextDriver(Args&&... args) {
+    ::exasim::detail::multidomain_forward<M>::Fext(std::forward<Args>(args)...);
+}
+
+} // namespace exasim — end of Fint/Fext stubs

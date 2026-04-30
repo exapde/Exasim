@@ -1,3 +1,6 @@
+#include "../../include/exasim/drivers.hpp"
+#include "../../include/exasim/detail/driver_dispatch.hpp"
+
 /*
     uresidual.cpp
 
@@ -43,6 +46,7 @@
 #ifndef __URESIDUAL
 #define __URESIDUAL
 
+template <class M>
 inline void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int e1, Int e2, Int backend)
@@ -84,7 +88,7 @@ inline void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
         
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
+            EXASIM_DRIVER_CALL(TdfuncDriver, &tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
                 &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
@@ -93,7 +97,7 @@ inline void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
         
         if (common.source==1) {            
             // calculate the source term Source(xdg, udg, odg, wdg)
-            SourceDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
+            EXASIM_DRIVER_CALL(SourceDriver, &tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
                 &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate Source(xdg, udg, odg) + (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
@@ -102,11 +106,11 @@ inline void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
     }
     else {        
         // calculate the source term Source(xdg, udg, odg, wdg)
-        SourceDriver(&tmp.tempg[n4], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
+        EXASIM_DRIVER_CALL(SourceDriver, &tmp.tempg[n4], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);                 
     }                
         
-    FluxDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
+    EXASIM_DRIVER_CALL(FluxDriver, &tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);    
 
     // RuSource(&res.Rue[npe*ncu*e1], &tmp.tempg[n4], &sol.elemg[nm+n2], master.shapegw, nge, npe, ncu, ne);
@@ -129,6 +133,7 @@ inline void RuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
 #endif                  
 }
 
+template <class M>
 inline void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int nbe1, Int nbe2, Int backend)
@@ -136,12 +141,13 @@ inline void RuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];            
-        RuElemBlock(sol, res, app, master, mesh, tmp, common, handle, e1, e2, backend);
+        RuElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, e1, e2, backend);
     }                     
 }
 
 #ifdef HAVE_ENZYME
 //// Method 2
+template <class M>
 inline void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, 
         Int e1, Int e2, Int backend)
@@ -195,7 +201,7 @@ inline void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         
         if (common.tdfunc==1) {
             // calculate the time derivative function Tdfunc(xdg, udg, odg)
-            TdfuncDriver(&tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
+            EXASIM_DRIVER_CALL(TdfuncDriver, &tmp.tempg[n5], &sol.elemg[nm], &tmp.tempg[n3], &sol.odgg[nge*nco*e1], 
                 &tmp.tempg[n6], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
 
             // calculate (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
@@ -206,7 +212,7 @@ inline void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
         
         if (common.source==1) {            
             // calculate the source term Source(xdg, udg, odg, wdg) and dSource
-            SourceDriver(&tmp.tempg[n5], &tmp.tempg[n7], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1], 
+            EXASIM_DRIVER_CALL(SourceDriver, &tmp.tempg[n5], &tmp.tempg[n7], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1], 
                 &tmp.tempg[n6], &tmp.tempg[n0], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);
             
             // calculate Source(xdg, udg, odg) + (sdg-udg*dtfactor)*Tdfunc(xdg, udg, odg) 
@@ -217,12 +223,12 @@ inline void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
     }
     else {        
         // calculate the source term Source(xdg, udg, odg, wdg)
-        SourceDriver(&tmp.tempg[n4], &tmp.tempg[n8], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1],  
+        EXASIM_DRIVER_CALL(SourceDriver, &tmp.tempg[n4], &tmp.tempg[n8], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1],  
             &tmp.tempg[n6], &tmp.tempg[n0], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);             
     }    
 
 
-    FluxDriver(&tmp.tempg[n5], &tmp.tempg[n7], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1], &sol.dodgg[nge*nco*e1],
+    EXASIM_DRIVER_CALL(FluxDriver, &tmp.tempg[n5], &tmp.tempg[n7], &sol.elemg[nm], &tmp.tempg[n3], &tmp.tempg[n9], &sol.odgg[nge*nco*e1], &sol.dodgg[nge*nco*e1],
             &tmp.tempg[n6], &tmp.tempg[n0], mesh, master, app, sol, tmp, common, nge, e1, e2, backend);   
 
     // calculate sum_j dFlux_j(u) * Xx(:,j,i)  at gauss points on element
@@ -240,6 +246,7 @@ inline void dRuElemBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 #endif                  
 }
 
+template <class M>
 inline void dRuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,         
         cublasHandle_t handle, Int nbe1, Int nbe2, Int backend)
@@ -247,13 +254,14 @@ inline void dRuElem(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     for (Int j=nbe1; j<nbe2; j++) {
         Int e1 = common.eblks[3*j]-1;
         Int e2 = common.eblks[3*j+1];            
-        dRuElemBlock(sol, res, app, master, mesh, tmp, common, handle, e1, e2, backend);
+        dRuElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, e1, e2, backend);
     }                     
 }
 #endif                  
 
 
 // Calculate Ruf = <fhat(xdg, uhat, udg, odg, nl), w>_F 
+template <class M>
 inline void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, 
         cublasHandle_t handle, Int f1, Int f2, Int ib, Int backend)
@@ -305,12 +313,12 @@ inline void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
         
     // calculate fhat
     if (ib==0) { // interior faces                
-        FhatDriver(&tmp.tempg[n8], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n6], 
+        EXASIM_DRIVER_CALL(FhatDriver, &tmp.tempg[n8], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n6], 
         &sol.og1[ngf*nco*f1], &sol.og2[ngf*nco*f1], &tmp.tempg[n5], &tmp.tempg[n7], 
         &tmp.tempg[n3], &sol.faceg[nm+n1], mesh, master, app, sol, tmp, common, ngf, f1, f2, backend);      
     }
     else { // boundary faces      
-        FbouDriver(&tmp.tempg[n8], &sol.faceg[nm+n0], &tmp.tempg[n4], &sol.og1[ngf*nco*f1], 
+        EXASIM_DRIVER_CALL(FbouDriver, &tmp.tempg[n8], &sol.faceg[nm+n0], &tmp.tempg[n4], &sol.og1[ngf*nco*f1], 
                 &tmp.tempg[n5], &tmp.tempg[n3], &sol.faceg[nm+n1], mesh, master, app, 
                 sol, tmp, common, ngf, f1, f2, ib, backend);        
     }        
@@ -329,6 +337,7 @@ inline void RuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterst
 #endif              
 }
 
+template <class M>
 inline void RuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
@@ -337,13 +346,14 @@ inline void RuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct 
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        RuFaceBlock(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
+        RuFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
     }                          
 }
 
 #ifdef HAVE_ENZYME
 //// Method 2
 // Calculate Ruf = <fhat(xdg, uhat, udg, odg, nl), w>_F 
+template <class M>
 inline void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common, 
         cublasHandle_t handle, Int f1, Int f2, Int ib, Int backend)
@@ -429,12 +439,12 @@ inline void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 //// Apply Enzyme on fhat or fbou
     // calculate fhat
     if (ib==0) { // interior faces                
-        FhatDriver(&tmp.tempg[n8], &tmp.tempg[n14], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n10], &tmp.tempg[n6], &tmp.tempg[n12],
+        EXASIM_DRIVER_CALL(FhatDriver, &tmp.tempg[n8], &tmp.tempg[n14], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n10], &tmp.tempg[n6], &tmp.tempg[n12],
         &sol.og1[ngf*nco*f1], &sol.dog1[ngf*nco*f1], &sol.og2[ngf*nco*f1], &sol.dog2[ngf*nco*f1], &tmp.tempg[n5], &tmp.tempg[n11], &tmp.tempg[n7], &tmp.tempg[n13],
         &tmp.tempg[n3], &tmp.tempg[n9], &sol.faceg[nm+n1], mesh, master, app, sol, tmp, common, ngf, f1, f2, backend);      
     }
     else { // boundary faces      
-        FbouDriver(&tmp.tempg[n8], &tmp.tempg[n14], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n10], &sol.og1[ngf*nco*f1], 
+        EXASIM_DRIVER_CALL(FbouDriver, &tmp.tempg[n8], &tmp.tempg[n14], &sol.faceg[nm+n0], &tmp.tempg[n4], &tmp.tempg[n10], &sol.og1[ngf*nco*f1], 
                 &sol.dog1[ngf*nco*f1], &tmp.tempg[n5], &tmp.tempg[n11], &tmp.tempg[n3], &tmp.tempg[n9], &sol.faceg[nm+n1], mesh, master, app, 
                 sol, tmp, common, ngf, f1, f2, ib, backend);        
     } 
@@ -449,6 +459,7 @@ inline void dRuFaceBlock(solstruct &sol, resstruct &res, appstruct &app, masters
 #endif              
 }
 
+template <class M>
 inline void dRuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
         cublasHandle_t handle, Int nbf1, Int nbf2, Int backend)
@@ -457,7 +468,7 @@ inline void dRuFace(solstruct &sol, resstruct &res, appstruct &app, masterstruct
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        dRuFaceBlock(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
+        dRuFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, f1, f2, ib, backend);
     }                          
 }
 #endif

@@ -268,8 +268,8 @@ inline Int CSolution<M>::NewtonSolver(ofstream &out, Int N, Int spatialScheme, I
 
     if (spatialScheme == 1) { 
 
-      if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);                
-      if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
+      if (disc.common.ncq > 0) hdgGetQ<M>(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);                
+      if (disc.common.ncw > 0) GetW<M>(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
       
       // compute the residual vector R = [Ru; Rh]
       disc.hdgAssembleResidual(solv.sys.b, backend);
@@ -346,7 +346,7 @@ inline Int CSolution<M>::NewtonSolver(ofstream &out, Int N, Int spatialScheme, I
         } 
         else if (spatialScheme == 1) {      
           ArrayCopy(disc.sol.uh, solv.sys.u, N);
-          hdgGetDUDG(disc.res.Ru, disc.res.F, solv.sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
+          hdgGetDUDG<M>(disc.res.Ru, disc.res.F, solv.sys.x, disc.res.Rq, disc.mesh, disc.common, backend);          
           ArrayCopy(solv.sys.v, disc.res.Ru, disc.common.npe*disc.common.ncu*disc.common.ne1);
           UpdateUDG(disc.sol.udg, disc.res.Ru, solv.sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
                     
@@ -358,8 +358,8 @@ inline Int CSolution<M>::NewtonSolver(ofstream &out, Int N, Int spatialScheme, I
             error("stop for debugging...");
           }          
                     
-          if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
-          if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
+          if (disc.common.ncq > 0) hdgGetQ<M>(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+          if (disc.common.ncw > 0) GetW<M>(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
                               
           nrm0 = nrmr; // original norm          
           // compute the updated residual norm |[Ru; Rh]|
@@ -396,8 +396,8 @@ inline Int CSolution<M>::NewtonSolver(ofstream &out, Int N, Int spatialScheme, I
             ArrayAXPY(disc.common.cublasHandle, solv.sys.u, solv.sys.x, -solv.sys.alpha, N, backend); 
             ArrayCopy(disc.sol.uh, solv.sys.u, N);
             UpdateUDG(disc.sol.udg, solv.sys.v, -solv.sys.alpha, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                    
-            if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
-            if (disc.common.ncw > 0) GetW(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
+            if (disc.common.ncq > 0) hdgGetQ<M>(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+            if (disc.common.ncw > 0) GetW<M>(disc.sol.wdg, disc.sol, disc.tmp, disc.app, disc.common, backend);
             disc.hdgAssembleResidual(solv.sys.b, backend);
             nrmr = PNORM(disc.common.cublasHandle, N, disc.common.ndofuhatinterface, solv.sys.b, backend); 
             nrmr += PNORM(disc.common.cublasHandle, disc.common.npe*disc.common.ncu*disc.common.ne1, disc.res.Ru, backend);                       
@@ -686,7 +686,7 @@ inline void CSolution<M>::DIRK(ofstream &out, Int backend)
 
             START_TIMING;
             // update solution 
-            UpdateSolution(disc.sol, solv.sys, disc.common, backend);                     
+            UpdateSolution<M>(disc.sol, solv.sys, disc.common, backend);                     
             END_TIMING_DISC(101);
 
 #ifdef TIMING         
@@ -774,7 +774,7 @@ inline void CSolution<M>::SteadyProblem_PTC(ofstream &out, Int backend) {
             this->SteadyProblem(out, backend);                             
 
             // update solution 
-            UpdateSolution(disc.sol, solv.sys, disc.app, disc.res, disc.tmp, disc.common, backend);
+            UpdateSolution<M>(disc.sol, solv.sys, disc.app, disc.res, disc.tmp, disc.common, backend);
             
             // TODO: input wprev
             disc.evalMonitor(disc.tmp.tempn,  disc.sol.udg, disc.sol.wdg, disc.common.nc, backend);
@@ -801,7 +801,7 @@ inline void CSolution<M>::SteadyProblem_PTC(ofstream &out, Int backend) {
                 GetFaceNodes(disc.sol.uh, disc.sol.udg, disc.mesh.f2e, disc.mesh.perm, disc.common.npf, disc.common.ncu, disc.common.npe, disc.common.nc, disc.common.nf);
 
                 // Recompute gradient from udg old
-                hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);
+                hdgGetQ<M>(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);
 
                 // decrease timestep by 10
                 std::cout << "Current time step: " << disc.common.dt[istep] << std::endl;
@@ -830,7 +830,7 @@ inline void CSolution<M>::SteadyProblem_PTC(ofstream &out, Int backend) {
                         std::cout << "Evaluate steady residual..." << std::endl;
                         disc.common.tdep=0;
     
-                        if (disc.common.ncq > 0) hdgGetQ(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
+                        if (disc.common.ncq > 0) hdgGetQ<M>(disc.sol.udg, disc.sol.uh, disc.sol, disc.res, disc.mesh, disc.tmp, disc.common, backend);          
             
                         // compute the residual vector R = [Ru; Rh]
                         disc.hdgAssembleResidual(solv.sys.b, backend);
@@ -1105,15 +1105,15 @@ inline void CSolution<M>::SaveParaview(Int backend, std::string fname_modifier, 
        if (ncw > 0) GetElemNodes(wdg, disc.sol.wdg, npe, ncw, 0, ncw, 0, ne);
     
        if (nsca > 0) {        
-            VisScalarsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            EXASIM_DRIVER_CALL(VisScalarsDriver, f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.scafields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 1, 1, nsca);
        }    
        if (nvec > 0) {        
-            VisVectorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            EXASIM_DRIVER_CALL(VisVectorsDriver, f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.vecfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, 3, ncx, nvec);
        }
        if (nten > 0) {        
-            VisTensorsDriver(f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
+            EXASIM_DRIVER_CALL(VisTensorsDriver, f, xdg, udg, vdg, wdg, disc.mesh, disc.master, disc.app, disc.sol, disc.tmp, disc.common, npe, 0, ne, backend);                                 
             VisDG2CG(vis.tenfields, f, disc.mesh.cgent2dgent, disc.mesh.colent2elem, disc.mesh.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nten);
        }
 
@@ -1134,8 +1134,8 @@ inline void CSolution<M>::SaveParaview(Int backend, std::string fname_modifier, 
 template <class M>
 inline void CSolution<M>::SaveQoI(Int backend) 
 {
-    if (disc.common.nvqoi > 0) qoiElement(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
-    if (disc.common.nsurf > 0) qoiFace(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
+    if (disc.common.nvqoi > 0) qoiElement<M>(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
+    if (disc.common.nsurf > 0) qoiFace<M>(disc.sol, disc.res, disc.app, disc.master, disc.mesh, disc.tmp, disc.common);
 
     if (disc.common.mpiRank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
         if (disc.common.tdep==1) 

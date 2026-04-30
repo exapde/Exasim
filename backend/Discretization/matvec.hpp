@@ -37,6 +37,7 @@
 #define __MATVEC
 
 #include "ioutilities.hpp"
+template <class M>
 inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
       meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, dstype *v, 
       dstype *u, dstype *Ru, Int backend)
@@ -53,7 +54,7 @@ inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, ma
 #ifdef HAVE_ENZYME
 //TODO: there might be a cleaner way to do this...matvecAD v. matvecFD functions? 
     ArrayInsert(sol.dudg, v, npe, nc, ne, 0, npe, 0, ncu, 0, ne); //insert v into dudgs
-    dResidual(sol, res, app, master, mesh, tmp, common, handle, backend);
+    dResidual<M>(sol, res, app, master, mesh, tmp, common, handle, backend);
     ArrayAXPBY(w, u, res.dRu, 0.0, 1, N);
 #else
     if (order==1) {
@@ -64,7 +65,7 @@ inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, ma
         ArrayInsert(sol.udg, w, npe, nc, ne, 0, npe, 0, ncu, 0, ne);  
 
         // compute the residual R(u+epsilon*v)
-        Residual(sol, res, app, master, mesh, tmp, common, handle, backend);
+        Residual<M>(sol, res, app, master, mesh, tmp, common, handle, backend);
 
         // calculate w = J(u)*v = (R(u+epsilon*v)-R(u))/epsilon    
         ArrayAXPBY(w, res.Ru, Ru, 1.0/epsilon, -1.0/epsilon, N);
@@ -77,7 +78,7 @@ inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, ma
         ArrayInsert(sol.udg, w, npe, nc, ne, 0, npe, 0, ncu, 0, ne);  
 
         // compute the residual R(u-epsilon*v)
-        Residual(sol, res, app, master, mesh, tmp, common, handle, backend);
+        Residual<M>(sol, res, app, master, mesh, tmp, common, handle, backend);
 
         // copy res.Ru to Ru
         ArrayCopy(Ru, res.Ru, N);
@@ -89,7 +90,7 @@ inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, ma
         ArrayInsert(sol.udg, w, npe, nc, ne, 0, npe, 0, ncu, 0, ne);  
 
         // compute the residual R(u+epsilon*v)
-        Residual(sol, res, app, master, mesh, tmp, common, handle, backend);
+        Residual<M>(sol, res, app, master, mesh, tmp, common, handle, backend);
         
         // calculate w = J(u)*v = (R(u+epsilon*v)-R(u-epsilon*v))/(2*epsilon)    
         ArrayAXPBY(w, res.Ru, Ru, 0.5/epsilon, -0.5/epsilon, N);
@@ -99,6 +100,7 @@ inline void MatVec(dstype *w, solstruct &sol, resstruct &res, appstruct &app, ma
 #endif
 }
 
+template <class M>
 inline void hdgAssembleRHS(dstype *R, dstype *Rh, meshstruct &mesh, commonstruct &common)
 {   
     Int nf = common.nf; // number of faces in this subdomain
@@ -115,6 +117,7 @@ inline void hdgAssembleRHS(dstype *R, dstype *Rh, meshstruct &mesh, commonstruct
     }
 }
 
+template <class M>
 inline void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {
   Int ncu = common.ncu;// number of compoments of (u)
@@ -164,6 +167,7 @@ inline void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mes
 //   error("here");
 }
 
+template <class M>
 inline void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {   
     Int nf = common.nf; // number of faces in this subdomain
@@ -186,6 +190,7 @@ inline void hdgElementalAdditiveSchwarz(dstype *BE, dstype *AE, resstruct &res, 
     }
 }
 
+template <class M>
 inline void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &mesh, tempstruct &tmp, commonstruct &common, cublasHandle_t handle, Int backend)
 {   
     Int nf = common.nf; // number of faces in this subdomain
@@ -215,6 +220,7 @@ inline void hdgBlockJacobi(dstype *BE, dstype *AE, resstruct &res, meshstruct &m
     }
 }
 
+template <class M>
 inline void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct &mesh, 
         commonstruct &common,  Int backend)
 {   
@@ -236,6 +242,7 @@ inline void hdgGetDUDG(dstype *w, dstype *F, dstype *duh, dstype *ve, meshstruct
     }
 }
 
+template <class M>
 inline void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, resstruct &res, appstruct &app, 
         meshstruct &mesh, commonstruct &common, tempstruct &tmp, cublasHandle_t handle, Int backend)
 {   
@@ -388,6 +395,7 @@ inline void hdgMatVec(dstype *w, dstype *AE, dstype *v, dstype *ve, dstype *we, 
 }
 
 #ifdef  HAVE_MPI     
+template <class M>
 inline void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
 {
@@ -404,9 +412,9 @@ inline void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res
     
     // perform HDG descrization for interface elements
     for (Int j=common.nbe0; j<common.nbe1; j++) {     // fixed bug here             
-      uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationSchurBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
     }                             
         
     // copy H and Rh to buffsend
@@ -502,9 +510,9 @@ inline void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res
       
     // perform HDG descrization for interior elements
     for (Int j=0; j<common.nbe0; j++) {                  
-      uEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      uEquationSchurBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationElemFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      uEquationSchurBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
     }                        
 
     // copy buffrecv to H and Rh 
@@ -540,6 +548,7 @@ inline void hdgAssembleLinearSystemMPI(dstype *b, solstruct &sol, resstruct &res
     PutElementFaceNodes(b, res.Rh, mesh.f2e, mesh.elemcon, npf, nfe, ncu, common.nf0);    
 }
 
+template <class M>
 inline void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,  cublasHandle_t handle, Int backend)
 {
@@ -553,8 +562,8 @@ inline void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, ap
     
     // perform HDG descrization for interface elements
     for (Int j=common.nbe0; j<common.nbe1; j++) {     // fixed bug here             
-      RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
+      RuEquationElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      RuEquationElemFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                             
 
     // copy H and Rh to buffsend
@@ -643,8 +652,8 @@ inline void hdgAssembleResidualMPI(dstype *b, solstruct &sol, resstruct &res, ap
 
     // perform HDG descrization for interior elements
     for (Int j=0; j<common.nbe0; j++) {                  
-      RuEquationElemBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);
-      RuEquationElemFaceBlock(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
+      RuEquationElemBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);
+      RuEquationElemFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, j, backend);        
     }                        
 
     // copy buffrecv to Rh 
