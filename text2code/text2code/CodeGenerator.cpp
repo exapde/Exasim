@@ -578,8 +578,11 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     }
 
     os << "#pragma once\n\n";
-    os << "#include \"SymbolicFunctions.hpp\"\n\n";
-    
+    os << "#include \"SymbolicFunctions.hpp\"\n";
+    // HOT.4 needs std::tuple, std::find for the my_model.hpp emitter.
+    os << "#include <algorithm>\n";
+    os << "#include <tuple>\n\n";
+
     os << "class SymbolicScalarsVectors {\n\n";
     os << "public:\n\n";
     
@@ -1669,6 +1672,81 @@ void emitFext(std::ostream& os) {
     os << "}\n";
 }
 
+// HOT.4: per-method emitter — writes the body of
+// `SymbolicScalarsVectors::emit_pointwise_value` into the generated
+// `SymbolicScalarsVectors.cpp`. The emitted runtime method takes a
+// vector of SymEngine `Expression` values and writes one struct
+// method into a header `std::ostream` in pointwise form (no
+// `Kokkos::parallel_for` wrapper, no `[k*N+i]`).
+//
+// Argument names in the emitted struct method follow the templated
+// Model contract from `<exasim/model.hpp>`:
+//   - pdemodel.txt's `eta` reads come from `uinf[]`
+//   - pdemodel.txt's `uhat` reads come from `uh[]`
+//   - all others (`x`, `uq`, `w`, `mu`, `n`, `tau`, `t`) match verbatim
+void emitEmitPointwiseValue(std::ostream& os) {
+    os << "void SymbolicScalarsVectors::emit_pointwise_value(\n";
+    os << "    std::ostream& os, const std::string& method_name,\n";
+    os << "    const std::string& cpp_signature,\n";
+    os << "    const std::vector<Expression>& f, int functionid)\n";
+    os << "{\n";
+    os << "    os << \"    KOKKOS_INLINE_FUNCTION static\\n\";\n";
+    os << "    os << \"    void \" << method_name << \"(\" << cpp_signature << \") {\\n\";\n\n";
+
+    os << "    if (f.size() == 0) {\n";
+    os << "        os << \"        // empty body — defaulted via ModelDefaults\\n\";\n";
+    os << "        os << \"    }\\n\\n\";\n";
+    os << "        return;\n";
+    os << "    }\n\n";
+
+    os << "    vec_pair replacements;\n";
+    os << "    vec_basic reduced_exprs;\n";
+    os << "    func2cse(replacements, reduced_exprs, f);\n\n";
+
+    os << "    std::unordered_set<RCP<const Basic>, SymEngine::RCPBasicHash, SymEngine::RCPBasicKeyEq> used;\n";
+    os << "    for (const auto& expr : f) {\n";
+    os << "        auto symbols = free_symbols(*expr.get_basic());\n";
+    os << "        used.insert(symbols.begin(), symbols.end());\n";
+    os << "    }\n";
+    os << "    auto depends_on = [&](const Expression& sym) {\n";
+    os << "        return used.count(sym.get_basic()) > 0;\n";
+    os << "    };\n\n";
+
+    // Map pdemodel.txt input names to model.hpp method-arg names.
+    // Done at runtime per gathered symbol.
+    os << "    auto rename_input = [](const std::string& name) -> std::string {\n";
+    os << "        if (name == \"eta\")  return \"uinf\";\n";
+    os << "        if (name == \"uhat\") return \"uh\";\n";
+    os << "        return name;\n";
+    os << "    };\n\n";
+
+    os << "    std::vector<std::pair<std::string, std::vector<Expression>>> inputs = inputvectors[functionid];\n";
+    os << "    C99CodePrinter cpp;\n";
+    os << "    for (const auto& [name, vec] : inputs) {\n";
+    os << "        for (size_t j = 0; j < vec.size(); ++j) {\n";
+    os << "            if (depends_on(vec[j])) {\n";
+    os << "                os << \"        const double \" << name << j\n";
+    os << "                   << \" = \" << rename_input(name) << \"[\" << j << \"];\\n\";\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "    }\n\n";
+
+    os << "    if (!replacements.empty()) os << \"\\n\";\n";
+    os << "    for (size_t n = 0; n < replacements.size(); ++n) {\n";
+    os << "        std::string var_name = cpp.apply(*replacements[n].first);\n";
+    os << "        std::string rhs      = cpp.apply(*replacements[n].second);\n";
+    os << "        os << \"        const double \" << var_name << \" = \" << rhs << \";\\n\";\n";
+    os << "    }\n";
+    os << "    os << \"\\n\";\n\n";
+
+    os << "    for (size_t n = 0; n < f.size(); ++n) {\n";
+    os << "        os << \"        f[\" << n << \"] = \" << cpp.apply(*reduced_exprs[n]) << \";\\n\";\n";
+    os << "    }\n\n";
+
+    os << "    os << \"    }\\n\\n\";\n";
+    os << "}\n\n";
+}
+
 // HOT.4: emit `SymbolicScalarsVectors::emit_pointwise_value`,
 // `emit_pointwise_value_and_jac`, and `generateModelHeader` into the
 // generated `SymbolicScalarsVectors.cpp`. These produce a single
@@ -1735,11 +1813,49 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "    hfile << \"    static constexpr auto disc  = exasim::Discretization::HDG;\\n\";\n";
     os << "    hfile << \"    static constexpr int Nq = ncu * (1 + nd);\\n\\n\";\n";
 
-    // Method bodies will be added in subsequent commits. This
-    // initial cut emits the shell only, so a downstream consumer
-    // that #includes the header gets a struct that satisfies the
-    // Model contract via the ModelDefaults zero-fill — wrong
-    // numerics, but compiles and exercises the dispatch path.
+    // Volume value-only methods. Iterate over `outputfunctions` and
+    // emit the matching pointwise method body for each that is
+    // present in this PDE. Optional methods that aren't present fall
+    // back to `ModelDefaults`'s zero-fill defaults.
+    //
+    // Lookup table maps pdemodel.txt's funcname → model.hpp method
+    // name + signature. Only volume value-only methods are handled
+    // here; boundary (per-ib) and Jacobian methods are added in
+    // subsequent commits.
+    os << "    // ----- Volume value methods -----\n";
+    os << "    static const std::vector<std::tuple<std::string, std::string, std::string>>\n";
+    os << "        volume_methods = {\n";
+    os << "        {\"Flux\",       \"flux\",        \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"Source\",     \"source\",      \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"Tdfunc\",     \"tdfunc\",      \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"VisScalars\", \"vis_scalars\", \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"VisVectors\", \"vis_vectors\", \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"QoIvolume\",  \"qoi_volume\",  \"double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "    };\n";
+    os << "    for (const auto& [funcname, method_name, sig] : volume_methods) {\n";
+    os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
+    os << "        if (it == funcnames.end()) continue;\n";
+    os << "        int idx = it - funcnames.begin();\n";
+    os << "        if (!outputfunctions[idx]) continue;\n";
+    os << "        std::vector<Expression> f = evaluateSymbolicFunctions(idx);\n";
+    os << "        emit_pointwise_value(hfile, method_name, sig, f, idx);\n";
+    os << "    }\n\n";
+
+    // Initial-condition method (different signature: no uq/w, no t).
+    os << "    // ----- Initial condition: initu(double ui[], const double x[], const double uinf[], const double mu[]) -----\n";
+    os << "    {\n";
+    os << "        auto it = std::find(funcnames.begin(), funcnames.end(), std::string(\"Initu\"));\n";
+    os << "        if (it != funcnames.end()) {\n";
+    os << "            int idx = it - funcnames.begin();\n";
+    os << "            if (outputfunctions[idx]) {\n";
+    os << "                std::vector<Expression> f = evaluateSymbolicFunctions(idx);\n";
+    os << "                emit_pointwise_value(hfile, \"initu\",\n";
+    os << "                    \"double f[], const double x[], const double uinf[], const double mu[]\",\n";
+    os << "                    f, idx);\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "    }\n\n";
+
     os << "    hfile << \"};\\n\";\n";
     os << "    hfile.close();\n";
     os << "}\n\n";
@@ -1777,6 +1893,7 @@ void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filenam
     emitFext(os);
 
     // HOT.4: emit the `my_model.hpp` writer alongside the legacy emitters.
+    emitEmitPointwiseValue(os);
     emitGenerateModelHeader(os, spec);
 
     os.close();

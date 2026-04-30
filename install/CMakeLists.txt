@@ -419,6 +419,23 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
     link_metis(poisson2d_template_mpi)
     set_target_properties(poisson2d_template_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
+
+  # HOT.4: same poisson2d but with `my_model.hpp` produced by retargeted
+  # text2code (not hand-written). Validates the codegen output against
+  # the same legacy baseline.
+  if(EXASIM_NOMPI)
+    add_executable(poisson2d_codegen
+        ${EXASIM_DIR}/apps/library_example/poisson2d_codegen/main.cpp)
+    target_compile_definitions(poisson2d_codegen PRIVATE _TEXT2CODE)
+    target_compile_options(poisson2d_codegen PRIVATE -std=c++17 -w -O2)
+    target_include_directories(poisson2d_codegen PRIVATE
+        ${EXASIM_DIR}/include)
+    target_link_directories(poisson2d_codegen PRIVATE ${Model_LIB_DIR})
+    target_link_libraries(poisson2d_codegen PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+    link_metis(poisson2d_codegen)
+    set_target_properties(poisson2d_codegen PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
 endif()
 
 # ======================================================================
