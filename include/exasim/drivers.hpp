@@ -201,13 +201,13 @@ inline void EosDriver(dstype* f, const dstype* xg, const dstype* udg,
                       const dstype* odg, const dstype* wdg,
                       meshstruct& /*mesh*/, masterstruct& /*master*/,
                       appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                      commonstruct& common, Int /*backend*/)
+                      commonstruct& common, Int npe, Int e1, Int e2, Int /*backend*/)
 {
-    Int numPoints = common.npe * common.ne;
+    Int numPoints = npe * (e2 - e1);
     eos_kernel<M>(f, xg, udg, odg, wdg, app.uinf, app.physicsparam,
                   common.time, common.modelnumber, numPoints,
                   common.nc, common.ncu, common.nd, common.ncx,
-                  common.nco, common.ncw, common.nce, common.npe, common.ne);
+                  common.nco, common.ncw, common.nce, npe, e2 - e1);
 }
 
 template <class M>
@@ -215,13 +215,13 @@ inline void EosduDriver(dstype* f, const dstype* xg, const dstype* udg,
                         const dstype* odg, const dstype* wdg,
                         meshstruct& /*mesh*/, masterstruct& /*master*/,
                         appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                        commonstruct& common, Int /*backend*/)
+                        commonstruct& common, Int npe, Int e1, Int e2, Int /*backend*/)
 {
-    Int numPoints = common.npe * common.ne;
+    Int numPoints = npe * (e2 - e1);
     eos_du_kernel<M>(f, xg, udg, odg, wdg, app.uinf, app.physicsparam,
                      common.time, common.modelnumber, numPoints,
                      common.nc, common.ncu, common.nd, common.ncx,
-                     common.nco, common.ncw, common.nce, common.npe, common.ne);
+                     common.nco, common.ncw, common.nce, npe, e2 - e1);
 }
 
 template <class M>
@@ -229,13 +229,13 @@ inline void EosdwDriver(dstype* f, const dstype* xg, const dstype* udg,
                         const dstype* odg, const dstype* wdg,
                         meshstruct& /*mesh*/, masterstruct& /*master*/,
                         appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                        commonstruct& common, Int /*backend*/)
+                        commonstruct& common, Int npe, Int e1, Int e2, Int /*backend*/)
 {
-    Int numPoints = common.npe * common.ne;
+    Int numPoints = npe * (e2 - e1);
     eos_dw_kernel<M>(f, xg, udg, odg, wdg, app.uinf, app.physicsparam,
                      common.time, common.modelnumber, numPoints,
                      common.nc, common.ncu, common.nd, common.ncx,
-                     common.nco, common.ncw, common.nce, common.npe, common.ne);
+                     common.nco, common.ncw, common.nce, npe, e2 - e1);
 }
 
 // ===== Sourcew drivers (auxiliary `w` field) =====
@@ -245,13 +245,13 @@ inline void SourcewDriver(dstype* f, const dstype* xg, const dstype* udg,
                           const dstype* odg, const dstype* wdg,
                           meshstruct& /*mesh*/, masterstruct& /*master*/,
                           appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                          commonstruct& common, Int /*backend*/)
+                          commonstruct& common, Int npe, Int e1, Int e2, Int /*backend*/)
 {
-    Int numPoints = common.npe * common.ne;
+    Int numPoints = npe * (e2 - e1);
     sourcew_kernel<M>(f, xg, udg, odg, wdg, app.uinf, app.physicsparam,
                       common.time, common.modelnumber, numPoints,
                       common.nc, common.ncu, common.nd, common.ncx,
-                      common.nco, common.ncw, common.nce, common.npe, common.ne);
+                      common.nco, common.ncw, common.nce, npe, e2 - e1);
 }
 
 // ===== Visualization & QoI drivers =====
@@ -318,8 +318,9 @@ inline void QoIboundaryDriver(dstype* fb, const dstype* xg, const dstype* udg,
                               const dstype* uhg, const dstype* nl,
                               meshstruct& /*mesh*/, masterstruct& /*master*/,
                               appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                              commonstruct& common, Int ng, Int ib, Int /*backend*/)
+                              commonstruct& common, Int ngf, Int f1, Int f2, Int ib, Int /*backend*/)
 {
+    Int ng = ngf * (f2 - f1);
     qoi_boundary_kernel<M>(fb, xg, udg, odg, wdg, uhg, nl, app.tau,
                            app.uinf, app.physicsparam,
                            common.time, common.modelnumber, ib, ng,
@@ -336,8 +337,9 @@ inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg,
                        const dstype* uhg, const dstype* nl,
                        meshstruct& /*mesh*/, masterstruct& /*master*/,
                        appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                       commonstruct& common, Int ng, Int ib, Int /*backend*/)
+                       commonstruct& common, Int ngf, Int f1, Int f2, Int ib, Int /*backend*/)
 {
+    Int ng = ngf * (f2 - f1);
     fbou_kernel<M>(fb, xg, udg, odg, wdg, uhg, nl, app.tau,
                    app.uinf, app.physicsparam,
                    common.time, common.modelnumber, ib, ng,
@@ -346,6 +348,7 @@ inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg,
 }
 
 // HDG boundary residual + 3 Jacobians — calls M::fbou_hdg, NOT M::fbou.
+// Single-block form takes `nga, ib, backend`.
 template <class M>
 inline void FbouDriver(dstype* fb, dstype* fb_udg, dstype* fb_wdg, dstype* fb_uhg,
                        const dstype* xg, const dstype* udg,
@@ -353,11 +356,11 @@ inline void FbouDriver(dstype* fb, dstype* fb_udg, dstype* fb_wdg, dstype* fb_uh
                        const dstype* uhg, const dstype* nl,
                        meshstruct& /*mesh*/, masterstruct& /*master*/,
                        appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                       commonstruct& common, Int ng, Int ib, Int /*backend*/)
+                       commonstruct& common, Int nga, Int ib, Int /*backend*/)
 {
     hdg_fbou_kernel<M>(fb, fb_udg, fb_wdg, fb_uhg, xg, udg, odg, wdg,
                        uhg, nl, app.tau, app.uinf, app.physicsparam,
-                       common.time, common.modelnumber, ib, ng,
+                       common.time, common.modelnumber, ib, nga,
                        common.nc, common.ncu, common.nd, common.ncx,
                        common.nco, common.ncw);
 }
@@ -368,8 +371,9 @@ inline void UbouDriver(dstype* ub, const dstype* xg, const dstype* udg,
                        const dstype* uhg, const dstype* nl,
                        meshstruct& /*mesh*/, masterstruct& /*master*/,
                        appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                       commonstruct& common, Int ng, Int ib, Int /*backend*/)
+                       commonstruct& common, Int ngf, Int f1, Int f2, Int ib, Int /*backend*/)
 {
+    Int ng = ngf * (f2 - f1);
     ubou_kernel<M>(ub, xg, udg, odg, wdg, uhg, nl, app.tau,
                    app.uinf, app.physicsparam,
                    common.time, common.modelnumber, ib, ng,
@@ -377,6 +381,7 @@ inline void UbouDriver(dstype* ub, const dstype* xg, const dstype* udg,
                    common.nco, common.ncw);
 }
 
+// FhatDriver — LDG path (interior faces): `ngf, f1, f2, backend`.
 template <class M>
 inline void FhatDriver(dstype* fg, const dstype* xg,
                        const dstype* ug1, const dstype* ug2,
@@ -385,11 +390,66 @@ inline void FhatDriver(dstype* fg, const dstype* xg,
                        const dstype* uh, const dstype* nl,
                        meshstruct& /*mesh*/, masterstruct& /*master*/,
                        appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
-                       commonstruct& common, Int ng, Int /*backend*/)
+                       commonstruct& common, Int ngf, Int f1, Int f2, Int /*backend*/)
 {
+    Int ng = ngf * (f2 - f1);
     fhat_kernel<M>(fg, xg, ug1, ug2, og1, og2, wg1, wg2,
                    uh, nl, app.tau, app.uinf, app.physicsparam,
                    common.time, common.modelnumber, ng,
+                   common.nc, common.ncu, common.nd, common.ncx,
+                   common.nco, common.ncw);
+}
+
+// FhatDriver — single-block form (HDG path): `nga, backend`.
+template <class M>
+inline void FhatDriver(dstype* fg, const dstype* xg,
+                       const dstype* ug1, const dstype* ug2,
+                       const dstype* og1, const dstype* og2,
+                       const dstype* wg1, const dstype* wg2,
+                       const dstype* uh, const dstype* nl,
+                       meshstruct& /*mesh*/, masterstruct& /*master*/,
+                       appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
+                       commonstruct& common, Int nga, Int /*backend*/)
+{
+    fhat_kernel<M>(fg, xg, ug1, ug2, og1, og2, wg1, wg2,
+                   uh, nl, app.tau, app.uinf, app.physicsparam,
+                   common.time, common.modelnumber, nga,
+                   common.nc, common.ncu, common.nd, common.ncx,
+                   common.nco, common.ncw);
+}
+
+// FhatDriver — HDG single-block, with extra `u` (one-sided trace) arg.
+// Pattern: FhatDriver(fh, u, xg, udg, odg, wdg, uhg, nlg, ..., nga, backend).
+// The `u` is the trace value; we route into the single-side fhat kernel
+// by passing `udg` as both sides (ug1 = ug2 = udg).
+template <class M>
+inline void FhatDriver(dstype* fh, const dstype* u, const dstype* xg,
+                       const dstype* udg, const dstype* odg, const dstype* wdg,
+                       const dstype* uhg, const dstype* nlg,
+                       meshstruct& /*mesh*/, masterstruct& /*master*/,
+                       appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
+                       commonstruct& common, Int nga, Int /*backend*/)
+{
+    (void)u;  // not consumed by exasim::fhat_kernel (single-side path)
+    fhat_kernel<M>(fh, xg, udg, udg, odg, odg, wdg, wdg,
+                   uhg, nlg, app.tau, app.uinf, app.physicsparam,
+                   common.time, common.modelnumber, nga,
+                   common.nc, common.ncu, common.nd, common.ncx,
+                   common.nco, common.ncw);
+}
+
+// FbouDriver — single-block form (HDG path), value-only: `nga, ib, backend`.
+template <class M>
+inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg,
+                       const dstype* odg, const dstype* wdg,
+                       const dstype* uhg, const dstype* nl,
+                       meshstruct& /*mesh*/, masterstruct& /*master*/,
+                       appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
+                       commonstruct& common, Int nga, Int ib, Int /*backend*/)
+{
+    fbou_kernel<M>(fb, xg, udg, odg, wdg, uhg, nl, app.tau,
+                   app.uinf, app.physicsparam,
+                   common.time, common.modelnumber, ib, nga,
                    common.nc, common.ncu, common.nd, common.ncx,
                    common.nco, common.ncw);
 }

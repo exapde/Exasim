@@ -154,7 +154,7 @@ boundary.
 family. Math is preserved by hand-coded Jacobians matching the
 SymEngine-generated ones.
 
-### HOT.3 — User-facing example
+### HOT.3 — User-facing example (Poisson 2D)
 
 `apps/library_example/poisson2d/`:
 
@@ -178,6 +178,50 @@ pdeapp.txt         # runtime config: porder, GMRES tol, BCs (unchanged from toda
 
 **Gate**: numerical match against `baseline/poisson2d_serial/` and
 `baseline/poisson2d_mpi2/`.
+
+### HOT.3b — Additional user-facing examples (broader coverage)
+
+After HOT.3 lands one working end-to-end demo, build out a small
+suite of user-facing examples covering different shapes of model
+that text2code generates today. Each is a "port from `apps/...` to
+the templated path", validated bit-for-bit (or QoI-equivalent) against
+the existing baseline.
+
+Coverage targets — each picks up a different facet of the model
+contract:
+
+| Example                                | Source                                    | What it exercises |
+|----------------------------------------|-------------------------------------------|-------------------|
+| poisson2d (HOT.3)                      | apps/poisson/poisson2d                    | LDG flux + HDG residual + simple Dirichlet BC, ncw = 0, nparam = 1 |
+| poisson3d                              | apps/poisson/poisson3d                    | nd = 3, ncu = 1 (nd lift) |
+| poisson with periodic BCs              | apps/poisson/periodic                     | periodicboundaries / periodicexprs at runtime/preprocessing |
+| poisson with curved boundary           | apps/poisson/cone or apps/poisson/lshape  | curvedboundaryexprs |
+| Navier–Stokes steady (NACA0012)        | apps/navierstokes/naca0012steady          | ncu = 4 (compressible NS), ncparam ~ 8, real HDG with Jacobians, full system of equations |
+| Navier–Stokes unsteady                 | apps/navierstokes/naca0012unsteady        | tdfunc (mass weighting), DIRK time stepping |
+| reacting flow (chemistry)              | apps/navierstokes/reactingsharpb2         | ncu = 24, nparam = 12, eta = 18 (uinf usage), exercises every kernel family |
+
+Each app's port is small in line count: a `my_model.hpp` (math +
+hand Jacobians), a `main.cpp` (3 lines instantiating
+`CSolution<MyModel>`), a `CMakeLists.txt`. The runtime config
+(`pdeapp.txt`, `grid.bin`) is reused unchanged from the source app.
+
+Validation:
+- Each new example builds standalone via `find_package(Exasim)` once
+  HOT.5 lands; before then, via the in-tree `apps/library_example/`
+  CMake target.
+- Numerical output compared to the existing executable's output for
+  the same source app. QoI-equivalence is the math-correctness bar;
+  bit-equivalence is a stronger check that we hit when the
+  generated SymEngine math matches the hand-written math byte-for-byte
+  in evaluation order.
+
+Why this set: covers the full spectrum of shapes text2code generates
+today (varying `nd, ncu, ncw, nparam`, presence/absence of `eta`,
+periodic/curved boundary handling, single-equation vs system,
+steady vs unsteady, tdfunc identity vs real mass weighting, with
+and without HDG Jacobians). When all seven pass, the templated path
+has effective parity with the libpdemodel ABI for the apps in the
+repo.
 
 ### HOT.4 — text2code retargeting
 

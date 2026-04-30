@@ -370,6 +370,58 @@ else()
 endif()
 
 # ======================================================================
+#  HOT.3 — user-facing examples driven by CSolution<MyModel>
+# ======================================================================
+#
+# Each example is a small directory under apps/library_example/<name>/
+# containing my_model.hpp + main.cpp. Built only on the CPU/MPI legs
+# (the GPU build matrix is left for a follow-up).
+
+option(EXASIM_BUILD_LIBRARY_EXAMPLES
+       "Build user-facing examples that consume Exasim as a header-only template library"
+       ON)
+
+if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+  # Even though CSolution<Poisson2D> never takes the AbiAdapter path
+  # (and therefore never calls ::FluxDriver / KokkosFlux / etc.), the
+  # `if constexpr` else-branch in EXASIM_DRIVER_CALL still references
+  # those symbols. They have to be findable at compile time (declared
+  # via Model/ModelDrivers.cpp) and resolvable at link time (provided
+  # by libpdemodelserial). The `_TEXT2CODE` define + linking
+  # `pdemodelserial` below handles both. A future cleanup can elide
+  # the AbiAdapter branch entirely when EXASIM_BUILD_LIBRARY_EXAMPLES
+  # is the only configuration.
+
+  if(EXASIM_NOMPI)
+    add_executable(poisson2d_template
+        ${EXASIM_DIR}/apps/library_example/poisson2d/main.cpp)
+    target_compile_definitions(poisson2d_template PRIVATE _TEXT2CODE)
+    target_compile_options(poisson2d_template PRIVATE -std=c++17 -w -O2)
+    target_include_directories(poisson2d_template PRIVATE
+        ${EXASIM_DIR}/include)
+    target_link_directories(poisson2d_template PRIVATE ${Model_LIB_DIR})
+    target_link_libraries(poisson2d_template PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+    link_metis(poisson2d_template)
+    set_target_properties(poisson2d_template PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
+
+  if(EXASIM_MPI AND MPI_FOUND)
+    add_executable(poisson2d_template_mpi
+        ${EXASIM_DIR}/apps/library_example/poisson2d/main.cpp)
+    target_compile_definitions(poisson2d_template_mpi PRIVATE _MPI _TEXT2CODE)
+    target_compile_options(poisson2d_template_mpi PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
+    target_include_directories(poisson2d_template_mpi PRIVATE
+        ${EXASIM_DIR}/include)
+    target_link_directories(poisson2d_template_mpi PRIVATE ${Model_LIB_DIR})
+    target_link_libraries(poisson2d_template_mpi PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+    link_metis(poisson2d_template_mpi)
+    set_target_properties(poisson2d_template_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
+endif()
+
+# ======================================================================
 #  Summary of EXASIM configuration
 # ======================================================================
 message(STATUS "==================== EXASIM CONFIGURATION ====================")
