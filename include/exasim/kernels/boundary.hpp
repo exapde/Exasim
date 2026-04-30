@@ -46,6 +46,36 @@ void fbou_kernel(dstype*       fb,
     });
 }
 
+// Value-only HDG fbou kernel — calls M::fbou_hdg (boundary condition),
+// matching legacy `HdgFbouonly` (used in residual evaluation, no Jacobians).
+template <class M>
+void hdg_fbou_only_kernel(dstype* fb,
+                          const dstype* xdg, const dstype* udg, const dstype* /*odg*/,
+                          const dstype* wdg, const dstype* uhg, const dstype* nlg,
+                          const dstype* tau, const dstype* /*uinf*/, const dstype* param,
+                          dstype t, int /*modelnumber*/, int ib, int ng,
+                          int /*nc*/, int /*ncu*/, int /*nd*/, int /*ncx*/, int /*nco*/, int /*ncw*/)
+{
+    static_assert(is_model_v<M>);
+    constexpr int nd = M::nd, ncu = M::ncu, ncw = M::ncw;
+    constexpr int Nq = ncu * (1 + nd);
+    constexpr int ncw_buf = (ncw > 0) ? ncw : 1;
+
+    Kokkos::parallel_for("exasim::hdg_fbou_only_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        double x[nd], uq[Nq], w[ncw_buf], uh[ncu], n[nd], t_[ncu];
+        for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
+        for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
+        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        for (int k = 0; k < ncu; ++k) uh[k] = uhg[k * ng + i];
+        for (int k = 0; k < nd;  ++k) n [k] = nlg[k * ng + i];
+        for (int k = 0; k < ncu; ++k) t_[k] = tau[k];
+
+        double fb_local[ncu];
+        M::fbou_hdg(fb_local, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
+        for (int k = 0; k < ncu; ++k) fb[k * ng + i] = fb_local[k];
+    });
+}
+
 template <class M>
 void hdg_fbou_kernel(dstype* fb, dstype* f_udg, dstype* f_wdg, dstype* f_uhg,
                      const dstype* xdg, const dstype* udg, const dstype* /*odg*/,

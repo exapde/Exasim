@@ -418,27 +418,114 @@ inline void FhatDriver(dstype* fg, const dstype* xg,
                    common.nco, common.ncw);
 }
 
-// FhatDriver — HDG single-block, with extra `u` (one-sided trace) arg.
-// Pattern: FhatDriver(fh, u, xg, udg, odg, wdg, uhg, nlg, ..., nga, backend).
-// The `u` is the trace value; we route into the single-side fhat kernel
-// by passing `udg` as both sides (ug1 = ug2 = udg).
+// FhatDriver — HDG single-block, value + 3 Jacobians. Mirrors the
+// legacy `FhatDriver(f, f_udg, f_wdg, f_uhg, ...)` in
+// `backend/Model/ModelDrivers.cpp:558`. The HDG numerical flux is
+// auto-derived from the user's Flux:
+//
+//   Fhat = Flux(uhat, q) · n + tau * (u - uhat)
+//
+// The Jacobians are derived consistently. This is the standard HDG
+// numerical flux — the user does NOT define a separate `M::fhat`
+// for it; instead it's built from `M::flux` + `M::flux_jac_uq`
+// (which are already required) plus a fixed stabilization term.
 template <class M>
-inline void FhatDriver(dstype* fh, const dstype* u, const dstype* xg,
-                       const dstype* udg, const dstype* odg, const dstype* wdg,
-                       const dstype* uhg, const dstype* nlg,
+inline void FhatDriver(dstype* f, dstype* f_udg, dstype* f_wdg, dstype* f_uhg,
+                       const dstype* xg, dstype* udg,
+                       const dstype* odg, const dstype* wdg,
+                       const dstype* uhg, dstype* nl,
                        meshstruct& /*mesh*/, masterstruct& /*master*/,
                        appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
                        commonstruct& common, Int nga, Int /*backend*/)
 {
-    (void)u;  // not consumed by exasim::fhat_kernel (single-side path)
-    fhat_kernel<M>(fh, xg, udg, udg, odg, odg, wdg, wdg,
-                   uhg, nlg, app.tau, app.uinf, app.physicsparam,
-                   common.time, common.modelnumber, nga,
-                   common.nc, common.ncu, common.nd, common.ncx,
-                   common.nco, common.ncw);
+    Int nc = common.nc;
+    Int ncu = common.ncu;
+    Int ncw = common.ncw;
+    Int nco = common.nco;
+    Int ncx = common.ncx;
+    Int nd  = common.nd;
+    Int numPoints = nga;
+    Int Mn = numPoints * ncu;
+    Int N  = numPoints * ncu * nd;
+    dstype time = common.time;
+
+    // Stash u-component of udg into f_uhg; replace u with uhg
+    // (so udg = (uh, q) for the flux call).
+    ArrayCopy(f_uhg, udg, numPoints * ncu);
+    ArrayCopy(udg,   uhg, numPoints * ncu);
+
+    // f, f_udg, f_wdg via templated HDG flux kernel at (uh, q).
+    hdg_flux_kernel<M>(f, f_udg, f_wdg, xg, udg, odg, wdg,
+                       app.uinf, app.physicsparam, time,
+                       common.modelnumber, numPoints, nc, ncu, nd,
+                       ncx, nco, ncw);
+
+    // Restore u-component of udg.
+    ArrayCopy(udg, f_uhg, numPoints * ncu);
+
+    // Dot-normal: f.n, f_udg.n (per nc-block), f_wdg.n (per ncw-block).
+    FluxDotNormal(f, f, nl, Mn, numPoints, nd);
+    for (int n = 0; n < nc; n++) {
+        FluxDotNormal(&f_udg[Mn * n], &f_udg[N * n], nl, Mn, numPoints, nd);
+    }
+    if ((ncw > 0) & (common.wave == 0)) {
+        for (int n = 0; n < ncw; n++) {
+            FluxDotNormal(&f_wdg[Mn * n], &f_wdg[N * n], nl, Mn, numPoints, nd);
+        }
+    }
+
+    // Move u-block of f_udg (∂(f.n)/∂u) into f_uhg as starting point;
+    // zero f_udg's u-block; then add stabilization: f += tau*(u - uh),
+    // f_udg += tau (on u-block), f_uhg -= tau (on uh-block).
+    ArrayCopy(f_uhg, f_udg, numPoints * ncu * ncu);
+    ArraySetValue(f_udg, zero, numPoints * ncu * ncu);
+    AddStabilization1(f, f_udg, f_uhg, udg, uhg, app.tau, Mn, numPoints);
+}
+
+// FhatDriver — HDG single-block, value-only, with `u` scratch.
+// Pattern: FhatDriver(fh, u, xg, udg, odg, wdg, uhg, nlg, ..., nga, backend).
+// Mirrors `backend/Model/ModelDrivers.cpp:614`. Computes the standard
+// HDG numerical flux Fhat = Flux(uhat, q) · n + tau * (u - uhat).
+// The `u` argument is workspace for stashing udg's u-component while
+// the flux is evaluated at (uhat, q).
+template <class M>
+inline void FhatDriver(dstype* fh, dstype* u, const dstype* xg,
+                       dstype* udg, const dstype* odg, const dstype* wdg,
+                       const dstype* uhg, dstype* nlg,
+                       meshstruct& /*mesh*/, masterstruct& /*master*/,
+                       appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
+                       commonstruct& common, Int nga, Int /*backend*/)
+{
+    Int nc  = common.nc;
+    Int ncu = common.ncu;
+    Int ncw = common.ncw;
+    Int nco = common.nco;
+    Int ncx = common.ncx;
+    Int nd  = common.nd;
+    Int numPoints = nga;
+    Int Mn = numPoints * ncu;
+    dstype time = common.time;
+
+    // Stash u-component, swap in uhg.
+    ArrayCopy(u,   udg, numPoints * ncu);
+    ArrayCopy(udg, uhg, numPoints * ncu);
+
+    // Flux at (uh, q), value-only.
+    flux_kernel<M>(fh, xg, udg, odg, wdg, app.uinf, app.physicsparam, time,
+                   common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);
+
+    // Restore u-component.
+    ArrayCopy(udg, u, numPoints * ncu);
+
+    // Dot-normal then add stabilization.
+    FluxDotNormal(fh, fh, nlg, Mn, numPoints, nd);
+    AddStabilization1(fh, udg, uhg, app.tau, Mn);
 }
 
 // FbouDriver — single-block form (HDG path), value-only: `nga, ib, backend`.
+// Calls `M::fbou_hdg` (boundary condition like `-tau*uhat`), matching
+// legacy `HdgFbouonly` from `backend/Model/HdgFbouonly.cpp`. NOT
+// `M::fbou`, which is the LDG numerical flux used by the LDG path.
 template <class M>
 inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg,
                        const dstype* odg, const dstype* wdg,
@@ -447,11 +534,11 @@ inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg,
                        appstruct& app, solstruct& /*sol*/, tempstruct& /*temp*/,
                        commonstruct& common, Int nga, Int ib, Int /*backend*/)
 {
-    fbou_kernel<M>(fb, xg, udg, odg, wdg, uhg, nl, app.tau,
-                   app.uinf, app.physicsparam,
-                   common.time, common.modelnumber, ib, nga,
-                   common.nc, common.ncu, common.nd, common.ncx,
-                   common.nco, common.ncw);
+    hdg_fbou_only_kernel<M>(fb, xg, udg, odg, wdg, uhg, nl, app.tau,
+                            app.uinf, app.physicsparam,
+                            common.time, common.modelnumber, ib, nga,
+                            common.nc, common.ncu, common.nd, common.ncx,
+                            common.nco, common.ncw);
 }
 
 template <class M>
