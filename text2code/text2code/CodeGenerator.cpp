@@ -170,10 +170,14 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
     os << "        if (ssv.hessianInputs[i].size() > 0) ssv.funcjachess2cppfiles(f, funcname, funcname, i, append);\n";
     os << "      }\n";
     os << "    }\n";
-    os << "  }\n";
+    os << "  }\n\n";
+
+    // HOT.4: emit a single header-only `my_model.hpp` for the templated path.
+    // Coexists with the legacy per-kernel `.cpp` + `.so` emission above.
+    os << "  ssv.generateModelHeader(ssv.modelpath + \"my_model.hpp\");\n";
     os << "}\n";
-    
-    os.close();  
+
+    os.close();
 }
 
 void CodeGenerator::generateCudaHipHpp(const std::string& filename) const {  
@@ -652,11 +656,24 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     os << "    void appendFbouHdg(const std::string& filename, const std::string& funcname, int nbc);\n";
     
     os << "    void appendFextonly(const std::string& filename, const std::string& funcname, int nbc);\n";
-    os << "    void appendFext(const std::string& filename, const std::string& funcname, int nbc);\n";
+    os << "    void appendFext(const std::string& filename, const std::string& funcname, int nbc);\n\n";
+
+    // HOT.4: emit a single header-only `my_model.hpp` (the templated path).
+    os << "    // Emit a single header-only `my_model.hpp` consumable by\n";
+    os << "    // `<exasim/model.hpp>`'s templated FEM internals (HOT.4).\n";
+    os << "    void emit_pointwise_value(std::ostream& os, const std::string& method_name,\n";
+    os << "                              const std::string& cpp_signature,\n";
+    os << "                              const std::vector<Expression>& f, int functionid);\n";
+    os << "    void emit_pointwise_value_and_jac(std::ostream& os, const std::string& value_method_name,\n";
+    os << "                                     const std::vector<std::string>& jac_method_names,\n";
+    os << "                                     const std::string& cpp_signature_value,\n";
+    os << "                                     const std::vector<std::string>& cpp_signatures_jac,\n";
+    os << "                                     const std::vector<Expression>& f, int functionid);\n";
+    os << "    void generateModelHeader(const std::string& filename);\n";
 
     os << "};\n";
-    
-    os.close();  
+
+    os.close();
 }
 
 void emitSymbolicScalarsVectors(std::ostream& os, const ParsedSpec& spec) {
@@ -1645,11 +1662,87 @@ void emitFext(std::ostream& os) {
     os << "    }\n\n";
     
     os << "    tmp << \"}\\n\";\n\n";
-    
-    os << "    std::ofstream cppfile(filename + \".cpp\", std::ios::out | std::ios::app);\n";    
+
+    os << "    std::ofstream cppfile(filename + \".cpp\", std::ios::out | std::ios::app);\n";
     os << "    cppfile << tmp.str();\n";
     os << "    cppfile.close();\n";
     os << "}\n";
+}
+
+// HOT.4: emit `SymbolicScalarsVectors::emit_pointwise_value`,
+// `emit_pointwise_value_and_jac`, and `generateModelHeader` into the
+// generated `SymbolicScalarsVectors.cpp`. These produce a single
+// `my_model.hpp` consumable by the templated FEM internals
+// (<exasim/model.hpp>), replacing the per-kernel `.cpp` + `.so`
+// emission for users on the templated path.
+//
+// Semantics: the emitted `generateModelHeader` walks the same output
+// list as `Code2Cpp.cpp`'s main loop, but writes one struct method
+// per output (and per-Jacobian method for HDG paths) into one header
+// file, instead of one `.cpp` per kernel family.
+//
+// Conventions enforced by the emitted code:
+//   - Method signatures match `<exasim/model.hpp>`'s contract:
+//       flux(double f[], const double x[], const double uq[],
+//            const double w[], const double mu[],
+//            const double uinf[], double t)
+//     — pointwise (no `[k*N+i]`), no `Kokkos::parallel_for`.
+//   - Name remap: pdemodel.txt's `eta` → `uinf`, `uhat` → `uh`. All
+//     other names (`x`, `uq`, `w`, `mu`, `n`, `tau`, `t`) match the
+//     contract verbatim.
+//   - Per-ib boundary dispatch (Fbou/FbouHdg/Ubou) is rendered as
+//     `if (ib == 1) { ... } else if (ib == 2) { ... }` inside the
+//     method body.
+//   - HDG Jacobian layout matches text2code's existing `funcjac2cse`
+//     output: column-major `J[j * (ncu*nd) + i] = ∂f[i]/∂uq[j]`.
+//     The kernels in `<exasim/kernels/*.hpp>` already consume that.
+//   - The struct is named `GeneratedModel` and inherits from
+//     `exasim::ModelDefaults<GeneratedModel>`, so any optional method
+//     not present in `pdemodel.txt` falls back to a zero-fill default.
+void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
+    // Pull compile-time sizes from the parsed spec so the emitted
+    // header has the right `static constexpr` block.
+    auto get_size = [&](const std::string& name) -> int {
+        auto it = spec.vectors.find(name);
+        return it == spec.vectors.end() ? 0 : it->second;
+    };
+    int nd     = get_size("x");
+    int ncu    = get_size("uhat");
+    int ncw    = get_size("w");
+    int nco    = get_size("v");
+    int nparam = get_size("mu");
+
+    os << "void SymbolicScalarsVectors::generateModelHeader(const std::string& filename) {\n";
+    os << "    std::ofstream hfile(filename, std::ios::out | std::ios::trunc);\n\n";
+
+    os << "    hfile << \"// Auto-generated by text2code. Do not edit by hand.\\n\";\n";
+    os << "    hfile << \"// Regenerate with `text2code <pdeapp.txt>`.\\n\";\n";
+    os << "    hfile << \"//\\n\";\n";
+    os << "    hfile << \"// This header is consumed by `<exasim/model.hpp>`'s templated FEM\\n\";\n";
+    os << "    hfile << \"// internals. The struct below satisfies the Model contract; the\\n\";\n";
+    os << "    hfile << \"// inherited `ModelDefaults<GeneratedModel>` supplies zero-fill\\n\";\n";
+    os << "    hfile << \"// defaults for any optional method this PDE doesn't define.\\n\";\n";
+    os << "    hfile << \"#pragma once\\n\\n\";\n";
+    os << "    hfile << \"#include <Kokkos_Core.hpp>\\n\";\n";
+    os << "    hfile << \"#include <exasim/model.hpp>\\n\\n\";\n";
+
+    os << "    hfile << \"struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {\\n\";\n";
+    os << "    hfile << \"    static constexpr int nd     = " << nd     << ";\\n\";\n";
+    os << "    hfile << \"    static constexpr int ncu    = " << ncu    << ";\\n\";\n";
+    os << "    hfile << \"    static constexpr int ncw    = " << ncw    << ";\\n\";\n";
+    os << "    hfile << \"    static constexpr int nco    = " << nco    << ";\\n\";\n";
+    os << "    hfile << \"    static constexpr int nparam = " << nparam << ";\\n\";\n";
+    os << "    hfile << \"    static constexpr auto disc  = exasim::Discretization::HDG;\\n\";\n";
+    os << "    hfile << \"    static constexpr int Nq = ncu * (1 + nd);\\n\\n\";\n";
+
+    // Method bodies will be added in subsequent commits. This
+    // initial cut emits the shell only, so a downstream consumer
+    // that #includes the header gets a struct that satisfies the
+    // Model contract via the ModelDefaults zero-fill — wrong
+    // numerics, but compiles and exercises the dispatch path.
+    os << "    hfile << \"};\\n\";\n";
+    os << "    hfile.close();\n";
+    os << "}\n\n";
 }
 
 void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filename) const {
@@ -1680,10 +1773,13 @@ void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filenam
     emitFbouHdg(os);
 
     emitFextonly(os);
-    
+
     emitFext(os);
-    
-    os.close();  
+
+    // HOT.4: emit the `my_model.hpp` writer alongside the legacy emitters.
+    emitGenerateModelHeader(os, spec);
+
+    os.close();
 }
 
 void CodeGenerator::generateEmptySourcewCpp(std::string modelpath) const {  
