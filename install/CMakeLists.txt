@@ -424,9 +424,15 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
   # retargeted text2code (not hand-written). Each gates against
   # the corresponding legacy baseline by `outqoi.txt` match.
   function(add_codegen_example name)
+    set(_main "${EXASIM_DIR}/apps/library_example/${name}_codegen/main.cpp")
+    # Skip apps that haven't been ported yet — `port_codegen.sh <name>`
+    # creates the directory + main.cpp on demand.
+    if(NOT EXISTS "${_main}")
+      message(STATUS "Skipping ${name}_codegen — main.cpp not present (run apps/library_example/port_codegen.sh ${name})")
+      return()
+    endif()
     if(EXASIM_NOMPI)
-      add_executable(${name}_codegen
-          ${EXASIM_DIR}/apps/library_example/${name}_codegen/main.cpp)
+      add_executable(${name}_codegen "${_main}")
       target_compile_definitions(${name}_codegen PRIVATE _TEXT2CODE)
       target_compile_options(${name}_codegen PRIVATE -std=c++17 -w -O2)
       target_include_directories(${name}_codegen PRIVATE
@@ -443,6 +449,23 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
   add_codegen_example(poisson3d)
   add_codegen_example(periodic)
   add_codegen_example(naca0012steady)
+  add_codegen_example(lshape)
+  add_codegen_example(isoq3d)
+  add_codegen_example(cone)
+  add_codegen_example(orion)
+  # Apps not supported by the current codegen contract:
+  #   - poisson1d: pdemodel.txt declares `vectors x(2)` but runtime has
+  #     nd=1 — codegen bakes nd=2 from pdemodel, runtime asserts ncu/nd
+  #     mismatch and aborts. (Latent bug in the source pdemodel — fix
+  #     would be to read nd from grid.bin, not vector x size.)
+  #   - nsmach8/isoq/sharpb2: use `v(>0)` (auxiliary `odg` field) which
+  #     <exasim/model.hpp> doesn't expose to user methods. Adding `odg`
+  #     to the contract is its own task.
+  #   - naca0012unsteady: torder=2 / DIRK time stepping needs Sourcew +
+  #     time-derivative kernels not yet emitted by the retargeted
+  #     text2code. Code path otherwise works.
+  #   - reactingsharpb2: builtinmodelID=4, math is in a hidden code
+  #     path the codegen doesn't see.
 endif()
 
 # ======================================================================

@@ -1,7 +1,13 @@
-# Codegen example apps regenerate `grid.bin`, `datain/`, and `dataout/`
-# via `bash regenerate.sh`. Don't commit them — some are megabytes
-# (cone's grid.bin alone is ~4 MB).
+# Codegen example apps regenerate `grid.bin`, `pdemodel.txt`, `datain/`,
+# `dataout/`, and companion bins (xdg/udg/vdg/wdg/partition) via
+# `bash regenerate.sh`. Don't commit them — some are megabytes (cone's
+# grid.bin alone is ~4 MB).
 *_codegen/grid.bin
 *_codegen/datain/
 *_codegen/dataout/
 *_codegen/pdemodel.txt
+*_codegen/xdg.bin
+*_codegen/udg.bin
+*_codegen/vdg.bin
+*_codegen/wdg.bin
+*_codegen/partition.bin

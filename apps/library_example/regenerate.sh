@@ -55,6 +55,15 @@ fi
 cp "$SRC_DIR/grid.bin"     "$CG_DIR/grid.bin"
 cp "$SRC_DIR/pdemodel.txt" "$CG_DIR/pdemodel.txt"
 
+# Copy any optional companion bins the app's pdeapp.txt expects.
+# (isoq3d has xdg.bin; NS apps often have udg/vdg/wdg/xdg.bin for
+# initial conditions; some have partition.bin from earlier runs.)
+for opt in xdg.bin udg.bin vdg.bin wdg.bin partition.bin; do
+    if [ -f "$SRC_DIR/$opt" ]; then
+        cp "$SRC_DIR/$opt" "$CG_DIR/$opt"
+    fi
+done
+
 cd "$CG_DIR"
 "$ROOT/build/text2code" ./pdeapp.txt >/dev/null
 

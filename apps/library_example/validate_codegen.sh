@@ -25,7 +25,8 @@ BUILD="$ROOT/build"
 
 EXAMPLES=("$@")
 if [ ${#EXAMPLES[@]} -eq 0 ]; then
-    EXAMPLES=(poisson2d poisson3d periodic naca0012steady)
+    EXAMPLES=(poisson2d poisson3d periodic naca0012steady
+              lshape isoq3d cone orion)
 fi
 
 fail=0
