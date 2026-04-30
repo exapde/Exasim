@@ -68,26 +68,28 @@ void hdg_fbou_kernel(dstype* fb, dstype* f_udg, dstype* f_wdg, dstype* f_uhg,
         for (int k = 0; k < nd;  ++k) n [k] = nlg[k * ng + i];
         for (int k = 0; k < ncu; ++k) t_[k] = tau[k];
 
-        // Value
+        // Value — note: HDG path calls fbou_hdg, NOT fbou. Every PDE
+        // in apps/ defines `Fbou` (LDG) and `FbouHdg` (HDG) as
+        // distinct math; mixing them gives a wrong residual.
         double fb_local[ncu];
-        M::fbou(fb_local, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
+        M::fbou_hdg(fb_local, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
         for (int k = 0; k < ncu; ++k) fb[k * ng + i] = fb_local[k];
 
-        // ∂fb/∂uq
+        // ∂fb/∂uq (Jacobian of fbou_hdg, not fbou)
         double fb_uq[ncu * Nq];
-        M::fbou_jac_uq(fb_uq, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
+        M::fbou_hdg_jac_uq(fb_uq, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
         for (int k = 0; k < ncu * Nq; ++k) f_udg[k * ng + i] = fb_uq[k];
 
         // ∂fb/∂w
         if constexpr (ncw > 0) {
             double fb_w[ncu * ncw];
-            M::fbou_jac_w(fb_w, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
+            M::fbou_hdg_jac_w(fb_w, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
             for (int k = 0; k < ncu * ncw; ++k) f_wdg[k * ng + i] = fb_w[k];
         }
 
         // ∂fb/∂uh
         double fb_uh[ncu * ncu];
-        M::fbou_jac_uh(fb_uh, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
+        M::fbou_hdg_jac_uh(fb_uh, ib, x, uq, w, uh, n, t_, param, /*uinf=*/nullptr, t);
         for (int k = 0; k < ncu * ncu; ++k) f_uhg[k * ng + i] = fb_uh[k];
     });
 }

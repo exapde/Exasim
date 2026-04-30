@@ -13,6 +13,29 @@
 // base) supplies zero-fill no-op implementations of every optional
 // method so users override only what their PDE actually has.
 //
+// Boundary identification is NOT part of the Model contract
+// ---------------------------------------------------------
+// The user's `M::fbou(...)`, `M::ubou(...)`, `M::qoi_boundary(...)`
+// methods receive an integer `ib` boundary tag and dispatch on it:
+//
+//   void fbou(double fb[], int ib, …) {
+//       if (ib == 1)      { /* wall */ }
+//       else if (ib == 2) { /* inflow */ }
+//       …
+//   }
+//
+// The mapping from physical geometry to the integer `ib` happens at
+// the runtime / preprocessing layer, not here. Users still write the
+// usual `pdeapp.txt` config:
+//
+//   boundaryconditions  = [1, 2, 1, 3];
+//   boundaryexpressions = ["abs(y)<1e-8", "x>9-1e-2", …];
+//
+// Preprocessing's `tinyexpr` evaluator parses the expression strings,
+// tags each mesh face with the matching integer, and the kernels see
+// only the resulting `int ib`. Curved-boundary expressions and
+// periodic boundary matching are also preprocessing-layer concerns.
+//
 // Storage layout convention
 // -------------------------
 // The kernels see SoA buffers laid out as:
@@ -47,8 +70,30 @@
 //   static constexpr int ncw;      // # auxiliary scalar fields (often 0)
 //   static constexpr int nparam;   // # physics parameters
 //
+//   // Optional (default 0 from ModelDefaults<Self>):
+//   static constexpr int nco;      // # "other DG" auxiliary fields
+//                                  // (the `v` / `odg` arrays in
+//                                  // libpdemodel and text2code's DSL)
+//
 //   // Derived (provided by ModelDefaults<Self>; users may override):
 //   static constexpr int Nq = ncu * (1 + nd);
+//
+// Naming alignment with the text2code DSL (pdemodel.txt) and the
+// libpdemodel.hpp ABI:
+//
+//   text2code DSL    libpdemodel ABI    Model contract (this file)
+//   ─────────────────────────────────────────────────────────────
+//   x                xdg                x[]    (spatial coords)
+//   uq               udg                uq[]   ((u, ∇u) packed)
+//   v                odg                — (only nco; not pointwise)
+//   w                wdg                w[]    (auxiliary scalars)
+//   uhat             uhg                uh[]   (HDG trace)
+//   n                nlg                n[]    (face normal)
+//   tau              tau                tau[]  (stabilization)
+//   mu               param              mu[]   (physics params)
+//   eta              uinf               uinf[] (free-stream / reference)
+//   uext             uext               uext[] (Fext only; multi-domain)
+//   t                time               t      (current time)
 //
 // Required pointwise functions
 // ----------------------------
@@ -141,6 +186,13 @@ struct ModelDefaults {
     // disc = exasim::Discretization::HDG;` in the derived struct.
     static constexpr Discretization disc = Discretization::LDG;
 
+    // Default count of "other DG" auxiliary fields (the `v` / `odg`
+    // arrays in libpdemodel and the text2code DSL `vectors v(nco)`).
+    // Most PDEs leave this at 0; only models with an external scalar
+    // field (artificial viscosity, level-set, … plumbed through `odg`)
+    // override.
+    static constexpr int nco = 0;
+
     // Helper: zero-fill an output buffer of size N at compile time.
     template <int N>
     KOKKOS_INLINE_FUNCTION static void zero_fill_(double f[]) {
@@ -207,6 +259,24 @@ struct ModelDefaults {
               const double /*w*/[],  const double /*uh*/[],
               const double /*n*/[],  const double /*tau*/[],
               const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
+        zero_fill_<Self::ncu>(fb);
+    }
+
+    // HDG boundary residual — distinct from `fbou`.
+    //
+    // In every example PDE in apps/, `Fbou` (LDG path) and `FbouHdg`
+    // (HDG path) are *different math*: `Fbou` is the boundary flux
+    // contribution in a volume residual; `FbouHdg` is the trace-side
+    // residual that pins the hybrid trace `uhat`. Same signature
+    // shape; the HDG kernels in <exasim/kernels/boundary.hpp> route
+    // through `fbou_hdg` and its three companion Jacobians:
+    //   fbou_hdg_jac_uq, fbou_hdg_jac_w, fbou_hdg_jac_uh
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg(double fb[], int /*ib*/,
+                  const double /*x*/[],  const double /*uq*/[],
+                  const double /*w*/[],  const double /*uh*/[],
+                  const double /*n*/[],  const double /*tau*/[],
+                  const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
         zero_fill_<Self::ncu>(fb);
     }
 
@@ -388,25 +458,71 @@ struct ModelDefaults {
         }
     }
 
+    // LDG-path boundary Jacobians. These are not currently consumed by
+    // any kernel — text2code's libpdemodel.hpp ABI has `KokkosFbou`
+    // (LDG, value-only) and `HdgFbou` (HDG, value + Jacobians) but no
+    // LDG-path Jacobians. Kept in the contract for completeness in
+    // case a future numerical scheme needs them.
     KOKKOS_INLINE_FUNCTION static
-    void fbou_jac_uq(double fb_uq[], int /*ib*/, const double[], const double[],
-                     const double[], const double[], const double[], const double[],
-                     const double[], const double[], double) {
+    void fbou_jac_uq(double fb_uq[], int /*ib*/,
+                     const double /*x*/[],  const double /*uq*/[],
+                     const double /*w*/[],  const double /*uh*/[],
+                     const double /*n*/[],  const double /*tau*/[],
+                     const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
         constexpr int Nq = Self::ncu * (1 + Self::nd);
         for (int k = 0; k < Self::ncu * Nq; ++k) fb_uq[k] = 0.0;
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void fbou_jac_uh(double fb_uh[], int /*ib*/, const double[], const double[],
-                     const double[], const double[], const double[], const double[],
-                     const double[], const double[], double) {
+    void fbou_jac_uh(double fb_uh[], int /*ib*/,
+                     const double /*x*/[],  const double /*uq*/[],
+                     const double /*w*/[],  const double /*uh*/[],
+                     const double /*n*/[],  const double /*tau*/[],
+                     const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
         for (int k = 0; k < Self::ncu * Self::ncu; ++k) fb_uh[k] = 0.0;
     }
 
     KOKKOS_INLINE_FUNCTION static
-    void fbou_jac_w(double fb_w[], int /*ib*/, const double[], const double[],
-                    const double[], const double[], const double[], const double[],
-                    const double[], const double[], double) {
+    void fbou_jac_w(double fb_w[], int /*ib*/,
+                    const double /*x*/[],  const double /*uq*/[],
+                    const double /*w*/[],  const double /*uh*/[],
+                    const double /*n*/[],  const double /*tau*/[],
+                    const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
+        if constexpr (Self::ncw > 0) {
+            for (int k = 0; k < Self::ncu * Self::ncw; ++k) fb_w[k] = 0.0;
+        }
+    }
+
+    // HDG-path boundary Jacobians (companions to `fbou_hdg`). These
+    // ARE consumed by `hdg_fbou_kernel<M>` in
+    // <exasim/kernels/boundary.hpp>: the user MUST override them to
+    // get a converging HDG Newton solve. Defaults zero-fill so that
+    // LDG-only models compile without writing empty stubs.
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg_jac_uq(double fb_uq[], int /*ib*/,
+                         const double /*x*/[],  const double /*uq*/[],
+                         const double /*w*/[],  const double /*uh*/[],
+                         const double /*n*/[],  const double /*tau*/[],
+                         const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
+        constexpr int Nq = Self::ncu * (1 + Self::nd);
+        for (int k = 0; k < Self::ncu * Nq; ++k) fb_uq[k] = 0.0;
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg_jac_uh(double fb_uh[], int /*ib*/,
+                         const double /*x*/[],  const double /*uq*/[],
+                         const double /*w*/[],  const double /*uh*/[],
+                         const double /*n*/[],  const double /*tau*/[],
+                         const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
+        for (int k = 0; k < Self::ncu * Self::ncu; ++k) fb_uh[k] = 0.0;
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void fbou_hdg_jac_w(double fb_w[], int /*ib*/,
+                        const double /*x*/[],  const double /*uq*/[],
+                        const double /*w*/[],  const double /*uh*/[],
+                        const double /*n*/[],  const double /*tau*/[],
+                        const double /*mu*/[], const double /*uinf*/[], double /*t*/) {
         if constexpr (Self::ncw > 0) {
             for (int k = 0; k < Self::ncu * Self::ncw; ++k) fb_w[k] = 0.0;
         }
@@ -414,6 +530,53 @@ struct ModelDefaults {
     // (fhat_jac_*, stab_jac_*, eos_jac_* follow the same shape; added
     // when the corresponding kernel template is wired up.)
 };
+
+// ===========================================================================
+// Deferred surface — recorded for v2 / multi-domain coupling
+// ===========================================================================
+//
+// `apps/poisson/poisson2d/pdemodel2.txt` and the `HdgFint*` / `HdgFext*`
+// libpdemodel.hpp ABI symbols document a multi-domain HDG path that the
+// header-only port does not yet cover:
+//
+//   M::fint        (out, ib, x, uq, w, uh, n, tau, mu, uinf, t)
+//   M::fint_jac_uq (...)
+//   M::fint_jac_w  (...)
+//   M::fint_jac_uh (...)
+//   M::fext        (out, ib, x, uq, w, uh, n, uext, tau, mu, uinf, t)
+//   M::fext_jac_uq (...)
+//   M::fext_jac_w  (...)
+//   M::fext_jac_uh (...)
+//
+// `Fint` is the HDG trace residual on internal model interfaces; `Fext`
+// adds an extra input array `uext` carrying the trace from a
+// neighbouring PDE model so the user can write coupling residuals like
+// `fb[0] = uext[0] - uh[0]`.
+//
+// Out of scope for v1 because:
+//   - single-domain HDG (Poisson, single Navier-Stokes, etc.) does not
+//     reach these code paths;
+//   - `uext` requires plumbing a foreign-model trace through the kernel
+//     dispatch, which interacts with how multiple `CSolution<Model>`
+//     instances are orchestrated by the runtime;
+//   - none of the canonical apps in apps/poisson/* or apps/navierstokes/*
+//     except poisson2d/pdemodel2.txt define `Fint`/`Fext`.
+//
+// When implementing: add `static constexpr bool has_external_coupling`
+// to the contract, gate the `fext`-related kernel calls behind it, and
+// extend `<exasim/kernels/boundary.hpp>` with `fint_kernel<M>` /
+// `fext_kernel<M, OtherModel>` (the second template arg supplies the
+// foreign model whose trace lands in `uext`).
+//
+// Also deferred to v2:
+//   - `hessian` declarations from text2code's DSL: second-derivative
+//     methods for Galerkin schemes that need them. None of the
+//     reference apps populate `hessian …`.
+//   - Multi-model dispatch via runtime `modelnumber` (text2code's
+//     KokkosFlux1/KokkosFlux2 split). In the templated world a user
+//     orchestrates by instantiating `CSolution<Model1>`,
+//     `CSolution<Model2>` separately, so kernels see only one Model
+//     at a time and `modelnumber` becomes a no-op.
 
 // ---- Compile-time concept-style checks ----
 //
