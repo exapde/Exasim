@@ -177,13 +177,6 @@ public:
 
         pde_.mpiprocs = mpiprocs;
 
-        CPreprocessing preproc(pde_, params_, spec_, mpirank, mpiprocs);
-        preproc.mesh = meshFromArrays(mesh_p_.data(), mesh_t_.data(),
-                                      mesh_np_, mesh_ne_, mesh_nve_, M::nd,
-                                      preproc.params, preproc.pde);
-        auto pre = preproc.take();
-
-        const std::string fileout = pde_.dataoutpath + "/out";
         // Backend matches the binary's compile-time defines. Same
         // convention <exasim/run.hpp> uses for the legacy main path.
         int backend = 0;
@@ -196,11 +189,40 @@ public:
 #ifdef HAVE_HIP
         backend = 3;
 #endif
+        const std::string fileout = pde_.dataoutpath + "/out";
         const int gpuid      = 0;
         const int fileoffset = 0;
-        solver_ = std::make_unique<CSolution<M>>(
-            std::move(pre), fileout, pde_.exasimpath,
-            mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+
+        CPreprocessing preproc(pde_, params_, spec_, mpirank, mpiprocs);
+        preproc.mesh = meshFromArrays(mesh_p_.data(), mesh_t_.data(),
+                                      mesh_np_, mesh_ne_, mesh_nve_, M::nd,
+                                      preproc.params, preproc.pde);
+
+        if (mpiprocs == 1) {
+            // Single-rank: in-memory ABI all the way (HOT.7.3 + 7.4).
+            auto pre = preproc.take();
+            pre.save_outputs = (pde_.saveOutputs != 0);
+            solver_ = std::make_unique<CSolution<M>>(
+                std::move(pre), fileout, pde_.exasimpath,
+                mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+        } else {
+#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
+            // Multi-rank: ParallelPreprocessing writes the
+            // datain/{app,master,mesh,sol}.bin per rank; CSolution
+            // reads them back. The in-memory ABI for MPI is queued
+            // for HOT.7.8 (extending take() to ParMETIS-partitioned
+            // local meshes).
+            std::filesystem::create_directories(pde_.datainpath);
+            std::filesystem::create_directories(pde_.dataoutpath);
+            preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
+            const std::string filein = pde_.datainpath + "/";
+            solver_ = std::make_unique<CSolution<M>>(
+                filein, fileout, pde_.exasimpath,
+                mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+#else
+            error("ExasimSolver::solve(): mpiprocs > 1 requires HAVE_PARMETIS + HAVE_MPI.");
+#endif
+        }
 
         // CSolution expects the multi-model bookkeeping arrays even
         // for a single-model run (see <exasim/run.hpp> ~line 358).
