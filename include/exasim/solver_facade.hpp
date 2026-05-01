@@ -198,31 +198,31 @@ public:
                                       mesh_np_, mesh_ne_, mesh_nve_, M::nd,
                                       preproc.params, preproc.pde);
 
-        if (mpiprocs == 1) {
-            // Single-rank: in-memory ABI all the way (HOT.7.3 + 7.4).
-            auto pre = preproc.take();
-            pre.save_outputs = (pde_.saveOutputs != 0);
-            solver_ = std::make_unique<CSolution<M>>(
-                std::move(pre), fileout, pde_.exasimpath,
-                mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
-        } else {
-#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
-            // Multi-rank: ParallelPreprocessing writes the
-            // datain/{app,master,mesh,sol}.bin per rank; CSolution
-            // reads them back. The in-memory ABI for MPI is queued
-            // for HOT.7.8 (extending take() to ParMETIS-partitioned
-            // local meshes).
-            std::filesystem::create_directories(pde_.datainpath);
-            std::filesystem::create_directories(pde_.dataoutpath);
-            preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
-            const std::string filein = pde_.datainpath + "/";
-            solver_ = std::make_unique<CSolution<M>>(
-                filein, fileout, pde_.exasimpath,
-                mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
-#else
-            error("ExasimSolver::solve(): mpiprocs > 1 requires HAVE_PARMETIS + HAVE_MPI.");
-#endif
+        if (mpiprocs > 1) {
+            // The serial `meshFromArrays` output doesn't carry the
+            // distributed metadata (elemGlobalID, nodeGlobalID,
+            // elmdist, ne_global) that callParMetis / initializeDMD
+            // expect. The proper fix is a distributed-mesh API
+            // (`set_mesh_distributed(...)` + a parallel buildMeshStruct
+            // path). Until then, MPI users have two options:
+            //   (a) compile with mpiprocs=1 and parallelize at a
+            //       higher level (one solver per rank, no mesh
+            //       partitioning);
+            //   (b) drop down to the legacy file-driven path —
+            //       write a pdeapp.txt + grid.bin, run text2code or
+            //       ParallelPreprocessing manually, then construct
+            //       CSolution<M>(filein, ...) directly. See §6 of
+            //       doc/tutorial_cpu_gpu_mpi.md.
+            error("ExasimSolver::solve(): mpiprocs > 1 not yet wired in the in-memory path "
+                  "(HOT.7.8). Use the file-driven CSolution<M>(filein, ...) ctor for now.");
         }
+
+        // Single-rank: in-memory ABI all the way (HOT.7.3 + 7.4).
+        auto pre = preproc.take();
+        pre.save_outputs = (pde_.saveOutputs != 0);
+        solver_ = std::make_unique<CSolution<M>>(
+            std::move(pre), fileout, pde_.exasimpath,
+            mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
 
         // CSolution expects the multi-model bookkeeping arrays even
         // for a single-model run (see <exasim/run.hpp> ~line 358).

@@ -1,25 +1,38 @@
-# Tutorial — CPU / GPU / MPI from scratch on a fresh machine
+# Tutorial — Solving a PDE with Exasim
 
-End-to-end walkthrough that builds Exasim, generates a model with
-`text2code`, and runs it on every supported backend:
+End-to-end walkthrough: bootstrap dependencies, write a `Model` in C++,
+solve on CPU / GPU / MPI / MPI+GPU.
+
+The primary path here is the **programmatic** one — you write a
+`Model` struct, build the mesh as flat arrays in C++, and call
+`exasim::ExasimSolver<MyModel>`. The runtime never touches `pdeapp.txt`
+or `datain/`/`dataout/`. The codegen path (write `pdemodel.txt`, run
+`text2code`, get `my_model.hpp` for free) is documented in §6 as a
+convenience for users who'd rather author math symbolically — both
+paths produce identical solver behavior.
+
+The four supported backends are configured by which Kokkos build
+prefix the binary links against and which `EXASIM_*` flags CMake
+sees. They are picked at compile time, not runtime; one source file
+plus four CMake targets is the standard setup:
 
 | variant            | what it is                          | binary suffix       |
 | ------------------ | ----------------------------------- | ------------------- |
-| CPU                | single-rank serial                  | `_codegen`          |
-| GPU                | single-rank CUDA or HIP (Kokkos)    | `_codegen_gpu`      |
-| MPI                | multi-rank serial CPU               | `_codegen_mpi`      |
-| MPI + GPU          | multi-rank GPU (one rank per device)| `_codegen_mpi_gpu`  |
+| CPU                | single-rank serial                  | _facade_            |
+| MPI                | multi-rank serial CPU               | _facade_mpi_        |
+| GPU                | single-rank CUDA or HIP             | _facade_gpu_        |
+| MPI + GPU          | multi-rank GPU (one rank per device)| _facade_mpi_gpu_    |
 
 Tested on Ubuntu 22.04 with CUDA 12.x on V100s. HIP follows the same
 script with `kokkos/buildhip` and `EXASIM_HIP=ON` substituted.
 
 ---
 
-## 1. Install deps
+## 1. Install dependencies
 
 Three deps are vendored in-tree (`kokkos/`, `text2code/symengine/`,
-`metis/`); two are external (`BLAS/LAPACK`, optional `MPI`, optional
-`CUDA`/`ROCm`). The vendored builds are how Exasim ships its known-good
+`metis/`); two are external (BLAS/LAPACK, optional MPI, optional CUDA
+or ROCm). The vendored builds are how Exasim ships its known-good
 versions — you don't need a system Kokkos.
 
 ### 1a. System packages
@@ -31,14 +44,13 @@ sudo apt install -y build-essential cmake git \
                     libmkl-dev    # optional but faster
 ```
 
-For GPU builds, install the CUDA toolkit (`nvcc` on PATH) or the ROCm
-toolchain (`hipcc` on PATH) ahead of time. CUDA 12.x and Kokkos 4.7 are
-the tested combination.
+For GPU builds, install the CUDA toolkit (`nvcc` on PATH) or ROCm
+(`hipcc` on PATH) ahead of time.
 
 ### 1b. OpenMPI with CUDA awareness
 
-If you're going to do MPI + GPU, OpenMPI must be built `--with-cuda` so
-ranks can pass device pointers directly. The system OpenMPI almost
+If you'll do MPI + GPU, OpenMPI must be built `--with-cuda` so ranks
+can pass device pointers directly. The system OpenMPI almost
 certainly is not.
 
 ```bash
@@ -57,15 +69,12 @@ PATH=/usr/local/cuda/bin:$PATH ./configure \
 make -j16 install
 
 export PATH=$MPI_PREFIX/bin:$PATH
-ompi_info | grep -i cuda           # should print: MPI extensions: ... cuda ...
+ompi_info | grep -i cuda           # must list `cuda` under MPI extensions
 ```
 
-For CPU-only MPI (no GPU), drop `--with-cuda=...` and `PATH=/usr/local/cuda/bin:`.
+For CPU-only MPI, drop `--with-cuda=…` and `PATH=/usr/local/cuda/bin:`.
 
-### 1c. Kokkos (vendored)
-
-Build serial and CUDA backends as separate prefixes. The CMake
-configuration picks one based on `EXASIM_CUDA` / `EXASIM_HIP`.
+### 1c. Kokkos (serial + CUDA prefixes)
 
 ```bash
 cd $EXASIM/kokkos
@@ -88,10 +97,10 @@ cmake .. -DCMAKE_INSTALL_PREFIX=$EXASIM/kokkos/buildcuda \
 make -j16 install
 ```
 
-For HIP, replace the second build with `Kokkos_ENABLE_HIP=ON
+For HIP, the second build uses `Kokkos_ENABLE_HIP=ON
 Kokkos_ARCH_VEGA90A=ON` (or your arch) and `CMAKE_CXX_COMPILER=hipcc`.
 
-### 1d. METIS / GKlib (vendored)
+### 1d. METIS / GKlib / ParMETIS
 
 ```bash
 cd $EXASIM/metis
@@ -100,7 +109,7 @@ cd GKlib && make config prefix=$EXASIM/metis/GKlib && make -j8 install && cd ..
 cd METIS && make config gklib_path=$EXASIM/metis/GKlib prefix=$EXASIM/metis/METIS \
                   shared=1 r64=1 i64=1 && make -j8 install && cd ..
 
-# Only needed for MPI variants — does not need r64=1/i64=1.
+# Only needed for MPI variants.
 PATH=$MPI_PREFIX/bin:$PATH cd ParMETIS && \
     make config gklib_path=$EXASIM/metis/GKlib \
                 metis_path=$EXASIM/metis/METIS \
@@ -109,40 +118,31 @@ PATH=$MPI_PREFIX/bin:$PATH cd ParMETIS && \
     make -j8 install
 ```
 
-### 1e. SymEngine (vendored, builds with text2code)
+### 1e. SymEngine + text2code (optional — only for the codegen path)
 
-`text2code` links SymEngine statically. The bundled SymEngine builds
-without GMP and uses Boost.Multiprecision so there are no external
-deps to chase.
+You only need these if you're going to use the §6 convenience path
+(write `pdemodel.txt`, generate `my_model.hpp` with `text2code`).
+The programmatic path doesn't link SymEngine or text2code.
 
 ```bash
 cd $EXASIM/text2code/symengine
 mkdir build && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=$EXASIM/text2code/symengine/build \
-         -DBUILD_SHARED_LIBS=OFF \
-         -DWITH_GMP=OFF \
-         -DINTEGER_CLASS=boostmp
+         -DBUILD_SHARED_LIBS=OFF -DWITH_GMP=OFF -DINTEGER_CLASS=boostmp
 make -j16 install
-```
 
-### 1f. text2code
-
-```bash
 cd $EXASIM/text2code/text2code
 cmake -S . -B build -DEXASIM_ROOT=$EXASIM
 cmake --build build -j8
 ```
 
-This produces `$EXASIM/build/text2code` (binary). It auto-runs once on
-the bundled `pdeapp.txt` as a smoke test — that's expected.
-
 ---
 
-## 2. Configure + install Exasim
+## 2. Configure and build Exasim
 
-Exasim ships as four flavors of the same template library. You pick
-which by configuring different build dirs against different Kokkos
-prefixes.
+Four build directories, one per backend. Each links the appropriate
+Kokkos prefix and sets the right `EXASIM_*` flags. Same source code
+in every case — the differences live in `CMakeLists.txt` flags.
 
 ```bash
 cd $EXASIM
@@ -184,265 +184,58 @@ PATH=/usr/local/cuda/bin:$MPI_PREFIX/bin:$PATH \
     cmake --build build_mpi_gpu -j8
 ```
 
-Each build produces:
-
-| build dir          | targets built                                |
-| ------------------ | -------------------------------------------- |
-| `build_cpu/`       | `<name>_codegen` for every example           |
-| `build_gpu/`       | `<name>_codegen_gpu`                         |
-| `build_mpi/`       | `<name>_codegen_mpi`                         |
-| `build_mpi_gpu/`   | `<name>_codegen_mpi_gpu`                     |
+Each build dir produces (among other targets) the matching
+`solve_square_facade*` example used in §3.
 
 To install Exasim system-wide:
 
 ```bash
 cmake --install build_cpu --prefix /opt/exasim
-cmake --install build_gpu --prefix /opt/exasim   # adds GPU libs to same prefix
+cmake --install build_gpu --prefix /opt/exasim   # adds GPU libs
 ```
 
-After `--install`, the prefix has:
+The prefix layout:
 
 ```
 /opt/exasim/
-├── bin/text2code           # generates my_model.hpp from pdemodel.txt
-├── include/exasim/         # public template headers
-├── include/backend/        # internal headers exasim/* depends on
-└── lib/cmake/Exasim/       # ExasimConfig.cmake for find_package
+├── bin/text2code            # convenience codegen tool (§6)
+├── include/exasim/          # public template headers
+├── include/backend/         # backend headers exasim/* depends on
+└── lib/cmake/Exasim/        # ExasimConfig.cmake for find_package
 ```
 
 ---
 
-## 3. Run a model
+## 3. Solve a PDE — the programmatic path
 
-Pick `poisson2d` (smallest example, 2D Poisson with manufactured
-solution). Each example has a runnable `pdeapp.txt` driving the
-solver.
+The whole flow lives in one `main()`. No `pdeapp.txt`, no
+`pdemodel.txt`, no `datain/` writes, no `dataout/` writes. Output
+comes back as a host pointer.
 
-```bash
-cd $EXASIM/apps/library_example/poisson2d_codegen
+We solve Poisson 2D with manufactured solution
+`u(x,y) = sin(πx) sin(πy)` on the unit square, source
+`s = 2π² sin(πx) sin(πy)`, Dirichlet `u = 0` on the boundary.
 
-# Generate my_model.hpp from pdemodel.txt
-$EXASIM/build/text2code pdeapp.txt          # or `text2code pdeapp.txt` if installed
+### 3.1 Write the Model (HDG)
 
-# Or use the convenience driver
-bash $EXASIM/apps/library_example/regenerate.sh poisson2d
-```
-
-Now run any of the four variants. They all consume the same `pdeapp.txt`:
-
-```bash
-# CPU
-$EXASIM/build_cpu/poisson2d_codegen pdeapp.txt
-
-# GPU
-$EXASIM/build_gpu/poisson2d_codegen_gpu pdeapp.txt
-
-# MPI (e.g. 2 ranks)
-PATH=$MPI_PREFIX/bin:$PATH \
-    mpirun -np 2 $EXASIM/build_mpi/poisson2d_codegen_mpi pdeapp.txt
-
-# MPI + GPU (one rank per GPU; for 2 GPUs use -np 2)
-PATH=$MPI_PREFIX/bin:$PATH \
-    mpirun -np 2 $EXASIM/build_mpi_gpu/poisson2d_codegen_mpi_gpu pdeapp.txt
-```
-
-Each writes `dataout/outudg_np<rank>.bin` (the discrete state),
-`dataout/outuhat_np<rank>.bin` (HDG trace), and `dataout/outqoi.txt`
-(scalar QoI integrand if the model defines `qoi_volume`/`qoi_boundary`).
-
-The bundled validation harness exercises every variant against the
-recorded baseline:
-
-```bash
-cd $EXASIM
-bash apps/library_example/validate_codegen.sh                     # CPU
-bash apps/library_example/validate_codegen.sh --variant gpu      --build build_gpu
-bash apps/library_example/validate_codegen.sh --variant mpi      --build build_mpi      --np 2
-bash apps/library_example/validate_codegen.sh --variant mpi_gpu  --build build_mpi_gpu  --np 2
-```
-
----
-
-## 4. External app via CMake
-
-The interesting case is consuming Exasim from a separate project,
-building against an installed Exasim.
-
-The runtime needs *some* type that satisfies the `Model` contract from
-`<exasim/model.hpp>` — that's it. You have two ways to produce one:
-
-- **Codegen path** — write `pdemodel.txt` (SymEngine DSL), run
-  `text2code` to emit `my_model.hpp`. This is the path most apps in
-  `apps/poisson/` and `apps/navierstokes/` take.
-- **Hand-written path** — write `my_model.hpp` directly. Inherit
-  `exasim::ModelDefaults<Self>` and override only the methods your
-  PDE needs. See `doc/getting_started.md` for a worked example. No
-  `pdemodel.txt`, no `text2code`, no SymEngine at runtime.
-
-Both paths produce the same `Model` template type that
-`exasim::run<M>(argc, argv)` instantiates. The choice is purely about
-how *you* prefer to author the pointwise math.
-
-Project layout (codegen path):
-
-```
-my_solver/
-├── CMakeLists.txt
-├── pdemodel.txt        # SymEngine DSL — your PDE (codegen path only)
-├── pdeapp.txt          # runtime config (always needed)
-├── grid.bin            # mesh
-└── main.cpp            # 3 lines (see below)
-```
-
-For the hand-written path, drop `pdemodel.txt` and add `my_model.hpp`
-to the source tree directly.
-
-### `main.cpp`
+Inherit `exasim::ModelDefaults<Self>` (CRTP) and override only what
+your PDE needs. Methods you don't supply default to zero-fill.
 
 ```cpp
 #include <exasim/run.hpp>
-#include "my_model.hpp"     // hand-written, OR generated by text2code
+#include <exasim/model.hpp>
+#include <exasim/solver_facade.hpp>
 
-int main(int argc, char** argv) {
-    return exasim::run<GeneratedModel>(argc, argv);
-    // ↑ name matches whatever `struct ... : ModelDefaults<...>` you
-    // wrote in my_model.hpp. text2code emits `GeneratedModel`;
-    // hand-written code can name it whatever (Poisson2D, NSEuler, etc.).
-}
-```
-
-### `CMakeLists.txt`
-
-```cmake
-cmake_minimum_required(VERSION 3.16)
-project(my_solver CXX)
-set(CMAKE_CXX_STANDARD 17)
-
-option(USE_GPU "build for CUDA/HIP" OFF)
-option(USE_MPI "build for MPI"      OFF)
-
-# Pick the matching Kokkos prefix for your backend.
-if(USE_GPU)
-    find_package(Kokkos REQUIRED PATHS /opt/exasim/external/kokkos/buildcuda
-                 NO_DEFAULT_PATH)
-else()
-    find_package(Kokkos REQUIRED PATHS /opt/exasim/external/kokkos/buildserial
-                 NO_DEFAULT_PATH)
-endif()
-
-if(USE_MPI)
-    find_package(MPI REQUIRED)
-endif()
-
-find_package(BLAS   REQUIRED)
-find_package(LAPACK REQUIRED)
-find_package(Exasim REQUIRED PATHS /opt/exasim NO_DEFAULT_PATH)
-
-# Run text2code at configure time to regenerate my_model.hpp from pdemodel.txt.
-add_custom_command(
-    OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/my_model.hpp
-    COMMAND /opt/exasim/bin/text2code ${CMAKE_CURRENT_SOURCE_DIR}/pdeapp.txt
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/pdemodel.txt
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-add_custom_target(gen_model DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/my_model.hpp)
-
-add_executable(my_solver main.cpp)
-add_dependencies(my_solver gen_model)
-target_include_directories(my_solver PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-
-target_link_libraries(my_solver PRIVATE
-    Exasim::headers Kokkos::kokkos
-    ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
-
-if(USE_MPI)
-    target_compile_definitions(my_solver PRIVATE _MPI)
-    target_link_libraries(my_solver PRIVATE MPI::MPI_CXX)
-endif()
-
-if(USE_GPU)
-    target_compile_definitions(my_solver PRIVATE _CUDA)   # or _HIP
-endif()
-```
-
-### Build matrix
-
-```bash
-cmake -B build_cpu       -DUSE_GPU=OFF -DUSE_MPI=OFF
-cmake -B build_gpu       -DUSE_GPU=ON  -DUSE_MPI=OFF
-cmake -B build_mpi       -DUSE_GPU=OFF -DUSE_MPI=ON
-cmake -B build_mpi_gpu   -DUSE_GPU=ON  -DUSE_MPI=ON
-cmake --build build_cpu -j16
-# ... same for the others
-```
-
-### Run
-
-```bash
-./build_cpu/my_solver                                    pdeapp.txt
-./build_gpu/my_solver                                    pdeapp.txt
-mpirun -np 4 ./build_mpi/my_solver                       pdeapp.txt
-mpirun -np 4 ./build_mpi_gpu/my_solver                   pdeapp.txt   # 4 GPUs
-```
-
-`Exasim::headers` is INTERFACE-only — no Exasim runtime library exists.
-The user's pointwise math from `my_model.hpp` is inlined into the
-templated kernels at the consumer's compile time.
-
----
-
-## 5. No text2code: drive Exasim internals from your `main()`
-
-The codegen path is convenient but optional. Nothing in the runtime
-requires `text2code` at build or run time — it's a code generator,
-not a runtime dependency.
-
-This section walks the *fully embedded* path: one `main()` that
-
-1. generates a square quad mesh and writes it as `grid.txt`,
-2. populates the `PDE` / `InputParams` / `ParsedSpec` structs in C++,
-3. drives `CPreprocessing` and `CSolution<MyModel>` directly (the
-   same internals `exasim::run<>` calls — without going through
-   `<exasim/run.hpp>`),
-4. reads the QoI back.
-
-The hand-written model (`MyModel`) lives in the same translation unit;
-no external `pdeapp.txt`, no `pdemodel.txt`, no `text2code` invocation,
-no separate mesh-builder tool. The *only* file the program writes
-on its way to the solve is the mesh.
-
-### `solve_square.cpp`
-
-```cpp
-// solve_square.cpp — single-file Exasim consumer.
-//
-// Builds a Cartesian quad mesh, lays it out as the runtime expects,
-// then drives CPreprocessing + CSolution<Poisson2D> directly. This is
-// what <exasim/run.hpp> does internally; we replace it with code we
-// can edit, instrument, or wrap in a tighter outer loop.
-
-#include <Kokkos_Core.hpp>
-
-#include <exasim/preprocessing.hpp>      // CPreprocessing
-#include <exasim/solution.hpp>           // CSolution<M>
-#include <exasim/model.hpp>              // exasim::ModelDefaults<>
-
-#include <filesystem>
-#include <fstream>
-#include <string>
-
-// ------------------------------------------------------------------
-// 1. The PDE: Poisson 2D, hand-written. No text2code involved.
-//    See doc/getting_started.md for a full annotation of every method.
-// ------------------------------------------------------------------
 struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
-    static constexpr int nd     = 2;
-    static constexpr int ncu    = 1;
-    static constexpr int ncw    = 0;
+    static constexpr int nd     = 2;       // spatial dim
+    static constexpr int ncu    = 1;       // # primary unknowns (u)
+    static constexpr int ncw    = 0;       // no auxiliary scalars
     static constexpr int nco    = 0;
-    static constexpr int nparam = 1;
+    static constexpr int nparam = 1;       // physics μ
     static constexpr auto disc  = exasim::Discretization::HDG;
     static constexpr int Nq     = ncu * (1 + nd);
 
+    // f = μ ∇u
     KOKKOS_INLINE_FUNCTION static
     void flux(double f[], const double[], const double uq[],
               const double[], const double[], const double mu[],
@@ -450,6 +243,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
         f[0] = mu[0] * uq[1];
         f[1] = mu[0] * uq[2];
     }
+    // s = 2π² sin(πx) sin(πy)
     KOKKOS_INLINE_FUNCTION static
     void source(double s[], const double x[], const double[],
                 const double[], const double[], const double[],
@@ -458,6 +252,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
         s[0] = 2.0 * pi * pi
              * Kokkos::sin(pi * x[0]) * Kokkos::sin(pi * x[1]);
     }
+    // ∂f/∂uq — ncu*nd × Nq Jacobian, column-major
     KOKKOS_INLINE_FUNCTION static
     void flux_jac_uq(double f_uq[], const double[], const double[],
                      const double[], const double[], const double mu[],
@@ -466,6 +261,7 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
         f_uq[1 * (ncu * nd) + 0] = mu[0];
         f_uq[2 * (ncu * nd) + 1] = mu[0];
     }
+    // HDG trace Dirichlet: fb = -τ ûh
     KOKKOS_INLINE_FUNCTION static
     void fbou_hdg(double fb[], int, const double[], const double[],
                   const double[], const double[], const double uh[],
@@ -480,10 +276,10 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
                          const double[], const double[], double) {
         fb_uh[0] = -tau[0];
     }
+    // residual side fbou + Dirichlet ubou + zero IC initu — see
+    // doc/getting_started.md for full annotations.
     KOKKOS_INLINE_FUNCTION static
-    void initu(double ui[], const double[], const double[], const double[]) {
-        ui[0] = 0.0;
-    }
+    void initu(double ui[], const double[], const double[], const double[]) { ui[0] = 0.0; }
     KOKKOS_INLINE_FUNCTION static
     void fbou(double fb[], int, const double x[], const double uq[],
               const double v[], const double w[], const double uh[],
@@ -497,208 +293,381 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
     void ubou(double ub[], int, const double[], const double[],
               const double[], const double[], const double[],
               const double[], const double[], const double[],
-              const double[], double) {
-        ub[0] = 0.0;
-    }
+              const double[], double) { ub[0] = 0.0; }
 };
+```
 
-// ------------------------------------------------------------------
-// 2. Generate an n×n quad mesh on the unit square and write it in the
-//    text format CPreprocessing accepts. Format:
-//        nd np nve ne
-//        <np × nd doubles>     vertex coords, column-major
-//        <ne × nve ints>       element conn, 1-based, column-major
-//    Quad corners CCW; nve=4 → Exasim infers elemtype=1.
-// ------------------------------------------------------------------
-static void write_square_mesh(const std::string& path, int n) {
-    int nv = (n + 1) * (n + 1);
-    int ne = n * n;
-    std::ofstream o(path);
-    o << "2 " << nv << " 4 " << ne << "\n";
-    for (int j = 0; j <= n; ++j)
-        for (int i = 0; i <= n; ++i)
-            o << double(i) / n << " " << double(j) / n << "\n";
-    for (int j = 0; j < n; ++j)
-        for (int i = 0; i < n; ++i) {
-            int v00 = j * (n + 1) + i + 1;
-            o << v00 << " " << v00 + 1 << " "
-              << v00 + 1 + (n + 1) << " " << v00 + (n + 1) << "\n";
-        }
-}
+### 3.2 Build the mesh as flat arrays
 
-// ------------------------------------------------------------------
-// 3. Build the runtime config in C++. No pdeapp.txt — we populate the
-//    PDE / InputParams / ParsedSpec structs directly and hand them to
-//    the programmatic CPreprocessing constructor.
-// ------------------------------------------------------------------
-static void build_runtime_config(PDE& pde, InputParams& params,
-                                 ParsedSpec& spec)
-{
-    pde.discretization = "hdg";
-    pde.platform       = "cpu";
-    pde.datapath       = ".";
-    pde.datainpath     = "./datain";
-    pde.dataoutpath    = "./dataout";
-    pde.exasimpath     = ".";
-    pde.meshfile       = "grid.txt";
-    pde.modelfile      = "";       // unused on the hand-written path
-    pde.gendatain      = 1;
-    pde.builtinmodelID = 1;
-    pde.porder = 3;
-    pde.pgauss = 6;
-    pde.torder = 1;
-    pde.nstage = 1;
-    pde.tdep   = 0;
-    pde.nd     = 2;       pde.ncu = 1;       pde.ncw = 0;
-    pde.nc     = 3;       // ncu * (1 + nd) for Poisson2D
-    pde.neb    = 4096;    pde.nfb = 8192;
-    pde.ibs    = 1;
-    pde.NewtonIter   = 20;     pde.NewtonTol   = 1e-6;
-    pde.GMRESiter    = 200;    pde.GMRESrestart = 50;
-    pde.GMREStol     = 1e-8;
-    pde.tau          = {1.0};
-    pde.dt           = {0.0};
-    pde.physicsparam = {1.0};
+`p` is `nd × np` doubles (column-major); `t` is `nve × ne` ints
+(column-major, **0-based**). For a quad mesh on `[0,1]²` at
+resolution `n × n`:
 
-    params.boundaryConditions = {1, 1, 1, 1};
-    params.boundaryExprs      = {"abs(y)<1e-8",   "abs(x-1)<1e-8",
-                                 "abs(y-1)<1e-8", "abs(x)<1e-8"};
-    params.tau                = {1.0};
-    params.dt                 = {0.0};
-    params.physicsParam       = {1.0};
+```cpp
+const int n  = 16;
+const int nv = (n + 1) * (n + 1);
+const int ne = n * n;
+std::vector<double> p(2 * nv);
+std::vector<int>    t(4 * ne);
 
-    // ParsedSpec is left empty: it's only consulted to *override* the
-    // pde dimensions from a parsed pdemodel.txt. With nothing to
-    // override, the values we set on `pde` above stay in effect.
-    (void)spec;
-}
+for (int j = 0; j <= n; ++j)
+    for (int i = 0; i <= n; ++i) {
+        int idx = j * (n + 1) + i;
+        p[2*idx + 0] = double(i) / n;
+        p[2*idx + 1] = double(j) / n;
+    }
+for (int j = 0; j < n; ++j)
+    for (int i = 0; i < n; ++i) {
+        int e = j * n + i;
+        int v00 = j * (n + 1) + i;       // 0-based
+        t[4*e + 0] = v00;
+        t[4*e + 1] = v00 + 1;
+        t[4*e + 2] = v00 + 1 + (n + 1);
+        t[4*e + 3] = v00 + (n + 1);
+    }
+```
 
+### 3.3 Drive the solver
+
+`ExasimSolver<MyModel>` collects the inputs and runs the pipeline
+(preprocessing → discretization → Newton/GMRES). Picks CPU vs CUDA
+vs HIP at compile time from the binary's defines; same source builds
+for all four backends.
+
+```cpp
+exasim::ExasimSolver<Poisson2D> solver;
+solver.set_mesh(p.data(), t.data(), nv, ne, /*nve=*/4);
+solver.add_boundary(/*tag=*/1, [](const double* x){ return std::abs(x[1])     < 1e-8; });  // y=0
+solver.add_boundary(/*tag=*/1, [](const double* x){ return std::abs(x[0] - 1) < 1e-8; });  // x=1
+solver.add_boundary(/*tag=*/1, [](const double* x){ return std::abs(x[1] - 1) < 1e-8; });  // y=1
+solver.add_boundary(/*tag=*/1, [](const double* x){ return std::abs(x[0])     < 1e-8; });  // x=0
+solver.set_polynomial_order(3);
+solver.set_quadrature_order(6);
+solver.set_physics_params({1.0});
+solver.solve();
+```
+
+Predicates are typed `std::function<bool(const double*)>` —
+no tinyexpr strings. Curved boundaries take a level-set instead:
+
+```cpp
+solver.add_curved_boundary(/*tag=*/1,
+    /*classify=*/  [](const double* x){ return std::sqrt(x[0]*x[0]+x[1]*x[1]) < 1.001; },
+    /*level_set=*/ [](const double* x){ return x[0]*x[0]+x[1]*x[1] - 1.0; });
+```
+
+The projector does one Newton step `x ← x - f·∇f/|∇f|²` toward
+`f=0` (∇f from finite differences), so any function whose zero set
+is the curved surface works — SDF or otherwise.
+
+### 3.4 Read the solution from memory
+
+```cpp
+const double* udg = solver.udg();      // GPU runs: lazy device→host copy
+Int           n   = solver.udg_size(); // npe * nc * ne
+// udg layout per element: [u₀..u_{npe-1}, du/dx₀..du/dx_{npe-1}, du/dy₀..]
+```
+
+`udg()` / `uhat()` / `wdg()` are valid until the `ExasimSolver`
+destructs.
+
+### 3.5 The `main()` boilerplate
+
+The binary needs to initialize MPI (when built with `_MPI`) and
+Kokkos in the right order. With CUDA the per-rank GPU binding has
+to come **before** `Kokkos::initialize`:
+
+```cpp
 int main(int argc, char** argv) {
+    int mpiprocs = 1, mpirank = 0, shmrank = 0;
 #ifdef HAVE_MPI
     MPI_Init(&argc, &argv);
     EXASIM_COMM_WORLD = MPI_COMM_WORLD;
     EXASIM_COMM_LOCAL = MPI_COMM_WORLD;
-    int mpiprocs = 1, mpirank = 0;
     MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
     MPI_Comm_rank(EXASIM_COMM_WORLD, &mpirank);
-#else
-    int mpiprocs = 1, mpirank = 0;
-    (void)argc; (void)argv;
+    MPI_Comm shmcomm;
+    MPI_Comm_split_type(EXASIM_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0,
+                        MPI_INFO_NULL, &shmcomm);
+    MPI_Comm_rank(shmcomm, &shmrank);
 #endif
-
+#ifdef HAVE_CUDA
+    int nd; cudaGetDeviceCount(&nd); cudaSetDevice(shmrank % nd);
+#endif
+#ifdef HAVE_HIP
+    int nd; hipGetDeviceCount(&nd); hipSetDevice(shmrank % nd);
+#endif
     Kokkos::initialize();
     {
-        std::filesystem::create_directories("datain");
-        std::filesystem::create_directories("dataout");
-        write_square_mesh("grid.txt", /*n=*/32);
-
-        // Build runtime config in memory.
-        PDE         pde;
-        InputParams params;
-        ParsedSpec  spec;
-        build_runtime_config(pde, params, spec);
-
-        // a) preprocessing — programmatic constructor, no pdeapp.txt.
-        //    Reads grid.txt, writes datain/{app,master,mesh,sol}.bin.
-        CPreprocessing preproc(pde, params, spec, mpirank, mpiprocs);
-        if (mpiprocs == 1) preproc.SerialPreprocessing();
-#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
-        else preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
-#endif
-
-        // b) instantiate the solver. CSolution<M> reads the binaries
-        //    CPreprocessing just wrote.
-        std::string filein  = pde.datainpath + "/";
-        std::string fileout = pde.dataoutpath + "/out";
-        int fileoffset = 0, gpuid = 0, backend = 0;
-        CSolution<Poisson2D> sol(filein, fileout, pde.exasimpath,
-                                 mpiprocs, mpirank, fileoffset,
-                                 gpuid, backend, pde.builtinmodelID);
-
-        // CSolution expects nomodels/ncarray/udgarray to be populated
-        // even for a single-model run — see run.hpp around line 340.
-        sol.disc.common.nomodels = 1;
-        sol.disc.common.ncarray  = new Int[1]{ sol.disc.common.nc };
-        sol.disc.sol.udgarray    = new dstype*[1]{ &sol.disc.sol.udg[0] };
-
-        // c) solve.
-        std::ofstream resnorms;   // unused; run.hpp only opens this
-                                  // file when pde.saveResNorm == 1.
-        sol.SolveProblem(resnorms, backend);
-
-        delete[] sol.disc.common.ncarray;
-        delete[] sol.disc.sol.udgarray;
+        // ...build mesh, instantiate solver, call solver.solve()...
     }
     Kokkos::finalize();
-
 #ifdef HAVE_MPI
     MPI_Finalize();
 #endif
-    return 0;
 }
 ```
 
-### Build
+The full `solve_square_facade.cpp` source (~170 lines) lives in
+`apps/library_example/solve_square/`.
+
+---
+
+## 4. Cross-arch — same source, four binaries
+
+The same `solve_square_facade.cpp` is built four times with
+different defines/links. CMake handles it; you just pick which
+build directory to invoke.
+
+```bash
+build_cpu/solve_square_facade                                          # CPU
+build_gpu/solve_square_facade_gpu                                      # GPU
+mpirun -np 2 build_mpi/solve_square_facade_mpi                         # 2-rank CPU
+mpirun -np 2 build_mpi_gpu/solve_square_facade_mpi_gpu                 # 2-rank GPU
+```
+
+`EXASIM_DIR` must point at the source/install tree (it tells
+`setcommonstruct` where to find `backend/Preprocessing/{master,gauss}nodes.bin`):
+
+```bash
+EXASIM_DIR=$EXASIM build_cpu/solve_square_facade
+```
+
+Working directory ends with zero files written. The runs are
+numerically equivalent across backends — Newton converges
+`0.211548 → ≈5e-12` in 1 iteration, max\|udg\| = π (the analytical
+gradient of `sin(πx)sin(πy)`).
+
+---
+
+## 5. External CMake project — full standalone application
+
+This section walks a complete `solve_square_facade` consumer
+**outside** the Exasim tree. The directory layout:
+
+```
+my_solver/
+├── CMakeLists.txt
+└── solve_square_facade.cpp     # ~170 lines, see apps/library_example/solve_square/
+```
+
+That's it. No `pdeapp.txt`, no `pdemodel.txt`, no `grid.bin`, no
+`datain/`/`dataout/`. The model, mesh, boundary classifiers, and
+physics params all live in the C++ source.
+
+### 5.1 Install Exasim
+
+Run §2's commands once with `cmake --install` and an explicit prefix:
+
+```bash
+cmake --install build_cpu --prefix /opt/exasim
+cmake --install build_gpu --prefix /opt/exasim
+cmake --install build_mpi --prefix /opt/exasim
+cmake --install build_mpi_gpu --prefix /opt/exasim
+```
+
+This populates:
+
+```
+/opt/exasim/include/exasim/      # public template headers + run.hpp + solver_facade.hpp
+/opt/exasim/include/backend/     # backend headers exasim/* depends on
+/opt/exasim/lib/cmake/Exasim/    # ExasimConfig.cmake (find_package target)
+/opt/exasim/bin/text2code        # codegen tool (only needed for §6 path)
+```
+
+The four Kokkos prefixes (`/opt/exasim/external/kokkos/build*`) need
+to be reachable via `find_package(Kokkos PATHS …)`. If you used a
+different layout, adjust the paths below.
+
+### 5.2 `my_solver/CMakeLists.txt`
 
 ```cmake
 cmake_minimum_required(VERSION 3.16)
-project(solve_square CXX)
+project(my_solver CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(Kokkos REQUIRED PATHS /opt/exasim/external/kokkos/buildserial NO_DEFAULT_PATH)
+option(USE_GPU "build for CUDA/HIP" OFF)
+option(USE_MPI "build for MPI"      OFF)
+
+# Kokkos: pick the prefix matching the backend.
+if(USE_GPU)
+    set(KOKKOS_PREFIX "/opt/exasim/external/kokkos/buildcuda")
+else()
+    set(KOKKOS_PREFIX "/opt/exasim/external/kokkos/buildserial")
+endif()
+find_package(Kokkos REQUIRED PATHS ${KOKKOS_PREFIX}/lib/cmake/Kokkos NO_DEFAULT_PATH)
+
+if(USE_MPI)
+    find_package(MPI REQUIRED)
+endif()
+
 find_package(BLAS   REQUIRED)
 find_package(LAPACK REQUIRED)
-find_package(Exasim REQUIRED PATHS /opt/exasim NO_DEFAULT_PATH)
+find_package(Exasim REQUIRED PATHS /opt/exasim/lib/cmake/Exasim NO_DEFAULT_PATH)
 
-add_executable(solve_square solve_square.cpp)
-target_link_libraries(solve_square PRIVATE
+add_executable(my_solver solve_square_facade.cpp)
+
+if(USE_GPU)
+    set_source_files_properties(solve_square_facade.cpp PROPERTIES
+        COMPILE_OPTIONS "-ffast-math;-O3;-DNDEBUG;-fno-unroll-loops")
+endif()
+
+target_link_libraries(my_solver PRIVATE
     Exasim::headers Kokkos::kokkos
     ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+
+# `_TEXT2CODE` enables the templated-kernel path inside
+# `<exasim/run.hpp>` even though no codegen actually runs.
+target_compile_definitions(my_solver PRIVATE _TEXT2CODE)
+
+if(USE_MPI)
+    target_compile_definitions(my_solver PRIVATE _MPI)
+    target_link_libraries(my_solver PRIVATE MPI::MPI_CXX)
+endif()
+if(USE_GPU)
+    target_compile_definitions(my_solver PRIVATE _CUDA)   # or _HIP
+endif()
+
+# `libpdemodel{serial,cuda,hip}.so` must be on the rpath if your
+# CSolution<M> ever falls through to the `AbiAdapter` branch (it
+# doesn't, in the programmatic path — but the link line is the
+# same). Point at the same Model_LIB_DIR Exasim's own builds use.
+target_link_directories(my_solver PRIVATE /opt/exasim/lib)
+set_target_properties(my_solver PROPERTIES BUILD_RPATH /opt/exasim/lib)
+```
+
+`Exasim::headers` is INTERFACE-only — the user's pointwise math
+from `MyModel` is inlined into the templated kernels at *the
+consumer's* compile time, so each backend variant gets fully
+specialized code.
+
+### 5.3 Build the four variants
+
+```bash
+cd my_solver
+
+cmake -B build_cpu       -DUSE_GPU=OFF -DUSE_MPI=OFF
+cmake -B build_gpu       -DUSE_GPU=ON  -DUSE_MPI=OFF
+cmake -B build_mpi       -DUSE_GPU=OFF -DUSE_MPI=ON
+cmake -B build_mpi_gpu   -DUSE_GPU=ON  -DUSE_MPI=ON
+
+PATH=/usr/local/cuda/bin:/opt/exasim/openmpi/bin:$PATH cmake --build build_cpu      -j16
+PATH=/usr/local/cuda/bin:/opt/exasim/openmpi/bin:$PATH cmake --build build_gpu      -j8
+PATH=/usr/local/cuda/bin:/opt/exasim/openmpi/bin:$PATH cmake --build build_mpi      -j16
+PATH=/usr/local/cuda/bin:/opt/exasim/openmpi/bin:$PATH cmake --build build_mpi_gpu  -j8
+```
+
+### 5.4 Run
+
+`EXASIM_DIR` points at the install prefix so the runtime can locate
+`backend/Preprocessing/{master,gauss}nodes.bin`:
+
+```bash
+EXASIM_DIR=/opt/exasim ./build_cpu/my_solver
+EXASIM_DIR=/opt/exasim ./build_gpu/my_solver
+EXASIM_DIR=/opt/exasim mpirun -np 2 ./build_mpi/my_solver
+EXASIM_DIR=/opt/exasim mpirun -np 2 ./build_mpi_gpu/my_solver
+```
+
+Each writes nothing to the working directory (`saveOutputs = 0` by
+default in the façade); read the converged state from the `udg()`
+accessor inside `main()`.
+
+> **MPI status (HOT.7.7):** the in-memory ABI is wired for CPU + GPU.
+> MPI variants currently error out with a "use file path" message
+> because `meshFromArrays` produces a serial mesh and ParMETIS
+> expects distributed metadata (`elemGlobalID`, `elmdist`,
+> `ne_global`). The proper fix — a `solver.set_mesh_distributed(…)`
+> API where each rank provides its slice and ParMETIS repartitions —
+> is queued as HOT.7.8. For multi-rank runs today, drop down to
+> the legacy file-driven `CSolution<M>(filein, ...)` constructor
+> (§6) and use `mpirun` with the `_codegen_mpi` /
+> `_codegen_mpi_gpu` binaries.
+
+---
+
+## 6. Convenience — `text2code` codegen path
+
+If you'd rather author the math symbolically, `text2code` consumes
+a `pdemodel.txt` (SymEngine DSL) and emits the same `MyModel` struct
+the §3 path expects. This is what most existing apps in
+`apps/poisson/` and `apps/navierstokes/` use. Both paths produce
+identical solver behavior — choose by preference.
+
+```
+my_app/
+├── pdemodel.txt        # SymEngine DSL
+├── pdeapp.txt          # runtime config (boundary conditions etc.)
+├── grid.bin            # mesh in legacy binary format
+└── main.cpp            # 3-line entrypoint: exasim::run<GeneratedModel>(argc, argv)
+```
+
+```cpp
+// main.cpp — entire body:
+#include <exasim/run.hpp>
+#include "my_model.hpp"      // generated by text2code
+int main(int argc, char** argv) {
+    return exasim::run<GeneratedModel>(argc, argv);
+}
 ```
 
 ```bash
-cmake -B build && cmake --build build -j
-./build/solve_square
+text2code my_app/pdeapp.txt        # writes my_model.hpp, app.bin, ...
+build_cpu/my_app pdeapp.txt        # runs and writes outudg_np0.bin etc.
 ```
 
-The binary writes `dataout/outqoi.txt` (the squared L² error vs. the
-manufactured solution if `qoi_volume` is defined; trivially zero
-otherwise) plus `dataout/outudg_np0.bin` (the discrete state). No
-`text2code`, no `pdeapp.txt`, no `pdemodel.txt`.
+The runtime here goes through `pdeapp.txt` parsing, ParMETIS
+partitioning of `grid.bin`, the `datain/{app,master,mesh,sol}.bin`
+ABI between preprocessing and solver, and writes outputs to
+`dataout/`. It does the same numerical work as the §3 path, just
+with file-mediated handoffs in between.
 
-### What still touches the disk and why
+When the codegen path is what you want:
 
-The mesh goes to `grid.txt` because `initializeMesh()` reads its
-input from a file path. The four runtime ABI files
-(`datain/{app,master,mesh,sol}.bin`) are written by `CPreprocessing`
-and read back by `CSolution<M>` — that's the boundary between the
-preprocessor and the solver. Both could be exposed as in-memory APIs
-in the future; for now the disk hop is small and only happens once
-per run.
+- pointwise math is easier to write in `pdemodel.txt` (no need to
+  hand-derive Jacobians; SymEngine differentiates symbolically)
+- you want the legacy `dataout/*.bin` files for downstream tooling
+  (Paraview converters etc.)
+- you're porting an existing pdeapp.txt-based workflow without
+  changes
 
-For multi-rank, the same `solve_square` binary launched under `mpirun
--np N` partitions the global mesh with ParMETIS via the
-`ParallelPreprocessing(EXASIM_COMM_LOCAL)` branch above.
+When the §3 programmatic path is what you want:
 
-## Common gotchas
+- you're embedding Exasim in another program (UQ outer loop,
+  optimization, parameter sweep) and want to call `solver.solve()`
+  in a hot loop
+- you need the converged state in memory rather than on disk
+- you want a typed boundary-classification API
+- you don't want the SymEngine + text2code build dependency
+
+---
+
+## 7. Common gotchas
 
 - **MPI+GPU segfault in `mca_btl_vader`**: OpenMPI was not built
-  `--with-cuda`. See §1b. Symptom: address `0x7f...` in the failing
-  signal handler is a CUDA virtual address.
-- **`nvcc: command not found` from `nvcc_wrapper`**: PATH doesn't have
-  `/usr/local/cuda/bin`. Set it before *configure* and *build*; it has
-  to be visible to subprocess invocations of `nvcc_wrapper`.
-- **`gendatain=1` overwrites your mesh**: `gendatain=1` re-runs the mesh
-  generator/partitioner before each solve. Set to 0 once `datain/` is
-  populated to avoid re-partitioning on every run.
-- **All ranks bind to GPU 0**: Exasim's device-selection logic does
-  `shmrank % deviceCount`, so `mpirun -np N --bind-to none` (or letting
-  OpenMPI's default placement decide) gets one rank per GPU. If your
-  scheduler gives every rank the same GPU, set
-  `CUDA_VISIBLE_DEVICES=$LOCAL_RANK` per rank.
-- **Segfault at exit (after solve completes)**: under multi-rank GPU,
-  the Kokkos View destructors run on rank 0 after another rank has
-  already torn down its CUDA context, which can dereference an
-  unmapped IPC handle. The QoI / output bins are written before
-  teardown, so this does not affect correctness. Suppress with
-  `mpirun --output-filename` or run with one rank to confirm.
+  `--with-cuda`. See §1b. Symptom: address `0x7f…` in the failing
+  signal handler is a CUDA/HIP virtual address.
+- **`nvcc: command not found` from `nvcc_wrapper`**: PATH doesn't
+  have `/usr/local/cuda/bin`. Set it before *configure* and *build*;
+  it has to be visible to subprocess invocations of `nvcc_wrapper`.
+- **All ranks bind to GPU 0 on multi-GPU nodes**: the binary's
+  per-rank `cudaSetDevice(shmrank % deviceCount)` requires
+  `MPI_COMM_TYPE_SHARED` to actually return a per-node `shmrank`.
+  If your MPI launcher gives every rank the same node-shared rank,
+  set `CUDA_VISIBLE_DEVICES=$LOCAL_RANK` per rank instead.
+- **Solver runs but `udg()` returns nullptr**: you forgot to call
+  `solve()`, or the solve raised an exception. Check the return
+  value of `solver.solve()` and the runtime's stderr.
+- **`ExasimSolver::solve(): mesh not set`**: `set_mesh()` was never
+  called, or `np` was 0. Confirm your `nv`/`ne` arithmetic.
+- **GPU view destructor segfault at program exit**: Kokkos finalize
+  ordering. Make sure `solver` (the `ExasimSolver` object) is
+  destroyed *before* `Kokkos::finalize()`. The pattern above
+  scopes `solver` inside an inner block to enforce this.
+- **Curved-boundary projection moves nodes off the boundary by a
+  large amount**: your level-set function probably doesn't have
+  zero gradient norm at the surface. Newton step is `x - f·∇f/|∇f|²`
+  — when |∇f| is tiny, the step explodes. Pick a function with
+  bounded gradient near the surface, or run multiple projector
+  iterations (Exasim runs once; for sharper curvature, project to
+  the boundary in pre-processing).
