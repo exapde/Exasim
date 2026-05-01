@@ -235,10 +235,23 @@ public:
                 mesh_np_, mesh_ne_, mesh_nve_, M::nd,
                 mesh_np_global_, mesh_ne_global_,
                 preproc.params, preproc.pde);
-            auto pre = preproc.takeParallel(EXASIM_COMM_LOCAL);
-            pre.save_outputs = (pde_.saveOutputs != 0);
+
+            // HOT.7.8: the in-memory takeParallel path is plumbed
+            // (see CPreprocessing::takeParallel + buildMeshStructParallel
+            // + buildSolStructParallel) but produces a divergent
+            // first-iteration residual on the test problem. The bug
+            // is in struct population, not the API shape — I haven't
+            // bisected which field is mis-set. For now, fall back to
+            // the legacy file ABI: ParallelPreprocessing writes
+            // per-rank datain/{app,master,mesh,sol}.bin, and
+            // CSolution<M>(filein,...) reads them. Same problem,
+            // same answers. HOT.7.9 finishes the in-memory MPI path.
+            std::filesystem::create_directories(pde_.datainpath);
+            std::filesystem::create_directories(pde_.dataoutpath);
+            preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
+            const std::string filein = pde_.datainpath + "/";
             solver_ = std::make_unique<CSolution<M>>(
-                std::move(pre), fileout, pde_.exasimpath,
+                filein, fileout, pde_.exasimpath,
                 mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
 #else
             error("ExasimSolver::solve(): mpiprocs > 1 requires HAVE_PARMETIS + HAVE_MPI.");
