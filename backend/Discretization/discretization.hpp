@@ -268,6 +268,7 @@ inline CDiscretization<M>::CDiscretization(P&& pre, string fileout, string exasi
         cpuInitFromStructs(sol, res, app, master, mesh, tmp, common,
                            pre.ti, fileout, mpiprocs, mpirank, fileoffset, omprank);
     }
+    common.saveOutputs = pre.save_outputs ? 1 : 0;   // HOT.7.4
     postInit(backend);
 }
 

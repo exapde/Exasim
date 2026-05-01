@@ -188,29 +188,35 @@ public:
         //   MPI_Barrier(MPI_COMM_WORLD);
         // }                 
 
-        if (mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
-            outqoi.open(base + "qoi.txt", std::ios::out);                         
+        // HOT.7.4 — when disc.common.saveOutputs == 0, leave every
+        // output ofstream un-opened. SaveSolutions / SaveQoI then
+        // become silent no-ops (writearray on a closed ofstream
+        // sets failbit but doesn't crash); the data remains in
+        // disc.sol and can be pulled via host_udg / host_uhat /
+        // host_qoi accessors below.
+        const bool save_outs = (disc.common.saveOutputs != 0);
+
+        if (save_outs && mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
+            outqoi.open(base + "qoi.txt", std::ios::out);
             outqoi << std::setw(16) << std::left << "Time";
-            for (size_t i = 0; i < disc.common.nvqoi; ++i) {                
+            for (size_t i = 0; i < disc.common.nvqoi; ++i) {
                 outqoi << std::setw(16) << std::left << "Domain_QoI" + std::to_string(i + 1);
             }
-            for (size_t i = 0; i < disc.common.nsurf; ++i) {                
+            for (size_t i = 0; i < disc.common.nsurf; ++i) {
                 outqoi << std::setw(16) << std::left << "Boundary_QoI" + std::to_string(i + 1);
             }
             outqoi << "\n";
         }
 
-        open_and_write(outsol, "udg_np", rank, offset, npe, nc, ne, base);
-
-        if (ncw > 0) {     
-            open_and_write(outwdg, "wdg_np", rank, offset, npe, ncw, ne, base);
+        if (save_outs) {
+            open_and_write(outsol, "udg_np", rank, offset, npe, nc, ne, base);
+            if (ncw > 0)
+                open_and_write(outwdg, "wdg_np", rank, offset, npe, ncw, ne, base);
+            if (disc.common.spatialScheme==1)
+                open_and_write(outuhat, "uhat_np", rank, offset, ncu, npf, nf, base);
         }
 
-        if (disc.common.spatialScheme==1) {         
-            open_and_write(outuhat, "uhat_np", rank, offset, ncu, npf, nf, base);
-        }
-
-        if ( disc.common.saveSolBouFreq>0 ) {
+        if ( save_outs && disc.common.saveSolBouFreq>0 ) {
             Int nfbou = 0;
             for (Int j=0; j<disc.common.nbf; j++) {
                 Int f1 = disc.common.fblks[3*j]-1;
@@ -256,7 +262,19 @@ public:
         if (outqoi.is_open()) { outqoi.close(); }
     }; 
     
-    void SteadyProblem(ofstream &out, Int backend);    
+    // HOT.7.4 — host-side accessors to the converged solution.
+    // The runtime stores `udg`, `uh`, `wdg` in `disc.sol.*` after
+    // SolveProblem returns. For CPU backends these pointers are
+    // already host-side; for GPU backends a future slice will copy
+    // them down on demand.
+    const dstype* host_udg()  const { return disc.sol.udg;  }
+    Int           host_udg_size()  const { return disc.common.ndofudg1; }
+    const dstype* host_uhat() const { return disc.sol.uh;   }
+    Int           host_uhat_size() const { return disc.common.ndofuhat; }
+    const dstype* host_wdg()  const { return disc.sol.wdg;  }
+    Int           host_wdg_size()  const { return disc.common.ndofw1; }
+
+    void SteadyProblem(ofstream &out, Int backend);
 
     void SteadyProblem_PTC(ofstream &out, Int backend);    
                                     

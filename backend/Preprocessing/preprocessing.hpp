@@ -181,6 +181,7 @@ inline exasim::Preprocessed CPreprocessing::take()
     out.mesh   = exasim::buildMeshStruct(mesh, mas, dmd_local, bf,
                                          pde.hybrid, pde.mpiprocs, out.ti);
     out.sol    = exasim::buildSolStruct(mesh, mas, pde, dmd_local);
+    out.save_outputs = (pde.saveOutputs != 0);
 
     // Free the char-array boundary expression buffers — they were
     // moved into mesh by initializeMesh and are no longer needed

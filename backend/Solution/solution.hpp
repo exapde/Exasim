@@ -932,10 +932,10 @@ inline void CSolution<M>::SaveSolutions(Int backend)
             writearray(outuhat, disc.sol.uh, disc.common.ndofuhat, backend);
     }
    
-   if (disc.common.tdep==1) { 
-        if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)             
-        {        
-            string filename = disc.common.fileout + "udg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";     
+   if (disc.common.saveOutputs != 0 && disc.common.tdep==1) {
+        if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)
+        {
+            string filename = disc.common.fileout + "udg_t" + NumberToString(disc.common.currentstep+disc.common.timestepOffset+1) + "_np" + NumberToString(disc.common.mpiRank-disc.common.fileoffset) + ".bin";
             writearray2file(filename, disc.sol.udg, disc.common.ndofudg1, backend);
 
             if (disc.common.compudgavg == 1) {

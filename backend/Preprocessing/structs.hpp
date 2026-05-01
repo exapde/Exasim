@@ -187,6 +187,13 @@ struct PDE {
     int saveResNorm = 0;
     int dae_steps = 0;
 
+    // HOT.7.4 — when 0, CSolution skips opening output bin files.
+    // The data still lives in `disc.sol` after the solve and can be
+    // pulled via `CSolution<M>::host_udg()` / `host_uhat()` etc.
+    // Default 1 preserves legacy behavior (every existing app writes
+    // outudg_np<r>.bin etc. through the open ofstreams).
+    int saveOutputs = 1;
+
     int coupledinterface = 0; 
     int coupledcondition = 0;
     int coupledboundarycondition = 0;    

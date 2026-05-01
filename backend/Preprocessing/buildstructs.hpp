@@ -576,6 +576,10 @@ struct Preprocessed {
     solstruct    sol;
     // ti retained for buildConn() inside CDiscretization's setup.
     std::vector<int> ti;
+    // HOT.7.4 — when false, CSolution<M> skips opening output
+    // bin/qoi files. The data still lives in disc.sol after the
+    // solve and can be pulled via host_udg() / host_uhat() / etc.
+    bool save_outputs = true;
 };
 
 } // namespace exasim

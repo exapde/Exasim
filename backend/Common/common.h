@@ -1657,7 +1657,8 @@ struct commonstruct {
     Int saveSolBouFreq=0; // number of time steps to save the solution on the boundary
     Int compudgavg=1;     // compute time-averaged solution udg
     Int readudgavg=0;     // flag to read time-averaged solution udg from file
-    Int saveResNorm=0;   
+    Int saveResNorm=0;
+    Int saveOutputs=1;   // HOT.7.4 — skip opening output bins when 0
     Int matrixformat=0;
     
     Int spatialScheme;   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */

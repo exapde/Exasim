@@ -153,6 +153,7 @@ static void build_runtime_config(PDE& pde, InputParams& params,
     pde.modelfile      = "";
     pde.gendatain      = 1;
     pde.builtinmodelID = 1;
+    pde.saveOutputs    = 0;       // HOT.7.4 — keep solution in disc.sol; no dataout/ writes
     pde.porder = 3;
     pde.pgauss = 6;
     pde.torder = 1;
@@ -203,11 +204,9 @@ int main(int argc, char** argv) {
 
     Kokkos::initialize();
     {
-        // dataout/ holds the solver's output bins; datain/ is no
-        // longer needed — the in-memory `Preprocessed` ABI replaces
-        // the four datain/*.bin files.
-        std::filesystem::create_directories("dataout");
-
+        // No datain/ or dataout/ — preprocessing handoff goes through
+        // `Preprocessed` (HOT.7.3); converged solution is read with
+        // `sol.host_udg()` after SolveProblem (HOT.7.4).
         PDE         pde;
         InputParams params;
         ParsedSpec  spec;
@@ -243,6 +242,20 @@ int main(int argc, char** argv) {
 
         std::ofstream resnorms;
         sol.SolveProblem(resnorms, backend);
+
+        // HOT.7.4 — read the converged solution from memory rather
+        // than from a file. host_udg() returns disc.sol.udg directly
+        // (size = host_udg_size() = npe * nc * ne).
+        const dstype* udg = sol.host_udg();
+        Int udg_n = sol.host_udg_size();
+        double maxabs = 0;
+        for (Int i = 0; i < udg_n; ++i) {
+            double v = std::abs((double)udg[i]);
+            if (v > maxabs) maxabs = v;
+        }
+        if (mpirank == 0)
+            std::cerr << "[solve_square] in-memory udg: " << udg_n
+                      << " doubles, max|udg| = " << maxabs << "\n";
 
         delete[] sol.disc.common.ncarray;
         delete[] sol.disc.sol.udgarray;
