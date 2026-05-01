@@ -398,15 +398,17 @@ not a runtime dependency.
 
 This section walks the *fully embedded* path: one `main()` that
 
-1. generates a square quad mesh in memory,
-2. drives `CPreprocessing` and `CSolution<MyModel>` directly (the same
-   internals `exasim::run<>` calls — without going through
+1. generates a square quad mesh and writes it as `grid.txt`,
+2. populates the `PDE` / `InputParams` / `ParsedSpec` structs in C++,
+3. drives `CPreprocessing` and `CSolution<MyModel>` directly (the
+   same internals `exasim::run<>` calls — without going through
    `<exasim/run.hpp>`),
-3. reads the QoI back.
+4. reads the QoI back.
 
 The hand-written model (`MyModel`) lives in the same translation unit;
-no external `pdemodel.txt`, no `text2code` invocation, and no separate
-mesh-builder tool.
+no external `pdeapp.txt`, no `pdemodel.txt`, no `text2code` invocation,
+no separate mesh-builder tool. The *only* file the program writes
+on its way to the solve is the mesh.
 
 ### `solve_square.cpp`
 
@@ -525,39 +527,50 @@ static void write_square_mesh(const std::string& path, int n) {
 }
 
 // ------------------------------------------------------------------
-// 3. Minimal pdeapp.txt — same format the rest of Exasim uses, but we
-//    write it from C++ so the whole flow lives in one program.
+// 3. Build the runtime config in C++. No pdeapp.txt — we populate the
+//    PDE / InputParams / ParsedSpec structs directly and hand them to
+//    the programmatic CPreprocessing constructor.
 // ------------------------------------------------------------------
-static void write_pdeapp_txt(const std::string& path) {
-    std::ofstream(path) <<
-R"(model           = "ModelD";
-modelfile       = "pdemodel.txt";
-meshfile        = "grid.txt";
-discretization  = "hdg";
-platform        = "cpu";
-gendatain       = 1;
-mpiprocs        = 1;
-porder          = 3;
-pgauss          = 6;
-torder          = 1;
-nstage          = 1;
-ncu             = 1;
-ncw             = 0;
-neb             = 4096;
-nfb             = 8192;
-ibs             = 1;
-NewtonIter      = 20;
-NewtonTol       = 1e-06;
-GMRESiter       = 200;
-GMRESrestart    = 50;
-GMREStol        = 1e-08;
-tau             = [1];
-dt              = [0];
-physicsparam    = [1];
-boundaryconditions  = [1, 1, 1, 1];
-boundaryexpressions = ["abs(y)<1e-8", "abs(x-1)<1e-8",
-                       "abs(y-1)<1e-8", "abs(x)<1e-8"];
-)";
+static void build_runtime_config(PDE& pde, InputParams& params,
+                                 ParsedSpec& spec)
+{
+    pde.discretization = "hdg";
+    pde.platform       = "cpu";
+    pde.datapath       = ".";
+    pde.datainpath     = "./datain";
+    pde.dataoutpath    = "./dataout";
+    pde.exasimpath     = ".";
+    pde.meshfile       = "grid.txt";
+    pde.modelfile      = "";       // unused on the hand-written path
+    pde.gendatain      = 1;
+    pde.builtinmodelID = 1;
+    pde.porder = 3;
+    pde.pgauss = 6;
+    pde.torder = 1;
+    pde.nstage = 1;
+    pde.tdep   = 0;
+    pde.nd     = 2;       pde.ncu = 1;       pde.ncw = 0;
+    pde.nc     = 3;       // ncu * (1 + nd) for Poisson2D
+    pde.neb    = 4096;    pde.nfb = 8192;
+    pde.ibs    = 1;
+    pde.NewtonIter   = 20;     pde.NewtonTol   = 1e-6;
+    pde.GMRESiter    = 200;    pde.GMRESrestart = 50;
+    pde.GMREStol     = 1e-8;
+    pde.tau          = {1.0};
+    pde.dt           = {0.0};
+    pde.physicsparam = {1.0};
+
+    params.boundaryConditions = {1, 1, 1, 1};
+    params.boundaryExprs      = {"abs(y)<1e-8",   "abs(x-1)<1e-8",
+                                 "abs(y-1)<1e-8", "abs(x)<1e-8"};
+    params.tau                = {1.0};
+    params.dt                 = {0.0};
+    params.physicsParam       = {1.0};
+
+    // ParsedSpec is left empty: it's only consulted to *override* the
+    // pde dimensions from a parsed pdemodel.txt. With nothing to
+    // override, the values we set on `pde` above stay in effect.
+    (void)spec;
 }
 
 int main(int argc, char** argv) {
@@ -575,43 +588,42 @@ int main(int argc, char** argv) {
 
     Kokkos::initialize();
     {
-        // Lay the inputs out in a working dir.
         std::filesystem::create_directories("datain");
         std::filesystem::create_directories("dataout");
         write_square_mesh("grid.txt", /*n=*/32);
-        write_pdeapp_txt("pdeapp.txt");
 
-        // a) preprocessing — reads pdeapp.txt + grid.txt, writes
-        //    datain/{app,master,mesh,sol}.bin. Replaces text2code's
-        //    runtime side; the part text2code does at *compile time*
-        //    (emitting my_model.hpp) is gone because Poisson2D is
-        //    hand-written above.
-        CPreprocessing preproc("pdeapp.txt", mpirank, mpiprocs);
+        // Build runtime config in memory.
+        PDE         pde;
+        InputParams params;
+        ParsedSpec  spec;
+        build_runtime_config(pde, params, spec);
+
+        // a) preprocessing — programmatic constructor, no pdeapp.txt.
+        //    Reads grid.txt, writes datain/{app,master,mesh,sol}.bin.
+        CPreprocessing preproc(pde, params, spec, mpirank, mpiprocs);
         if (mpiprocs == 1) preproc.SerialPreprocessing();
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
         else preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
 #endif
 
-        // b) instantiate the solver. The CSolution<M> constructor
-        //    reads the binaries CPreprocessing just wrote.
-        std::string filein  = "datain/";
-        std::string fileout = "dataout/out";
-        int fileoffset = 0, gpuid = 0, backend = 0, builtinmodelID = 1;
-        CSolution<Poisson2D> sol(filein, fileout, /*exasimpath=*/"",
+        // b) instantiate the solver. CSolution<M> reads the binaries
+        //    CPreprocessing just wrote.
+        std::string filein  = pde.datainpath + "/";
+        std::string fileout = pde.dataoutpath + "/out";
+        int fileoffset = 0, gpuid = 0, backend = 0;
+        CSolution<Poisson2D> sol(filein, fileout, pde.exasimpath,
                                  mpiprocs, mpirank, fileoffset,
-                                 gpuid, backend, builtinmodelID);
+                                 gpuid, backend, pde.builtinmodelID);
 
         // CSolution expects nomodels/ncarray/udgarray to be populated
-        // even for a single-model run — see the loop in run.hpp:340.
+        // even for a single-model run — see run.hpp around line 340.
         sol.disc.common.nomodels = 1;
         sol.disc.common.ncarray  = new Int[1]{ sol.disc.common.nc };
         sol.disc.sol.udgarray    = new dstype*[1]{ &sol.disc.sol.udg[0] };
 
-        // c) solve. SolveProblem() is the same entry point run.hpp
-        //    calls in the steady-state branch; it runs Newton/GMRES,
-        //    saves outudg/outuhat/outqoi.
-        std::ofstream resnorms;   // unused here; run.hpp opens it
-                                  // only when saveResNorm == 1.
+        // c) solve.
+        std::ofstream resnorms;   // unused; run.hpp only opens this
+                                  // file when pde.saveResNorm == 1.
         sol.SolveProblem(resnorms, backend);
 
         delete[] sol.disc.common.ncarray;
@@ -652,17 +664,17 @@ cmake -B build && cmake --build build -j
 The binary writes `dataout/outqoi.txt` (the squared L² error vs. the
 manufactured solution if `qoi_volume` is defined; trivially zero
 otherwise) plus `dataout/outudg_np0.bin` (the discrete state). No
-`text2code`, no `pdemodel.txt`, no separate mesh tool.
+`text2code`, no `pdeapp.txt`, no `pdemodel.txt`.
 
-### Why `CPreprocessing` still touches the disk
+### What still touches the disk and why
 
-The runtime mesh ABI today is the four files in `datain/` —
-`app.bin`, `master.bin`, `mesh.bin`, `sol.bin`. `CPreprocessing`
-writes them; `CSolution<M>` reads them. There is no in-memory
-shortcut yet. Writing two text files (`grid.txt`, `pdeapp.txt`) and
-letting the preprocessing pipeline do its job is the cleanest way
-to drive things from your own program until that ABI is exposed
-directly.
+The mesh goes to `grid.txt` because `initializeMesh()` reads its
+input from a file path. The four runtime ABI files
+(`datain/{app,master,mesh,sol}.bin`) are written by `CPreprocessing`
+and read back by `CSolution<M>` — that's the boundary between the
+preprocessor and the solver. Both could be exposed as in-memory APIs
+in the future; for now the disk hop is small and only happens once
+per run.
 
 For multi-rank, the same `solve_square` binary launched under `mpirun
 -np N` partitions the global mesh with ParMETIS via the

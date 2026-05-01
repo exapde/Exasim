@@ -501,6 +501,21 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
     link_metis(poisson2d_template)
     set_target_properties(poisson2d_template PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+
+    # solve_square — fully embedded example: programmatic mesh +
+    # programmatic config (no pdeapp.txt, no pdemodel.txt). Tutorial:
+    # doc/tutorial_cpu_gpu_mpi.md §5.
+    add_executable(solve_square
+        ${EXASIM_DIR}/apps/library_example/solve_square/solve_square.cpp)
+    target_compile_definitions(solve_square PRIVATE _TEXT2CODE)
+    target_compile_options(solve_square PRIVATE -std=c++17 -w -O2)
+    target_include_directories(solve_square PRIVATE
+        ${EXASIM_DIR}/include)
+    target_link_directories(solve_square PRIVATE ${Model_LIB_DIR})
+    target_link_libraries(solve_square PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+    link_metis(solve_square)
+    set_target_properties(solve_square PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
 
   # Hand-written Poisson 2D, GPU variant. One target name regardless
