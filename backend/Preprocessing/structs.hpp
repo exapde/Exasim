@@ -13,6 +13,13 @@
 // tinyexpr-parsed string expressions in `boundaryExprs`.
 using BoundaryPred = std::function<bool(const double*)>;
 
+// Curved-boundary signed distance function: returns the signed
+// distance from `x` to the curved surface. The DG-node projector
+// projects boundary nodes back onto the level set d == 0 by
+// `x ← x - d(x) * ∇d(x) / |∇d|²`, with `∇d` from finite differences.
+// Used as a typed alternative to `curvedBoundaryExprs` strings.
+using BoundarySDF = std::function<double(const double*)>;
+
 struct FunctionDef {
     std::string name;
     std::string output;
@@ -83,6 +90,13 @@ struct InputParams {
     // instead of evaluating `boundaryExprs` through tinyexpr. Size
     // must equal `boundaryConditions.size()` if used.
     std::vector<BoundaryPred> boundaryPreds;
+
+    // Optional typed curved-boundary SDFs. When non-empty, the
+    // DG-node projector uses these (one per boundary tag) instead of
+    // evaluating `curvedBoundaryExprs` through tinyexpr. Tags whose
+    // `curvedBoundaries[k] == 0` are skipped regardless. Size must
+    // equal `curvedBoundaries.size()` if used.
+    std::vector<BoundarySDF> curvedBoundarySDFs;
 
     std::unordered_set<std::string> foundKeys;
 };
@@ -245,6 +259,11 @@ struct Mesh {
     // When non-empty, takes precedence over `boundaryExprs` during
     // boundary-face classification. Size must equal `nbcm`.
     std::vector<BoundaryPred> boundaryPreds;
+
+    // Typed curved-boundary SDFs (mirrors InputParams::curvedBoundarySDFs).
+    // When non-empty, takes precedence over `curvedBoundaryExprs`
+    // during DG-node projection.
+    std::vector<BoundarySDF> curvedBoundarySDFs;
 };
 
 struct Master 

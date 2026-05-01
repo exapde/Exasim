@@ -1034,6 +1034,96 @@ inline void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f
     //std::cout << "Finished project_dgnodes_onto_curved_boundaries.\n";
 }
 
+// SDF-based variant of project_dgnodes_onto_curved_boundaries. Takes
+// one std::function<double(const double*)> per boundary tag (signed
+// distance to the curved surface) instead of tinyexpr strings. Tags
+// whose `curvedboundary[k] == 0` are skipped regardless.
+inline void project_dgnodes_onto_curved_boundaries(
+    double* dgnodes, const int* f, const int* perm,
+    const int* curvedboundary,
+    const std::vector<BoundarySDF>& sdfs,
+    int nd, int porder, int npe, int npf, int nfe, int ne, int factor = 1)
+{
+    if (porder <= 1) return;
+
+    int has_curved = 0;
+    if (factor == -1) {
+        for (int k = 0; k < nfe * ne; ++k)
+            if (f[k] <= -1 && curvedboundary[-f[k]-1] != 0) has_curved = 1;
+    } else {
+        for (int k = 0; k < nfe * ne; ++k)
+            if (f[k] >  -1 && curvedboundary[ f[k]   ] != 0) has_curved = 1;
+    }
+    if (!has_curved) return;
+
+    const double eps = 1e-14;
+    double deps;
+    double xfd[3] = {0, 0, 0};
+
+    for (int e = 0; e < ne; ++e) {
+        for (int j = 0; j < nfe; ++j) {
+            int fid = factor * f[j + nfe * e];
+            if (factor == -1) fid = fid - 1;
+            if (fid < 0) continue;
+            int k = fid;
+            if (curvedboundary[k] != 1) continue;
+            if (k >= (int)sdfs.size() || !sdfs[k]) continue;
+            const auto& sdf = sdfs[k];
+
+            int npts = npf;
+            double* p     = (double*) malloc(sizeof(double) * npts * nd);
+            for (int i = 0; i < npts; ++i) {
+                int idx = perm[i + npf * j];
+                for (int d = 0; d < nd; ++d)
+                    p[i + npts * d] = dgnodes[idx + npe * (d + nd * e)];
+            }
+
+            double pmax = -1e20, pmin = 1e20;
+            for (int i = 0; i < npts * nd; ++i) {
+                if (p[i] > pmax) pmax = p[i];
+                if (p[i] < pmin) pmin = p[i];
+            }
+            deps = std::sqrt(eps) * (pmax - pmin);
+
+            double* d     = (double*) malloc(sizeof(double) * npts);
+            for (int i = 0; i < npts; ++i) {
+                for (int dd = 0; dd < nd && dd < 3; ++dd) xfd[dd] = p[i + npts * dd];
+                d[i] = sdf(xfd);
+            }
+
+            double* dgrad = (double*) malloc(sizeof(double) * npts * nd);
+            for (int ddir = 0; ddir < nd; ++ddir) {
+                for (int i = 0; i < npts; ++i) p[i + npts * ddir] += deps;
+                for (int i = 0; i < npts; ++i) {
+                    for (int dd = 0; dd < nd && dd < 3; ++dd) xfd[dd] = p[i + npts * dd];
+                    double dshift = sdf(xfd);
+                    dgrad[i + npts * ddir] = (dshift - d[i]) / deps;
+                }
+                for (int i = 0; i < npts; ++i) p[i + npts * ddir] -= deps;
+            }
+
+            for (int i = 0; i < npts; ++i) {
+                double sumsq = 0;
+                for (int ddir = 0; ddir < nd; ++ddir)
+                    sumsq += dgrad[i + npts * ddir] * dgrad[i + npts * ddir];
+                if (sumsq == 0) sumsq = 1;
+                for (int ddir = 0; ddir < nd; ++ddir)
+                    p[i + npts * ddir] -= (d[i] * dgrad[i + npts * ddir]) / sumsq;
+            }
+
+            for (int i = 0; i < npts; ++i) {
+                int idx = perm[i + npf * j];
+                for (int ddir = 0; ddir < nd; ++ddir)
+                    dgnodes[idx + npe * (ddir + nd * e)] = p[i + npts * ddir];
+            }
+
+            CPUFREE(d);
+            CPUFREE(dgrad);
+            CPUFREE(p);
+        }
+    }
+}
+
 // void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f, const int* perm, const int* curvedboundary,
 //                          char** fd_exprs, int nd, int porder, int npe, int npf, int nfe, int ne) 
 // {
@@ -1167,6 +1257,7 @@ inline void meshFinalizeFromParams(Mesh& mesh, InputParams& params, PDE& pde)
     mesh.cartGridPart        = params.cartGridPart;
     mesh.interfaceConditions = params.interfaceConditions;
     mesh.boundaryPreds       = params.boundaryPreds;
+    mesh.curvedBoundarySDFs  = params.curvedBoundarySDFs;
 
     assignVectorToCharArray(params.boundaryExprs, &mesh.boundaryExprs);
     assignVectorToCharArray(params.curvedBoundaryExprs, &mesh.curvedBoundaryExprs);

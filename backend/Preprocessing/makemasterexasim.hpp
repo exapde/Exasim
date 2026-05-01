@@ -1269,9 +1269,19 @@ inline void buildMesh(Mesh& mesh, const PDE& pde, const Master& master)
         std::cout << "Finished interface_elements.\n";
     }
          
-    if (pde.xdgfile == "") {      
-      project_dgnodes_onto_curved_boundaries(mesh.xdg.data(), mesh.f.data(), master.perm.data(), mesh.curvedBoundaries.data(),
-              mesh.curvedBoundaryExprs, mesh.dim, master.porder, master.npe, master.npf, mesh.nfe, mesh.ne);       
+    if (pde.xdgfile == "") {
+      if (!mesh.curvedBoundarySDFs.empty()) {
+        // Programmatic SDF path (HOT.7.2). Skips tinyexpr.
+        project_dgnodes_onto_curved_boundaries(
+            mesh.xdg.data(), mesh.f.data(), master.perm.data(),
+            mesh.curvedBoundaries.data(), mesh.curvedBoundarySDFs,
+            mesh.dim, master.porder, master.npe, master.npf, mesh.nfe, mesh.ne);
+      } else {
+        project_dgnodes_onto_curved_boundaries(
+            mesh.xdg.data(), mesh.f.data(), master.perm.data(),
+            mesh.curvedBoundaries.data(), mesh.curvedBoundaryExprs,
+            mesh.dim, master.porder, master.npe, master.npf, mesh.nfe, mesh.ne);
+      }
       std::cout << "Finished project_dgnodes_onto_curved_boundaries.\n";
 //       print2iarray(mesh.t.data(), mesh.nve, mesh.ne);
 //       print2darray(mesh.p.data(), mesh.dim, mesh.np);  
