@@ -1237,10 +1237,19 @@ inline void buildMesh(Mesh& mesh, const PDE& pde, const Master& master)
     
     mesh.f.resize(mesh.nfe * mesh.ne);
     mesh.t2lf.resize(mesh.nvf * mesh.nfe * mesh.ne);
-    mesh.localfaces.resize(mesh.nvf * mesh.nfe);        
-    mesh.nf = setboundaryfaces(mesh.f.data(), mesh.t2lf.data(), mesh.localfaces.data(), mesh.p.data(), 
-               mesh.t.data(), mesh.boundaryExprs, mesh.dim, mesh.elemtype, mesh.ne, mesh.nbndexpr); 
-    
+    mesh.localfaces.resize(mesh.nvf * mesh.nfe);
+    if (!mesh.boundaryPreds.empty()) {
+        // Programmatic predicate path (HOT.7.2). Skips tinyexpr.
+        mesh.nf = setboundaryfaces(mesh.f.data(), mesh.t2lf.data(),
+                                   mesh.localfaces.data(), mesh.p.data(), mesh.t.data(),
+                                   mesh.boundaryPreds, mesh.dim, mesh.elemtype, mesh.ne);
+    } else {
+        mesh.nf = setboundaryfaces(mesh.f.data(), mesh.t2lf.data(),
+                                   mesh.localfaces.data(), mesh.p.data(), mesh.t.data(),
+                                   mesh.boundaryExprs, mesh.dim, mesh.elemtype, mesh.ne,
+                                   mesh.nbndexpr);
+    }
+
     std::cout << "Finished setboundaryfaces.\n";
 
     //print2iarray(mesh.t.data(), mesh.nve, mesh.ne);

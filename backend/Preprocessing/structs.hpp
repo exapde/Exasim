@@ -1,10 +1,17 @@
 #ifndef __STRUCTS_HPP__
 #define __STRUCTS_HPP__
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+// Boundary predicate: takes the spatial coordinate (`x[0..nd-1]`) and
+// returns true when the point is on the corresponding boundary tag.
+// Used by the programmatic mesh path as a typed alternative to the
+// tinyexpr-parsed string expressions in `boundaryExprs`.
+using BoundaryPred = std::function<bool(const double*)>;
 
 struct FunctionDef {
     std::string name;
@@ -66,11 +73,17 @@ struct InputParams {
     std::vector<double> stgdata;
     std::vector<double> stgparam;
     
-    std::vector<std::string> boundaryExprs;    
-    std::vector<std::string> curvedBoundaryExprs;    
-    std::vector<std::string> periodicExprs1;    
-    std::vector<std::string> periodicExprs2;        
-    
+    std::vector<std::string> boundaryExprs;
+    std::vector<std::string> curvedBoundaryExprs;
+    std::vector<std::string> periodicExprs1;
+    std::vector<std::string> periodicExprs2;
+
+    // Optional typed boundary predicates. When non-empty, the
+    // preprocessor classifies boundary faces using these predicates
+    // instead of evaluating `boundaryExprs` through tinyexpr. Size
+    // must equal `boundaryConditions.size()` if used.
+    std::vector<BoundaryPred> boundaryPreds;
+
     std::unordered_set<std::string> foundKeys;
 };
 
@@ -226,7 +239,12 @@ struct Mesh {
     char** boundaryExprs = nullptr;
     char** curvedBoundaryExprs = nullptr;
     char** periodicExprs1 = nullptr;
-    char** periodicExprs2 = nullptr;        
+    char** periodicExprs2 = nullptr;
+
+    // Typed boundary predicates (mirrors InputParams::boundaryPreds).
+    // When non-empty, takes precedence over `boundaryExprs` during
+    // boundary-face classification. Size must equal `nbcm`.
+    std::vector<BoundaryPred> boundaryPreds;
 };
 
 struct Master 

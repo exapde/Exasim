@@ -170,8 +170,15 @@ static void build_runtime_config(PDE& pde, InputParams& params,
     pde.physicsparam = {1.0};
 
     params.boundaryConditions = {1, 1, 1, 1};
-    params.boundaryExprs      = {"abs(y)<1e-8",   "abs(x-1)<1e-8",
-                                 "abs(y-1)<1e-8", "abs(x)<1e-8"};
+    // Boundary predicates instead of tinyexpr strings (HOT.7.2). The
+    // four predicates classify points on the four edges of [0,1]^2.
+    // Order matches `boundaryConditions` above.
+    params.boundaryPreds = {
+        [](const double* x){ return std::abs(x[1])     < 1e-8; },   // y == 0
+        [](const double* x){ return std::abs(x[0] - 1) < 1e-8; },   // x == 1
+        [](const double* x){ return std::abs(x[1] - 1) < 1e-8; },   // y == 1
+        [](const double* x){ return std::abs(x[0])     < 1e-8; },   // x == 0
+    };
     params.curvedBoundaries     = {0, 0, 0, 0};   // none curved
     params.curvedBoundaryExprs  = {"", "", "", ""};
     params.tau                = {1.0};

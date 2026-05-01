@@ -260,18 +260,18 @@ inline void assignboundaryfaces(
     int* f,                     // [nfe x ne], zero-based, must be initialized to -1
     const int* t,               // [nve x ne], element-to-node connectivity
     const int* f2t,             // [4 x nf], face-to-element connectivity
-    const int* ind,             // [nb], indices of boundary faces   
+    const int* ind,             // [nb], indices of boundary faces
     const int* localfaces,      // [nvf x nfe], local face connectivity
     const double* p,           // [dim x np]
     char** bndexpr,       // boundary expressions, e.g., {"x*x + y*y <= 1"}
-    int dim, int nve, int nvf, int nfe, int ne, int nb, int nbndexpr) 
+    int dim, int nve, int nvf, int nfe, int ne, int nb, int nbndexpr)
 {
     for (int i = 0; i < nfe * ne; ++i)
         f[i] = -1;
 
     int ind2 = 1;
     if (nvf==1) ind2 = 0;
-            
+
     for (int ii = 0; ii < nb; ++ii) {
         int b = ind[ii];
         int e = f2t[0 + 4 * b];
@@ -299,6 +299,47 @@ inline void assignboundaryfaces(
                 f[l + nfe * e] = k;
                 break;
             }
+        }
+    }
+}
+
+// Predicate-based variant: identical face-classification logic to the
+// `char** bndexpr` overload above, but invokes typed C++ predicates
+// instead of evaluating tinyexpr strings. Active when the caller
+// populates `mesh.boundaryPreds` (or `params.boundaryPreds`).
+inline void assignboundaryfaces(
+    int* f,
+    const int* t,
+    const int* f2t,
+    const int* ind,
+    const int* localfaces,
+    const double* p,
+    const std::vector<BoundaryPred>& preds,
+    int dim, int nve, int nvf, int nfe, int ne, int nb)
+{
+    for (int i = 0; i < nfe * ne; ++i)
+        f[i] = -1;
+
+    int ind2 = 1;
+    if (nvf == 1) ind2 = 0;
+
+    const int npreds = (int)preds.size();
+    for (int ii = 0; ii < nb; ++ii) {
+        int b = ind[ii];
+        int e = f2t[0 + 4 * b];
+        int l = f2t[1 + 4 * b];
+
+        for (int k = 0; k < npreds; ++k) {
+            bool ok = true;
+            int check_pts[3] = {0, ind2, nvf - 1};
+            for (int m = 0; m < 3; ++m) {
+                int i = check_pts[m];
+                int local_node = localfaces[i + l * nvf];
+                int node = t[local_node + nve * e];
+                const double* x = &p[dim * node];
+                if (!preds[k](x)) { ok = false; break; }
+            }
+            if (ok) { f[l + nfe * e] = k; break; }
         }
     }
 }
@@ -552,16 +593,16 @@ inline void assignboundaryfaces(
 //     return out; 
 // }
 
-inline int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t,                    
-    char** bndexpr, int dim, int elemtype, int ne, int nbndexpr) 
+inline int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const int* t,
+    char** bndexpr, int dim, int elemtype, int ne, int nbndexpr)
 {
-    int nve = (elemtype==0) ? (dim + 1) : std::pow(2, dim);    
-    int nvf = (dim == 3) ? (dim + elemtype) : dim;     
+    int nve = (elemtype==0) ? (dim + 1) : std::pow(2, dim);
+    int nvf = (dim == 3) ? (dim + elemtype) : dim;
     int nfe = dim + (dim-1)*elemtype + 1;
-    
+
     //int* face = (int*) malloc(sizeof(int) * nfe * nvf);
-    getelemface(face, dim, elemtype);    
-    
+    getelemface(face, dim, elemtype);
+
     for (int e = 0; e < ne; ++e) {
         for (int f = 0; f < nfe; ++f) {
             for (int v = 0; v < nvf; ++v) {
@@ -571,22 +612,61 @@ inline int setboundaryfaces(int* f, int* t2lf, int *face, const double* p, const
                 t2lf[idx] = node;
             }
         }
-    }    
+    }
 
     int* f2e = (int*) malloc(sizeof(int) * 4 * nfe * ne);
-    int nf = mkf2e_hash(f2e, t, face, ne, nve, nvf, nfe); 
-    
+    int nf = mkf2e_hash(f2e, t, face, ne, nve, nvf, nfe);
+
     int* ind = (int*) malloc(sizeof(int) * nf);
     int nb = 0;
     for (int i=0; i<nf; i++) ind[i] = -1;
-    for (int i=0; i<nf; i++) 
+    for (int i=0; i<nf; i++)
       if (f2e[2 + 4*i] == -1) ind[nb++] = i;
 
-    assignboundaryfaces(f, t, f2e, ind, face, p, bndexpr, dim, nve, nvf, nfe, ne, nb, nbndexpr);    
+    assignboundaryfaces(f, t, f2e, ind, face, p, bndexpr, dim, nve, nvf, nfe, ne, nb, nbndexpr);
 
     CPUFREE(f2e);
     CPUFREE(ind);
-    
+
+    return nf;
+}
+
+// Predicate-based variant of setboundaryfaces. Same connectivity
+// build, classifies boundary faces with C++ predicates instead of
+// tinyexpr strings.
+inline int setboundaryfaces(int* f, int* t2lf, int* face,
+                            const double* p, const int* t,
+                            const std::vector<BoundaryPred>& preds,
+                            int dim, int elemtype, int ne)
+{
+    int nve = (elemtype == 0) ? (dim + 1) : std::pow(2, dim);
+    int nvf = (dim == 3) ? (dim + elemtype) : dim;
+    int nfe = dim + (dim - 1)*elemtype + 1;
+
+    getelemface(face, dim, elemtype);
+    for (int e = 0; e < ne; ++e)
+        for (int ff = 0; ff < nfe; ++ff)
+            for (int v = 0; v < nvf; ++v) {
+                int lf = face[v + nvf * ff];
+                int node = t[lf + nve * e];
+                int idx = v + nvf * (ff + nfe * e);
+                t2lf[idx] = node;
+            }
+
+    int* f2e = (int*) malloc(sizeof(int) * 4 * nfe * ne);
+    int nf = mkf2e_hash(f2e, t, face, ne, nve, nvf, nfe);
+
+    int* ind = (int*) malloc(sizeof(int) * nf);
+    int nb = 0;
+    for (int i = 0; i < nf; i++) ind[i] = -1;
+    for (int i = 0; i < nf; i++)
+        if (f2e[2 + 4*i] == -1) ind[nb++] = i;
+
+    assignboundaryfaces(f, t, f2e, ind, face, p, preds, dim, nve, nvf, nfe, ne, nb);
+
+    CPUFREE(f2e);
+    CPUFREE(ind);
+
     return nf;
 }
 
@@ -1086,18 +1166,23 @@ inline void meshFinalizeFromParams(Mesh& mesh, InputParams& params, PDE& pde)
     mesh.periodicBoundaries2 = params.periodicBoundaries2;
     mesh.cartGridPart        = params.cartGridPart;
     mesh.interfaceConditions = params.interfaceConditions;
+    mesh.boundaryPreds       = params.boundaryPreds;
 
     assignVectorToCharArray(params.boundaryExprs, &mesh.boundaryExprs);
     assignVectorToCharArray(params.curvedBoundaryExprs, &mesh.curvedBoundaryExprs);
     assignVectorToCharArray(params.periodicExprs1, &mesh.periodicExprs1);
     assignVectorToCharArray(params.periodicExprs2, &mesh.periodicExprs2);
 
-    mesh.nbndexpr = params.boundaryExprs.size();
+    // When boundaryPreds is supplied, it stands in for boundaryExprs:
+    // we get nbndexpr from the predicates rather than the strings.
+    mesh.nbndexpr = mesh.boundaryPreds.empty()
+                      ? (int)params.boundaryExprs.size()
+                      : (int)mesh.boundaryPreds.size();
     mesh.nbcm     = params.boundaryConditions.size();
     mesh.nprdexpr = params.periodicBoundaries1.size();
     mesh.nprdcom  = (mesh.nprdexpr == 0) ? 0 : params.periodicExprs1.size()/mesh.nprdexpr;
     if (mesh.nbndexpr != mesh.nbcm)
-        error("boundaryconditions and boundaryexpressions are not the same size. Exiting.\n");
+        error("boundaryconditions and boundaryexpressions/preds are not the same size. Exiting.\n");
 
     mesh.dim   = mesh.nd;
     pde.nve    = mesh.nve;
