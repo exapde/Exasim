@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <vector>
@@ -331,5 +333,249 @@ inline masterstruct buildMasterStruct(const Master& master)
 
     return ms;
 }
+
+// ---------------------------------------------------------------
+// buildMeshStruct(mesh, master, dmd, bf, hybrid, mpiprocs)
+//   — mirrors readmeshstruct() / writemesh() pair.
+//
+// Sets only the fields actually written by writemesh(). The runtime
+// `meshstruct` has many more fields (facecon, eblks, fblks, e2f,
+// f2e, f2f, …) that are populated later by `buildConn(mesh, sol,
+// app, master, …)`; this builder is the equivalent of the
+// readmeshstruct() step that loads ti / boundaryConditions /
+// intepartpts and stops there. Caller (`finalizePreprocessed`)
+// invokes buildConn afterward.
+//
+// MPI fields (nbsd / elemsend / elemrecv / …) are populated when
+// `mpiprocs > 1` from the DMD struct, mirroring writemesh's
+// `if (pde.mpiprocs>1)` branch.
+//
+// Outputs `ti_out` for the caller — needed by buildConn().
+// ---------------------------------------------------------------
+inline meshstruct buildMeshStruct(const Mesh& mesh, const Master& master,
+                                  const DMD& dmd, const std::vector<int>& bf,
+                                  int hybrid, int mpiprocs,
+                                  std::vector<int>& ti_out)
+{
+    meshstruct ms{};
+
+    const int ne   = (int)dmd.elempart.size();
+    const int nve  = mesh.nve;
+    const int nfe  = mesh.nfe;
+
+    // ---- ndims (20 entries; only a handful are actually used) ----
+    constexpr Int kNDims = 20;
+    ms.ndims = (Int*)std::calloc(kNDims, sizeof(Int));
+    ms.ndims[0] = mesh.dim;
+    ms.ndims[1] = ne;
+    {
+        int maxt = 0;
+        for (int v : mesh.t) if (v > maxt) maxt = v;
+        ms.ndims[3] = maxt + 1;
+    }
+    ms.ndims[4] = nfe;
+
+    // ---- nsize (50 entries) ----
+    constexpr Int kNSize = 50;
+    ms.nsize = (Int*)std::calloc(kNSize, sizeof(Int));
+    ms.nsize[0] = kNDims;
+    if (mpiprocs > 1) {
+        ms.nsize[4] = (Int)dmd.nbsd.size();
+        ms.nsize[5] = (Int)dmd.elemsend.size();
+        ms.nsize[6] = (Int)dmd.elemrecv.size();
+        ms.nsize[7] = (Int)dmd.elemsendpts.size();
+        ms.nsize[8] = (Int)dmd.elemrecvpts.size();
+    }
+    ms.nsize[9]  = (Int)dmd.elempart.size();
+    ms.nsize[10] = (Int)dmd.elempartpts.size();
+    ms.nsize[23] = (Int)master.perm.size();
+    ms.nsize[24] = (Int)bf.size();
+    ms.nsize[25] = (Int)mesh.cartGridPart.size();
+    ms.nsize[26] = (Int)(ne * nve);
+    ms.nsize[27] = (Int)mesh.boundaryConditions.size();
+    ms.nsize[28] = (Int)dmd.intepartpts.size();
+
+    ms.lsize = (Int*)std::malloc(sizeof(Int));
+    ms.lsize[0] = kNSize;
+
+    // ---- MPI-only payloads (mirrors writemesh's pde.mpiprocs>1 branch) ----
+    if (mpiprocs > 1) {
+        // elemsend / elemrecv each store rows [sender, recv_local_idx, sender_global_idx]
+        // — writemesh extracts column [1] only.
+        std::vector<int> elemsend(dmd.elemsend.size());
+        std::vector<int> elemrecv(dmd.elemrecv.size());
+        for (size_t i = 0; i < dmd.elemsend.size(); ++i) elemsend[i] = dmd.elemsend[i][1];
+        for (size_t i = 0; i < dmd.elemrecv.size(); ++i) elemrecv[i] = dmd.elemrecv[i][1];
+        ms.nbsd        = mallocIntArrayN(dmd.nbsd.data(),       (Int)dmd.nbsd.size());
+        ms.elemsend    = mallocIntArrayN(elemsend.data(),       (Int)elemsend.size());
+        ms.elemrecv    = mallocIntArrayN(elemrecv.data(),       (Int)elemrecv.size());
+        ms.elemsendpts = mallocIntArrayN(dmd.elemsendpts.data(),(Int)dmd.elemsendpts.size());
+        ms.elemrecvpts = mallocIntArrayN(dmd.elemrecvpts.data(),(Int)dmd.elemrecvpts.size());
+        ms.sznbsd        = ms.nsize[4];
+        ms.szelemsend    = ms.nsize[5];
+        ms.szelemrecv    = ms.nsize[6];
+        ms.szelemsendpts = ms.nsize[7];
+        ms.szelemrecvpts = ms.nsize[8];
+    }
+    ms.elempart    = mallocIntArrayN(dmd.elempart.data(),    (Int)dmd.elempart.size());
+    ms.elempartpts = mallocIntArrayN(dmd.elempartpts.data(), (Int)dmd.elempartpts.size());
+    ms.szelempart    = ms.nsize[9];
+    ms.szelempartpts = ms.nsize[10];
+
+    // ---- HDG-only payloads ----
+    if (hybrid > 0) {
+        ms.perm         = mallocIntArrayN(master.perm.data(),       (Int)master.perm.size());
+        ms.bf           = mallocIntArrayN(bf.data(),                (Int)bf.size());
+        ms.cartgridpart = mallocIntArrayN(mesh.cartGridPart.data(), (Int)mesh.cartGridPart.size());
+        ms.szperm        = ms.nsize[23];
+        ms.szbf          = ms.nsize[24];
+        ms.szcartgridpart= ms.nsize[25];
+    }
+
+    // ---- ti (mesh.t reordered by elempart) — emitted to caller ----
+    ti_out.assign((size_t)nve * ne, 0);
+    for (int j = 0; j < ne; ++j) {
+        int col = dmd.elempart[j];
+        for (int i = 0; i < nve; ++i)
+            ti_out[i + j*nve] = mesh.t[i + col*nve];
+    }
+
+    // ---- boundaryConditions, intepartpts ----
+    ms.boundaryConditions = mallocIntArrayN(mesh.boundaryConditions.data(),
+                                            (Int)mesh.boundaryConditions.size());
+    ms.intepartpts        = mallocIntArrayN(dmd.intepartpts.data(),
+                                            (Int)dmd.intepartpts.size());
+
+    return ms;
+}
+
+// ---------------------------------------------------------------
+// buildSolStruct(mesh, master, pde, ne, ncudg) — mirrors
+// readsolstruct() / writesol() pair, *without* the udg / odg / wdg
+// initial-condition computation. The legacy readsolstruct calls
+// cpuInituDriver / cpuInitodgDriver / cpuInitwdgDriver when the
+// corresponding nsize[k] is zero. That's hard to do here because
+// app.flag isn't yet built — the orchestrator (see
+// `buildPreprocessed` below) calls those drivers after solstruct is
+// built but before buildConn().
+//
+// `ne_local` is `dmd.elempart.size()` (per-rank element count).
+// `ncudg`   is the legacy heuristic from writesol: `mesh.udg.size()
+// / (mesh.ne * master.npe)` if udg is nonempty, else `pde.nc`.
+// ---------------------------------------------------------------
+inline solstruct buildSolStruct(const Mesh& mesh, const Master& master,
+                                const PDE& pde, const DMD& dmd)
+{
+    solstruct sol{};
+
+    const int ne_local = (int)dmd.elempart.size();
+    const int ne_global= mesh.ne;
+    const int npe      = master.npe;
+
+    // ---- ndims (12 entries) ----
+    constexpr Int kNDims = 12;
+    sol.ndims = (Int*)std::calloc(kNDims, sizeof(Int));
+    sol.ndims[0]  = ne_local;
+    sol.ndims[2]  = mesh.nfe;
+    sol.ndims[3]  = master.npe;
+    sol.ndims[4]  = master.npf;
+    sol.ndims[5]  = pde.nc;
+    sol.ndims[6]  = pde.ncu;
+    sol.ndims[7]  = pde.ncq;
+    sol.ndims[8]  = pde.ncw;
+    sol.ndims[9]  = pde.ncv;
+    sol.ndims[10] = pde.nch;
+    sol.ndims[11] = pde.ncx;
+
+    // ---- nsize (20 entries; xdg=1, udg=2, vdg=3, wdg=4, uhat=5, xcg=6) ----
+    constexpr Int kNSize = 20;
+    sol.nsize = (Int*)std::calloc(kNSize, sizeof(Int));
+    sol.nsize[0] = kNDims;
+    if (!mesh.xdg.empty())
+        sol.nsize[1] = (Int)(npe * mesh.dim * ne_local);
+    int ncudg = 0;
+    if (!mesh.udg.empty()) {
+        ncudg = (int)mesh.udg.size() / (ne_global * npe);
+        if (ncudg == pde.ncu || ncudg == pde.nc)
+            sol.nsize[2] = (Int)(npe * ncudg * ne_local);
+    }
+    if (!mesh.vdg.empty()) sol.nsize[3] = (Int)(npe * pde.ncv * ne_local);
+    if (!mesh.wdg.empty()) sol.nsize[4] = (Int)(npe * pde.ncw * ne_local);
+    if (!mesh.uhat.empty()) sol.nsize[5] = (Int)mesh.uhat.size();
+
+    sol.lsize = (Int*)std::malloc(sizeof(Int));
+    sol.lsize[0] = kNSize;
+
+    // ---- xdg (always written if mesh.xdg present, selected by elempart) ----
+    if (!mesh.xdg.empty()) {
+        const int row = npe * mesh.dim;
+        sol.xdg = (dstype*)std::malloc(sizeof(dstype) * row * ne_local);
+        for (int j = 0; j < ne_local; ++j) {
+            int col = dmd.elempart[j];
+            for (int i = 0; i < row; ++i)
+                sol.xdg[i + j*row] = (dstype)mesh.xdg[i + col*row];
+        }
+        sol.szxdg = sol.nsize[1];
+    }
+
+    // ---- udg, vdg, wdg, uhat: only the *file-present* paths.
+    //     The legacy "compute initial via cpuInituDriver" branch
+    //     happens in `finalizePreprocessed` after app/master/sol
+    //     are all in hand. ----
+    if (!mesh.udg.empty()) {
+        const int row = npe * ncudg;
+        sol.udg = (dstype*)std::malloc(sizeof(dstype) * row * ne_local);
+        for (int j = 0; j < ne_local; ++j) {
+            int col = dmd.elempart[j];
+            for (int i = 0; i < row; ++i)
+                sol.udg[i + j*row] = (dstype)mesh.udg[i + col*row];
+        }
+        sol.szudg = sol.nsize[2];
+    }
+    // The legacy ABI stores `vdg` (auxiliary scalar fields) under
+    // `solstruct::odg` — see common.h: odg = auxilary term. Mesh
+    // .vdg → solstruct.odg.
+    if (!mesh.vdg.empty()) {
+        const int row = npe * pde.ncv;
+        sol.odg = (dstype*)std::malloc(sizeof(dstype) * row * ne_local);
+        for (int j = 0; j < ne_local; ++j) {
+            int col = dmd.elempart[j];
+            for (int i = 0; i < row; ++i)
+                sol.odg[i + j*row] = (dstype)mesh.vdg[i + col*row];
+        }
+        sol.szodg = sol.nsize[3];
+    }
+    if (!mesh.wdg.empty()) {
+        const int row = npe * pde.ncw;
+        sol.wdg = (dstype*)std::malloc(sizeof(dstype) * row * ne_local);
+        for (int j = 0; j < ne_local; ++j) {
+            int col = dmd.elempart[j];
+            for (int i = 0; i < row; ++i)
+                sol.wdg[i + j*row] = (dstype)mesh.wdg[i + col*row];
+        }
+        sol.szwdg = sol.nsize[4];
+    }
+    if (!mesh.uhat.empty()) {
+        sol.uh = (dstype*)std::malloc(sizeof(dstype) * mesh.uhat.size());
+        for (size_t i = 0; i < mesh.uhat.size(); ++i)
+            sol.uh[i] = (dstype)mesh.uhat[i];
+        sol.szuh = sol.nsize[5];
+    }
+
+    return sol;
+}
+
+// ---------------------------------------------------------------
+// Bundle of the four runtime structs ready for CDiscretization /
+// CSolution to consume directly. See HOT.7.3 plan.
+// ---------------------------------------------------------------
+struct Preprocessed {
+    appstruct    app;
+    masterstruct master;
+    meshstruct   mesh;
+    solstruct    sol;
+    // ti retained for buildConn() inside CDiscretization's setup.
+    std::vector<int> ti;
+};
 
 } // namespace exasim

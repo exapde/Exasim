@@ -203,7 +203,9 @@ int main(int argc, char** argv) {
 
     Kokkos::initialize();
     {
-        std::filesystem::create_directories("datain");
+        // dataout/ holds the solver's output bins; datain/ is no
+        // longer needed — the in-memory `Preprocessed` ABI replaces
+        // the four datain/*.bin files.
         std::filesystem::create_directories("dataout");
 
         PDE         pde;
@@ -223,15 +225,15 @@ int main(int argc, char** argv) {
                                       sq.nv, sq.ne, /*nve=*/4, /*nd=*/2,
                                       preproc.params, preproc.pde);
 
-        if (mpiprocs == 1) preproc.SerialPreprocessing();
-#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
-        else preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
-#endif
+        // Run preprocessing into an in-memory Preprocessed bundle —
+        // no app.bin/master.bin/mesh.bin/sol.bin written. CSolution
+        // consumes it directly via the matching constructor.
+        // (HOT.7.3 — replaces SerialPreprocessing + CSolution(filein,…))
+        auto pre = preproc.take();
 
-        std::string filein  = pde.datainpath + "/";
         std::string fileout = pde.dataoutpath + "/out";
         int fileoffset = 0, gpuid = 0, backend = 0;
-        CSolution<Poisson2D> sol(filein, fileout, pde.exasimpath,
+        CSolution<Poisson2D> sol(std::move(pre), fileout, pde.exasimpath,
                                  mpiprocs, mpirank, fileoffset,
                                  gpuid, backend, pde.builtinmodelID);
 

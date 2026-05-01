@@ -223,9 +223,59 @@ inline CDiscretization<M>::CDiscretization(string filein, string fileout, string
 #endif        
     }
     else  {// CPU
-        cpuInit(sol, res, app, master, mesh, tmp, common, filein, fileout, 
-                mpiprocs, mpirank, fileoffset, omprank);    
+        cpuInit(sol, res, app, master, mesh, tmp, common, filein, fileout,
+                mpiprocs, mpirank, fileoffset, omprank);
     }
+    postInit(backend);
+}
+
+// HOT.7.3 — programmatic constructor: takes a pre-built Preprocessed
+// bundle and skips readInput entirely.
+template <class M>
+template <class P>
+inline CDiscretization<M>::CDiscretization(P&& pre, string fileout, string exasimpath, Int mpiprocs,
+        Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)
+{
+    common.backend        = backend;
+    common.exasimpath     = exasimpath;
+    common.builtinmodelID = builtinmodelID;
+    app.builtinmodelID    = builtinmodelID;
+
+    if (mpirank == 0) {
+#ifdef HAVE_TEXT2CODE
+        cout << "Model Driver = ../Model/ModelDrivers.cpp" << endl;
+#elif defined(HAVE_BUILTINMODEL)
+        cout << "Model Driver = ../Model/BuiltIn/BuiltinModelDrivers.cpp" << endl;
+#else
+        cout << "Model Driver = ../Model/KokkosDrivers.cpp" << endl;
+#endif
+    }
+
+    // Move/copy the four runtime structs from the Preprocessed bundle
+    // into our members. Raw pointer ownership transfers; the caller
+    // is expected not to use `pre` after this point.
+    sol    = pre.sol;
+    app    = pre.app;
+    master = pre.master;
+    mesh   = pre.mesh;
+
+    if (backend > 1) {
+#ifdef HAVE_GPU
+        // GPU path for the in-memory ABI lands in HOT.7.6 (cross-arch).
+        error("HOT.7.3 programmatic constructor: GPU backend not yet wired; use the file-based ctor for now.");
+#endif
+    } else {
+        cpuInitFromStructs(sol, res, app, master, mesh, tmp, common,
+                           pre.ti, fileout, mpiprocs, mpirank, fileoffset, omprank);
+    }
+    postInit(backend);
+}
+
+// Post-cpuInit body shared by both constructors. (Extracted from the
+// file-driven constructor at HOT.7.3 — see discretization.h.)
+template <class M>
+inline void CDiscretization<M>::postInit(Int backend)
+{
     common.read_uh = app.read_uh;
 
     // compute the geometry quantities

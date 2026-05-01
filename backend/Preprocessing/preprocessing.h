@@ -2,6 +2,7 @@
 #define __PREPROCESSING_H__
 
 #include "structs.hpp"
+#include "buildstructs.hpp"
 
 class CPreprocessing {
 private:
@@ -33,11 +34,18 @@ public:
     // destructor
     ~CPreprocessing();
 
-    void SerialPreprocessing(); 
+    void SerialPreprocessing();
 
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
-    void ParallelPreprocessing(MPI_Comm comm); 
-#endif  
+    void ParallelPreprocessing(MPI_Comm comm);
+#endif
+
+    // HOT.7.3 — Run preprocessing into in-memory `Preprocessed`
+    // bundle (no app.bin/master.bin/mesh.bin/sol.bin written). The
+    // returned struct is consumed by `CSolution<M>(Preprocessed&&, ...)`.
+    // Currently wired for serial (mpiprocs == 1); MPI variant lands
+    // in HOT.7.6.
+    exasim::Preprocessed take();
 };
 
 #endif        

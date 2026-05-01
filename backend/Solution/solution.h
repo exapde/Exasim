@@ -133,22 +133,46 @@ public:
     ofstream outbouuhat;  
     ofstream outqoi;
     
-    // constructor 
-    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)   
+    // HOT.7.3 — programmatic constructor: takes a pre-built
+    // `Preprocessed` bundle (see backend/Preprocessing/buildstructs.hpp)
+    // and forwards to the matching CDiscretization<M> constructor.
+    // No filein, no readInput, no datain/ disk I/O.
+    template <class P>
+    CSolution(P&& preprocessed, string fileout, string exasimpath,
+              Int mpiprocs, Int mpirank, Int fileoffset, Int omprank,
+              Int backend, Int builtinmodelID)
+       : disc(std::forward<P>(preprocessed), fileout, exasimpath,
+              mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID),
+         prec(disc, backend), solv(disc, backend), vis(disc, backend)
+    {
+        cs_finalize_init(backend);
+    }
+
+    // constructor
+    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)
        : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID),
-         prec(disc, backend), solv(disc, backend), vis(disc, backend) 
-    {   
-        int ncx = disc.common.ncx;                            
-        int nd = disc.common.nd;     
-        int ncu = disc.common.ncu;     
-        int nc = (disc.common.saveSolOpt==0) ? disc.common.ncu : disc.common.nc;        
+         prec(disc, backend), solv(disc, backend), vis(disc, backend)
+    {
+        cs_finalize_init(backend);
+    }
+
+    // Body of both constructors after `disc/prec/solv/vis` are built.
+    // Opens output streams and sets a few derived counters. Extracted
+    // at HOT.7.3 so the new programmatic constructor can share it.
+    void cs_finalize_init(Int backend)
+    {
+        int ncx = disc.common.ncx;
+        int nd = disc.common.nd;
+        int ncu = disc.common.ncu;
+        int nc = (disc.common.saveSolOpt==0) ? disc.common.ncu : disc.common.nc;
         int ncw = disc.common.ncw;
         int npe = disc.common.npe;
         int npf = disc.common.npf;
-        int ne = disc.common.ne1;     
-        int nf = disc.common.nf;     
+        int ne = disc.common.ne1;
+        int nf = disc.common.nf;
         int rank = disc.common.mpiRank;
         int offset = disc.common.fileoffset;
+        Int mpirank = disc.common.mpiRank;
         std::string base = disc.common.fileout;
 
         if ((disc.common.nintfaces > 0) && (disc.common.coupledcondition>0)) disc.common.ne0 = disc.common.intepartpts[0];

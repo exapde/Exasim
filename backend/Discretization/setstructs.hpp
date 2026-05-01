@@ -451,17 +451,36 @@ inline void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master,
 #endif
 }
 
-inline void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, 
+// Post-readInput half of `cpuInit`. Identical body to the original
+// (modulo the leading `readInput` call which is now hoisted out so
+// the in-memory path — `cpuInitFromStructs` — can reuse the same
+// setup chain). Both legacy file path and HOT.7.3 programmatic path
+// converge here.
+inline void cpuInitTail(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
-        string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
+        string filein, string fileout, Int mpiprocs, Int mpirank,
+        Int fileoffset, Int omprank);
+
+inline void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
+        meshstruct &mesh, tempstruct &tmp, commonstruct &common,
+        string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
 {
-     
     if (mpirank==0)
         printf("Reading data from binary files \n");
-    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, fileoffset, omprank);            
-    
+    readInput(app, master, mesh, sol, filein, mpiprocs, mpirank, fileoffset, omprank);
+
     if (mpirank==0)
         printf("Finish reading data from binary files \n");
+
+    cpuInitTail(sol, res, app, master, mesh, tmp, common, filein, fileout,
+                mpiprocs, mpirank, fileoffset, omprank);
+}
+
+inline void cpuInitTail(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
+        meshstruct &mesh, tempstruct &tmp, commonstruct &common,
+        string filein, string fileout, Int mpiprocs, Int mpirank,
+        Int fileoffset, Int omprank)
+{
     
 //     if (mpiprocs != app.ndims[0]) {
 //         if (mpirank==0) {
@@ -722,9 +741,88 @@ inline void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct
     }            
     
     if (mpirank==0) {
-        //print2darray(app.physicsparam,1,app.nsize[6]); 
+        //print2darray(app.physicsparam,1,app.nsize[6]);
         printf("finish cpuInit... \n");
     }
+}
+
+// HOT.7.3 — programmatic in-memory entry to the cpuInit pipeline.
+//
+// Replaces the readInput() step with caller-supplied app/master/sol/
+// mesh structs (see backend/Preprocessing/buildstructs.hpp). The
+// rest of the pipeline (initial udg/odg/wdg, buildConn, common /
+// res / tmp setup, HDG products, face/elem perm, send/recv index
+// arrays) runs identically via cpuInitTail.
+//
+// `ti` is mesh.t reordered by elempart (produced by buildMeshStruct).
+// On entry app.porder / app.comm are unset — populated here as the
+// legacy readInput would.
+inline void cpuInitFromStructs(solstruct &sol, resstruct &res, appstruct &app,
+        masterstruct &master, meshstruct &mesh, tempstruct &tmp,
+        commonstruct &common, std::vector<int>& ti, string fileout,
+        Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+{
+    // 1) app.porder + app.comm — done inside readInput today (lines
+    //    634-641 of readbinaryfiles.hpp). We replicate it here so
+    //    cpuInitTail sees the same app state.
+    Int nd = master.ndims[0];
+    app.porder = (Int*) std::malloc(nd * sizeof(Int));
+    app.szporder = nd;
+    for (Int i = 0; i < nd; ++i) app.porder[i] = master.ndims[3];
+    app.comm = (Int*) std::malloc(2 * sizeof(Int));
+    app.comm[0] = mpirank;
+    app.comm[1] = mpiprocs;
+    app.szcomm = 2;
+
+    // 2) Initial udg/odg/wdg via cpuInit*Driver if not supplied —
+    //    mirrors readsolstruct (lines 559-606 of readbinaryfiles.hpp).
+    Int npe = master.ndims[5];
+    Int nc  = app.ndims[5];
+    Int ncu = app.ndims[6];
+    Int nco = app.ndims[9];
+    Int ncx = app.ndims[11];
+    Int ncw = app.ndims[13];
+    Int ne  = mesh.ndims[1];
+
+    if (sol.szudg == 0) {
+        if (mpirank == 0) printf("compute the initial solution \n");
+        sol.udg = (dstype*) std::malloc(sizeof(dstype) * npe * nc * ne);
+        cpuArraySetValue(sol.udg, (dstype)0, npe * nc * ne);
+        if (app.flag[1] == 0)
+            cpuInituDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);
+        else
+            cpuInitudgDriver(sol.udg, sol.xdg, app, ncx, nc, npe, ne, 0);
+        sol.szudg = npe * nc * ne;
+        sol.nsize[2] = sol.szudg;
+    }
+    if (sol.szodg == 0 && nco > 0) {
+        sol.odg = (dstype*) std::malloc(sizeof(dstype) * npe * nco * ne);
+        cpuInitodgDriver(sol.odg, sol.xdg, app, ncx, nco, npe, ne, 0);
+        sol.szodg = npe * nco * ne;
+        sol.nsize[3] = sol.szodg;
+    }
+    if (sol.szwdg == 0 && ncw > 0) {
+        sol.wdg = (dstype*) std::malloc(sizeof(dstype) * npe * ncw * ne);
+        cpuInitwdgDriver(sol.wdg, sol.xdg, app, ncx, ncw, npe, ne, 0);
+        sol.szwdg = npe * ncw * ne;
+        sol.nsize[4] = sol.szwdg;
+    }
+
+    // 3) buildConn — mirrors the buildConn call inside readmeshstruct
+    //    (line 391 of readbinaryfiles.hpp). The legacy path passes
+    //    `ti` as a freshly-malloc'd `int*`; we pass `ti.data()`
+    //    instead. mesh.boundaryConditions and mesh.intepartpts were
+    //    populated by buildMeshStruct.
+    if (mesh.nsize[26] > 0 && mesh.nsize[27] > 0 && mesh.szfacecon == 0) {
+        if (mpirank == 0) printf("Building element and face connectivities \n");
+        buildConn(mesh, sol, app, master, ti.data(),
+                  mesh.boundaryConditions, mesh.intepartpts, mesh.nsize[27]);
+    }
+
+    // 4) Same post-readInput tail used by the file-driven path.
+    cpuInitTail(sol, res, app, master, mesh, tmp, common,
+                /*filein=*/std::string{}, fileout,
+                mpiprocs, mpirank, fileoffset, omprank);
 }
 
 #ifdef HAVE_GPU
