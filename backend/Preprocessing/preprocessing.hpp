@@ -302,6 +302,16 @@ inline exasim::Preprocessed CPreprocessing::takeParallel(MPI_Comm comm)
                  dmd_local.localelemsend, dmd_local.localelemrecv,
                  xdg_full, xdg_full, mas.npe * mesh.dim);
 
+    if (rank == 0) {
+        double xmin=1e30, xmax=-1e30; int nan_count = 0;
+        for (double v : xdg_full) {
+            if (v != v) nan_count++;
+            else { if (v < xmin) xmin = v; if (v > xmax) xmax = v; }
+        }
+        std::cout << "[takeParallel] xdg_full: size=" << xdg_full.size()
+                  << " min=" << xmin << " max=" << xmax << " nan=" << nan_count << "\n";
+    }
+
     // Now build the four runtime structs.
     Preprocessed out;
     out.app    = exasim::buildAppStruct(pde);
