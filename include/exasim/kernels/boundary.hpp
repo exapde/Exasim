@@ -37,8 +37,8 @@ void fbou_kernel(dstype*       fb,
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf], uh[ncu], n[nd], t_[ncu];
         for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
         for (int k = 0; k < ncu; ++k) uh[k] = uhg[k * ng + i];
         for (int k = 0; k < nd;  ++k) n [k] = nlg[k * ng + i];
         for (int k = 0; k < ncu; ++k) t_[k] = tau[k];   // tau is per-component, not per-i
@@ -70,8 +70,8 @@ void hdg_fbou_only_kernel(dstype* fb,
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf], uh[ncu], n[nd], t_[ncu];
         for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
         for (int k = 0; k < ncu; ++k) uh[k] = uhg[k * ng + i];
         for (int k = 0; k < nd;  ++k) n [k] = nlg[k * ng + i];
         for (int k = 0; k < ncu; ++k) t_[k] = tau[k];
@@ -101,8 +101,8 @@ void hdg_fbou_kernel(dstype* fb, dstype* f_udg, dstype* f_wdg, dstype* f_uhg,
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf], uh[ncu], n[nd], t_[ncu];
         for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
         for (int k = 0; k < ncu; ++k) uh[k] = uhg[k * ng + i];
         for (int k = 0; k < nd;  ++k) n [k] = nlg[k * ng + i];
         for (int k = 0; k < ncu; ++k) t_[k] = tau[k];
@@ -152,8 +152,8 @@ void ubou_kernel(dstype* ub,
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf], uh[ncu], n[nd], t_[ncu];
         for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
         for (int k = 0; k < ncu; ++k) uh[k] = uhg[k * ng + i];
         for (int k = 0; k < nd;  ++k) n [k] = nlg[k * ng + i];
         for (int k = 0; k < ncu; ++k) t_[k] = tau[k];

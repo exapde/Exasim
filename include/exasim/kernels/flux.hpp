@@ -86,10 +86,10 @@ void flux_kernel(dstype*       f,
 
             for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
             for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-            if constexpr (nco > 0) {
+            if (nco > 0) {
                 for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
             }
-            if constexpr (ncw > 0) {
+            if (ncw > 0) {
                 for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
             }
 
@@ -158,10 +158,10 @@ void hdg_flux_kernel(dstype*       f,
 
             for (int k = 0; k < nd; ++k) x [k] = xdg[k * ng + i];
             for (int k = 0; k < Nq; ++k) uq[k] = udg[k * ng + i];
-            if constexpr (nco > 0) {
+            if (nco > 0) {
                 for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
             }
-            if constexpr (ncw > 0) {
+            if (ncw > 0) {
                 for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
             }
 

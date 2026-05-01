@@ -40,11 +40,11 @@ void fhat_kernel(dstype* f, const dstype* xdg,
         for (int k = 0; k < nd; ++k)  x  [k] = xdg [k * ng + i];
         for (int k = 0; k < Nq; ++k)  uq1[k] = udg1[k * ng + i];
         for (int k = 0; k < Nq; ++k)  uq2[k] = udg2[k * ng + i];
-        if constexpr (nco > 0) {
+        if (nco > 0) {
             for (int k = 0; k < nco; ++k) v1[k] = odg1[k * ng + i];
             for (int k = 0; k < nco; ++k) v2[k] = odg2[k * ng + i];
         }
-        if constexpr (ncw > 0) {
+        if (ncw > 0) {
             for (int k = 0; k < ncw; ++k) w1[k] = wdg1[k * ng + i];
             for (int k = 0; k < ncw; ++k) w2[k] = wdg2[k * ng + i];
         }
@@ -82,11 +82,11 @@ void uhat_kernel(dstype* f, const dstype* xdg,
         for (int k = 0; k < nd; ++k)  x  [k] = xdg [k * ng + i];
         for (int k = 0; k < Nq; ++k)  uq1[k] = udg1[k * ng + i];
         for (int k = 0; k < Nq; ++k)  uq2[k] = udg2[k * ng + i];
-        if constexpr (nco > 0) {
+        if (nco > 0) {
             for (int k = 0; k < nco; ++k) v1[k] = odg1[k * ng + i];
             for (int k = 0; k < nco; ++k) v2[k] = odg2[k * ng + i];
         }
-        if constexpr (ncw > 0) {
+        if (ncw > 0) {
             for (int k = 0; k < ncw; ++k) w1[k] = wdg1[k * ng + i];
             for (int k = 0; k < ncw; ++k) w2[k] = wdg2[k * ng + i];
         }
@@ -124,11 +124,11 @@ void stab_kernel(dstype* f, const dstype* xdg,
         for (int k = 0; k < nd; ++k)  x  [k] = xdg [k * ng + i];
         for (int k = 0; k < Nq; ++k)  uq1[k] = udg1[k * ng + i];
         for (int k = 0; k < Nq; ++k)  uq2[k] = udg2[k * ng + i];
-        if constexpr (nco > 0) {
+        if (nco > 0) {
             for (int k = 0; k < nco; ++k) v1[k] = odg1[k * ng + i];
             for (int k = 0; k < nco; ++k) v2[k] = odg2[k * ng + i];
         }
-        if constexpr (ncw > 0) {
+        if (ncw > 0) {
             for (int k = 0; k < ncw; ++k) w1[k] = wdg1[k * ng + i];
             for (int k = 0; k < ncw; ++k) w2[k] = wdg2[k * ng + i];
         }

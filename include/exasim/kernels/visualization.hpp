@@ -36,8 +36,8 @@ void vis_dispatch(dstype* f, const dstype* xdg, const dstype* udg,
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf];
         for (int k = 0; k < nd; ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq; ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
 
         // Cap the output stack buffer at a generous max (16). Models
         // emitting more than 16 vis components per category should

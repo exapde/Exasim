@@ -32,8 +32,8 @@ void tdfunc_kernel(dstype* f,
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf];
         for (int k = 0; k < nd; ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq; ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
 
         double m_local[ncu];
         M::tdfunc(m_local, x, uq, v, w, param, /*uinf=*/nullptr, t);

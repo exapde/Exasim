@@ -33,8 +33,8 @@ void eos_dispatch(dstype* f, size_t i, int ng,
     double x[nd], uq[Nq], v[nco_buf], w[ncw_buf];
     for (int k = 0; k < nd; ++k) x [k] = xdg[k * ng + i];
     for (int k = 0; k < Nq; ++k) uq[k] = udg[k * ng + i];
-    if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-    if constexpr (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+    if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+    if (ncw > 0) for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
 
     double out_local[OutputSize];
     m(out_local, x, uq, v, w, param, t);

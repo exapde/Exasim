@@ -33,7 +33,7 @@ void sourcew_kernel(dstype* sw,
             double x[nd], uq[Nq], v[nco_buf], w[ncw];
             for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
             for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-            if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+            if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
             for (int k = 0; k < ncw; ++k) w [k] = wdg[k * ng + i];
 
             double sw_local[ncw];
@@ -64,7 +64,7 @@ void hdg_sourcew_kernel(dstype* sw, dstype* sw_udg, dstype* sw_wdg,
             double x[nd], uq[Nq], v[nco_buf], w[ncw];
             for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
             for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
-            if constexpr (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+            if (nco > 0) for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
             for (int k = 0; k < ncw; ++k) w [k] = wdg[k * ng + i];
 
             double sw_local[ncw];
