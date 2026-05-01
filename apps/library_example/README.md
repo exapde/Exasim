@@ -2,8 +2,13 @@
 
 Each subdirectory here is a small consumer of Exasim as a header-only
 template library. The runtime entry point is
-`exasim::CSolution<MyModel>`; `MyModel` is either hand-written or
-emitted by `text2code` from a `pdemodel.txt`.
+`exasim::CSolution<MyModel>` (wrapped by `exasim::run<MyModel>(argc, argv)`
+in `<exasim/run.hpp>`); `MyModel` is either hand-written or emitted
+by `text2code` from a `pdemodel.txt`.
+
+For a guided tutorial on writing a new PDE from scratch (the
+hand-written path), see `doc/getting_started.md`. For the API
+reference (every method, every signature), see `doc/header_only_api.md`.
 
 ## Two flavors
 

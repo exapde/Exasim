@@ -1,4 +1,10 @@
-# Exasim header-only API
+# Exasim header-only API — reference
+
+For a step-by-step tutorial that walks through writing a Poisson 2D
+solver from scratch (math, `pdeapp.txt`, `main.cpp`, building it both
+in-tree and out-of-tree), see `doc/getting_started.md`. This document
+is the **API reference** — it lists every method on the `Model`
+contract, signatures, defaults, and indexing layouts.
 
 Exasim's templated FEM internals (HDG residual assembly, GMRES solver,
 preconditioner, time stepping, visualization, QoI integration) are

@@ -19,6 +19,44 @@ After downloading the source code, please make sure that the name of the folder 
 
 To deploy, compile, and run Exasim on **HPC systems**, please follow the intructions in [the hpc manual](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
 
+## Header-only template-library authoring path (new)
+
+In addition to the existing `pdemodel.txt` + `text2code` codegen
+workflow, Exasim now supports a **header-only template-library** path
+where you write the PDE math directly as a C++ struct with
+`KOKKOS_INLINE_FUNCTION static` pointwise methods, and instantiate
+the FEM internals on it as `exasim::CSolution<MyModel>`. No DSL, no
+codegen, no autodiff — plain pointwise math + hand-written Jacobians.
+
+Minimum consumer (after `cmake --install build --prefix /opt/exasim`):
+
+```cmake
+find_package(Exasim REQUIRED)
+add_executable(my_solver main.cpp)
+target_link_libraries(my_solver PRIVATE
+    Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
+```
+
+```cpp
+#include <exasim/run.hpp>
+#include "my_model.hpp"
+
+int main(int argc, char** argv) {
+    return exasim::run<MyModel>(argc, argv);
+}
+```
+
+Documentation:
+- **`doc/getting_started.md`** — step-by-step tutorial (Poisson 2D from scratch)
+- **`doc/header_only_api.md`** — `Model` contract reference (every method, every signature)
+- **`apps/library_example/README.md`** — in-tree examples (12 codegen + 1 hand-written) and the `port_codegen.sh` / `validate_codegen.sh` harness
+- **`include/exasim/README.md`** — public header layout
+
+The legacy `pdemodel.txt` + `text2code` + `cput2cEXASIM` workflow stays
+fully supported. text2code now also emits a `my_model.hpp` for the
+templated path; both authoring paths produce the same struct shape and
+share one runtime body via `exasim::run<M>(argc, argv)`.
+
 ## Installation 
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 

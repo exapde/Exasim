@@ -1,46 +1,79 @@
 # `<exasim/...>` — Exasim public C++ API
 
-These headers are the supported surface for using Exasim as a library
-from an external CMake project (`find_package(Exasim)` →
-`Exasim::core`).
+These headers are the supported surface for using Exasim as a header-only
+template library from an external CMake project. After
 
-During the library port (see `LIBRARY_PLAN.md` and
-`LIBRARY_PORT_INVENTORY.md` at the repo root), most files here are
-**thin forwarding shims** that re-include the existing
-`backend/<dir>/*.h` headers. As Phase 1.2 progresses, the bodies migrate
-into proper `.cpp` translation units in `src/exasim_core/` and the
-forwarding shims become the canonical headers.
+    find_package(Exasim REQUIRED)
+    target_link_libraries(my_solver PRIVATE Exasim::headers)
+
+a downstream consumer pulls in everything below. There is no compiled
+Exasim library to link — `Exasim::headers` is INTERFACE-only.
+
+For a guided walkthrough, see `doc/header_only_api.md` (API reference)
+and `doc/getting_started.md` (writing a new PDE from scratch).
 
 ## Layout
 
 ```
 include/exasim/
-  common.h           — types, macros, struct definitions (forwards backend/Common/common.h)
-  cpuimpl.h          — CPU-side numerical helpers (declarations only after Phase 1.2)
-  kokkosimpl.h       — Kokkos-side numerical helpers (declarations only after Phase 1.2)
-  pblas.h            — BLAS/MPI wrappers
-  discretization.hpp — CDiscretization
-  preconditioner.hpp — CPreconditioner
-  solver.hpp         — CSolver
-  solution.hpp       — CSolution
-  visualization.hpp  — CVisualization
-  pointlocator.hpp   — CPointLocator
-  preprocessing.hpp  — CPreprocessing (only if Exasim was built with text2code support)
-  libpdemodel.hpp    — model ABI (~30 free functions a user fills in)
-  run.hpp            — exasim::run(argc, argv) top-level driver
-  model.hpp          — (Phase 3) model contract: static constexpr ints + KOKKOS_INLINE_FUNCTION static methods
-  kernels/           — (Phase 3) templated kernels users invoke from their glue.cpp
+  model.hpp          — Model contract: static constexpr ints +
+                       `KOKKOS_INLINE_FUNCTION static` pointwise methods.
+                       `ModelDefaults<Self>` CRTP base supplies zero-fill
+                       defaults for optional methods.
+  run.hpp            — `exasim::run<M>(argc, argv)` façade — MPI/Kokkos
+                       init, argv parsing, DIRK time stepping, multi-domain
+                       coupling, file I/O, finalize. User main.cpp's
+                       collapse to a 3-line wrapper.
+  drivers.hpp        — templated `*Driver<M>` wrappers that bridge the
+                       FEM-internal call sites and the per-kernel templates.
+  kernels/           — templated kernels that gather SoA inputs into a
+                       pointwise buffer, call M::method(...) at the
+                       quadrature point, and scatter the result back.
+                       One header per kernel family (flux, source, boundary,
+                       interface, init, tdfunc, eos, sourcew, qoi, output,
+                       visualization).
+  detail/abi_adapter.hpp        — sentinel type that makes the legacy
+                                  libpdemodel.hpp ABI co-exist with the
+                                  templated path.
+  detail/driver_dispatch.hpp    — `EXASIM_DRIVER_CALL` macro. `if constexpr`
+                                  on `M`: AbiAdapter routes to global
+                                  non-templated `::Name(...)`; user M routes
+                                  to `exasim::Name<M>(...)`.
+  discretization.hpp — `CDiscretization<M>` (FEM internals)
+  preconditioner.hpp — `CPreconditioner<M>`
+  solver.hpp         — `CSolver<M>`
+  solution.hpp       — `CSolution<M>` — top-level container; `exasim::run<M>`
+                       instantiates this.
+  visualization.hpp  — `CVisualization`
+  pointlocator.hpp   — `CPointLocator`
+  preprocessing.hpp  — `CPreprocessing` (text2code path)
+  common.h           — types, macros, struct definitions
+  cpuimpl.h          — CPU-side numerical helpers
+  kokkosimpl.h       — Kokkos-side numerical helpers
+  pblas.h            — BLAS / MPI wrappers
+  libpdemodel.hpp    — legacy ~30-symbol ABI, kept for cput2cEXASIM /
+                       cpumpit2cEXASIM and for the `EXASIM_DRIVER_CALL`
+                       constexpr-else branch.
 ```
 
 ## What a user writes
 
-See `apps/library_example/poisson2d/` (added in Phase 4). Three files:
+The minimum is two files: `my_model.hpp` (the math) and `main.cpp`
+(the entry point). See `apps/library_example/poisson2d/` for a hand-
+written example, or any `apps/library_example/<name>_codegen/` for a
+text2code-generated one. main.cpp in either case:
 
-1. `poisson2d.hpp` — a struct with `static constexpr int nd, ncu, ncw, nparam;`
-   and `KOKKOS_INLINE_FUNCTION static` methods (`flux`, `flux_jac_uq`,
-   `source`, `ubou`, …). Plain pointwise math; Jacobians written by hand.
-2. `glue.cpp` — one one-line `extern` definition per `libpdemodel.hpp`
-   symbol, calling the corresponding `exasim::*_kernel<Poisson2D>(...)`.
-3. `main.cpp` — three lines: `#include <exasim/run.hpp>` and call `exasim::run`.
+```cpp
+#include <exasim/run.hpp>
+#include "my_model.hpp"
 
-No DSL, no codegen, no autodiff.
+int main(int argc, char** argv) {
+    return exasim::run<MyModel>(argc, argv);
+}
+```
+
+`MyModel` is a struct inheriting `exasim::ModelDefaults<MyModel>` with
+compile-time constants (`nd, ncu, ncw, nco, nparam, disc`) and the
+required pointwise methods (`flux`, `source`, `fbou`, `fbou_hdg`,
+`ubou`, `initu`, plus HDG Jacobians for HDG models). See
+`doc/header_only_api.md` for the full Model contract.
