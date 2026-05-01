@@ -1,0 +1,117 @@
+name: poisson2d (hand-written CPU)
+
+# Smoke test for the hand-written Model path: build Exasim's CPU stack
+# from source, build apps/library_example/poisson2d (hand-written
+# my_model.hpp, no text2code involved at compile time), run it on the
+# bundled grid.bin, and gate the QoI against the recorded baseline.
+#
+# This is the lightest end-to-end signal we can give without a GPU or
+# MPI runner. Heavy deps (Kokkos, SymEngine) are cached by their
+# vendored-source SHA so reruns are ~3 minutes.
+
+on:
+  push:
+    branches: [master, library-port]
+  pull_request:
+    branches: [master, library-port]
+  workflow_dispatch:
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git \
+                                  libblas-dev liblapack-dev
+
+      # ---- Cache vendored Kokkos (serial) ----
+      # Bumps when the kokkos/ submodule SHA moves.
+      - name: Cache Kokkos serial
+        id: cache-kokkos
+        uses: actions/cache@v4
+        with:
+          path: kokkos/buildserial/install
+          key: kokkos-serial-${{ runner.os }}-${{ hashFiles('kokkos/CMakeLists.txt', 'kokkos/cmake/**') }}
+
+      - name: Build Kokkos serial
+        if: steps.cache-kokkos.outputs.cache-hit != 'true'
+        run: |
+          cd kokkos
+          cmake -S . -B buildserial \
+              -DCMAKE_INSTALL_PREFIX=$PWD/buildserial/install \
+              -DKokkos_ENABLE_SERIAL=ON \
+              -DCMAKE_BUILD_TYPE=Release
+          cmake --build buildserial -j$(nproc) --target install
+
+      # ---- METIS / GKlib (cheap; rebuild every time) ----
+      - name: Build METIS + GKlib
+        run: |
+          cd metis
+          cd GKlib && make config prefix=$PWD && make -j$(nproc) install && cd ..
+          cd METIS && make config gklib_path=$PWD/../GKlib prefix=$PWD \
+                                  shared=1 r64=1 i64=1 \
+                  && make -j$(nproc) install && cd ..
+
+      # ---- Cache SymEngine static lib ----
+      - name: Cache SymEngine
+        id: cache-symengine
+        uses: actions/cache@v4
+        with:
+          path: text2code/symengine/build
+          key: symengine-${{ runner.os }}-${{ hashFiles('text2code/symengine/CMakeLists.txt') }}
+
+      - name: Build SymEngine (static, no GMP)
+        if: steps.cache-symengine.outputs.cache-hit != 'true'
+        run: |
+          cd text2code/symengine
+          cmake -S . -B build \
+              -DCMAKE_INSTALL_PREFIX=$PWD/build \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DWITH_GMP=OFF \
+              -DINTEGER_CLASS=boostmp
+          cmake --build build -j$(nproc) --target install
+
+      # ---- text2code (needed for libpdemodelserial.so even on hand-written path) ----
+      - name: Build text2code
+        run: |
+          cd text2code/text2code
+          cmake -S . -B build -DEXASIM_ROOT=$GITHUB_WORKSPACE
+          cmake --build build -j$(nproc)
+
+      # ---- Configure + build Exasim CPU + the hand-written poisson2d ----
+      - name: Configure Exasim (CPU only)
+        run: |
+          cmake -S install -B build_cpu \
+              -DEXASIM_CUDA=OFF -DEXASIM_HIP=OFF \
+              -DEXASIM_MPI=OFF  -DEXASIM_NOMPI=ON \
+              -DKokkos_DIR=$GITHUB_WORKSPACE/kokkos/buildserial/install/lib/cmake/Kokkos \
+              -DEXASIM_BUILD_LIBRARY_EXAMPLES=ON
+
+      - name: Build poisson2d (hand-written) + CPU codegen
+        run: |
+          # poisson2d_template = hand-written my_model.hpp, no text2code at compile.
+          # poisson2d_codegen   = generated my_model.hpp; built so we can populate
+          #                       libpdemodelserial.so for the link of the template.
+          cmake --build build_cpu --target poisson2d_codegen poisson2d_template -j$(nproc)
+
+      # ---- Smoke run + QoI gate ----
+      - name: Run poisson2d (hand-written)
+        run: |
+          cd apps/library_example/poisson2d
+          rm -rf dataout && mkdir -p dataout
+          ../../../build_cpu/poisson2d_template ./pdeapp.txt | tail -20
+
+      - name: Validate QoI matches baseline
+        run: |
+          cd apps/library_example/poisson2d
+          BASE=$GITHUB_WORKSPACE/baseline/poisson2d_serial
+          if [ -f "$BASE/outqoi.txt" ]; then
+            diff dataout/outqoi.txt "$BASE/outqoi.txt"
+          else
+            echo "::warning::no QoI baseline at $BASE — running smoke only"
+            test -s dataout/outqoi.txt
+          fi
