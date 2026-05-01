@@ -91,21 +91,23 @@ jobs:
               -DKokkos_DIR=$GITHUB_WORKSPACE/kokkos/buildserial/install/lib/cmake/Kokkos \
               -DEXASIM_BUILD_LIBRARY_EXAMPLES=ON
 
-      - name: Build poisson2d (hand-written) + CPU codegen
+      - name: Build poisson2d (hand-written) + CPU codegen + solve_square
         run: |
           # poisson2d_template = hand-written my_model.hpp, no text2code at compile.
           # poisson2d_codegen   = generated my_model.hpp; built so we can populate
           #                       libpdemodelserial.so for the link of the template.
-          cmake --build build_cpu --target poisson2d_codegen poisson2d_template -j$(nproc)
+          # solve_square        = single-file demo: programmatic mesh + programmatic
+          #                       PDE config, no pdeapp.txt anywhere. (HOT.6.7 §5)
+          cmake --build build_cpu --target poisson2d_codegen poisson2d_template solve_square -j$(nproc)
 
-      # ---- Smoke run + QoI gate ----
-      - name: Run poisson2d (hand-written)
+      # ---- Smoke run 1: file-driven path ----
+      - name: Run poisson2d (hand-written, file-driven)
         run: |
           cd apps/library_example/poisson2d
           rm -rf dataout && mkdir -p dataout
           ../../../build_cpu/poisson2d_template ./pdeapp.txt | tail -20
 
-      - name: Validate QoI matches baseline
+      - name: Validate file-driven QoI matches baseline
         run: |
           cd apps/library_example/poisson2d
           BASE=$GITHUB_WORKSPACE/baseline/poisson2d_serial
@@ -115,3 +117,31 @@ jobs:
             echo "::warning::no QoI baseline at $BASE — running smoke only"
             test -s dataout/outqoi.txt
           fi
+
+      # ---- Smoke run 2: programmatic path (no pdeapp.txt) ----
+      - name: Run solve_square (programmatic mesh + config)
+        run: |
+          mkdir -p /tmp/solve_square_run && cd /tmp/solve_square_run
+          rm -rf datain dataout grid.txt
+          EXASIM_DIR=$GITHUB_WORKSPACE $GITHUB_WORKSPACE/build_cpu/solve_square | tail -20
+
+      - name: Validate solve_square Newton converged
+        run: |
+          # solve_square defines a Poisson problem with manufactured
+          # source 2*pi^2*sin(pi*x)*sin(pi*y); exact solution is
+          # u = sin(pi*x)*sin(pi*y). Newton must converge to the
+          # solver tolerance (1e-6) within a few iterations.
+          cd /tmp/solve_square_run
+          test -f dataout/outudg_np0.bin
+          test -s dataout/outudg_np0.bin
+          # Verify the binary contains finite numbers (not NaN/Inf
+          # from a divergent solve).
+          python3 -c "
+          import struct
+          with open('dataout/outudg_np0.bin','rb') as f: d=f.read()
+          xs = struct.unpack(f'{len(d)//8}d', d)
+          assert len(xs) > 0, 'empty udg'
+          for x in xs:
+              assert x == x and abs(x) < 1e10, f'diverged: {x}'
+          print(f'OK: {len(xs)} doubles, max|u|={max(abs(x) for x in xs):.3e}')
+          "
