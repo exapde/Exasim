@@ -447,6 +447,15 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfigVersion.cmake
     DESTINATION lib/cmake/Exasim)
 
+# If text2code has already been built (text2code is configured as a
+# separate CMake project — see text2code/text2code/CMakeLists.txt),
+# pick up the binary and ship it. Users can invoke it as
+# `${CMAKE_INSTALL_PREFIX}/bin/text2code <pdeapp.txt>`.
+set(_text2code_bin "${EXASIM_DIR}/build/text2code")
+if(EXISTS "${_text2code_bin}")
+    install(PROGRAMS "${_text2code_bin}" DESTINATION bin)
+endif()
+
 # ======================================================================
 #  HOT.3 — user-facing examples driven by CSolution<MyModel>
 # ======================================================================
@@ -560,6 +569,20 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       set_target_properties(${name}_codegen PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
 
+    # MPI variant (multi-rank CPU).
+    if(EXASIM_MPI AND MPI_FOUND AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_codegen_mpi "${_main}")
+      target_compile_definitions(${name}_codegen_mpi PRIVATE _MPI _TEXT2CODE)
+      target_compile_options(${name}_codegen_mpi PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
+      target_include_directories(${name}_codegen_mpi PRIVATE
+          ${EXASIM_DIR}/include)
+      target_link_directories(${name}_codegen_mpi PRIVATE ${Model_LIB_DIR})
+      target_link_libraries(${name}_codegen_mpi PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+      link_metis(${name}_codegen_mpi)
+      set_target_properties(${name}_codegen_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+
     # GPU variant — one target name covers both CUDA and HIP. Which
     # backend Kokkos uses is decided by how kokkos/buildcuda or
     # kokkos/buildhip was configured; the user's pointwise math is
@@ -586,6 +609,31 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       endif()
       link_metis(${name}_codegen_gpu)
       set_target_properties(${name}_codegen_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+
+    # MPI + GPU variant — multi-rank GPU. Each MPI rank binds one GPU
+    # (the device-selection branch in <exasim/run.hpp> picks
+    # `shmrank % deviceCount`).
+    if(EXASIM_MPI AND MPI_FOUND AND (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_codegen_mpi_gpu "${_main}")
+      target_compile_definitions(${name}_codegen_mpi_gpu PRIVATE _MPI _TEXT2CODE)
+      target_compile_options(${name}_codegen_mpi_gpu PRIVATE
+          -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      target_include_directories(${name}_codegen_mpi_gpu PRIVATE
+          ${EXASIM_DIR}/include)
+      target_link_directories(${name}_codegen_mpi_gpu PRIVATE ${Model_LIB_DIR})
+      if(EXASIM_CUDA)
+        target_compile_definitions(${name}_codegen_mpi_gpu PRIVATE _CUDA)
+        target_link_libraries(${name}_codegen_mpi_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES}
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+      else()
+        target_compile_definitions(${name}_codegen_mpi_gpu PRIVATE _HIP)
+        target_link_libraries(${name}_codegen_mpi_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
+      endif()
+      link_metis(${name}_codegen_mpi_gpu)
+      set_target_properties(${name}_codegen_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
   endfunction()
 

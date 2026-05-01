@@ -104,6 +104,10 @@ if (WITH_METIS)
       )
     endif()
 
+    # Ship text2code as an installed binary so external apps can do
+    # `text2code pdeapp.txt` without referencing the Exasim source tree.
+    install(TARGETS text2code RUNTIME DESTINATION bin)
+
     # -------- t2cusecmake (HAVE_METIS + USE_CMAKE) --------
     add_executable(t2cusecmake text2code.cpp)
     add_o2(t2cusecmake)
