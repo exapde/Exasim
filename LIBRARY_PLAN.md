@@ -256,24 +256,142 @@ This phase is essentially "regression test the codegen at scale".
 If HOT.3b examples passed and HOT.4 retargeted text2code emits the
 same kernel shape, this phase should be near-mechanical.
 
-### HOT.5 — Documentation, install rules, legacy-ABI removal
+### HOT.5 — Install rules, run.hpp façade, docs (legacy ABI stays)
 
-- `cmake/ExasimConfig.cmake.in` exporting `Exasim::headers` (INTERFACE
-  target with include dir + Kokkos/MPI/BLAS find_dependency calls).
-- `install(DIRECTORY include/exasim DESTINATION …)`.
-- `doc/header_only_api.md`: model contract, kernel template shape,
-  the ~30-method surface that `Model` must implement (or inherit
-  no-ops for from `ModelDefaults`).
-- **Drop `libpdemodel.hpp` and `backend/Model/*.cpp`** plus the
-  `cput2cEXASIM` / `cpumpit2cEXASIM` build targets, the
-  `EXASIM_DRIVER_CALL` macro, and the `AbiAdapter` sentinel — the
-  legacy ABI path that coexisted alongside the templated path
-  during HOT.2/3/4 has no consumer once HOT.4b regenerates the
-  remaining apps. (HOT.2 substep 4 from the original plan, deferred
-  here because text2code consumed the ABI until HOT.4 retargeted it.)
-- `<exasim/run.hpp>` façade: a small templated `exasim::run<Model>`
-  for users who don't want to write the MPI/Kokkos init themselves
-  (HOT.2 substep 5, deferred to here for the same reason).
+Three slices landed:
+
+1. **Install + find_package** — `cmake/ExasimConfig.cmake.in`,
+   `Exasim::headers` INTERFACE target, `install(DIRECTORY include/exasim)`,
+   `install(EXPORT)` + `configure_package_config_file()`. Out-of-tree
+   `find_package(Exasim REQUIRED)` smoke-tested.
+2. **`exasim::run<M>(argc, argv)` façade** in `<exasim/run.hpp>` — the
+   600-line `backend/Main/main.cpp` body factored into a templated
+   function. Every example's main.cpp shrinks to ~5 lines. Legacy
+   `cput2cEXASIM` calls `run<AbiAdapter>` so behavior is preserved.
+3. **Docs** — `doc/getting_started.md` (tutorial), `doc/header_only_api.md`
+   (API reference), refreshed `include/exasim/README.md`, root README
+   updated to introduce the templated path alongside the legacy
+   `text2code` workflow.
+
+**The legacy ABI deliberately stays**: `cput2cEXASIM` /
+`cpumpit2cEXASIM` / `cpuEXASIM` build targets, the `EXASIM_DRIVER_CALL`
+macro, the `AbiAdapter` sentinel, `backend/Model/*.cpp`, and
+`<exasim/libpdemodel.hpp>` all continue to coexist with the templated
+path. This is a behaviour-preserving change — anything that built and
+ran before HOT.5 still does.
+
+### HOT.6 — GPU support (CUDA + HIP) for the templated path
+
+The templated FEM internals are structurally GPU-ready: every kernel
+in `<exasim/kernels/*.hpp>` uses `Kokkos::parallel_for` + `KOKKOS_LAMBDA`,
+and every user-supplied `M::method` is `KOKKOS_INLINE_FUNCTION static`,
+so the compiler emits device versions. `<exasim/run.hpp>` already has
+the `HAVE_CUDA` / `HAVE_HIP` device-selection paths copied verbatim
+from the legacy main.cpp. But end-to-end `cmake -DEXASIM_CUDA=ON ...`
+hasn't actually been built or run since HOT.2. Four known gaps to
+close, in this order:
+
+#### HOT.6.1 — text2code emits Kokkos-qualified math
+
+Generated `my_model.hpp` currently has unqualified `pow(uq0, -2)`,
+`sin(acos(-1)*x1)`, `sqrt(...)`, etc. These resolve to `<cmath>`
+symbols. NVCC and HIPCC inject `__device__` overloads for the standard
+math functions when used inside `KOKKOS_INLINE_FUNCTION` (they're
+"compiler-builtin-like" today), but Kokkos best practice is to
+qualify with `Kokkos::` for portability — and it has bitten teams
+before.
+
+Mechanical fix: in `text2code/text2code/CodeGenerator.cpp`'s
+`emit_pointwise_value` etc., post-process the SymEngine `C99CodePrinter`
+output to prefix `pow|sin|cos|tan|asin|acos|atan|sqrt|exp|log|abs`
+with `Kokkos::`. Verify all 12 CPU codegen apps still pass
+`bash apps/library_example/validate_codegen.sh` (this slice is testable
+without a GPU box). Hand-written `apps/library_example/poisson2d/my_model.hpp`
+already qualifies its math; no change needed there.
+
+**Gate**: CPU `validate_codegen.sh` byte-identical / numerical-close
+after re-regen of all codegen apps via `regenerate.sh`.
+
+#### HOT.6.2 — CMake codegen GPU build matrix
+
+Today the `add_codegen_example()` helper is gated behind
+`if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))`,
+so `cmake -DEXASIM_CUDA=ON` builds zero codegen examples. Mirror the
+legacy `gput2cEXASIM` setup: add `<name>_codegen_cuda` and
+`<name>_codegen_hip` targets, link against
+`kokkos/buildcuda` / `kokkos/buildhip`, define `_CUDA` / `_HIP` /
+`_TEXT2CODE`, link against `${T2C_CUDA_LIB}` / `${T2C_HIP_LIB}` for
+the AbiAdapter else-branch's symbol resolution. Compile-only check
+first (the binary builds clean); runtime validation comes in HOT.6.5.
+
+**Gate**: `cmake -DEXASIM_CUDA=ON -DEXASIM_BUILD_LIBRARY_EXAMPLES=ON`
+configures and builds at least `poisson2d_codegen_cuda` without errors.
+
+#### HOT.6.3 — Audit FEM internals for host-only patterns
+
+The templated FEM chain (`uequation.hpp`, `matvec.hpp`, `residual.hpp`,
+`qoicalculation.hpp`, `getuhat.hpp`, `qresidual.hpp`, `wequation.hpp`,
+`qequation.hpp`) was GPU-clean in the legacy code; templating on `M`
+shouldn't have introduced host-only patterns, but it hasn't been
+audited. Walk each chain header, look for `new`, raw `malloc`, `std::cout`
+inside a `parallel_for`, host-side container access from device code,
+etc. Where present, port to `Kokkos::View` / scratch / serial-on-host
+with explicit `deep_copy`.
+
+**Gate**: a target-only smoke test — instantiate `CSolution<Poisson2D>`
+on a CUDA build, run one Newton iteration, verify GMRES doesn't NaN.
+
+#### HOT.6.4 — Per-thread stack arrays vs. CUDA stack limits
+
+Every kernel allocates `double f_uq[ncu*nd*Nq]` on the per-thread stack:
+- Poisson 2D (ncu=1, nd=2, Nq=3): 6 doubles = 48 B per thread — fine.
+- NS (ncu=4, nd=2, Nq=12): 96 doubles = 768 B per thread — borderline.
+- Reacting flow (ncu=8): 384 doubles = 3 KB per thread — too big.
+- Higher-order PDEs scale with `ncu`.
+
+CUDA's per-thread stack default is ~1 KB. Beyond that, allocations
+either spill to local memory (slow) or runtime-fail. Two mitigation
+paths:
+
+- **(a) Bump `cudaDeviceSetLimit(cudaLimitStackSize, ...)`** at startup
+  inside `<exasim/run.hpp>`'s CUDA branch. Quick fix; works as long as
+  the upper bound on `Nq` and `ncu*Nq` is known at compile time
+  (which it is — `M::nd` and `M::ncu` are constexpr).
+- **(b) Rewrite kernels with `Kokkos::TeamPolicy` + `Kokkos::ScratchSpace`.**
+  Per-team scratch instead of per-thread stack. Proper fix but
+  invasive — every kernel in `<exasim/kernels/*.hpp>` rewrites to
+  team policy.
+
+Start with (a), measure, only do (b) if a real PDE doesn't fit.
+
+**Gate**: NS / reacting-style codegen example runs to convergence on
+a single CUDA device.
+
+#### HOT.6.5 — GPU validation harness
+
+Extend `apps/library_example/validate_codegen.sh` to detect which
+builds are present (`_codegen_cuda`, `_codegen_hip`) and validate
+each against the same `baseline/<name>_serial/` recordings as CPU.
+Threshold stays at relrms < 1e-6 (or whatever `NewtonTol` the source
+app uses) — GPU and CPU floating-point won't bit-match, but should
+agree to solver tolerance.
+
+**Gate**: `bash apps/library_example/validate_codegen.sh` passes for
+the GPU variants of every codegen example that builds.
+
+#### HOT.6.6 — Run on a GPU and fix what surfaces
+
+Cumulative gate. Build with `EXASIM_CUDA=ON` on a real CUDA box, run
+the full validation harness, debug whatever's left. Then repeat for
+`EXASIM_HIP=ON`.
+
+#### Out of scope for HOT.6
+
+- Multi-GPU per-rank tuning (NVLink, GPUDirect, peer-to-peer copies)
+- AMD MI300 / Aurora / Frontier-specific tuning
+- AVX-512 / NEON SIMD on the CPU side
+- Scaling studies, performance benchmarks (functional correctness
+  first)
 
 ## Risks and how we'll address them
 
