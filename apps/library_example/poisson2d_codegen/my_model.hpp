@@ -34,7 +34,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x0 = x[0];
         const double x1 = x[1];
 
-        f[0] = 2*pow(acos(-1), 2)*sin(acos(-1)*x1)*sin(acos(-1)*x0);
+        f[0] = 2*Kokkos::pow(Kokkos::acos(-1), 2)*Kokkos::sin(Kokkos::acos(-1)*x1)*Kokkos::sin(Kokkos::acos(-1)*x0);
     }
 
     KOKKOS_INLINE_FUNCTION static
@@ -68,7 +68,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x1 = x[1];
         const double uq0 = uq[0];
 
-        f[0] = pow(uq0 - sin(acos(-1)*x1)*sin(acos(-1)*x0), 2);
+        f[0] = Kokkos::pow(uq0 - Kokkos::sin(Kokkos::acos(-1)*x1)*Kokkos::sin(Kokkos::acos(-1)*x0), 2);
         f[1] = uq0;
     }
 

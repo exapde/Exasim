@@ -40,8 +40,8 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double mu3 = mu[3];
         const double mu9 = mu[9];
 
-        const double x0 = pow(uq1, 2);
-        const double x1 = pow(uq0, -1);
+        const double x0 = Kokkos::pow(uq1, 2);
+        const double x1 = Kokkos::pow(uq0, -1);
         const double x2 = x1*uq2;
         const double x3 = uq10 - x2*uq8;
         const double x4 = x1*x3;
@@ -49,13 +49,13 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x6 = uq5 - x5*uq4;
         const double x7 = x1*x6;
         const double x8 = -1.0 + mu0;
-        const double x9 = pow(uq2, 2);
-        const double x10 = pow(uq0, -2);
+        const double x9 = Kokkos::pow(uq2, 2);
+        const double x10 = Kokkos::pow(uq0, -2);
         const double x11 = 0.5*(x0*x10 + x9*x10);
         const double x12 = uq3 - uq0*x11;
         const double x13 = x8*x12;
         const double x14 = x1*x13;
-        const double x15 = sqrt(pow(x8, 3)*pow(x12, 3)*pow(mu3, 6)*pow(mu0, 3)/pow(uq0, 3))*(110.4 + mu9)/(mu1*(110.4 + 1.0*x14*pow(mu3, 2)*mu9*mu0));
+        const double x15 = Kokkos::sqrt(Kokkos::pow(x8, 3)*Kokkos::pow(x12, 3)*Kokkos::pow(mu3, 6)*Kokkos::pow(mu0, 3)/Kokkos::pow(uq0, 3))*(110.4 + mu9)/(mu1*(110.4 + 1.0*x14*Kokkos::pow(mu3, 2)*mu9*mu0));
         const double x16 = 0.666666666666667*x15;
         const double x17 = (-x4 + 2*x7)*x16;
         const double x18 = uq6 - x2*uq4;
@@ -105,12 +105,12 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double uq2 = uq[2];
         const double uq3 = uq[3];
 
-        const double x0 = pow(uq0, -1);
+        const double x0 = Kokkos::pow(uq0, -1);
 
         f[0] = uq0;
         f[1] = x0*uq1;
         f[2] = x0*uq2;
-        f[3] = 0.4*(uq3 - 0.5*(x0*pow(uq1, 2) + x0*pow(uq2, 2)));
+        f[3] = 0.4*(uq3 - 0.5*(x0*Kokkos::pow(uq1, 2) + x0*Kokkos::pow(uq2, 2)));
     }
 
     KOKKOS_INLINE_FUNCTION static
@@ -241,7 +241,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double mu3 = mu[3];
         const double mu9 = mu[9];
 
-        const double x0 = pow(uq0, -1);
+        const double x0 = Kokkos::pow(uq0, -1);
         const double x1 = x0*uq2;
         const double x2 = uq10 - x1*uq8;
         const double x3 = x0*x2;
@@ -249,34 +249,34 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x5 = uq5 - x4*uq4;
         const double x6 = x0*x5;
         const double x7 = -x3 + 2*x6;
-        const double x8 = pow(uq1, 2);
-        const double x9 = pow(uq0, -3);
+        const double x8 = Kokkos::pow(uq1, 2);
+        const double x9 = Kokkos::pow(uq0, -3);
         const double x10 = x8*x9;
-        const double x11 = pow(uq2, 2);
+        const double x11 = Kokkos::pow(uq2, 2);
         const double x12 = x9*x11;
         const double x13 = 0.5*(-2*x10 - 2*x12);
-        const double x14 = pow(uq0, -2);
+        const double x14 = Kokkos::pow(uq0, -2);
         const double x15 = x14*x11;
         const double x16 = x8*x14;
         const double x17 = -0.5*x15 - 0.5*x16;
         const double x18 = x17 - uq0*x13;
         const double x19 = 0.5*(x15 + x16);
         const double x20 = uq3 - uq0*x19;
-        const double x21 = pow(x20, 2);
-        const double x22 = pow(mu3, 6);
+        const double x21 = Kokkos::pow(x20, 2);
+        const double x22 = Kokkos::pow(mu3, 6);
         const double x23 = -1.0 + mu0;
-        const double x24 = x22*pow(x23, 3)*pow(mu0, 3);
+        const double x24 = x22*Kokkos::pow(x23, 3)*Kokkos::pow(mu0, 3);
         const double x25 = x24*x21;
         const double x26 = x9*x25;
-        const double x27 = pow(uq0, -4);
-        const double x28 = x24*pow(x20, 3);
-        const double x29 = sqrt(x9*x28);
-        const double x30 = pow(mu1, -1);
+        const double x27 = Kokkos::pow(uq0, -4);
+        const double x28 = x24*Kokkos::pow(x20, 3);
+        const double x29 = Kokkos::sqrt(x9*x28);
+        const double x30 = Kokkos::pow(mu1, -1);
         const double x31 = 110.4 + mu9;
         const double x32 = x0*x23;
         const double x33 = x32*x20;
         const double x34 = 1.0*mu0;
-        const double x35 = pow(mu3, 2)*mu9;
+        const double x35 = Kokkos::pow(mu3, 2)*mu9;
         const double x36 = x34*x35;
         const double x37 = 110.4 + x33*x36;
         const double x38 = x30*x31/x37;
@@ -287,7 +287,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x43 = x23*x20;
         const double x44 = x43*x14;
         const double x45 = x32*x18;
-        const double x46 = x30*x31*x29/pow(x37, 2);
+        const double x46 = x30*x31*x29/Kokkos::pow(x37, 2);
         const double x47 = (-x44*x36 + x45*x36)*x46;
         const double x48 = 0.666666666666667*x47;
         const double x49 = x7*x48;
@@ -322,8 +322,8 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x78 = x23*(uq7 - uq4*x19 - (x76 + x77)*uq0);
         const double x79 = uq0*x78 - uq4*x43;
         const double x80 = x9*x58;
-        const double x81 = pow(x23, -1);
-        const double x82 = pow(mu2, -1);
+        const double x81 = Kokkos::pow(x23, -1);
+        const double x82 = Kokkos::pow(mu2, -1);
         const double x83 = x82*mu0;
         const double x84 = x81*x83;
         const double x85 = 2.0*x80*x84;
@@ -381,12 +381,12 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x137 = x135*x136;
         const double x138 = x98*x137;
         const double x139 = x1 - x131 - x134 + x138;
-        const double x140 = pow(uq0, -5);
+        const double x140 = Kokkos::pow(uq0, -5);
         const double x141 = x119*x140;
-        const double x142 = 1.5*x39*x22*pow(x23, 2)*x21*pow(mu0, 4);
-        const double x143 = x142/pow(uq0, 6);
+        const double x142 = 1.5*x39*x22*Kokkos::pow(x23, 2)*x21*Kokkos::pow(mu0, 4);
+        const double x143 = x142/Kokkos::pow(uq0, 6);
         const double x144 = x86*x143;
-        const double x145 = 1.0*pow(mu0, 2);
+        const double x145 = 1.0*Kokkos::pow(mu0, 2);
         const double x146 = x123*x145;
         const double x147 = x116*x146;
         const double x148 = x0*x59;

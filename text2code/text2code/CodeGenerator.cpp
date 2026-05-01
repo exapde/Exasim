@@ -581,7 +581,8 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     os << "#include \"SymbolicFunctions.hpp\"\n";
     // HOT.4 needs std::tuple, std::find for the my_model.hpp emitter.
     os << "#include <algorithm>\n";
-    os << "#include <tuple>\n\n";
+    os << "#include <tuple>\n";
+    os << "#include <regex>\n\n";
 
     os << "class SymbolicScalarsVectors {\n\n";
     os << "public:\n\n";
@@ -1724,7 +1725,22 @@ void emitEmitPointwiseValue(std::ostream& os) {
     os << "    };\n\n";
 
     os << "    std::vector<std::pair<std::string, std::vector<Expression>>> inputs = inputvectors[functionid];\n";
-    os << "    C99CodePrinter cpp;\n";
+    os << "    C99CodePrinter cpp;\n\n";
+
+    // HOT.6.1: prefix unqualified math function calls with `Kokkos::`
+    // so the emitted my_model.hpp is portable to GPU device code.
+    // SymEngine's C99 printer outputs `pow(x,y)`, `sin(x)`, etc.
+    // unqualified; both NVCC and HIPCC can usually find __device__
+    // overloads via ADL but Kokkos best practice is explicit
+    // qualification, and `Kokkos::pow` etc. are guaranteed device-
+    // callable. The lookahead `(?=\s*\()` only matches names used
+    // as function calls, so identifiers like `cosx` aren't touched.
+    os << "    auto kokkosify = [](std::string s) -> std::string {\n";
+    os << "        static const std::regex math_re(\n";
+    os << "            R\"((\\b(?:pow|sqrt|exp|log|sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|fabs|atan2)\\b)(?=\\s*\\())\");\n";
+    os << "        return std::regex_replace(s, math_re, \"Kokkos::$1\");\n";
+    os << "    };\n\n";
+
     os << "    for (const auto& [name, vec] : inputs) {\n";
     os << "        for (size_t j = 0; j < vec.size(); ++j) {\n";
     os << "            if (depends_on(vec[j])) {\n";
@@ -1737,13 +1753,13 @@ void emitEmitPointwiseValue(std::ostream& os) {
     os << "    if (!replacements.empty()) os << \"\\n\";\n";
     os << "    for (size_t n = 0; n < replacements.size(); ++n) {\n";
     os << "        std::string var_name = cpp.apply(*replacements[n].first);\n";
-    os << "        std::string rhs      = cpp.apply(*replacements[n].second);\n";
+    os << "        std::string rhs      = kokkosify(cpp.apply(*replacements[n].second));\n";
     os << "        os << \"        const double \" << var_name << \" = \" << rhs << \";\\n\";\n";
     os << "    }\n";
     os << "    os << \"\\n\";\n\n";
 
     os << "    for (size_t n = 0; n < f.size(); ++n) {\n";
-    os << "        os << \"        f[\" << n << \"] = \" << cpp.apply(*reduced_exprs[n]) << \";\\n\";\n";
+    os << "        os << \"        f[\" << n << \"] = \" << kokkosify(cpp.apply(*reduced_exprs[n])) << \";\\n\";\n";
     os << "    }\n\n";
 
     os << "    os << \"    }\\n\\n\";\n";
@@ -1775,7 +1791,15 @@ void emitEmitPointwiseValuePerIb(std::ostream& os) {
     os << "        return name;\n";
     os << "    };\n\n";
 
-    os << "    C99CodePrinter cpp;\n";
+    os << "    C99CodePrinter cpp;\n\n";
+
+    // HOT.6.1: same Kokkos:: qualification as emit_pointwise_value.
+    os << "    auto kokkosify = [](std::string s) -> std::string {\n";
+    os << "        static const std::regex math_re(\n";
+    os << "            R\"((\\b(?:pow|sqrt|exp|log|sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|fabs|atan2)\\b)(?=\\s*\\())\");\n";
+    os << "        return std::regex_replace(s, math_re, \"Kokkos::$1\");\n";
+    os << "    };\n\n";
+
     os << "    for (int n = 0; n < nbc; ++n) {\n";
     os << "        std::vector<Expression> g(szuhat);\n";
     os << "        for (int m = 0; m < szuhat; ++m) g[m] = f[m + n * szuhat];\n\n";
@@ -1808,12 +1832,12 @@ void emitEmitPointwiseValuePerIb(std::ostream& os) {
     os << "        if (!replacements.empty()) os << \"\\n\";\n";
     os << "        for (size_t k = 0; k < replacements.size(); ++k) {\n";
     os << "            std::string var_name = cpp.apply(*replacements[k].first);\n";
-    os << "            std::string rhs      = cpp.apply(*replacements[k].second);\n";
+    os << "            std::string rhs      = kokkosify(cpp.apply(*replacements[k].second));\n";
     os << "            os << \"            const double \" << var_name << \" = \" << rhs << \";\\n\";\n";
     os << "        }\n";
     os << "        os << \"\\n\";\n";
     os << "        for (size_t k = 0; k < g.size(); ++k) {\n";
-    os << "            os << \"            f[\" << k << \"] = \" << cpp.apply(*reduced_exprs[k]) << \";\\n\";\n";
+    os << "            os << \"            f[\" << k << \"] = \" << kokkosify(cpp.apply(*reduced_exprs[k])) << \";\\n\";\n";
     os << "        }\n";
     os << "        os << \"        }\\n\";\n";
     os << "    }\n\n";

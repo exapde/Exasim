@@ -34,7 +34,7 @@ struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {
         const double x0 = x[0];
         const double x1 = x[1];
 
-        f[0] = x0*sin(5*acos(-1)*x1);
+        f[0] = x0*Kokkos::sin(5*Kokkos::acos(-1)*x1);
     }
 
     KOKKOS_INLINE_FUNCTION static
