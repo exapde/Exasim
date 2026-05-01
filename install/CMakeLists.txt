@@ -370,6 +370,84 @@ else()
 endif()
 
 # ======================================================================
+#  HOT.5 — Header-only library install + find_package support
+# ======================================================================
+#
+# Downstream consumers do `find_package(Exasim REQUIRED)` and link
+# `Exasim::headers`. The target is INTERFACE-only — no compiled
+# library is installed; only the include tree under `include/exasim/`
+# (the templated kernel and driver headers) plus the backend headers
+# the kernels include.
+#
+# Kokkos/MPI/BLAS are NOT propagated as `find_dependency` here on
+# purpose. Downstream projects choose their own Kokkos build dir,
+# their own MPI, and their own BLAS — Exasim only requires they're
+# findable, and when they aren't, the user's link step says which
+# symbol is missing. Adding `find_dependency(Kokkos)` here would lock
+# consumers into the same Kokkos build path Exasim was built against.
+
+add_library(exasim_headers INTERFACE)
+add_library(Exasim::headers ALIAS exasim_headers)
+
+# EXPORT_NAME picks the post-namespace target name in the installed
+# config (Exasim::headers, not Exasim::exasim_headers).
+set_target_properties(exasim_headers PROPERTIES EXPORT_NAME headers)
+
+target_include_directories(exasim_headers INTERFACE
+    $<BUILD_INTERFACE:${EXASIM_DIR}/include>
+    $<BUILD_INTERFACE:${EXASIM_DIR}/backend>
+    $<INSTALL_INTERFACE:include>)
+
+target_compile_features(exasim_headers INTERFACE cxx_std_17)
+
+# Install the public template headers + backend headers the kernels
+# transitively include. Filtered to .h/.hpp/.cpp (the template-impl
+# files included from .h headers, not standalone TUs).
+install(DIRECTORY ${EXASIM_DIR}/include/exasim/
+    DESTINATION include/exasim
+    FILES_MATCHING
+        PATTERN "*.hpp"
+        PATTERN "*.h")
+
+# backend/ headers are #include'd by include/exasim/*.hpp via relative
+# paths (e.g., `#include "../common.h"`). Install the .h / .hpp / .cpp
+# files (the .cpp files here are template-impl bodies #include'd by .h
+# headers, not standalone TUs). Skip backend/Model/* — that's the
+# legacy ABI which downstream consumers don't need on the templated path.
+install(DIRECTORY ${EXASIM_DIR}/backend/
+    DESTINATION include/backend
+    FILES_MATCHING
+        PATTERN "*.hpp"
+        PATTERN "*.h"
+        PATTERN "*.cpp"
+        REGEX "/Model/" EXCLUDE)
+
+install(TARGETS exasim_headers
+    EXPORT  ExasimTargets)
+
+install(EXPORT ExasimTargets
+    FILE        ExasimTargets.cmake
+    NAMESPACE   Exasim::
+    DESTINATION lib/cmake/Exasim)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    ${EXASIM_DIR}/cmake/ExasimConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfig.cmake
+    INSTALL_DESTINATION lib/cmake/Exasim)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfigVersion.cmake
+    VERSION       0.1.0
+    COMPATIBILITY SameMajorVersion)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfigVersion.cmake
+    DESTINATION lib/cmake/Exasim)
+
+# ======================================================================
 #  HOT.3 — user-facing examples driven by CSolution<MyModel>
 # ======================================================================
 #

@@ -1,0 +1,32 @@
+@PACKAGE_INIT@
+
+# ExasimConfig.cmake.in — installed CMake config for Exasim's
+# header-only template library.
+#
+# Downstream consumer:
+#
+#     find_package(Exasim REQUIRED)
+#     find_package(Kokkos REQUIRED)
+#     find_package(MPI REQUIRED)
+#     add_executable(my_solver main.cpp)
+#     target_link_libraries(my_solver PRIVATE
+#         Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
+#
+# The Exasim::headers target is INTERFACE-only — it adds the include
+# directory and propagates these find_dependency calls. The user's TU
+# (main.cpp, plus my_model.hpp the user writes or text2code generates)
+# pulls in <exasim/discretization.hpp>, <exasim/solver.hpp>,
+# <exasim/solution.hpp>, etc., and instantiates them on the user's
+# Model type.
+#
+# This config does NOT find Kokkos/MPI/BLAS for you — those are runtime
+# choices (which Kokkos build, which MPI implementation, etc.) the
+# downstream project's CMakeLists is in a better position to make. The
+# Exasim::headers target only requires they're findable; if they're
+# missing, link errors at the user's link step will name the symbol.
+
+include(CMakeFindDependencyMacro)
+
+include("${CMAKE_CURRENT_LIST_DIR}/ExasimTargets.cmake")
+
+check_required_components(Exasim)
