@@ -1338,6 +1338,51 @@ inline Mesh meshFromArrays(const double* p, const int* t,
     return mesh;
 }
 
+// Distributed counterpart of `meshFromArrays`. Each rank supplies its
+// local slice; the global counts (`np_global`, `ne_global`) are
+// known to every rank ahead of time. Connectivity `t_local` uses
+// **global** node indices in [0, np_global); element global IDs are
+// implicit per `buildElmdistFromLocalCount` — i.e., rank r owns
+// global element indices [elmdist[r], elmdist[r+1]).
+//
+// The caller is responsible for partitioning np_global / ne_global
+// across ranks however they like (round-robin, contiguous, by rows,
+// etc.). ParMETIS will repartition for load balance regardless;
+// this initial split exists only so each rank can supply a
+// reasonable slice in memory.
+//
+// Used by `CPreprocessing::takeParallel(comm)` and the
+// `ExasimSolver::set_mesh_distributed(...)` facade entry.
+inline Mesh meshFromArraysDistributed(const double* p_local, const int* t_local,
+                                      int np_local, int ne_local,
+                                      int nve, int nd,
+                                      int np_global, int ne_global,
+                                      InputParams& params, PDE& pde)
+{
+    Mesh mesh;
+    mesh.nd  = nd;
+    mesh.nve = nve;
+    mesh.np  = np_local;
+    mesh.ne  = ne_local;
+    mesh.np_global = np_global;
+    mesh.ne_global = ne_global;
+    mesh.p.assign(p_local, p_local + (size_t)nd  * np_local);
+    mesh.t.assign(t_local, t_local + (size_t)nve * ne_local);
+
+    if      (nd == 2 && nve == 4) mesh.elemtype = 1;
+    else if (nd == 3 && nve == 8) mesh.elemtype = 1;
+    else                          mesh.elemtype = 0;
+    mesh.nvf = (nd == 3) ? (nd + mesh.elemtype) : nd;
+    mesh.nfe = nd + (nd - 1) * mesh.elemtype + 1;
+
+    meshFinalizeFromParams(mesh, params, pde);
+    // For the distributed path, pde.np / pde.ne should be GLOBAL
+    // counts (matches what initializeParMesh sets at line 1459).
+    pde.np = np_global;
+    pde.ne = ne_global;
+    return mesh;
+}
+
 Mesh initializeMesh(InputParams& params, PDE& pde)
 {
     Mesh mesh;

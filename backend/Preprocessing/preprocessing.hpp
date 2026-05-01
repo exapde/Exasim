@@ -194,5 +194,109 @@ inline exasim::Preprocessed CPreprocessing::take()
     return out;
 }
 
+#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
+// HOT.7.8 — parallel preprocessing into in-memory `Preprocessed`.
+//
+// Caller pre-populates `this->mesh` via `meshFromArraysDistributed`:
+// each rank holds its slice of the global mesh, with `t` using
+// **global** node indices and rank r owning global element indices
+// `[elmdist[r], elmdist[r+1])`. ParMETIS will repartition for load
+// balance regardless of the initial split.
+inline exasim::Preprocessed CPreprocessing::takeParallel(MPI_Comm comm)
+{
+    using exasim::Preprocessed;
+
+    if (mesh.np == 0)
+        error("CPreprocessing::takeParallel: caller must populate `mesh` "
+              "via meshFromArraysDistributed before calling.");
+
+    int rank = 0, csize = 1;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &csize);
+
+    // Same spec → pde adjustments writeBinaryFiles does serially.
+    for (const auto& vec : spec.vectors) {
+        const std::string& name = vec.first;
+        int size = vec.second;
+        if (name == "uhat") pde.ncu = size;
+        if (name == "v")    pde.ncv = size;
+        if (name == "w")    pde.ncw = size;
+        if (name == "uq")   pde.nc  = size;
+    }
+    for (size_t i = 0; i < spec.functions.size(); ++i) {
+        const auto& fn = spec.functions[i];
+        if (fn.name == "VisScalars") pde.nsca  = fn.outputsize;
+        if (fn.name == "VisVectors") pde.nvec  = fn.outputsize / pde.nd;
+        if (fn.name == "VisTensors") pde.nten  = fn.outputsize / (pde.nd*pde.nd);
+        if (fn.name == "QoIboundary") pde.nsurf = fn.outputsize;
+        if (fn.name == "QoIvolume")  pde.nvqoi = fn.outputsize;
+    }
+
+    Master mas = initializeMaster(pde, mesh, rank);
+
+    // ParMETIS repartition + DMD setup — same as ParallelPreprocessing.
+    callParMetis(mesh, pde, comm);
+    DMD dmd_local = initializeDMD(mesh, mas, pde, comm);
+
+    // buildMesh populates mesh.xdg, mesh.f, mesh.t2lf, mesh.localfaces
+    // for the (post-migration) owned elements.
+    buildMesh(mesh, pde, mas);
+
+    // bf for owned elements, then sendrecv to fill ghost rows.
+    const int nfe     = mesh.nfe;
+    const int nve     = mesh.nve;
+    const int ne_full = (int)dmd_local.elempart.size();
+    std::vector<int> bf_full((size_t)nfe * ne_full, 0);
+    for (int i = 0; i < mesh.ne; ++i) {
+        int k = dmd_local.elempart_local[i];
+        for (int j = 0; j < nfe; ++j) {
+            int v = mesh.t2t[j + nfe*k];
+            bf_full[j + nfe*i] = (v < 0) ? -v : 0;
+        }
+    }
+    for (int i = 0; i < nfe*mesh.ne; ++i)
+        if (bf_full[i] > 0) bf_full[i] = mesh.boundaryConditions[bf_full[i]-1];
+    sendrecvdata(comm, dmd_local.nbsd, dmd_local.elemsendpts, dmd_local.elemrecvpts,
+                 dmd_local.localelemsend, dmd_local.localelemrecv,
+                 bf_full, bf_full, nfe);
+
+    // tg = global-node-id connectivity, with ghost rows filled.
+    computeElementToGlobalNodeMap(mesh, dmd_local.elempart_local);
+    std::vector<int> tg_full((size_t)nve * ne_full);
+    // computeElementToGlobalNodeMap fills mesh.tg[0 .. nve*mesh.ne) for
+    // owned elements; copy that into tg_full and then sendrecv ghosts.
+    for (size_t i = 0; i < mesh.tg.size(); ++i) tg_full[i] = mesh.tg[i];
+    sendrecvdata(comm, dmd_local.nbsd, dmd_local.elemsendpts, dmd_local.elemrecvpts,
+                 dmd_local.localelemsend, dmd_local.localelemrecv,
+                 tg_full, tg_full, nve);
+
+    // xdg_full: select owned-rank xdg by elempart_local, then sendrecv ghosts.
+    std::vector<double> xdg_full((size_t)mas.npe * mesh.dim * ne_full, 0.0);
+    select_columns(xdg_full.data(), mesh.xdg.data(),
+                   dmd_local.elempart_local.data(),
+                   mas.npe * mesh.dim, mesh.ne);
+    sendrecvdata(comm, dmd_local.nbsd, dmd_local.elemsendpts, dmd_local.elemrecvpts,
+                 dmd_local.localelemsend, dmd_local.localelemrecv,
+                 xdg_full, xdg_full, mas.npe * mesh.dim);
+
+    // Now build the four runtime structs.
+    Preprocessed out;
+    out.app    = exasim::buildAppStruct(pde);
+    out.master = exasim::buildMasterStruct(mas);
+    out.mesh   = exasim::buildMeshStructParallel(mesh, mas, dmd_local, bf_full,
+                                                 tg_full, pde.hybrid);
+    out.sol    = exasim::buildSolStructParallel(mas, pde, dmd_local, xdg_full, mesh.dim);
+    out.ti     = std::move(tg_full);   // cpuInitFromStructs / buildConn read this
+    out.save_outputs = (pde.saveOutputs != 0);
+
+    if (mesh.nbndexpr > 0) freeCharArray(mesh.boundaryExprs, mesh.nbndexpr);
+    if (mesh.nbndexpr > 0) freeCharArray(mesh.curvedBoundaryExprs, mesh.nbndexpr);
+    if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs1, mesh.nprdexpr*mesh.nprdcom);
+    if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);
+
+    return out;
+}
+#endif
+
 #endif        
 

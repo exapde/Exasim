@@ -128,34 +128,84 @@ int main(int argc, char** argv) {
     Kokkos::initialize();
     {
         // ------------------------------------------------------------
-        // Build an n×n quad mesh on [0,1]² as flat arrays.
+        // Build an n×n quad mesh on [0,1]². Single-rank gets the full
+        // mesh; multi-rank does HOT.7.8's distributed mesh — each rank
+        // owns a horizontal stripe of `n_per_rank` rows.
+        //
+        // Global numbering: nodes laid out left-to-right, bottom-up;
+        // elements likewise. Rank r owns:
+        //     rows  [r*n_per_rank, (r+1)*n_per_rank)
+        // So local node IDs in the slice include rows
+        //     [r*n_per_rank, (r+1)*n_per_rank]    (closed at top — shared edge with rank r+1)
+        // and the slice's `t_local` references nodes by **global** ID.
         // ------------------------------------------------------------
-        const int n = 16;
+        const int n  = 16;
         const int nv = (n + 1) * (n + 1);
         const int ne = n * n;
-        std::vector<double> p(2 * nv);
-        std::vector<int>    t(4 * ne);
-        for (int j = 0; j <= n; ++j)
-            for (int i = 0; i <= n; ++i) {
-                int idx = j * (n + 1) + i;
-                p[2*idx + 0] = double(i) / n;
-                p[2*idx + 1] = double(j) / n;
-            }
-        for (int j = 0; j < n; ++j)
-            for (int i = 0; i < n; ++i) {
-                int e = j * n + i;
-                int v00 = j * (n + 1) + i;
-                t[4*e + 0] = v00;
-                t[4*e + 1] = v00 + 1;
-                t[4*e + 2] = v00 + 1 + (n + 1);
-                t[4*e + 3] = v00 + (n + 1);
-            }
 
-        // ------------------------------------------------------------
-        // The full façade flow: mesh + boundaries + params + solve.
-        // ------------------------------------------------------------
         exasim::ExasimSolver<Poisson2D> solver;
-        solver.set_mesh(p.data(), t.data(), nv, ne, /*nve=*/4);
+        if (mpiprocs == 1) {
+            std::vector<double> p(2 * nv);
+            std::vector<int>    t(4 * ne);
+            for (int j = 0; j <= n; ++j)
+                for (int i = 0; i <= n; ++i) {
+                    int idx = j * (n + 1) + i;
+                    p[2*idx + 0] = double(i) / n;
+                    p[2*idx + 1] = double(j) / n;
+                }
+            for (int j = 0; j < n; ++j)
+                for (int i = 0; i < n; ++i) {
+                    int e = j * n + i;
+                    int v00 = j * (n + 1) + i;
+                    t[4*e + 0] = v00;
+                    t[4*e + 1] = v00 + 1;
+                    t[4*e + 2] = v00 + 1 + (n + 1);
+                    t[4*e + 3] = v00 + (n + 1);
+                }
+            solver.set_mesh(p.data(), t.data(), nv, ne, /*nve=*/4);
+        } else {
+            // Distributed: each rank builds its row slice. We assume
+            // `n` is divisible by mpiprocs; for the example mesh
+            // (n=16) this works for 1, 2, 4, 8, 16 ranks.
+            const int n_per_rank = n / mpiprocs;
+            const int row_lo     =  mpirank      * n_per_rank;        // first owned row
+            const int row_hi     = (mpirank + 1) * n_per_rank;        // one past last
+            const int ne_local   = n_per_rank * n;
+            // Local nodes: rows [row_lo, row_hi]   (inclusive at top → shared with rank+1)
+            const int np_local   = (n + 1) * (row_hi - row_lo + 1);
+
+            std::vector<double> p_loc(2 * np_local);
+            std::vector<int>    t_loc(4 * ne_local);
+
+            // Local node → global node ID:
+            //     gid(i, j_global)  =  j_global * (n+1) + i
+            // Local index  loc(i, j_local) = j_local * (n+1) + i,
+            // with j_global = j_local + row_lo.
+            for (int j_local = 0; j_local <= row_hi - row_lo; ++j_local) {
+                int j_global = j_local + row_lo;
+                for (int i = 0; i <= n; ++i) {
+                    int loc = j_local * (n + 1) + i;
+                    p_loc[2*loc + 0] = double(i) / n;
+                    p_loc[2*loc + 1] = double(j_global) / n;
+                }
+            }
+            for (int j_local = 0; j_local < n_per_rank; ++j_local) {
+                int j_global = j_local + row_lo;
+                for (int i = 0; i < n; ++i) {
+                    int e = j_local * n + i;
+                    // Connectivity uses GLOBAL node IDs (so neighboring
+                    // ranks' connectivity matches up at the shared row).
+                    int v00 = j_global * (n + 1) + i;
+                    t_loc[4*e + 0] = v00;
+                    t_loc[4*e + 1] = v00 + 1;
+                    t_loc[4*e + 2] = v00 + 1 + (n + 1);
+                    t_loc[4*e + 3] = v00 + (n + 1);
+                }
+            }
+            solver.set_mesh_distributed(p_loc.data(), t_loc.data(),
+                                        np_local, ne_local, /*nve=*/4,
+                                        nv, ne);
+        }
         solver.add_boundary(/*tag=*/1,
             [](const double* x){ return std::abs(x[1])     < 1e-8; });   // y=0
         solver.add_boundary(/*tag=*/1,

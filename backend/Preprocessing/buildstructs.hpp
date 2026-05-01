@@ -582,4 +582,140 @@ struct Preprocessed {
     bool save_outputs = true;
 };
 
+// ---------------------------------------------------------------
+// buildMeshStructParallel — mirrors writemesh()/readmeshstruct()
+// pair from parmetisexasim.hpp's MPI branch.
+//
+// Differences from the serial buildMeshStruct:
+//   - elemsend / elemrecv come from dmd.localelemsend / .localelemrecv
+//     (already vector<int>) instead of the 3-tuple dmd.elemsend
+//     (where serial extracts column [1]).
+//   - The connectivity output (`ti_out`) is `mesh.tg` — global node
+//     IDs *with ghost-element rows already filled* via sendrecvdata.
+//     The caller does the sendrecv before calling this builder.
+//   - `bf` is also assumed pre-populated with ghost rows.
+//
+// `pde.hybrid > 0` toggles whether perm/bf/cartGridPart go in.
+// ---------------------------------------------------------------
+inline meshstruct buildMeshStructParallel(const Mesh& mesh, const Master& master,
+                                          const DMD& dmd,
+                                          const std::vector<int>& bf_full,
+                                          const std::vector<int>& tg_full,
+                                          int hybrid)
+{
+    meshstruct ms{};
+
+    const int ne_full = (int)dmd.elempart.size();   // owned + ghosts
+    const int nve     = mesh.nve;
+    const int nfe     = mesh.nfe;
+
+    constexpr Int kNDims = 20;
+    ms.ndims = (Int*)std::calloc(kNDims, sizeof(Int));
+    ms.ndims[0] = mesh.dim;
+    ms.ndims[1] = ne_full;
+    ms.ndims[3] = mesh.np_global;
+    ms.ndims[4] = nfe;
+
+    constexpr Int kNSize = 50;
+    ms.nsize = (Int*)std::calloc(kNSize, sizeof(Int));
+    ms.nsize[0]  = kNDims;
+    ms.nsize[4]  = (Int)dmd.nbsd.size();
+    ms.nsize[5]  = (Int)dmd.localelemsend.size();
+    ms.nsize[6]  = (Int)dmd.localelemrecv.size();
+    ms.nsize[7]  = (Int)dmd.elemsendpts.size();
+    ms.nsize[8]  = (Int)dmd.elemrecvpts.size();
+    ms.nsize[9]  = (Int)dmd.elempart.size();
+    ms.nsize[10] = (Int)dmd.elempartpts.size();
+    ms.nsize[23] = (Int)master.perm.size();
+    ms.nsize[24] = (Int)bf_full.size();
+    ms.nsize[25] = (Int)mesh.cartGridPart.size();
+    ms.nsize[26] = (Int)tg_full.size();
+    ms.nsize[27] = (Int)mesh.boundaryConditions.size();
+    ms.nsize[28] = (Int)dmd.intepartpts.size();
+
+    ms.lsize = (Int*)std::malloc(sizeof(Int));
+    ms.lsize[0] = kNSize;
+
+    ms.nbsd        = mallocIntArrayN(dmd.nbsd.data(),         (Int)dmd.nbsd.size());
+    ms.elemsend    = mallocIntArrayN(dmd.localelemsend.data(),(Int)dmd.localelemsend.size());
+    ms.elemrecv    = mallocIntArrayN(dmd.localelemrecv.data(),(Int)dmd.localelemrecv.size());
+    ms.elemsendpts = mallocIntArrayN(dmd.elemsendpts.data(),  (Int)dmd.elemsendpts.size());
+    ms.elemrecvpts = mallocIntArrayN(dmd.elemrecvpts.data(),  (Int)dmd.elemrecvpts.size());
+    ms.elempart    = mallocIntArrayN(dmd.elempart.data(),     (Int)dmd.elempart.size());
+    ms.elempartpts = mallocIntArrayN(dmd.elempartpts.data(),  (Int)dmd.elempartpts.size());
+    ms.sznbsd        = ms.nsize[4];
+    ms.szelemsend    = ms.nsize[5];
+    ms.szelemrecv    = ms.nsize[6];
+    ms.szelemsendpts = ms.nsize[7];
+    ms.szelemrecvpts = ms.nsize[8];
+    ms.szelempart    = ms.nsize[9];
+    ms.szelempartpts = ms.nsize[10];
+
+    if (hybrid > 0) {
+        ms.perm         = mallocIntArrayN(master.perm.data(),       (Int)master.perm.size());
+        ms.bf           = mallocIntArrayN(bf_full.data(),           (Int)bf_full.size());
+        ms.cartgridpart = mallocIntArrayN(mesh.cartGridPart.data(), (Int)mesh.cartGridPart.size());
+        ms.szperm        = ms.nsize[23];
+        ms.szbf          = ms.nsize[24];
+        ms.szcartgridpart= ms.nsize[25];
+    }
+
+    ms.boundaryConditions = mallocIntArrayN(mesh.boundaryConditions.data(),
+                                            (Int)mesh.boundaryConditions.size());
+    ms.intepartpts        = mallocIntArrayN(dmd.intepartpts.data(),
+                                            (Int)dmd.intepartpts.size());
+
+    return ms;
+}
+
+// ---------------------------------------------------------------
+// buildSolStructParallel — mirrors writesol() from parmetisexasim.hpp.
+//
+// Caller supplies `xdg_full` already populated for owned + ghost
+// elements (the sendrecvdata to fill ghost xdg from neighbors must
+// happen in `takeParallel`, not here).
+//
+// We don't read udg/vdg/wdg from any optional file — they default
+// to zero and are computed in `cpuInitFromStructs` via cpuInit*Driver.
+// ---------------------------------------------------------------
+inline solstruct buildSolStructParallel(const Master& master, const PDE& pde,
+                                        const DMD& dmd,
+                                        const std::vector<double>& xdg_full,
+                                        int dim)
+{
+    solstruct sol{};
+    const int ne_full = (int)dmd.elempart.size();
+
+    constexpr Int kNDims = 12;
+    sol.ndims = (Int*)std::calloc(kNDims, sizeof(Int));
+    sol.ndims[0]  = ne_full;
+    sol.ndims[2]  = pde.elemtype != 0 ? (pde.nd + (pde.nd-1)*pde.elemtype + 1) : (pde.nd + 1);
+    sol.ndims[3]  = master.npe;
+    sol.ndims[4]  = master.npf;
+    sol.ndims[5]  = pde.nc;
+    sol.ndims[6]  = pde.ncu;
+    sol.ndims[7]  = pde.ncq;
+    sol.ndims[8]  = pde.ncw;
+    sol.ndims[9]  = pde.ncv;
+    sol.ndims[10] = pde.nch;
+    sol.ndims[11] = pde.ncx;
+
+    constexpr Int kNSize = 20;
+    sol.nsize = (Int*)std::calloc(kNSize, sizeof(Int));
+    sol.nsize[0] = kNDims;
+    sol.nsize[1] = (Int)(master.npe * dim * ne_full);
+
+    sol.lsize = (Int*)std::malloc(sizeof(Int));
+    sol.lsize[0] = kNSize;
+
+    if (!xdg_full.empty()) {
+        const int row = master.npe * dim;
+        sol.xdg = (dstype*)std::malloc(sizeof(dstype) * row * ne_full);
+        for (int i = 0; i < row * ne_full; ++i) sol.xdg[i] = (dstype)xdg_full[i];
+        sol.szxdg = sol.nsize[1];
+    }
+
+    return sol;
+}
+
 } // namespace exasim
