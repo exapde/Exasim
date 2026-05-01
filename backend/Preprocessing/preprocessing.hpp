@@ -232,16 +232,24 @@ inline exasim::Preprocessed CPreprocessing::takeParallel(MPI_Comm comm)
         if (fn.name == "QoIvolume")  pde.nvqoi = fn.outputsize;
     }
 
+    if (rank == 0) {
+        std::cout << "[takeParallel] entering: np_local=" << mesh.np
+                  << " ne_local=" << mesh.ne << " np_global=" << mesh.np_global
+                  << " ne_global=" << mesh.ne_global
+                  << " nve=" << mesh.nve << " elemtype=" << mesh.elemtype
+                  << " nfe=" << mesh.nfe << " nvf=" << mesh.nvf
+                  << " preds=" << mesh.boundaryPreds.size() << "\n";
+    }
+
     Master mas = initializeMaster(pde, mesh, rank);
 
     // ParMETIS repartition + DMD setup — same as ParallelPreprocessing.
-    // Unlike the serial path we do NOT call buildMesh: initializeDMD
-    // populates mesh.xdg via compute_dgnodes itself (see
-    // parmetisexasim.hpp around line 2764), and the parallel path
-    // uses mesh.t2t / dmd.nbinfo for face classification rather
-    // than the serial mesh.f / mesh.t2lf.
     callParMetis(mesh, pde, comm);
+    if (rank == 0) std::cout << "[takeParallel] after callParMetis: ne=" << mesh.ne << " np=" << mesh.np << "\n";
     DMD dmd_local = initializeDMD(mesh, mas, pde, comm);
+    if (rank == 0) std::cout << "[takeParallel] after initializeDMD: dmd.elempart.size=" << dmd_local.elempart.size()
+                             << " elemsend=" << dmd_local.localelemsend.size()
+                             << " elemrecv=" << dmd_local.localelemrecv.size() << "\n";
 
     // bf for owned elements, then sendrecv to fill ghost rows.
     const int nfe     = mesh.nfe;
