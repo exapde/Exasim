@@ -164,43 +164,52 @@ int main(int argc, char** argv) {
                 }
             solver.set_mesh(p.data(), t.data(), nv, ne, /*nve=*/4);
         } else {
-            // Distributed: each rank builds its row slice. We assume
-            // `n` is divisible by mpiprocs; for the example mesh
-            // (n=16) this works for 1, 2, 4, 8, 16 ranks.
-            const int n_per_rank = n / mpiprocs;
-            const int row_lo     =  mpirank      * n_per_rank;        // first owned row
-            const int row_hi     = (mpirank + 1) * n_per_rank;        // one past last
-            const int ne_local   = n_per_rank * n;
-            // Local nodes: rows [row_lo, row_hi]   (inclusive at top → shared with rank+1)
-            const int np_local   = (n + 1) * (row_hi - row_lo + 1);
+            // Distributed: each rank gets a contiguous slice of the
+            // global node and element ID ranges (no overlap). The
+            // partitioner expects this — overlapping slices double-
+            // count nodes during migrate. ParMETIS will repartition
+            // for load balance after we've handed it the slice.
+            //
+            // Helper: compute_local_range returns localN, offset
+            //         such that rank r owns IDs [offset, offset+localN).
+            auto compute_local_range = [](int globalN, int size, int rank, int& localN, int& off) {
+                int base = globalN / size;
+                int rem  = globalN % size;
+                if (rank < rem) { localN = base + 1; off = rank * localN; }
+                else            { localN = base;     off = rem * (base + 1) + (rank - rem) * base; }
+            };
+
+            int np_local, node_off;
+            int ne_local, elem_off;
+            compute_local_range(nv, mpiprocs, mpirank, np_local, node_off);
+            compute_local_range(ne, mpiprocs, mpirank, ne_local, elem_off);
 
             std::vector<double> p_loc(2 * np_local);
             std::vector<int>    t_loc(4 * ne_local);
 
-            // Local node → global node ID:
-            //     gid(i, j_global)  =  j_global * (n+1) + i
-            // Local index  loc(i, j_local) = j_local * (n+1) + i,
-            // with j_global = j_local + row_lo.
-            for (int j_local = 0; j_local <= row_hi - row_lo; ++j_local) {
-                int j_global = j_local + row_lo;
-                for (int i = 0; i <= n; ++i) {
-                    int loc = j_local * (n + 1) + i;
-                    p_loc[2*loc + 0] = double(i) / n;
-                    p_loc[2*loc + 1] = double(j_global) / n;
-                }
+            // Each rank fills `p_loc` for global node IDs
+            // [node_off, node_off + np_local). The geometric
+            // mapping for the unit square: global ID g = j*(n+1)+i.
+            for (int li = 0; li < np_local; ++li) {
+                int g = node_off + li;
+                int j = g / (n + 1);
+                int i = g % (n + 1);
+                p_loc[2*li + 0] = double(i) / n;
+                p_loc[2*li + 1] = double(j) / n;
             }
-            for (int j_local = 0; j_local < n_per_rank; ++j_local) {
-                int j_global = j_local + row_lo;
-                for (int i = 0; i < n; ++i) {
-                    int e = j_local * n + i;
-                    // Connectivity uses GLOBAL node IDs (so neighboring
-                    // ranks' connectivity matches up at the shared row).
-                    int v00 = j_global * (n + 1) + i;
-                    t_loc[4*e + 0] = v00;
-                    t_loc[4*e + 1] = v00 + 1;
-                    t_loc[4*e + 2] = v00 + 1 + (n + 1);
-                    t_loc[4*e + 3] = v00 + (n + 1);
-                }
+            // Connectivity for global element IDs
+            // [elem_off, elem_off + ne_local). t entries are
+            // GLOBAL node IDs (rank doesn't need to own all of them
+            // — ParMETIS migrates as needed).
+            for (int le = 0; le < ne_local; ++le) {
+                int ge = elem_off + le;
+                int j = ge / n;
+                int i = ge % n;
+                int v00 = j * (n + 1) + i;
+                t_loc[4*le + 0] = v00;
+                t_loc[4*le + 1] = v00 + 1;
+                t_loc[4*le + 2] = v00 + 1 + (n + 1);
+                t_loc[4*le + 3] = v00 + (n + 1);
             }
             solver.set_mesh_distributed(p_loc.data(), t_loc.data(),
                                         np_local, ne_local, /*nve=*/4,
