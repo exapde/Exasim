@@ -92,16 +92,37 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
 };
 
 int main(int argc, char** argv) {
+    int mpiprocs = 1, mpirank = 0, shmrank = 0;
 #ifdef HAVE_MPI
     MPI_Init(&argc, &argv);
     EXASIM_COMM_WORLD = MPI_COMM_WORLD;
     EXASIM_COMM_LOCAL = MPI_COMM_WORLD;
-    int mpiprocs = 1, mpirank = 0;
     MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
     MPI_Comm_rank(EXASIM_COMM_WORLD, &mpirank);
+
+    // Per-node rank — used to bind one GPU per rank.
+    MPI_Comm shmcomm;
+    MPI_Comm_split_type(EXASIM_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0,
+                        MPI_INFO_NULL, &shmcomm);
+    MPI_Comm_rank(shmcomm, &shmrank);
 #else
-    int mpiprocs = 1, mpirank = 0;
     (void)argc; (void)argv;
+#endif
+
+    // Bind this rank to a GPU before Kokkos::initialize so Kokkos
+    // picks the right device. Same `shmrank % deviceCount` rule
+    // run.hpp uses.
+#ifdef HAVE_CUDA
+    int deviceCount = 0;
+    cudaGetDeviceCount(&deviceCount);
+    if (deviceCount <= 0) { std::cerr << "no CUDA devices\n"; return 1; }
+    cudaSetDevice(shmrank % deviceCount);
+#endif
+#ifdef HAVE_HIP
+    int deviceCount = 0;
+    hipGetDeviceCount(&deviceCount);
+    if (deviceCount <= 0) { std::cerr << "no HIP devices\n"; return 1; }
+    hipSetDevice(shmrank % deviceCount);
 #endif
 
     Kokkos::initialize();

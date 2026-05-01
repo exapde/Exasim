@@ -532,6 +532,66 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     set_target_properties(solve_square_facade PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
 
+  # solve_square_facade_mpi — façade + multi-rank CPU.
+  if(EXASIM_MPI AND MPI_FOUND AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+    add_executable(solve_square_facade_mpi
+        ${EXASIM_DIR}/apps/library_example/solve_square/solve_square_facade.cpp)
+    target_compile_definitions(solve_square_facade_mpi PRIVATE _TEXT2CODE _MPI)
+    target_compile_options(solve_square_facade_mpi PRIVATE -std=c++17 -w -O2)
+    target_include_directories(solve_square_facade_mpi PRIVATE ${EXASIM_DIR}/include)
+    target_link_directories(solve_square_facade_mpi PRIVATE ${Model_LIB_DIR})
+    target_link_libraries(solve_square_facade_mpi PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+    link_metis(solve_square_facade_mpi)
+    set_target_properties(solve_square_facade_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
+
+  # solve_square_facade_gpu — façade + single-rank CUDA/HIP.
+  if(EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
+    add_executable(solve_square_facade_gpu
+        ${EXASIM_DIR}/apps/library_example/solve_square/solve_square_facade.cpp)
+    target_compile_definitions(solve_square_facade_gpu PRIVATE _TEXT2CODE)
+    target_compile_options(solve_square_facade_gpu PRIVATE
+        -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+    target_include_directories(solve_square_facade_gpu PRIVATE ${EXASIM_DIR}/include)
+    target_link_directories(solve_square_facade_gpu PRIVATE ${Model_LIB_DIR})
+    if(EXASIM_CUDA)
+      target_compile_definitions(solve_square_facade_gpu PRIVATE _CUDA)
+      target_link_libraries(solve_square_facade_gpu PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries}
+          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+    else()
+      target_compile_definitions(solve_square_facade_gpu PRIVATE _HIP)
+      target_link_libraries(solve_square_facade_gpu PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+    endif()
+    link_metis(solve_square_facade_gpu)
+    set_target_properties(solve_square_facade_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
+
+  # solve_square_facade_mpi_gpu — façade + multi-rank CUDA/HIP.
+  if(EXASIM_MPI AND MPI_FOUND AND (EXASIM_CUDA OR EXASIM_HIP))
+    add_executable(solve_square_facade_mpi_gpu
+        ${EXASIM_DIR}/apps/library_example/solve_square/solve_square_facade.cpp)
+    target_compile_definitions(solve_square_facade_mpi_gpu PRIVATE _TEXT2CODE _MPI)
+    target_compile_options(solve_square_facade_mpi_gpu PRIVATE
+        -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+    target_include_directories(solve_square_facade_mpi_gpu PRIVATE ${EXASIM_DIR}/include)
+    target_link_directories(solve_square_facade_mpi_gpu PRIVATE ${Model_LIB_DIR})
+    if(EXASIM_CUDA)
+      target_compile_definitions(solve_square_facade_mpi_gpu PRIVATE _CUDA)
+      target_link_libraries(solve_square_facade_mpi_gpu PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES}
+          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+    else()
+      target_compile_definitions(solve_square_facade_mpi_gpu PRIVATE _HIP)
+      target_link_libraries(solve_square_facade_mpi_gpu PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
+    endif()
+    link_metis(solve_square_facade_mpi_gpu)
+    set_target_properties(solve_square_facade_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
+
   # Hand-written Poisson 2D, GPU variant. One target name regardless
   # of CUDA vs HIP — Kokkos picks the backend, the templated kernels
   # are portable.

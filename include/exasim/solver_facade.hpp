@@ -184,7 +184,18 @@ public:
         auto pre = preproc.take();
 
         const std::string fileout = pde_.dataoutpath + "/out";
-        const int backend    = 0;     // CPU; GPU/HIP in 7.6
+        // Backend matches the binary's compile-time defines. Same
+        // convention <exasim/run.hpp> uses for the legacy main path.
+        int backend = 0;
+#ifdef HAVE_OPENMP
+        backend = 1;
+#endif
+#ifdef HAVE_CUDA
+        backend = 2;
+#endif
+#ifdef HAVE_HIP
+        backend = 3;
+#endif
         const int gpuid      = 0;
         const int fileoffset = 0;
         solver_ = std::make_unique<CSolution<M>>(
@@ -205,11 +216,18 @@ public:
 
     // --- Access ------------------------------------------------------------
 
-    const dstype* udg()       const { return solver_ ? solver_->host_udg()       : nullptr; }
+    // Returns a host-side pointer to the converged buffer. On GPU
+    // backends the underlying disc.sol.* live on device; the first
+    // call after solve() copies the bytes into a member-cached
+    // host vector and returns its data().
+    const dstype* udg()  { return host_buffer_(udg_buf_,  solver_ ? solver_->host_udg()  : nullptr,
+                                                solver_ ? solver_->host_udg_size()  : 0); }
     Int           udg_size()  const { return solver_ ? solver_->host_udg_size()  : 0; }
-    const dstype* uhat()      const { return solver_ ? solver_->host_uhat()      : nullptr; }
+    const dstype* uhat() { return host_buffer_(uhat_buf_, solver_ ? solver_->host_uhat() : nullptr,
+                                                solver_ ? solver_->host_uhat_size() : 0); }
     Int           uhat_size() const { return solver_ ? solver_->host_uhat_size() : 0; }
-    const dstype* wdg()       const { return solver_ ? solver_->host_wdg()       : nullptr; }
+    const dstype* wdg()  { return host_buffer_(wdg_buf_,  solver_ ? solver_->host_wdg()  : nullptr,
+                                                solver_ ? solver_->host_wdg_size()  : 0); }
     Int           wdg_size()  const { return solver_ ? solver_->host_wdg_size()  : 0; }
 
     // Direct access to the underlying CSolution<M> for advanced
@@ -246,6 +264,28 @@ private:
 
     std::unique_ptr<CSolution<M>> solver_;
     bool solved_ = false;
+
+    // Host-side caches for GPU runs: disc.sol.{udg,uh,wdg} live on
+    // device, so udg()/uhat()/wdg() copy them to host on first call.
+    // For CPU backends we return the pointer directly (no copy).
+    std::vector<dstype> udg_buf_, uhat_buf_, wdg_buf_;
+
+    // Lazy device → host copy on GPU; pass-through on CPU. Returns
+    // a host-resident pointer of `n` elements (or nullptr if n==0).
+    const dstype* host_buffer_(std::vector<dstype>& cache,
+                               const dstype* device_or_host_ptr, Int n)
+    {
+        if (!solver_ || n == 0 || device_or_host_ptr == nullptr) return nullptr;
+        const int backend = solver_->disc.common.backend;
+        if (backend < 2) return device_or_host_ptr;        // CPU / OpenMP
+#ifdef HAVE_GPU
+        if ((Int)cache.size() != n) cache.resize(n);
+        TemplateCopytoHost(cache.data(), device_or_host_ptr, n, backend);
+        return cache.data();
+#else
+        return device_or_host_ptr;
+#endif
+    }
 };
 
 } // namespace exasim

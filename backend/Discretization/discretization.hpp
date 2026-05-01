@@ -261,8 +261,50 @@ inline CDiscretization<M>::CDiscretization(P&& pre, string fileout, string exasi
 
     if (backend > 1) {
 #ifdef HAVE_GPU
-        // GPU path for the in-memory ABI lands in HOT.7.6 (cross-arch).
-        error("HOT.7.3 programmatic constructor: GPU backend not yet wired; use the file-based ctor for now.");
+        // Mirrors the file-driven GPU path: cpuInit (now
+        // cpuInitFromStructs) populates host-side copies, then
+        // gpuInit copies everything to the device.
+        solstruct    hsol;
+        resstruct    hres;
+        appstruct    happ;
+        masterstruct hmaster;
+        meshstruct   hmesh;
+        tempstruct   htmp;
+        commonstruct hcommon;
+
+        hcommon.backend = backend;
+        // Move the Preprocessed bundle into the host structs (the
+        // cpuInitFromStructs path expects a populated app/master/
+        // mesh/sol; same shape as readInput's output on disk).
+        hsol    = pre.sol;
+        happ    = pre.app;
+        hmaster = pre.master;
+        hmesh   = pre.mesh;
+
+        cpuInitFromStructs(hsol, hres, happ, hmaster, hmesh, htmp, hcommon,
+                           pre.ti, fileout, mpiprocs, mpirank, fileoffset, omprank);
+
+        gpuInit(sol, res, app, master, mesh, tmp, common,
+                hsol, hres, happ, hmaster, hmesh, htmp, hcommon);
+        app.read_uh = happ.read_uh;
+        if (common.spatialScheme > 0) {
+            TemplateMalloc(&mesh.bf, hcommon.nfe*hcommon.ne, 0);
+            for (int i=0; i<hcommon.nfe*hcommon.ne; i++) mesh.bf[i] = hmesh.bf[i];
+        }
+        sol.szxcg = hsol.szxcg;
+        TemplateMalloc(&sol.xcg, sol.szxcg, 0);
+        TemplateCopytoHost(sol.xcg, hsol.xcg, sol.szxcg, 0);
+        if (common.mpiRank==0) printf("free CPU memory \n");
+
+        happ.freememory(1);
+        hmaster.freememory(1);
+        hmesh.freememory(1);
+        hsol.freememory(1);
+        htmp.freememory(1);
+        hres.freememory(1);
+        hcommon.freememory();
+#else
+        error("HOT.7.3 programmatic constructor: GPU backend requested but binary not built with HAVE_GPU.");
 #endif
     } else {
         cpuInitFromStructs(sol, res, app, master, mesh, tmp, common,
