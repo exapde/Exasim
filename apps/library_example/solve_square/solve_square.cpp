@@ -160,6 +160,8 @@ static void build_runtime_config(PDE& pde, InputParams& params,
     params.boundaryConditions = {1, 1, 1, 1};
     params.boundaryExprs      = {"abs(y)<1e-8",   "abs(x-1)<1e-8",
                                  "abs(y-1)<1e-8", "abs(x)<1e-8"};
+    params.curvedBoundaries     = {0, 0, 0, 0};   // none curved
+    params.curvedBoundaryExprs  = {"", "", "", ""};
     params.tau                = {1.0};
     params.dt                 = {0.0};
     params.physicsParam       = {1.0};

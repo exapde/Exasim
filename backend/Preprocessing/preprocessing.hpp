@@ -45,6 +45,9 @@ inline CPreprocessing::CPreprocessing(string filein, int rank, int commsize)
 
 // Programmatic constructor: caller passes pre-populated structs and we
 // skip parseInputFile / initializePDE / TextParser::parseFile entirely.
+// We still call pdeFinalizeDerived() so the runtime-side flag /
+// problem / factor / solversparam vectors are packed (otherwise
+// readsolstruct dereferences a NULL flag pointer).
 inline CPreprocessing::CPreprocessing(PDE pde_in, InputParams params_in,
                                       ParsedSpec spec_in,
                                       int rank, int commsize)
@@ -55,6 +58,7 @@ inline CPreprocessing::CPreprocessing(PDE pde_in, InputParams params_in,
   pde.mpiprocs = commsize;
   spec    = std::move(spec_in);
   if (spec.exasimpath.empty()) spec.exasimpath = pde.exasimpath;
+  pdeFinalizeDerived(pde);
 }
 
 inline void CPreprocessing::SerialPreprocessing()

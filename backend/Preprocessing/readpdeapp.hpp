@@ -478,6 +478,40 @@ std::vector<double> makeDoubleVector(Args... args) {
     return { static_cast<double>(args)... };
 }
 
+// Pack the user-set scalar fields of `pde` into the runtime-side
+// flag/problem/factor/solversparam arrays that downstream code
+// (`writepde`, `readsolstruct`, etc.) reads at offset, and apply the
+// derived-field rules (hybrid from discretization, tdep from dt).
+//
+// Called automatically at the tail of `initializePDE` *and* by the
+// programmatic CPreprocessing constructor. External apps populating
+// the PDE struct directly don't need to call this themselves.
+inline void pdeFinalizeDerived(PDE& pde)
+{
+    if (pde.dt.size() > 0 && pde.dt[0] > 0) pde.tdep = 1;
+
+    if (pde.discretization == "ldg" || pde.discretization == "LDG")
+        pde.hybrid = 0;
+    else if (pde.discretization == "hdg" || pde.discretization == "HDG")
+        pde.hybrid = 1;
+
+    pde.flag = makeDoubleVector(
+        pde.tdep, pde.wave, pde.linearproblem, pde.debugmode, pde.matvecorder, pde.GMRESortho,
+        pde.preconditioner, pde.precMatrixType, pde.NLMatrixType, pde.runmode, pde.tdfunc, pde.sourcefunc,
+        pde.modelnumber, pde.extFhat, pde.extUhat, pde.extStab, pde.subproblem
+    );
+    pde.problem = makeDoubleVector(
+        pde.hybrid, 0, pde.temporalscheme, pde.torder, pde.nstage, pde.convStabMethod,
+        pde.diffStabMethod, pde.rotatingFrame, pde.viscosityModel, pde.SGSmodel, pde.ALE, pde.AV,
+        pde.linearsolver, pde.NewtonIter, pde.GMRESiter, pde.GMRESrestart, pde.RBdim,
+        pde.saveSolFreq, pde.saveSolOpt, pde.timestepOffset, pde.stgNmode, pde.saveSolBouFreq, pde.ibs,
+        pde.dae_steps, pde.saveResNorm, pde.AVsmoothingIter, pde.frozenAVflag, pde.ppdegree,
+        pde.coupledinterface, pde.coupledcondition, pde.coupledboundarycondition, pde.AVdistfunction
+    );
+    pde.factor       = {pde.time, pde.dae_alpha, pde.dae_beta, pde.dae_gamma, pde.dae_epsilon};
+    pde.solversparam = {pde.NewtonTol, pde.GMREStol, pde.matvectol, pde.NLparam};
+}
+
 PDE initializePDE(InputParams& params, int mpirank=0)
 {
     PDE pde;
@@ -774,21 +808,7 @@ PDE initializePDE(InputParams& params, int mpirank=0)
         pde.coupledboundarycondition = c[0];            
     }
             
-    pde.flag = makeDoubleVector(
-        pde.tdep, pde.wave, pde.linearproblem, pde.debugmode, pde.matvecorder, pde.GMRESortho,
-        pde.preconditioner, pde.precMatrixType, pde.NLMatrixType, pde.runmode, pde.tdfunc, pde.sourcefunc,
-        pde.modelnumber, pde.extFhat, pde.extUhat, pde.extStab, pde.subproblem
-    );        
-    pde.problem = makeDoubleVector(
-        pde.hybrid, 0, pde.temporalscheme, pde.torder, pde.nstage, pde.convStabMethod,
-        pde.diffStabMethod, pde.rotatingFrame, pde.viscosityModel, pde.SGSmodel, pde.ALE, pde.AV,
-        pde.linearsolver, pde.NewtonIter, pde.GMRESiter, pde.GMRESrestart, pde.RBdim,
-        pde.saveSolFreq, pde.saveSolOpt, pde.timestepOffset, pde.stgNmode, pde.saveSolBouFreq, pde.ibs,
-        pde.dae_steps, pde.saveResNorm, pde.AVsmoothingIter, pde.frozenAVflag, pde.ppdegree,
-        pde.coupledinterface, pde.coupledcondition, pde.coupledboundarycondition, pde.AVdistfunction
-    );
-    pde.factor = {pde.time, pde.dae_alpha, pde.dae_beta, pde.dae_gamma, pde.dae_epsilon};    
-    pde.solversparam = {pde.NewtonTol, pde.GMREStol, pde.matvectol, pde.NLparam};
+    pdeFinalizeDerived(pde);
     
                     
     pde.exasimpath = trimToSubstringAtLastOccurence(pde.exasimpath, "Exasim");     
