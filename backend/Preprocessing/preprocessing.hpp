@@ -30,17 +30,31 @@
 #endif
 #endif
 
-// constructor
+// File-driven constructor.
 inline CPreprocessing::CPreprocessing(string filein, int rank, int commsize)
 {
   mpirank = rank;
 
-  params = parseInputFile(filein, rank);                           
-  pde = initializePDE(params, rank);      
+  params = parseInputFile(filein, rank);
+  pde = initializePDE(params, rank);
   pde.mpiprocs = commsize;
 
-  spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
-  spec.exasimpath = pde.exasimpath;        
+  spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));
+  spec.exasimpath = pde.exasimpath;
+}
+
+// Programmatic constructor: caller passes pre-populated structs and we
+// skip parseInputFile / initializePDE / TextParser::parseFile entirely.
+inline CPreprocessing::CPreprocessing(PDE pde_in, InputParams params_in,
+                                      ParsedSpec spec_in,
+                                      int rank, int commsize)
+{
+  mpirank = rank;
+  params  = std::move(params_in);
+  pde     = std::move(pde_in);
+  pde.mpiprocs = commsize;
+  spec    = std::move(spec_in);
+  if (spec.exasimpath.empty()) spec.exasimpath = pde.exasimpath;
 }
 
 inline void CPreprocessing::SerialPreprocessing()
