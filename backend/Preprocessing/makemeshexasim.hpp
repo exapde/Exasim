@@ -866,6 +866,7 @@ inline void interface_elements(vector<int>& inte, vector<int>& intl, vector<int>
 
 // Function to convert vector<string> A to char** B
 inline void assignVectorToCharArray(const std::vector<std::string>& A, char*** B) {
+    if (A.empty()) { *B = nullptr; return; }      // HOT.7.6: empty source → null sink
     *B = new char*[A.size()];
     for (size_t i = 0; i < A.size(); ++i) {
         (*B)[i] = new char[A[i].size() + 1];  // +1 for null terminator
@@ -875,6 +876,7 @@ inline void assignVectorToCharArray(const std::vector<std::string>& A, char*** B
 
 // Optional: helper function to free the allocated memory
 inline void freeCharArray(char** B, size_t size) {
+    if (B == nullptr) return;                     // HOT.7.6: nullptr safe
     for (size_t i = 0; i < size; ++i) {
         delete[] B[i];
     }
