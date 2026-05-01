@@ -1034,14 +1034,17 @@ inline void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f
     //std::cout << "Finished project_dgnodes_onto_curved_boundaries.\n";
 }
 
-// SDF-based variant of project_dgnodes_onto_curved_boundaries. Takes
-// one std::function<double(const double*)> per boundary tag (signed
-// distance to the curved surface) instead of tinyexpr strings. Tags
-// whose `curvedboundary[k] == 0` are skipped regardless.
+// Level-set variant of project_dgnodes_onto_curved_boundaries. Takes
+// one `std::function<double(const double*)>` per boundary tag, where
+// the function is zero on the curved surface and non-zero off it
+// (NOT necessarily a signed distance function — gradient norm is
+// computed via finite differences and divided out, so e.g. NACA's
+// `y² - y_t(x)²` works directly). Tags whose `curvedboundary[k] == 0`
+// are skipped regardless.
 inline void project_dgnodes_onto_curved_boundaries(
     double* dgnodes, const int* f, const int* perm,
     const int* curvedboundary,
-    const std::vector<BoundarySDF>& sdfs,
+    const std::vector<BoundaryLevelSet>& level_sets,
     int nd, int porder, int npe, int npf, int nfe, int ne, int factor = 1)
 {
     if (porder <= 1) return;
@@ -1067,8 +1070,8 @@ inline void project_dgnodes_onto_curved_boundaries(
             if (fid < 0) continue;
             int k = fid;
             if (curvedboundary[k] != 1) continue;
-            if (k >= (int)sdfs.size() || !sdfs[k]) continue;
-            const auto& sdf = sdfs[k];
+            if (k >= (int)level_sets.size() || !level_sets[k]) continue;
+            const auto& level_set = level_sets[k];
 
             int npts = npf;
             double* p     = (double*) malloc(sizeof(double) * npts * nd);
@@ -1088,7 +1091,7 @@ inline void project_dgnodes_onto_curved_boundaries(
             double* d     = (double*) malloc(sizeof(double) * npts);
             for (int i = 0; i < npts; ++i) {
                 for (int dd = 0; dd < nd && dd < 3; ++dd) xfd[dd] = p[i + npts * dd];
-                d[i] = sdf(xfd);
+                d[i] = level_set(xfd);
             }
 
             double* dgrad = (double*) malloc(sizeof(double) * npts * nd);
@@ -1096,7 +1099,7 @@ inline void project_dgnodes_onto_curved_boundaries(
                 for (int i = 0; i < npts; ++i) p[i + npts * ddir] += deps;
                 for (int i = 0; i < npts; ++i) {
                     for (int dd = 0; dd < nd && dd < 3; ++dd) xfd[dd] = p[i + npts * dd];
-                    double dshift = sdf(xfd);
+                    double dshift = level_set(xfd);
                     dgrad[i + npts * ddir] = (dshift - d[i]) / deps;
                 }
                 for (int i = 0; i < npts; ++i) p[i + npts * ddir] -= deps;
@@ -1257,7 +1260,7 @@ inline void meshFinalizeFromParams(Mesh& mesh, InputParams& params, PDE& pde)
     mesh.cartGridPart        = params.cartGridPart;
     mesh.interfaceConditions = params.interfaceConditions;
     mesh.boundaryPreds       = params.boundaryPreds;
-    mesh.curvedBoundarySDFs  = params.curvedBoundarySDFs;
+    mesh.curvedBoundaryLevelSets = params.curvedBoundaryLevelSets;
 
     assignVectorToCharArray(params.boundaryExprs, &mesh.boundaryExprs);
     assignVectorToCharArray(params.curvedBoundaryExprs, &mesh.curvedBoundaryExprs);

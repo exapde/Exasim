@@ -13,12 +13,18 @@
 // tinyexpr-parsed string expressions in `boundaryExprs`.
 using BoundaryPred = std::function<bool(const double*)>;
 
-// Curved-boundary signed distance function: returns the signed
-// distance from `x` to the curved surface. The DG-node projector
-// projects boundary nodes back onto the level set d == 0 by
-// `x ← x - d(x) * ∇d(x) / |∇d|²`, with `∇d` from finite differences.
-// Used as a typed alternative to `curvedBoundaryExprs` strings.
-using BoundarySDF = std::function<double(const double*)>;
+// Curved-boundary level-set function: returns a scalar `f(x)` whose
+// zero set is the curved surface (`f == 0` on the boundary, non-zero
+// off it). The projector does one Newton step toward `f == 0`:
+//
+//   x ← x - f(x) * ∇f(x) / |∇f(x)|²
+//
+// with `∇f` estimated by finite differences. This is the same scheme
+// the legacy tinyexpr-string path uses; an SDF (|∇f| = 1) is a
+// special case but is NOT required. NACA-style apps, e.g., supply
+// `f(x,y) = y² - y_t(x)²` — zero on the airfoil surface, not unit
+// gradient.
+using BoundaryLevelSet = std::function<double(const double*)>;
 
 struct FunctionDef {
     std::string name;
@@ -91,12 +97,12 @@ struct InputParams {
     // must equal `boundaryConditions.size()` if used.
     std::vector<BoundaryPred> boundaryPreds;
 
-    // Optional typed curved-boundary SDFs. When non-empty, the
-    // DG-node projector uses these (one per boundary tag) instead of
-    // evaluating `curvedBoundaryExprs` through tinyexpr. Tags whose
-    // `curvedBoundaries[k] == 0` are skipped regardless. Size must
-    // equal `curvedBoundaries.size()` if used.
-    std::vector<BoundarySDF> curvedBoundarySDFs;
+    // Optional typed curved-boundary level-set functions. When
+    // non-empty, the DG-node projector uses these (one per boundary
+    // tag) instead of evaluating `curvedBoundaryExprs` through
+    // tinyexpr. Tags whose `curvedBoundaries[k] == 0` are skipped
+    // regardless. Size must equal `curvedBoundaries.size()` if used.
+    std::vector<BoundaryLevelSet> curvedBoundaryLevelSets;
 
     std::unordered_set<std::string> foundKeys;
 };
@@ -260,10 +266,10 @@ struct Mesh {
     // boundary-face classification. Size must equal `nbcm`.
     std::vector<BoundaryPred> boundaryPreds;
 
-    // Typed curved-boundary SDFs (mirrors InputParams::curvedBoundarySDFs).
-    // When non-empty, takes precedence over `curvedBoundaryExprs`
-    // during DG-node projection.
-    std::vector<BoundarySDF> curvedBoundarySDFs;
+    // Typed curved-boundary level-set functions (mirrors
+    // InputParams::curvedBoundaryLevelSets). When non-empty, takes
+    // precedence over `curvedBoundaryExprs` during DG-node projection.
+    std::vector<BoundaryLevelSet> curvedBoundaryLevelSets;
 };
 
 struct Master 

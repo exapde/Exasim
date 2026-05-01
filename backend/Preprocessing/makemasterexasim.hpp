@@ -1270,11 +1270,11 @@ inline void buildMesh(Mesh& mesh, const PDE& pde, const Master& master)
     }
          
     if (pde.xdgfile == "") {
-      if (!mesh.curvedBoundarySDFs.empty()) {
-        // Programmatic SDF path (HOT.7.2). Skips tinyexpr.
+      if (!mesh.curvedBoundaryLevelSets.empty()) {
+        // Programmatic level-set path (HOT.7.2). Skips tinyexpr.
         project_dgnodes_onto_curved_boundaries(
             mesh.xdg.data(), mesh.f.data(), master.perm.data(),
-            mesh.curvedBoundaries.data(), mesh.curvedBoundarySDFs,
+            mesh.curvedBoundaries.data(), mesh.curvedBoundaryLevelSets,
             mesh.dim, master.porder, master.npe, master.npf, mesh.nfe, mesh.ne);
       } else {
         project_dgnodes_onto_curved_boundaries(
