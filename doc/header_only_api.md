@@ -136,26 +136,29 @@ void fbou_hdg(double fb[], int ib,
 ## Minimum main.cpp
 
 ```cpp
-#include <exasim/solution.hpp>
+#include <exasim/run.hpp>
 #include "my_model.hpp"
 
 int main(int argc, char** argv) {
-    MPI_Init(&argc, &argv);
-    Kokkos::initialize(argc, argv);
-
-    exasim::CSolution<MyModel> sol(/* file paths, mpiprocs, ... */);
-    sol.solve();
-
-    Kokkos::finalize();
-    MPI_Finalize();
-    return 0;
+    return exasim::run<MyModel>(argc, argv);
 }
 ```
 
-The full main.cpp template that handles MPI setup, command-line parsing,
-multi-domain coupling, and the DIRK time-stepping loop lives at
-`apps/library_example/poisson2d/main.cpp` — copy it as-is and only the
-struct name changes.
+`exasim::run<M>(argc, argv)` is a templated façade that handles MPI /
+Kokkos init+finalize, command-line parsing (`pdeapp.txt` path or the
+older `nummodels InputFile OutputFile [restart]` form), DIRK time
+stepping, multi-domain / multi-physics coupling, pseudo-time stepping,
+solution I/O, and the QoI / Paraview save loop. It instantiates
+`CSolution<M>` internally — your `MyModel` struct supplies the math.
+
+The same façade powers `backend/Main/main.cpp` (legacy `cput2cEXASIM`
+binaries, calling `exasim::run<exasim::detail::AbiAdapter>`), so the
+templated and ABI paths share one body.
+
+If you need to do MPI / Kokkos init yourself (e.g., interleaving Exasim
+with your own pre/post-processing), include `<exasim/solution.hpp>`
+directly and instantiate `CSolution<MyModel>` — see `<exasim/run.hpp>`'s
+source for what it does between init and finalize.
 
 ## Two authoring paths
 
