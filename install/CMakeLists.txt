@@ -459,18 +459,28 @@ option(EXASIM_BUILD_LIBRARY_EXAMPLES
        "Build user-facing examples that consume Exasim as a header-only template library"
        ON)
 
-if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   # Even though CSolution<Poisson2D> never takes the AbiAdapter path
   # (and therefore never calls ::FluxDriver / KokkosFlux / etc.), the
   # `if constexpr` else-branch in EXASIM_DRIVER_CALL still references
   # those symbols. They have to be findable at compile time (declared
   # via Model/ModelDrivers.cpp) and resolvable at link time (provided
-  # by libpdemodelserial). The `_TEXT2CODE` define + linking
-  # `pdemodelserial` below handles both. A future cleanup can elide
-  # the AbiAdapter branch entirely when EXASIM_BUILD_LIBRARY_EXAMPLES
-  # is the only configuration.
+  # by libpdemodelserial / libpdemodelcuda / libpdemodelhip). The
+  # `_TEXT2CODE` define + linking the matching `pdemodel*` lib handles
+  # both. A future cleanup can elide the AbiAdapter branch entirely
+  # when EXASIM_BUILD_LIBRARY_EXAMPLES is the only configuration.
+  #
+  # Per-config target naming convention:
+  #   <name>_codegen      — EXASIM_NOMPI && CPU only
+  #   <name>_codegen_gpu  — EXASIM_NOMPI && (EXASIM_CUDA || EXASIM_HIP).
+  #                          Single name regardless of which Kokkos
+  #                          backend; the user's templated kernels
+  #                          are GPU-portable (Kokkos::sin etc.) so
+  #                          the same source compiles for both.
+  # MPI variants are not built here yet — when added they'll follow
+  # the same `_codegen_mpi` / `_codegen_mpi_gpu` shape.
 
-  if(EXASIM_NOMPI)
+  if(EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
     add_executable(poisson2d_template
         ${EXASIM_DIR}/apps/library_example/poisson2d/main.cpp)
     target_compile_definitions(poisson2d_template PRIVATE _TEXT2CODE)
@@ -482,6 +492,32 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
         Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
     link_metis(poisson2d_template)
     set_target_properties(poisson2d_template PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+  endif()
+
+  # Hand-written Poisson 2D, GPU variant. One target name regardless
+  # of CUDA vs HIP — Kokkos picks the backend, the templated kernels
+  # are portable.
+  if(EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
+    add_executable(poisson2d_template_gpu
+        ${EXASIM_DIR}/apps/library_example/poisson2d/main.cpp)
+    target_compile_definitions(poisson2d_template_gpu PRIVATE _TEXT2CODE)
+    target_compile_options(poisson2d_template_gpu PRIVATE
+        -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+    target_include_directories(poisson2d_template_gpu PRIVATE
+        ${EXASIM_DIR}/include)
+    target_link_directories(poisson2d_template_gpu PRIVATE ${Model_LIB_DIR})
+    if(EXASIM_CUDA)
+      target_compile_definitions(poisson2d_template_gpu PRIVATE _CUDA)
+      target_link_libraries(poisson2d_template_gpu PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries}
+          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+    else()
+      target_compile_definitions(poisson2d_template_gpu PRIVATE _HIP)
+      target_link_libraries(poisson2d_template_gpu PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+    endif()
+    link_metis(poisson2d_template_gpu)
+    set_target_properties(poisson2d_template_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
 
   if(EXASIM_MPI AND MPI_FOUND)
@@ -509,7 +545,9 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
       message(STATUS "Skipping ${name}_codegen — main.cpp not present (run apps/library_example/port_codegen.sh ${name})")
       return()
     endif()
-    if(EXASIM_NOMPI)
+
+    # CPU variant (single-rank, no GPU).
+    if(EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
       add_executable(${name}_codegen "${_main}")
       target_compile_definitions(${name}_codegen PRIVATE _TEXT2CODE)
       target_compile_options(${name}_codegen PRIVATE -std=c++17 -w -O2)
@@ -520,6 +558,34 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES AND NOT (EXASIM_CUDA OR EXASIM_HIP))
           Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
       link_metis(${name}_codegen)
       set_target_properties(${name}_codegen PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+
+    # GPU variant — one target name covers both CUDA and HIP. Which
+    # backend Kokkos uses is decided by how kokkos/buildcuda or
+    # kokkos/buildhip was configured; the user's pointwise math is
+    # GPU-portable (Kokkos:: qualified by HOT.6.1) so the same TU
+    # compiles either way. The `_CUDA` / `_HIP` define routes the
+    # device-selection branches in <exasim/run.hpp>.
+    if(EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_codegen_gpu "${_main}")
+      target_compile_definitions(${name}_codegen_gpu PRIVATE _TEXT2CODE)
+      target_compile_options(${name}_codegen_gpu PRIVATE
+          -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      target_include_directories(${name}_codegen_gpu PRIVATE
+          ${EXASIM_DIR}/include)
+      target_link_directories(${name}_codegen_gpu PRIVATE ${Model_LIB_DIR})
+      if(EXASIM_CUDA)
+        target_compile_definitions(${name}_codegen_gpu PRIVATE _CUDA)
+        target_link_libraries(${name}_codegen_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries}
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+      else()
+        target_compile_definitions(${name}_codegen_gpu PRIVATE _HIP)
+        target_link_libraries(${name}_codegen_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+      endif()
+      link_metis(${name}_codegen_gpu)
+      set_target_properties(${name}_codegen_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
   endfunction()
 
