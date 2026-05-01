@@ -71,12 +71,21 @@ if [ ! -f "$CG/main.cpp" ]; then
     echo "[port] copied main.cpp from poisson2d_codegen"
 fi
 
-# 4. pdeapp.txt — copy from source with mpiprocs=1, gendatain=1.
+# 4. pdeapp.txt — copy from source with mpiprocs=1, gendatain=1, and a
+# truncated dt array. naca0012unsteady's `dt = [0.005, 0.01, 0.02,
+# 0.04, 0.06, repeat(0.08, 155)]` runs for 160 timesteps (~16 min on
+# this hardware) which makes the validation gate impractical. Replace
+# any `repeat(<dt>, <n>)` clause with the same dt repeated once, so
+# we end up with at most a handful of timesteps per app — enough to
+# exercise tdfunc/sdg/DIRK without spending hours per validate.
 cp "$SRC/pdeapp.txt" "$CG/pdeapp.txt"
 sed -i.bak 's/^mpiprocs = .*/mpiprocs = 1;/; s/^gendatain = .*/gendatain = 1;/' \
     "$CG/pdeapp.txt"
-rm -f "$CG/pdeapp.txt.bak"
-echo "[port] wrote pdeapp.txt (serial + gendatain=1)"
+# Replace `repeat(X, N)` -> `X` for any N. Works for the dt schedules
+# in apps/navierstokes/naca0012unsteady (the only consumer in apps/).
+sed -i.bak2 's/repeat(\([^,]*\), *[0-9]*)/\1/g' "$CG/pdeapp.txt"
+rm -f "$CG/pdeapp.txt.bak" "$CG/pdeapp.txt.bak2"
+echo "[port] wrote pdeapp.txt (serial + gendatain=1 + repeat() collapsed)"
 
 # 5. Regenerate grid.bin + pdemodel.txt + datain/ + my_model.hpp.
 if ! bash "$LIB/regenerate.sh" "$NAME" 2>&1 | tail -1; then

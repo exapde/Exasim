@@ -27,7 +27,8 @@ EXAMPLES=("$@")
 if [ ${#EXAMPLES[@]} -eq 0 ]; then
     EXAMPLES=(poisson2d poisson3d periodic naca0012steady
               lshape isoq3d cone orion
-              nsmach8 isoq sharpb2)
+              nsmach8 isoq sharpb2
+              naca0012unsteady)
 fi
 
 fail=0
