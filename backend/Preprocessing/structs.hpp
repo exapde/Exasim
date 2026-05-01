@@ -188,19 +188,23 @@ struct PDE {
 struct Mesh {
     std::vector<double> p; // flattened nd × np array, column-major
     std::vector<int> t, tg;// flattened nve × ne array, column-major
-    int nd, dim;           // number of spatial dimensions
-    int np;                // number of points
-    int nve;               // number of vertices per element
-    int nvf;               // number of vertices per face
-    int nfe;               // number of faces per element
-    int ne;                // number of elements    
-    int nf;                // number of faces    
-    int elemtype;          // elemtype        
-    int npe, npf;    
-    int nbndexpr, nbcm, nprdexpr, nprdcom;        
-    int np_global=0;
-    int ne_global=0;
-    int nf_global=0;
+    // Zero-initialized so that callers can probe `mesh.np == 0` to
+    // detect a default-constructed (un-populated) Mesh — used by the
+    // CPreprocessing programmatic path to decide whether to read
+    // mesh from disk or use a caller-supplied one.
+    int nd = 0, dim = 0;   // number of spatial dimensions
+    int np = 0;            // number of points
+    int nve = 0;           // number of vertices per element
+    int nvf = 0;           // number of vertices per face
+    int nfe = 0;           // number of faces per element
+    int ne = 0;            // number of elements
+    int nf = 0;            // number of faces
+    int elemtype = 0;      // elemtype
+    int npe = 0, npf = 0;
+    int nbndexpr = 0, nbcm = 0, nprdexpr = 0, nprdcom = 0;
+    int np_global = 0;
+    int ne_global = 0;
+    int nf_global = 0;
     
     std::vector<idx_t>  epart_local, elmdist;    
 

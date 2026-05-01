@@ -62,42 +62,53 @@ inline CPreprocessing::CPreprocessing(PDE pde_in, InputParams params_in,
 }
 
 inline void CPreprocessing::SerialPreprocessing()
-{  
-    mesh = initializeMesh(params, pde);        
-    master = initializeMaster(pde, mesh);                                    
+{
+    // If `mesh` was injected from outside (e.g. via meshFromArrays /
+    // setMesh) skip the file-read step. Otherwise read mesh from disk
+    // per `pde.meshfile`. The legacy file-driven path leaves `mesh.np
+    // == 0` after the constructor and falls through to initializeMesh.
+    if (mesh.np == 0)
+        mesh = initializeMesh(params, pde);
+
+    master = initializeMaster(pde, mesh);
     writeBinaryFiles(pde, mesh, master, spec);
 
     if (mesh.nbndexpr > 0) freeCharArray(mesh.boundaryExprs, mesh.nbndexpr);
     if (mesh.nbndexpr > 0) freeCharArray(mesh.curvedBoundaryExprs, mesh.nbndexpr);
     if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs1, mesh.nprdexpr*mesh.nprdcom);
-    if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);                      
+    if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);
 }
 
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
 inline void CPreprocessing::ParallelPreprocessing(MPI_Comm comm)
-{  
-    Mesh mesh = initializeParMesh(params, spec, pde, comm);   
+{
+    // Same mesh-injection convention as SerialPreprocessing: if the
+    // caller pre-populated `this->mesh` (programmatic path), skip the
+    // file read. The parallel-mesh-from-arrays path lands in a later
+    // slice — for now the legacy file path runs.
+    if (mesh.np == 0)
+        mesh = initializeParMesh(params, spec, pde, comm);
 
-    Master master = initializeMaster(pde, mesh, mpirank);    
-    
+    master = initializeMaster(pde, mesh, mpirank);
+
     if (mpirank==0) {
       writepde(pde, make_path(pde.datainpath, "app.bin"));
-      writemaster(master, make_path(pde.datainpath, "master.bin"));    
+      writemaster(master, make_path(pde.datainpath, "master.bin"));
     }
     MPI_Barrier(comm);
 
-    callParMetis(mesh, pde, comm); 
-    
-    DMD dmd = initializeDMD(mesh, master, pde, comm);     
+    callParMetis(mesh, pde, comm);
+
+    dmd = initializeDMD(mesh, master, pde, comm);
 
     writemesh(mesh, dmd, pde, master, comm);
 
-    writesol(mesh, dmd, pde, master, comm);    
+    writesol(mesh, dmd, pde, master, comm);
 
     if (mesh.nbndexpr > 0) freeCharArray(mesh.boundaryExprs, mesh.nbndexpr);
     if (mesh.nbndexpr > 0) freeCharArray(mesh.curvedBoundaryExprs, mesh.nbndexpr);
     if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs1, mesh.nprdexpr*mesh.nprdcom);
-    if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);                      
+    if (mesh.nprdexpr > 0) freeCharArray(mesh.periodicExprs2, mesh.nprdexpr*mesh.nprdcom);
 }
 #endif
 

@@ -1075,10 +1075,92 @@ inline void project_dgnodes_onto_curved_boundaries(double* dgnodes, const int* f
 //     //std::cout << "Finished project_dgnodes_onto_curved_boundaries.\n";
 // }
 
-Mesh initializeMesh(InputParams& params, PDE& pde)
-{    
+// Apply the params/pde-derived fields to a Mesh whose `nd / np / nve /
+// ne / p / t / elemtype / nvf / nfe` are already populated. Shared by
+// `initializeMesh` (file path) and `meshFromArrays` (programmatic).
+inline void meshFinalizeFromParams(Mesh& mesh, InputParams& params, PDE& pde)
+{
+    mesh.boundaryConditions  = params.boundaryConditions;
+    mesh.curvedBoundaries    = params.curvedBoundaries;
+    mesh.periodicBoundaries1 = params.periodicBoundaries1;
+    mesh.periodicBoundaries2 = params.periodicBoundaries2;
+    mesh.cartGridPart        = params.cartGridPart;
+    mesh.interfaceConditions = params.interfaceConditions;
+
+    assignVectorToCharArray(params.boundaryExprs, &mesh.boundaryExprs);
+    assignVectorToCharArray(params.curvedBoundaryExprs, &mesh.curvedBoundaryExprs);
+    assignVectorToCharArray(params.periodicExprs1, &mesh.periodicExprs1);
+    assignVectorToCharArray(params.periodicExprs2, &mesh.periodicExprs2);
+
+    mesh.nbndexpr = params.boundaryExprs.size();
+    mesh.nbcm     = params.boundaryConditions.size();
+    mesh.nprdexpr = params.periodicBoundaries1.size();
+    mesh.nprdcom  = (mesh.nprdexpr == 0) ? 0 : params.periodicExprs1.size()/mesh.nprdexpr;
+    if (mesh.nbndexpr != mesh.nbcm)
+        error("boundaryconditions and boundaryexpressions are not the same size. Exiting.\n");
+
+    mesh.dim   = mesh.nd;
+    pde.nve    = mesh.nve;
+    pde.np     = mesh.np;
+    pde.ne     = mesh.ne;
+    pde.elemtype = mesh.elemtype;
+    pde.nd     = mesh.dim;
+    pde.ncx    = mesh.dim;
+    if (pde.model=="ModelC" || pde.model=="modelC") {
+        pde.wave = 0;
+        pde.nc = pde.ncu;
+    } else if (pde.model=="ModelD" || pde.model=="modelD") {
+        pde.wave = 0;
+        pde.nc = (pde.ncu)*(pde.nd+1);
+    } else if (pde.model=="ModelW" || pde.model=="modelW") {
+        pde.tdep = 1;
+        pde.wave = 1;
+        pde.nc = (pde.ncu)*(pde.nd+1);
+    }
+    pde.ncq = pde.nc - pde.ncu;
+    pde.nch = pde.ncu;
+}
+
+// Build a Mesh from in-memory vertex coordinates and connectivity.
+//
+//   p    : `nd` × `np` doubles, column-major: p[d + nd*j] is the d-th
+//          coordinate of the j-th vertex.
+//   t    : `nve` × `ne` ints, column-major, **0-based**:
+//          t[v + nve*e] is the index (in p) of the v-th corner of the
+//          e-th element.
+//   nve  : 4 for 2D quads, 3 for 2D triangles, 8 for 3D hexes,
+//          4 for 3D tets. `mesh.elemtype` is inferred from (nd, nve).
+//
+// `params` and `pde` are the same structs the file path consumes; this
+// function reads from them (boundary / periodic / model) and writes
+// the derived fields on `pde`.
+inline Mesh meshFromArrays(const double* p, const int* t,
+                           int np, int ne, int nve, int nd,
+                           InputParams& params, PDE& pde)
+{
     Mesh mesh;
-    readMeshFromFile(make_path(pde.datapath, pde.meshfile), mesh);                 
+    mesh.nd  = nd;
+    mesh.np  = np;
+    mesh.nve = nve;
+    mesh.ne  = ne;
+    mesh.p.assign(p, p + (size_t)nd * np);
+    mesh.t.assign(t, t + (size_t)nve * ne);
+
+    // Same elemtype / nvf / nfe inference as readMeshFromFile.
+    if      (nd == 2 && nve == 4) mesh.elemtype = 1;   // quad
+    else if (nd == 3 && nve == 8) mesh.elemtype = 1;   // hex
+    else                          mesh.elemtype = 0;   // simplex
+    mesh.nvf = (nd == 3) ? (nd + mesh.elemtype) : nd;
+    mesh.nfe = nd + (nd - 1) * mesh.elemtype + 1;
+
+    meshFinalizeFromParams(mesh, params, pde);
+    return mesh;
+}
+
+Mesh initializeMesh(InputParams& params, PDE& pde)
+{
+    Mesh mesh;
+    readMeshFromFile(make_path(pde.datapath, pde.meshfile), mesh);
     if (pde.xdgfile != "") {
         std::cout << "Reading xdg file.\n";
         readFieldFromBinaryFile(make_path(pde.datapath, pde.xdgfile), mesh.xdg, mesh.xdgdims);
@@ -1093,53 +1175,19 @@ Mesh initializeMesh(InputParams& params, PDE& pde)
     }
     if (pde.wdgfile != "") {
         std::cout << "Reading wdg file.\n";
-        readFieldFromBinaryFile(make_path(pde.datapath, pde.wdgfile), mesh.wdg, mesh.wdgdims);    
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.wdgfile), mesh.wdg, mesh.wdgdims);
     }
     if (pde.uhatfile != "") {
         std::cout << "Reading uhat file.\n";
-        readFieldFromBinaryFile(make_path(pde.datapath, pde.uhatfile), mesh.uhat, mesh.uhatdims);    
+        readFieldFromBinaryFile(make_path(pde.datapath, pde.uhatfile), mesh.uhat, mesh.uhatdims);
     }
     if (pde.partitionfile != "") {
         std::cout << "Reading partition file.\n";
-        readPartitionFromFile(make_path(pde.datapath, pde.partitionfile), mesh.elem2cpu, mesh.ne);    
+        readPartitionFromFile(make_path(pde.datapath, pde.partitionfile), mesh.elem2cpu, mesh.ne);
     }
-    
-    mesh.boundaryConditions = params.boundaryConditions;
-    mesh.curvedBoundaries = params.curvedBoundaries;
-    mesh.periodicBoundaries1 = params.periodicBoundaries1;
-    mesh.periodicBoundaries2 = params.periodicBoundaries2;
-    mesh.cartGridPart = params.cartGridPart;
-    mesh.interfaceConditions = params.interfaceConditions;
-        
-    assignVectorToCharArray(params.boundaryExprs, &mesh.boundaryExprs);
-    assignVectorToCharArray(params.curvedBoundaryExprs, &mesh.curvedBoundaryExprs);
-    assignVectorToCharArray(params.periodicExprs1, &mesh.periodicExprs1);
-    assignVectorToCharArray(params.periodicExprs2, &mesh.periodicExprs2);
-        
-    mesh.nbndexpr = params.boundaryExprs.size();
-    mesh.nbcm = params.boundaryConditions.size();
-    mesh.nprdexpr = params.periodicBoundaries1.size();    
-    mesh.nprdcom = (mesh.nprdexpr == 0) ? 0 : params.periodicExprs1.size()/mesh.nprdexpr;
-    if (mesh.nbndexpr != mesh.nbcm) 
-        error("boundaryconditions and boundaryexpressions are not the same size. Exiting.\n");
-                    
-    mesh.dim = mesh.nd;
-    pde.nve = mesh.nve; pde.np = mesh.np; pde.ne = mesh.ne; pde.elemtype = mesh.elemtype;                
-    pde.nd = mesh.dim; pde.ncx = mesh.dim;
-    if (pde.model=="ModelC" || pde.model=="modelC") {
-        pde.wave = 0;
-        pde.nc = pde.ncu;
-    } else if (pde.model=="ModelD" || pde.model=="modelD") {     
-        pde.wave = 0;
-        pde.nc = (pde.ncu)*(pde.nd+1);
-    } else if (pde.model=="ModelW" || pde.model=="modelW") {
-        pde.tdep = 1;
-        pde.wave = 1;
-        pde.nc = (pde.ncu)*(pde.nd+1);
-    }
-    pde.ncq = pde.nc - pde.ncu;
-    pde.nch  = pde.ncu;               
-    
+
+    meshFinalizeFromParams(mesh, params, pde);
+
     std::cout << "Finished reading mesh file.\n";
 
 //     cout << "Read mesh with:" << endl;

@@ -96,27 +96,39 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
 };
 
 // ------------------------------------------------------------------
-// 2. Generate an n×n quad mesh on the unit square in the runtime's
-//    text format:
-//        nd np nve ne
-//        <np × nd doubles>     vertex coords, column-major
-//        <ne × nve ints>       element conn, 1-based, column-major
-//    Quad corners CCW; nve=4 → Exasim infers elemtype=1.
+// 2. Generate an n×n quad mesh on the unit square as flat arrays.
+//    Layout (matches what `meshFromArrays` expects):
+//        p[d + 2*j]      = d-th coord of j-th vertex   (column-major)
+//        t[v + 4*e]      = 0-based index of v-th corner of e-th element
+//    Quad corners CCW; meshFromArrays infers elemtype=1.
 // ------------------------------------------------------------------
-static void write_square_mesh(const std::string& path, int n) {
-    int nv = (n + 1) * (n + 1);
-    int ne = n * n;
-    std::ofstream o(path);
-    o << "2 " << nv << " 4 " << ne << "\n";
+struct Square {
+    int nv, ne;
+    std::vector<double> p;   // 2 × nv
+    std::vector<int>    t;   // 4 × ne
+};
+static Square build_square(int n) {
+    Square s;
+    s.nv = (n + 1) * (n + 1);
+    s.ne = n * n;
+    s.p.resize(2 * s.nv);
+    s.t.resize(4 * s.ne);
     for (int j = 0; j <= n; ++j)
-        for (int i = 0; i <= n; ++i)
-            o << double(i) / n << " " << double(j) / n << "\n";
+        for (int i = 0; i <= n; ++i) {
+            int idx = j * (n + 1) + i;
+            s.p[2*idx + 0] = double(i) / n;
+            s.p[2*idx + 1] = double(j) / n;
+        }
     for (int j = 0; j < n; ++j)
         for (int i = 0; i < n; ++i) {
-            int v00 = j * (n + 1) + i + 1;
-            o << v00 << " " << v00 + 1 << " "
-              << v00 + 1 + (n + 1) << " " << v00 + (n + 1) << "\n";
+            int e = j * n + i;
+            int v00 = j * (n + 1) + i;        // 0-based
+            s.t[4*e + 0] = v00;
+            s.t[4*e + 1] = v00 + 1;
+            s.t[4*e + 2] = v00 + 1 + (n + 1);
+            s.t[4*e + 3] = v00 + (n + 1);
         }
+    return s;
 }
 
 // ------------------------------------------------------------------
@@ -137,7 +149,7 @@ static void build_runtime_config(PDE& pde, InputParams& params,
     // without rebuilding; falls back to "." for in-tree runs.
     if (const char* d = std::getenv("EXASIM_DIR")) pde.exasimpath = d;
     else                                           pde.exasimpath = ".";
-    pde.meshfile       = "grid.txt";
+    pde.meshfile       = "";   // unused: mesh comes from arrays
     pde.modelfile      = "";
     pde.gendatain      = 1;
     pde.builtinmodelID = 1;
@@ -186,7 +198,6 @@ int main(int argc, char** argv) {
     {
         std::filesystem::create_directories("datain");
         std::filesystem::create_directories("dataout");
-        write_square_mesh("grid.txt", /*n=*/32);
 
         PDE         pde;
         InputParams params;
@@ -194,6 +205,17 @@ int main(int argc, char** argv) {
         build_runtime_config(pde, params, spec);
 
         CPreprocessing preproc(pde, params, spec, mpirank, mpiprocs);
+
+        // Mesh is built directly into the preprocessor — no grid.txt
+        // hop. `meshFromArrays` does what `initializeMesh()` would do
+        // off disk: copies p/t into the Mesh struct, infers elemtype
+        // from (nd, nve), and applies the boundary / model fields
+        // from `params` and `pde`.
+        Square sq = build_square(/*n=*/16);
+        preproc.mesh = meshFromArrays(sq.p.data(), sq.t.data(),
+                                      sq.nv, sq.ne, /*nve=*/4, /*nd=*/2,
+                                      preproc.params, preproc.pde);
+
         if (mpiprocs == 1) preproc.SerialPreprocessing();
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
         else preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
