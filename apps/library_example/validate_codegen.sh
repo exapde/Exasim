@@ -49,6 +49,13 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# Resolve BUILD to an absolute path. The harness `cd`s into each
+# example's directory before running the binary; relative `--build`
+# paths break under that cd.
+if [ -d "$BUILD" ]; then
+    BUILD="$(cd "$BUILD" && pwd)"
+fi
+
 if [ ${#EXAMPLES[@]} -eq 0 ]; then
     EXAMPLES=(poisson2d poisson3d periodic naca0012steady
               lshape isoq3d cone orion
