@@ -269,6 +269,20 @@ inline exasim::Preprocessed CPreprocessing::takeParallel(MPI_Comm comm)
                  dmd_local.localelemsend, dmd_local.localelemrecv,
                  bf_full, bf_full, nfe);
 
+    if (rank == 0) {
+        int nbf_set = 0;
+        for (int v : bf_full) if (v > 0) nbf_set++;
+        std::cout << "[takeParallel] bf_full: total=" << bf_full.size()
+                  << " nonzero=" << nbf_set
+                  << " bc.size=" << mesh.boundaryConditions.size()
+                  << " preds.size=" << mesh.boundaryPreds.size() << "\n";
+        // Check mesh.t2t for boundary markers (-1, -2, ...)
+        int t2t_neg = 0;
+        for (int v : mesh.t2t) if (v < 0) t2t_neg++;
+        std::cout << "[takeParallel] mesh.t2t: total=" << mesh.t2t.size()
+                  << " negative_count=" << t2t_neg << "\n";
+    }
+
     // tg = global-node-id connectivity, with ghost rows filled.
     computeElementToGlobalNodeMap(mesh, dmd_local.elempart_local);
     std::vector<int> tg_full((size_t)nve * ne_full);
