@@ -280,7 +280,12 @@ private:
         if (backend < 2) return device_or_host_ptr;        // CPU / OpenMP
 #ifdef HAVE_GPU
         if ((Int)cache.size() != n) cache.resize(n);
-        TemplateCopytoHost(cache.data(), device_or_host_ptr, n, backend);
+        // TemplateCopytoHost expects non-const pointers; the device
+        // memory it sources from isn't being mutated, so the cast
+        // is sound.
+        TemplateCopytoHost(cache.data(),
+                           const_cast<dstype*>(device_or_host_ptr),
+                           n, backend);
         return cache.data();
 #else
         return device_or_host_ptr;
