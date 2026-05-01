@@ -516,6 +516,20 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
     link_metis(solve_square)
     set_target_properties(solve_square PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+
+    # solve_square_facade — same problem driven through the
+    # high-level ExasimSolver<M> wrapper (HOT.7.5).
+    add_executable(solve_square_facade
+        ${EXASIM_DIR}/apps/library_example/solve_square/solve_square_facade.cpp)
+    target_compile_definitions(solve_square_facade PRIVATE _TEXT2CODE)
+    target_compile_options(solve_square_facade PRIVATE -std=c++17 -w -O2)
+    target_include_directories(solve_square_facade PRIVATE
+        ${EXASIM_DIR}/include)
+    target_link_directories(solve_square_facade PRIVATE ${Model_LIB_DIR})
+    target_link_libraries(solve_square_facade PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+    link_metis(solve_square_facade)
+    set_target_properties(solve_square_facade PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
 
   # Hand-written Poisson 2D, GPU variant. One target name regardless
