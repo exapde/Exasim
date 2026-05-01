@@ -245,7 +245,11 @@ inline exasim::Preprocessed CPreprocessing::takeParallel(MPI_Comm comm)
 
     // ParMETIS repartition + DMD setup — same as ParallelPreprocessing.
     callParMetis(mesh, pde, comm);
-    if (rank == 0) std::cout << "[takeParallel] after callParMetis: ne=" << mesh.ne << " np=" << mesh.np << "\n";
+    if (rank == 0) std::cout << "[takeParallel] after callParMetis: ne=" << mesh.ne << " np=" << mesh.np
+                             << " dim=" << mesh.dim << " nfe=" << mesh.nfe << " nvf=" << mesh.nvf
+                             << " elemtype=" << mesh.elemtype
+                             << " bc.size=" << mesh.boundaryConditions.size()
+                             << " preds.size=" << mesh.boundaryPreds.size() << "\n";
     DMD dmd_local = initializeDMD(mesh, mas, pde, comm);
     if (rank == 0) std::cout << "[takeParallel] after initializeDMD: dmd.elempart.size=" << dmd_local.elempart.size()
                              << " elemsend=" << dmd_local.localelemsend.size()
