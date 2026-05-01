@@ -97,7 +97,7 @@ void hdg_fbou_kernel(dstype* fb, dstype* f_udg, dstype* f_wdg, dstype* f_uhg,
     constexpr int nco_buf = (nco > 0) ? nco : 1;
 
     Kokkos::parallel_for("exasim::hdg_fbou_kernel", ng, KOKKOS_LAMBDA(size_t i) {
-        (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
+        (void)odg; (void)wdg; (void)f_wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf], uh[ncu], n[nd], t_[ncu];
         for (int k = 0; k < nd;  ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq;  ++k) uq[k] = udg[k * ng + i];
