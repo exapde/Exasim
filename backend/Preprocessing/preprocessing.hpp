@@ -235,12 +235,13 @@ inline exasim::Preprocessed CPreprocessing::takeParallel(MPI_Comm comm)
     Master mas = initializeMaster(pde, mesh, rank);
 
     // ParMETIS repartition + DMD setup — same as ParallelPreprocessing.
+    // Unlike the serial path we do NOT call buildMesh: initializeDMD
+    // populates mesh.xdg via compute_dgnodes itself (see
+    // parmetisexasim.hpp around line 2764), and the parallel path
+    // uses mesh.t2t / dmd.nbinfo for face classification rather
+    // than the serial mesh.f / mesh.t2lf.
     callParMetis(mesh, pde, comm);
     DMD dmd_local = initializeDMD(mesh, mas, pde, comm);
-
-    // buildMesh populates mesh.xdg, mesh.f, mesh.t2lf, mesh.localfaces
-    // for the (post-migration) owned elements.
-    buildMesh(mesh, pde, mas);
 
     // bf for owned elements, then sendrecv to fill ghost rows.
     const int nfe     = mesh.nfe;

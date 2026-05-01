@@ -923,6 +923,49 @@ inline void mke2e_fill_first_neighbors(int*       e2e,
 // - nbndexpr: number of boundary expressions
 //
 // Assumes eval_expr(char* expr, const double* x, int dim) is available.
+// HOT.7.8 — predicate-based variant of the parallel setboundaryfaces.
+// Same boundary classification logic as the tinyexpr string overload
+// below, sourcing from typed C++ predicates instead.
+inline int setboundaryfaces(
+    int* t2t,
+    const int* e2n,
+    const int* localfaces,
+    const double* p,
+    const std::vector<BoundaryPred>& preds,
+    int dim, int nve, int nvf, int nfe, int ne)
+{
+    int ind2 = (nvf == 1) ? 0 : 1;
+    int count_bfaces = 0;
+    const int nbnd = (int)preds.size();
+
+    for (int e = 0; e < ne; ++e) {
+        for (int l = 0; l < nfe; ++l) {
+            int face_pos = l + nfe * e;
+            if (t2t[face_pos] != -1) continue;
+
+            bool labeled = false;
+            for (int k = 0; k < nbnd; ++k) {
+                bool ok = true;
+                int check_pts[3] = {0, ind2, nvf - 1};
+                for (int m = 0; m < 3; ++m) {
+                    int i = check_pts[m];
+                    int local_node = localfaces[i + l * nvf];
+                    int node = e2n[local_node + nve * e];
+                    const double* x = &p[dim * node];
+                    if (!preds[k](x)) { ok = false; break; }
+                }
+                if (ok) {
+                    t2t[face_pos] = -(k + 1);
+                    labeled = true;
+                    break;
+                }
+            }
+            if (labeled) count_bfaces++;
+        }
+    }
+    return count_bfaces;
+}
+
 inline int setboundaryfaces(
     int* t2t,                  // [nfe x ne], element-to-element; boundary faces initially -1
     const int* e2n,            // [nve x ne], element-to-node connectivity
@@ -2755,19 +2798,36 @@ DMD initializeDMD(Mesh& mesh, const Master& master, const PDE& pde, MPI_Comm com
     DMD dmd;
 
     mke2e_fill_first_neighbors(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(),
-               mesh.elemGlobalID.data(), mesh.nodeGlobalID.data(), mesh.ne, mesh.nve, 
+               mesh.elemGlobalID.data(), mesh.nodeGlobalID.data(), mesh.ne, mesh.nve,
               mesh.nvf, mesh.nfe, comm, dmd.nbinfo);
-    
-    int nboufaces = setboundaryfaces(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.p.data(),    
-        mesh.boundaryExprs, mesh.dim, mesh.nve, mesh.nvf, mesh.nfe, mesh.ne, mesh.nbndexpr);
+
+    int nboufaces;
+    if (!mesh.boundaryPreds.empty()) {
+        // HOT.7.8 — predicate path; same dispatch buildMesh uses.
+        nboufaces = setboundaryfaces(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(),
+                                     mesh.p.data(), mesh.boundaryPreds,
+                                     mesh.dim, mesh.nve, mesh.nvf, mesh.nfe, mesh.ne);
+    } else {
+        nboufaces = setboundaryfaces(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(),
+                                     mesh.p.data(), mesh.boundaryExprs,
+                                     mesh.dim, mesh.nve, mesh.nvf, mesh.nfe, mesh.ne, mesh.nbndexpr);
+    }
 
     if (pde.xdgfile == "") {
         mesh.xdg.resize(master.npe*mesh.dim*mesh.ne);
-        compute_dgnodes(mesh.xdg.data(), mesh.p.data(), mesh.t.data(), master.phielem.data(), master.npe, mesh.dim, mesh.ne, mesh.nve);      
-        project_dgnodes_onto_curved_boundaries(mesh.xdg.data(), mesh.t2t.data(), master.perm.data(), mesh.curvedBoundaries.data(),
-                mesh.curvedBoundaryExprs, mesh.dim, master.porder, master.npe, master.npf, mesh.nfe, mesh.ne, -1);               
+        compute_dgnodes(mesh.xdg.data(), mesh.p.data(), mesh.t.data(), master.phielem.data(), master.npe, mesh.dim, mesh.ne, mesh.nve);
+        if (!mesh.curvedBoundaryLevelSets.empty()) {
+            project_dgnodes_onto_curved_boundaries(mesh.xdg.data(), mesh.t2t.data(), master.perm.data(),
+                    mesh.curvedBoundaries.data(), mesh.curvedBoundaryLevelSets,
+                    mesh.dim, master.porder, master.npe, master.npf, mesh.nfe, mesh.ne, -1);
+        } else {
+            project_dgnodes_onto_curved_boundaries(mesh.xdg.data(), mesh.t2t.data(), master.perm.data(),
+                    mesh.curvedBoundaries.data(),
+                    mesh.curvedBoundaryExprs, mesh.dim, master.porder, master.npe, master.npf,
+                    mesh.nfe, mesh.ne, -1);
+        }
         if (rank==0) std::cout << "Finished computing dgnodes.\n";
-    }     
+    }
     else 
       readParFieldFromBinaryFile(make_path(pde.datapath, pde.xdgfile), mesh.elemGlobalID, mesh.xdg, mesh.xdgdims);
             
