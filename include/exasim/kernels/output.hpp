@@ -30,6 +30,7 @@ void output_dispatch(dstype* f, const dstype* xdg, const dstype* udg,
     constexpr int kMax = 16;
 
     Kokkos::parallel_for(label, ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         double x[nd], uq[Nq], v[nco_buf], w[ncw_buf];
         for (int k = 0; k < nd; ++k) x [k] = xdg[k * ng + i];
         for (int k = 0; k < Nq; ++k) uq[k] = udg[k * ng + i];

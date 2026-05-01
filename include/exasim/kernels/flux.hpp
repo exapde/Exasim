@@ -78,6 +78,7 @@ void flux_kernel(dstype*       f,
 
     Kokkos::parallel_for("exasim::flux_kernel", ng,
         KOKKOS_LAMBDA(const size_t i) {
+            (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
             double x [nd];
             double uq[Nq];
             double v [nco_buf];
@@ -149,6 +150,7 @@ void hdg_flux_kernel(dstype*       f,
 
     Kokkos::parallel_for("exasim::hdg_flux_kernel", ng,
         KOKKOS_LAMBDA(const size_t i) {
+            (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
             double x [nd];
             double uq[Nq];
             double v [nco_buf];

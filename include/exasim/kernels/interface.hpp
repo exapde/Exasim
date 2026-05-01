@@ -33,6 +33,7 @@ void fhat_kernel(dstype* f, const dstype* xdg,
     constexpr int nco_buf = (nco > 0) ? nco : 1;
 
     Kokkos::parallel_for("exasim::fhat_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg1; (void)odg2; (void)wdg1; (void)wdg2;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         double x[nd], uq1[Nq], uq2[Nq];
         double v1[nco_buf], v2[nco_buf], w1[ncw_buf], w2[ncw_buf];
         double uh[ncu], n[nd], t_[ncu];
@@ -74,6 +75,7 @@ void uhat_kernel(dstype* f, const dstype* xdg,
     constexpr int nco_buf = (nco > 0) ? nco : 1;
 
     Kokkos::parallel_for("exasim::uhat_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg1; (void)odg2; (void)wdg1; (void)wdg2;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         double x[nd], uq1[Nq], uq2[Nq];
         double v1[nco_buf], v2[nco_buf], w1[ncw_buf], w2[ncw_buf];
         double uh[ncu], n[nd], t_[ncu];
@@ -115,6 +117,7 @@ void stab_kernel(dstype* f, const dstype* xdg,
     constexpr int nco_buf = (nco > 0) ? nco : 1;
 
     Kokkos::parallel_for("exasim::stab_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg1; (void)odg2; (void)wdg1; (void)wdg2;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         double x[nd], uq1[Nq], uq2[Nq];
         double v1[nco_buf], v2[nco_buf], w1[ncw_buf], w2[ncw_buf];
         double uh[ncu], n[nd], t_[ncu];

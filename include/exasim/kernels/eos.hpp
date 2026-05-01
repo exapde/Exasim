@@ -51,6 +51,7 @@ void eos_kernel(dstype* f, const dstype* xdg, const dstype* udg, const dstype* o
 {
     static_assert(is_model_v<M>);
     Kokkos::parallel_for("exasim::eos_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         detail::eos_dispatch<M, M::ncu>(f, i, ng, xdg, udg, odg, wdg, param, t,
             [](double out[], const double x[], const double uq[],
                const double v[], const double w[],
@@ -69,6 +70,7 @@ void eos_du_kernel(dstype* f, const dstype* xdg, const dstype* udg, const dstype
     static_assert(is_model_v<M>);
     constexpr int Nq = M::ncu * (1 + M::nd);
     Kokkos::parallel_for("exasim::eos_du_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         detail::eos_dispatch<M, M::ncu * Nq>(f, i, ng, xdg, udg, odg, wdg, param, t,
             [](double out[], const double x[], const double uq[],
                const double v[], const double w[],
@@ -87,6 +89,7 @@ void eos_dw_kernel(dstype* f, const dstype* xdg, const dstype* udg, const dstype
     static_assert(is_model_v<M>);
     if constexpr (M::ncw > 0) {
         Kokkos::parallel_for("exasim::eos_dw_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+            (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
             detail::eos_dispatch<M, M::ncu * M::ncw>(f, i, ng, xdg, udg, odg, wdg, param, t,
                 [](double out[], const double x[], const double uq[],
                    const double v[], const double w[],
@@ -107,6 +110,7 @@ void avfield_kernel(dstype* f, const dstype* xdg, const dstype* udg, const dstyp
 {
     static_assert(is_model_v<M>);
     Kokkos::parallel_for("exasim::avfield_kernel", ng, KOKKOS_LAMBDA(size_t i) {
+        (void)odg; (void)wdg;  // HOT.6.2 nvcc force-capture: see /tmp/patch_constexpr_capture.py
         detail::eos_dispatch<M, M::ncu>(f, i, ng, xdg, udg, odg, wdg, param, t,
             [](double out[], const double x[], const double uq[],
                const double v[], const double w[],
