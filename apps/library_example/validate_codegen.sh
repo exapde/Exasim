@@ -3,6 +3,14 @@
 # apps/library_example/<name>_codegen/ and gate against the
 # baseline/<name>_serial/ recording.
 #
+# Usage:
+#   validate_codegen.sh                              # CPU variant
+#   validate_codegen.sh --variant gpu                # _codegen_gpu
+#   validate_codegen.sh --variant mpi --np 2         # _codegen_mpi
+#   validate_codegen.sh --variant mpi_gpu --np 2     # _codegen_mpi_gpu
+#   validate_codegen.sh --build build_mpi/           # alt build dir
+#   validate_codegen.sh --variant gpu poisson2d      # one example only
+#
 # Two gate modes:
 #   - QoI:   if baseline has outqoi.txt, diff `dataout/outqoi.txt`.
 #            (Preferred — robust to floating-point reordering.)
@@ -10,7 +18,8 @@
 #
 # Assumes:
 #   - text2code has been built into ./build/
-#   - <name>_codegen targets are built into ./build/
+#   - For each variant, the matching cmake build dir contains the binary
+#     (default: build/ for cpu+gpu; pass --build for mpi variants).
 #   - bash regenerate.sh <name> has populated grid.bin / pdemodel.txt /
 #     datain/ / my_model.hpp for each example.
 #
@@ -23,7 +32,23 @@ LIB="$ROOT/apps/library_example"
 BASE="$ROOT/baseline"
 BUILD="$ROOT/build"
 
-EXAMPLES=("$@")
+VARIANT=""           # "" → _codegen, gpu → _codegen_gpu, etc.
+NP=1                 # rank count for mpi variants
+EXAMPLES=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --variant)  VARIANT="$2"; shift 2 ;;
+        --np)       NP="$2"; shift 2 ;;
+        --build)    BUILD="$2"; shift 2 ;;
+        --help|-h)
+            sed -n '2,30p' "$0"
+            exit 0
+            ;;
+        *)          EXAMPLES+=("$1"); shift ;;
+    esac
+done
+
 if [ ${#EXAMPLES[@]} -eq 0 ]; then
     EXAMPLES=(poisson2d poisson3d periodic naca0012steady
               lshape isoq3d cone orion
@@ -31,15 +56,27 @@ if [ ${#EXAMPLES[@]} -eq 0 ]; then
               naca0012unsteady)
 fi
 
+# Map variant → binary suffix and runner prefix.
+case "$VARIANT" in
+    "")        SUFFIX=""             ; RUNNER=()             ;;
+    gpu)       SUFFIX="_gpu"         ; RUNNER=()             ;;
+    mpi)       SUFFIX="_mpi"         ; RUNNER=(mpirun -np "$NP") ;;
+    mpi_gpu)   SUFFIX="_mpi_gpu"     ; RUNNER=(mpirun -np "$NP") ;;
+    *)
+        echo "Unknown variant: $VARIANT (expected: gpu | mpi | mpi_gpu)" >&2
+        exit 2
+        ;;
+esac
+
 fail=0
 
 for name in "${EXAMPLES[@]}"; do
     cg_dir="$LIB/${name}_codegen"
     base_dir="$BASE/${name}_serial"
-    bin="$BUILD/${name}_codegen"
+    bin="$BUILD/${name}_codegen${SUFFIX}"
 
     if [ ! -x "$bin" ]; then
-        echo "[SKIP] $name — $bin not built (cmake --build build --target ${name}_codegen)"
+        echo "[SKIP] $name — $bin not built (cmake --build $BUILD --target ${name}_codegen${SUFFIX})"
         continue
     fi
     if [ ! -d "$cg_dir/datain" ] || [ ! -f "$cg_dir/grid.bin" ]; then
@@ -63,7 +100,7 @@ for name in "${EXAMPLES[@]}"; do
 
     rm -rf "$cg_dir/dataout"
     mkdir -p "$cg_dir/dataout"
-    ( cd "$cg_dir" && "$bin" ./pdeapp.txt >/dev/null )
+    ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" ./pdeapp.txt >/dev/null )
 
     if [ -f "$base_dir/outqoi.txt" ]; then
         if diff -q "$cg_dir/dataout/outqoi.txt" "$base_dir/outqoi.txt" >/dev/null; then
