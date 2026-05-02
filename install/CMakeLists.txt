@@ -837,19 +837,24 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   #   3. Diffs dataout/outqoi.txt against baseline/<example>_serial/.
   #
   # CTest fixtures wire the dependencies so a fresh `ctest` invocation
-  # builds text2code, builds the binary for the test, and runs
-  # regenerate.sh — all in the right order:
+  # builds text2code, builds the binary for the test, and runs the
+  # gate — all in the right order:
   #
   #   _build_text2code              (FIXTURES_SETUP    text2code)
   #     ↓
-  #   _regen_<example>              (FIXTURES_SETUP    regen_<example>)
-  #     ↓
   #   _build_<example>_<binary>     (FIXTURES_SETUP    build_<example>_<binary>)
   #     ↓
-  #   <family>:<example>:<variant>  (FIXTURES_REQUIRED above two)
+  #   <family>:<example>:<variant>  (FIXTURES_REQUIRED both above)
+  #     └── runs validate_codegen.sh which itself does
+  #         regenerate.sh + binary + diff. This MUST be atomic
+  #         per gate: text2code writes a shared
+  #         backend/Model/libpdemodel*.so, and a different example's
+  #         regenerate would overwrite it between our regenerate
+  #         and our binary load. RESOURCE_LOCK below serializes the
+  #         gates against each other so that doesn't happen.
   #
   # `ctest` resolves the DAG; users just say `ctest -j` and the
-  # binaries get built / inputs regenerated automatically.
+  # binaries get built automatically.
   # ======================================================================
   enable_testing()
 
@@ -892,19 +897,6 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   foreach (_ex IN LISTS _codegen_examples)
     # Per-example regenerate.sh fixture — depends on text2code being
     # built (regenerate.sh shells out to ${EXASIM_DIR}/build/text2code).
-    add_test(NAME _regen_${_ex}
-             COMMAND bash "${EXASIM_DIR}/apps/library_example/regenerate.sh" "${_ex}"
-             WORKING_DIRECTORY "${EXASIM_DIR}")
-    set_tests_properties(_regen_${_ex} PROPERTIES
-        FIXTURES_REQUIRED text2code
-        FIXTURES_SETUP    regen_${_ex}
-        # regenerate.sh runs text2code which writes shared
-        # backend/Model/libpdemodel{serial,cuda,hip}.so. Two regens
-        # in flight at the same time collide on those files and
-        # produce wrong libs. Serialize via a resource lock.
-        RESOURCE_LOCK     text2code_libs
-        TIMEOUT           300)
-
     foreach (_stem codegen facade)
       set(_target  "${_ex}_${_stem}${_target_suffix}")
       set(_fixture "build_${_target}")
@@ -919,11 +911,15 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           FIXTURES_SETUP ${_fixture}
           TIMEOUT        600)
 
-      # The actual gate. `--no-regen` skips the inline
-      # regenerate.sh call inside validate_codegen.sh — the
-      # _regen_<example> fixture already populated grid.bin /
-      # my_model.hpp.
-      set(_test_args "${_validate_extra_args}" "--build" "${CMAKE_BINARY_DIR}" "--no-regen")
+      # The actual gate. validate_codegen.sh runs regenerate.sh
+      # internally — keeping that *inside* the gate makes the
+      # gate atomic: regenerate writes libpdemodel*.so and the
+      # binary loads it before any other test can touch it
+      # (RESOURCE_LOCK below serializes gates against each other).
+      # If we hoisted regenerate into a separate fixture, the lib
+      # could be overwritten by a different example's regen between
+      # this gate's regenerate and its binary load.
+      set(_test_args "${_validate_extra_args}" "--build" "${CMAKE_BINARY_DIR}")
       if (_stem STREQUAL "facade")
         list(PREPEND _test_args "--facade")
       endif()
@@ -933,7 +929,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
                        ${_test_args} "${_ex}"
                WORKING_DIRECTORY "${EXASIM_DIR}")
       set_tests_properties("${_stem}:${_ex}:${_variant}" PROPERTIES
-          FIXTURES_REQUIRED       "regen_${_ex};${_fixture}"
+          FIXTURES_REQUIRED       "text2code;${_fixture}"
           PASS_REGULAR_EXPRESSION "\\[ OK \\]"
           # text2code emits a SHARED `backend/Model/libpdemodel*.so`
           # per regen. The binary's BUILD_RPATH points at that
