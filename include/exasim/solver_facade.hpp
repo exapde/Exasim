@@ -276,10 +276,39 @@ public:
             }
         } else {
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
-            if (!have_inmem_mesh) {
-                // Legacy file path: ParallelPreprocessing reads the
-                // mesh from pde.meshfile, writes per-rank datain bins,
-                // CSolution<M>(filein,...) reads them back.
+            // Populate preproc.mesh: distributed-from-arrays if the
+            // caller supplied per-rank slices, else read the user-
+            // provided global mesh from pde.meshfile and let ParMETIS
+            // partition. Either way takeParallel() does the rest in
+            // memory (no per-rank datain bins on disk).
+            if (have_inmem_mesh) {
+                if (!distributed_)
+                    error("ExasimSolver::solve(): mpiprocs > 1 requires set_mesh_distributed(...). "
+                          "set_mesh(...) is the single-rank API.");
+                preproc.mesh = meshFromArraysDistributed(
+                    mesh_p_.data(), mesh_t_.data(),
+                    mesh_np_, mesh_ne_, mesh_nve_, M::nd,
+                    mesh_np_global_, mesh_ne_global_,
+                    preproc.params, preproc.pde);
+            } else {
+                preproc.mesh = initializeParMesh(preproc.params, preproc.spec,
+                                                 preproc.pde, EXASIM_COMM_LOCAL);
+            }
+
+            // EXASIM_FACADE_INMEMORY_MPI=0 falls back to the legacy
+            // file ABI (writes per-rank datain bins, reads them back).
+            // Kept as an escape hatch while the in-memory takeParallel
+            // path is the new default. HOT.7.13.
+            const char* inmem_env = std::getenv("EXASIM_FACADE_INMEMORY_MPI");
+            const bool use_files = (inmem_env && inmem_env[0] == '0');
+            if (!use_files) {
+                if (pde_.saveOutputs != 0) std::filesystem::create_directories(pde_.dataoutpath);
+                auto pre = preproc.takeParallel(EXASIM_COMM_LOCAL);
+                pre.save_outputs = (pde_.saveOutputs != 0);
+                solver_ = std::make_unique<CSolution<M>>(
+                    std::move(pre), fileout, pde_.exasimpath,
+                    mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+            } else {
                 std::filesystem::create_directories(pde_.datainpath);
                 if (pde_.saveOutputs != 0) std::filesystem::create_directories(pde_.dataoutpath);
                 preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
@@ -287,40 +316,7 @@ public:
                 solver_ = std::make_unique<CSolution<M>>(
                     filein, fileout, pde_.exasimpath,
                     mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
-                solver_->disc.common.nomodels = 1;
-                solver_->disc.common.ncarray  = new Int[1]{ solver_->disc.common.nc };
-                solver_->disc.sol.udgarray    = new dstype*[1]{ &solver_->disc.sol.udg[0] };
-                std::ofstream resnorms;
-                solver_->SolveProblem(resnorms, backend);
-                solved_ = true;
-                return 0;
             }
-            if (!distributed_)
-                error("ExasimSolver::solve(): mpiprocs > 1 requires set_mesh_distributed(...). "
-                      "set_mesh(...) is the single-rank API.");
-            preproc.mesh = meshFromArraysDistributed(
-                mesh_p_.data(), mesh_t_.data(),
-                mesh_np_, mesh_ne_, mesh_nve_, M::nd,
-                mesh_np_global_, mesh_ne_global_,
-                preproc.params, preproc.pde);
-
-            // HOT.7.8: the in-memory takeParallel path is plumbed
-            // (see CPreprocessing::takeParallel + buildMeshStructParallel
-            // + buildSolStructParallel) but produces a divergent
-            // first-iteration residual on the test problem. The bug
-            // is in struct population, not the API shape — I haven't
-            // bisected which field is mis-set. For now, fall back to
-            // the legacy file ABI: ParallelPreprocessing writes
-            // per-rank datain/{app,master,mesh,sol}.bin, and
-            // CSolution<M>(filein,...) reads them. Same problem,
-            // same answers. HOT.7.9 finishes the in-memory MPI path.
-            std::filesystem::create_directories(pde_.datainpath);
-            if (pde_.saveOutputs != 0) std::filesystem::create_directories(pde_.dataoutpath);
-            preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
-            const std::string filein = pde_.datainpath + "/";
-            solver_ = std::make_unique<CSolution<M>>(
-                filein, fileout, pde_.exasimpath,
-                mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
 #else
             error("ExasimSolver::solve(): mpiprocs > 1 requires HAVE_PARMETIS + HAVE_MPI.");
 #endif
