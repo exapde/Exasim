@@ -9,6 +9,25 @@ Updated: 2026-05-02 (HOT.7.16 lanka run).
 
 ## Real divergences (TODO)
 
+### `periodic:mpi`, `periodic:mpi_gpu` — element-L2 ~32.6% off serial
+
+**Fail signal**: `relative element-L2 = 3.258e-01 (>1e-03)` over 64
+elements. Identical magnitude on both codegen + facade stems →
+not facade-specific. Both serial variants (`periodic:cpu`,
+`periodic:gpu`) pass with element-L2 ~ 3e-14.
+
+**Smoking gun**: divergence appears only under MPI partitioning.
+The `periodic` test exercises periodic boundary conditions
+(periodicboundaries1/2 in pdeapp.txt). Suspected cause: the
+periodic-face-pairing logic in `parmetisexasim.hpp` /
+`connectivity.hpp` may not correctly pair faces that are split
+across rank partitions, leading to local boundary conditions that
+differ from serial.
+
+**Status**: real bug, related family to orion:mpi (both are
+partition-handling regressions, both lockstep). Investigate
+together as HOT.7.17.
+
 ### `orion:mpi`, `orion:mpi_gpu` — QoI ~62% off serial
 
 **Fail signal**: `outqoi.txt` Domain_QoI1 = `2.030988e-01` (lanka MPI
