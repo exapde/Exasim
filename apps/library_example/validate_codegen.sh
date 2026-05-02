@@ -113,7 +113,21 @@ for name in "${EXAMPLES[@]}"; do
 
     rm -rf "$cg_dir/dataout"
     mkdir -p "$cg_dir/dataout"
-    ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" ./pdeapp.txt >/dev/null )
+    if ! ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" ./pdeapp.txt >/dev/null ); then
+        echo "[FAIL] $name — binary exited non-zero"
+        fail=1
+        continue
+    fi
+
+    # Empty dataout means the binary aborted before SaveSolutions (e.g.,
+    # mpirun -np 2 with no datain/meshN.bin files). Without this guard,
+    # the bin-md5 / numerical fallback below silently passes on zero
+    # files iterated and prints "[ OK ]".
+    if [ -z "$(ls -A "$cg_dir/dataout" 2>/dev/null)" ]; then
+        echo "[FAIL] $name — binary produced no dataout/ files"
+        fail=1
+        continue
+    fi
 
     if [ -f "$base_dir/outqoi.txt" ]; then
         if diff -q "$cg_dir/dataout/outqoi.txt" "$base_dir/outqoi.txt" >/dev/null; then
