@@ -935,6 +935,14 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       set_tests_properties("${_stem}:${_ex}:${_variant}" PROPERTIES
           FIXTURES_REQUIRED       "regen_${_ex};${_fixture}"
           PASS_REGULAR_EXPRESSION "\\[ OK \\]"
+          # text2code emits a SHARED `backend/Model/libpdemodel*.so`
+          # per regen. The binary's BUILD_RPATH points at that
+          # location, so a different example's regen running in
+          # parallel can overwrite the .so the gate's binary is
+          # about to load — runtime ncu/nd/ncw mismatch crashes.
+          # Lock gates against the same resource as regens to keep
+          # the .so consistent during the gate's binary startup.
+          RESOURCE_LOCK           text2code_libs
           TIMEOUT                 600)
     endforeach()
   endforeach()
