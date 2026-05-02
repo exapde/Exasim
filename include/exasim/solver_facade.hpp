@@ -162,6 +162,33 @@ public:
     void set_tau(std::vector<double> t)          { pde_.tau = std::move(t); }
     void set_exasim_dir(std::string dir)         { pde_.exasimpath = std::move(dir); }
 
+    // HOT.7.9 — load runtime configuration from a legacy pdeapp.txt
+    // file. Same parser the file-driven CSolution<M>(filein,...)
+    // path uses; populates pde_/params_/spec_ exactly as the legacy
+    // path would. After this call you can still override individual
+    // fields via pde() / params() / spec() escape hatches before
+    // calling solve().
+    //
+    // Mesh: if neither set_mesh() nor set_mesh_distributed() has
+    // been called by the time solve() runs, the facade falls through
+    // to initializeMesh / initializeParMesh on `pde_.meshfile`. So
+    // a complete legacy app can be driven by:
+    //
+    //     ExasimSolver<MyModel> solver;
+    //     solver.load_pdeapp("pdeapp.txt");
+    //     solver.solve(mpiprocs, mpirank);
+    //
+    // (no set_mesh* needed — grid.bin is read off disk).
+    void load_pdeapp(const std::string& filename, int mpirank = 0)
+    {
+        params_ = parseInputFile(filename, mpirank);
+        pde_    = initializePDE(params_, mpirank);
+        if (!pde_.modelfile.empty())
+            spec_ = TextParser::parseFile(make_path(pde_.datapath, pde_.modelfile));
+        if (spec_.exasimpath.empty()) spec_.exasimpath = pde_.exasimpath;
+        pdeapp_loaded_ = true;
+    }
+
     // Path layout. `dir == ""` keeps in-memory mode (saveOutputs = 0,
     // no files written). Setting a non-empty dir flips saveOutputs
     // back on so the runtime writes outudg_np<r>.bin etc. there.
@@ -191,10 +218,14 @@ public:
     // wiring lands in HOT.7.6).
     int solve(int mpiprocs = 1, int mpirank = 0)
     {
-        if (mesh_np_ <= 0)
-            error("ExasimSolver::solve(): mesh not set (call set_mesh first).");
+        const bool have_inmem_mesh = (mesh_np_ > 0);
+        const bool have_file_mesh  = !pde_.meshfile.empty();
+        if (!have_inmem_mesh && !have_file_mesh)
+            error("ExasimSolver::solve(): no mesh — call set_mesh / set_mesh_distributed "
+                  "or load_pdeapp(...) with a meshfile.");
         if (params_.boundaryConditions.empty())
-            error("ExasimSolver::solve(): no boundary tags added.");
+            error("ExasimSolver::solve(): no boundary tags — call add_boundary "
+                  "or load_pdeapp(...) with boundaryconditions set.");
 
         pde_.mpiprocs = mpiprocs;
 
@@ -210,23 +241,60 @@ public:
 #ifdef HAVE_HIP
         backend = 3;
 #endif
-        const std::string fileout = pde_.dataoutpath + "/out";
+        // When saveOutputs == 0 the binary won't open any output
+        // files, so an empty `fileout` is fine and we skip creating
+        // the dataout directory.
+        const std::string fileout = (pde_.saveOutputs != 0)
+                                        ? (pde_.dataoutpath + "/out")
+                                        : std::string{};
         const int gpuid      = 0;
         const int fileoffset = 0;
 
         CPreprocessing preproc(pde_, params_, spec_, mpirank, mpiprocs);
 
         if (mpiprocs == 1) {
-            preproc.mesh = meshFromArrays(mesh_p_.data(), mesh_t_.data(),
-                                          mesh_np_, mesh_ne_, mesh_nve_, M::nd,
-                                          preproc.params, preproc.pde);
-            auto pre = preproc.take();
-            pre.save_outputs = (pde_.saveOutputs != 0);
-            solver_ = std::make_unique<CSolution<M>>(
-                std::move(pre), fileout, pde_.exasimpath,
-                mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+            if (have_inmem_mesh) {
+                preproc.mesh = meshFromArrays(mesh_p_.data(), mesh_t_.data(),
+                                              mesh_np_, mesh_ne_, mesh_nve_, M::nd,
+                                              preproc.params, preproc.pde);
+                auto pre = preproc.take();
+                pre.save_outputs = (pde_.saveOutputs != 0);
+                solver_ = std::make_unique<CSolution<M>>(
+                    std::move(pre), fileout, pde_.exasimpath,
+                    mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+            } else {
+                // Legacy file path: SerialPreprocessing reads the
+                // mesh from pde.meshfile, writes datain bins,
+                // CSolution<M>(filein,...) reads them back.
+                std::filesystem::create_directories(pde_.datainpath);
+                if (pde_.saveOutputs != 0) std::filesystem::create_directories(pde_.dataoutpath);
+                preproc.SerialPreprocessing();
+                const std::string filein = pde_.datainpath + "/";
+                solver_ = std::make_unique<CSolution<M>>(
+                    filein, fileout, pde_.exasimpath,
+                    mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+            }
         } else {
 #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
+            if (!have_inmem_mesh) {
+                // Legacy file path: ParallelPreprocessing reads the
+                // mesh from pde.meshfile, writes per-rank datain bins,
+                // CSolution<M>(filein,...) reads them back.
+                std::filesystem::create_directories(pde_.datainpath);
+                if (pde_.saveOutputs != 0) std::filesystem::create_directories(pde_.dataoutpath);
+                preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
+                const std::string filein = pde_.datainpath + "/";
+                solver_ = std::make_unique<CSolution<M>>(
+                    filein, fileout, pde_.exasimpath,
+                    mpiprocs, mpirank, fileoffset, gpuid, backend, pde_.builtinmodelID);
+                solver_->disc.common.nomodels = 1;
+                solver_->disc.common.ncarray  = new Int[1]{ solver_->disc.common.nc };
+                solver_->disc.sol.udgarray    = new dstype*[1]{ &solver_->disc.sol.udg[0] };
+                std::ofstream resnorms;
+                solver_->SolveProblem(resnorms, backend);
+                solved_ = true;
+                return 0;
+            }
             if (!distributed_)
                 error("ExasimSolver::solve(): mpiprocs > 1 requires set_mesh_distributed(...). "
                       "set_mesh(...) is the single-rank API.");
@@ -247,7 +315,7 @@ public:
             // CSolution<M>(filein,...) reads them. Same problem,
             // same answers. HOT.7.9 finishes the in-memory MPI path.
             std::filesystem::create_directories(pde_.datainpath);
-            std::filesystem::create_directories(pde_.dataoutpath);
+            if (pde_.saveOutputs != 0) std::filesystem::create_directories(pde_.dataoutpath);
             preproc.ParallelPreprocessing(EXASIM_COMM_LOCAL);
             const std::string filein = pde_.datainpath + "/";
             solver_ = std::make_unique<CSolution<M>>(
@@ -320,6 +388,7 @@ private:
     int  mesh_np_global_  = 0;
     int  mesh_ne_global_  = 0;
     bool distributed_     = false;
+    bool pdeapp_loaded_   = false;
 
     std::unique_ptr<CSolution<M>> solver_;
     bool solved_ = false;

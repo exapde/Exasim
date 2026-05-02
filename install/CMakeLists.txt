@@ -724,6 +724,85 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       link_metis(${name}_codegen_mpi_gpu)
       set_target_properties(${name}_codegen_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
+
+    # ---------------- HOT.7.9: facade-driven variants -------------------
+    # Same model + pdeapp.txt + grid.bin as the codegen targets above,
+    # but the `main` is `apps/library_example/main_facade.cpp` which
+    # routes through `ExasimSolver<GeneratedModel>`. Each example's
+    # `my_model.hpp` is included via `target_include_directories` of
+    # its codegen dir (so the same file is consumed by both mains).
+    set(_facade_main "${EXASIM_DIR}/apps/library_example/main_facade.cpp")
+    set(_codegen_dir "${EXASIM_DIR}/apps/library_example/${name}_codegen")
+
+    if(EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_facade "${_facade_main}")
+      target_compile_definitions(${name}_facade PRIVATE _TEXT2CODE)
+      target_compile_options(${name}_facade PRIVATE -std=c++17 -w -O2)
+      target_include_directories(${name}_facade PRIVATE
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_facade PRIVATE ${Model_LIB_DIR})
+      target_link_libraries(${name}_facade PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+      link_metis(${name}_facade)
+      set_target_properties(${name}_facade PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+
+    if(EXASIM_MPI AND MPI_FOUND AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_facade_mpi "${_facade_main}")
+      target_compile_definitions(${name}_facade_mpi PRIVATE _MPI _TEXT2CODE)
+      target_compile_options(${name}_facade_mpi PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
+      target_include_directories(${name}_facade_mpi PRIVATE
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_facade_mpi PRIVATE ${Model_LIB_DIR})
+      target_link_libraries(${name}_facade_mpi PRIVATE
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+      link_metis(${name}_facade_mpi)
+      set_target_properties(${name}_facade_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+
+    if(EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_facade_gpu "${_facade_main}")
+      target_compile_definitions(${name}_facade_gpu PRIVATE _TEXT2CODE)
+      target_compile_options(${name}_facade_gpu PRIVATE
+          -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      target_include_directories(${name}_facade_gpu PRIVATE
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_facade_gpu PRIVATE ${Model_LIB_DIR})
+      if(EXASIM_CUDA)
+        target_compile_definitions(${name}_facade_gpu PRIVATE _CUDA)
+        target_link_libraries(${name}_facade_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries}
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+      else()
+        target_compile_definitions(${name}_facade_gpu PRIVATE _HIP)
+        target_link_libraries(${name}_facade_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+      endif()
+      link_metis(${name}_facade_gpu)
+      set_target_properties(${name}_facade_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
+
+    if(EXASIM_MPI AND MPI_FOUND AND (EXASIM_CUDA OR EXASIM_HIP))
+      add_executable(${name}_facade_mpi_gpu "${_facade_main}")
+      target_compile_definitions(${name}_facade_mpi_gpu PRIVATE _MPI _TEXT2CODE)
+      target_compile_options(${name}_facade_mpi_gpu PRIVATE
+          -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      target_include_directories(${name}_facade_mpi_gpu PRIVATE
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_facade_mpi_gpu PRIVATE ${Model_LIB_DIR})
+      if(EXASIM_CUDA)
+        target_compile_definitions(${name}_facade_mpi_gpu PRIVATE _CUDA)
+        target_link_libraries(${name}_facade_mpi_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES}
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+      else()
+        target_compile_definitions(${name}_facade_mpi_gpu PRIVATE _HIP)
+        target_link_libraries(${name}_facade_mpi_gpu PRIVATE
+            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
+      endif()
+      link_metis(${name}_facade_mpi_gpu)
+      set_target_properties(${name}_facade_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+    endif()
   endfunction()
 
   add_codegen_example(poisson2d)
