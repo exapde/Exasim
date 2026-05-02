@@ -685,8 +685,15 @@ inline void CSolution<M>::DIRK(ofstream &out, Int backend)
             this->SteadyProblem(out, backend);                             
 
             START_TIMING;
-            // update solution 
-            UpdateSolution<M>(disc.sol, solv.sys, disc.common, backend);                     
+            // update solution
+            // HOT.7.15: use the 7-arg overload (matching <exasim/run.hpp>'s
+            // tdep+runmode=0 path). The 4-arg overload's UpdateSolutionDIRK
+            // calls ArrayExtract(sys.u, sol.udg, ...) which silently
+            // overwrites sys.u — for ncw=0 problems with unsteady DIRK
+            // (e.g. naca0012unsteady) the run.hpp path uses res.Rq as
+            // the temp buffer instead, leaving sys.u untouched. Empirically
+            // matches codegen Newton trajectories step for step.
+            UpdateSolution<M>(disc.sol, solv.sys, disc.app, disc.res, disc.tmp, disc.common, backend);
             END_TIMING_DISC(101);
 
 #ifdef TIMING         
