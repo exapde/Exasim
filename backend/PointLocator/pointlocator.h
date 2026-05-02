@@ -4,7 +4,7 @@
 #include "../Common/common.h"
 #include <vector>
 
-//class CDiscretization;
+class CDiscretization;
 
 struct WallModelSamplingData {
     Int ibc = -1;
@@ -22,6 +22,7 @@ struct WallModelSamplingData {
     std::vector<Int> faces;        // size = nfaces
     std::vector<Int> nextfaces;    // size = nbe1+1
     std::vector<Int> elems;        // size = npoints, owner element of each point in xw
+    std::vector<Int> elemsx1;      // size = npoints, owner element of each point in x1
     std::vector<dstype> xw;        // size = nd * npoints
     std::vector<dstype> nw;        // size = nd * npoints
     std::vector<dstype> x1;        // size = nd * npoints

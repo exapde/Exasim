@@ -47,12 +47,15 @@
 #ifndef __DISCRETIZATION
 #define __DISCRETIZATION
 
+#include <cstring>
+
 #ifdef HAVE_CUDA
 #include "gpuDeviceInfo.cpp"
 #endif
 
 #include "discretization.h"
 #include "ioutilities.cpp"
+#include "../PointLocator/pointlocator.h"
 
 #ifdef HAVE_TEXT2CODE
 #include "../Model/ModelDrivers.cpp"
@@ -68,6 +71,87 @@
 #include "residual.cpp"
 #include "matvec.cpp"
 #include "qoicalculation.cpp"
+
+namespace {
+
+void ValidateWallModelSamplingDataSizes(const WallModelSamplingData& wm)
+{
+    const Int expectedNextfaces = wm.nbe1 + 1;
+    const Int expectedPointCoords = wm.nd * wm.npoints;
+    const Int expectedShape = wm.npe * wm.npoints;
+
+    if (static_cast<Int>(wm.faces.size()) != wm.nfaces)
+        error("Wall-model sampling copy failed: faces has unexpected size.");
+    if (static_cast<Int>(wm.nextfaces.size()) != expectedNextfaces)
+        error("Wall-model sampling copy failed: nextfaces has unexpected size.");
+    if (static_cast<Int>(wm.elems.size()) != wm.npoints)
+        error("Wall-model sampling copy failed: elems has unexpected size.");
+    if (static_cast<Int>(wm.elemsx1.size()) != wm.npoints)
+        error("Wall-model sampling copy failed: elemsx1 has unexpected size.");
+    if (static_cast<Int>(wm.xw.size()) != expectedPointCoords)
+        error("Wall-model sampling copy failed: xw has unexpected size.");
+    if (static_cast<Int>(wm.nw.size()) != expectedPointCoords)
+        error("Wall-model sampling copy failed: nw has unexpected size.");
+    if (static_cast<Int>(wm.x1.size()) != expectedPointCoords)
+        error("Wall-model sampling copy failed: x1 has unexpected size.");
+    if (static_cast<Int>(wm.xi1.size()) != expectedPointCoords)
+        error("Wall-model sampling copy failed: xi1 has unexpected size.");
+    if (static_cast<Int>(wm.shap1.size()) != expectedShape)
+        error("Wall-model sampling copy failed: shap1 has unexpected size.");
+}
+
+void CopyWallModelSamplingData(
+    wallmodelstruct& wallmodel,
+    const WallModelSamplingData& wm,
+    Int backend)
+{
+    ValidateWallModelSamplingDataSizes(wm);
+
+    wallmodel.freememory(backend);
+
+    wallmodel.ibc = wm.ibc;
+    wallmodel.nd = wm.nd;
+    wallmodel.ncx = wm.ncx;
+    wallmodel.npe = wm.npe;
+    wallmodel.npf = wm.npf;
+    wallmodel.ngf = wm.ngf;
+    wallmodel.nfe = wm.nfe;
+    wallmodel.nfaces = wm.nfaces;
+    wallmodel.npoints = wm.npoints;
+    wallmodel.nbe1 = wm.nbe1;
+    wallmodel.y1 = wm.y1;
+
+    wallmodel.szfaces = static_cast<Int>(wm.faces.size());
+    TemplateMallocCopytoDevice(&wallmodel.faces, wm.faces.data(), wallmodel.szfaces, backend);
+
+    wallmodel.sznextfaces = static_cast<Int>(wm.nextfaces.size());
+    TemplateMallocCopytoDevice(&wallmodel.nextfaces, wm.nextfaces.data(), wallmodel.sznextfaces, 0);
+
+    wallmodel.szelems = static_cast<Int>(wm.elems.size());
+    TemplateMallocCopytoDevice(&wallmodel.elems, wm.elems.data(), wallmodel.szelems, backend);
+
+    wallmodel.szelemsx1 = static_cast<Int>(wm.elemsx1.size());
+    TemplateMallocCopytoDevice(&wallmodel.elemsx1, wm.elemsx1.data(), wallmodel.szelemsx1, backend);
+
+    wallmodel.szxw = static_cast<Int>(wm.xw.size());
+    TemplateMallocCopytoDevice(&wallmodel.xw, wm.xw.data(), wallmodel.szxw, backend);
+
+    wallmodel.sznw = static_cast<Int>(wm.nw.size());
+    TemplateMallocCopytoDevice(&wallmodel.nw, wm.nw.data(), wallmodel.sznw, backend);
+
+    wallmodel.szx1 = static_cast<Int>(wm.x1.size());
+    TemplateMallocCopytoDevice(&wallmodel.x1, wm.x1.data(), wallmodel.szx1, backend);
+
+    wallmodel.szxi1 = static_cast<Int>(wm.xi1.size());
+    TemplateMallocCopytoDevice(&wallmodel.xi1, wm.xi1.data(), wallmodel.szxi1, backend);
+
+    wallmodel.szshap1 = static_cast<Int>(wm.shap1.size());
+    TemplateMallocCopytoDevice(&wallmodel.shap1, wm.shap1.data(), wallmodel.szshap1, backend);
+
+    wallmodel.initialized = 1;
+}
+
+} // namespace
 
 void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse, int nese)
 {            
@@ -429,6 +513,20 @@ CDiscretization::CDiscretization(string filein, string fileout, string exasimpat
       printf("finish CDiscretization constructor... \n");        
     }
 }
+ 
+bool CDiscretization::BuildWallModelData(Int ibc, dstype y1)
+{
+    if (common.backend > 1)
+        error("BuildWallModelData is not implemented for GPU/HIP backends because the point locator wall-model builder is host-only.");
+
+    CPointLocator locator;
+    const bool success = locator.BuildWallModelSamplingData(*this, ibc, y1);
+    if (!success)
+        error("BuildWallModelData failed while building wall-model sampling data.");
+
+    CopyWallModelSamplingData(wallmodel, locator.wm, common.backend);
+    return true;
+}
 
 // destructor 
 CDiscretization::~CDiscretization()
@@ -445,6 +543,8 @@ CDiscretization::~CDiscretization()
     if (common.mpiRank==0) printf("CDiscretization destructor: tmp memory is freed successfully.\n");
     res.freememory(common.backend);
     if (common.mpiRank==0) printf("CDiscretization destructor: res memory is freed successfully.\n");
+    wallmodel.freememory(common.backend);
+    if (common.mpiRank==0) printf("CDiscretization destructor: wallmodel memory is freed successfully.\n");
     common.freememory();
     if (common.mpiRank==0) printf("CDiscretization destructor: common memory is freed successfully.\n");
 

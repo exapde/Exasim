@@ -24,7 +24,7 @@ pde.modelfile = "pdemodel";    % name of a file defining the PDE model
 
 % Choose computing platform and set number of processors
 pde.platform = "cpu";         % choose this option if NVIDIA GPUs are available
-pde.mpiprocs = 1;              % number of MPI processors
+pde.mpiprocs = 4;              % number of MPI processors
 pde.hybrid = 1;
 pde.debugmode = 0;
 pde.porder = porder;
@@ -43,7 +43,7 @@ pde.RBdim = 0;
 pde.gencode = 1;
 
 % naca mesh
-mesh = mkmesh_naca0012(porder,1,2);
+mesh = mkmesh_naca0012(porder,1,2);  
 
 % call exasim to generate and run C++ code to solve the PDE model
 [sol,pde,mesh] = exasim(pde,mesh);

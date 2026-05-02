@@ -43,11 +43,11 @@ mesh.t = [t0; t1];
 clear p0; clear p1; clear t0; clear t1;
 
 mesh.porder = porder;
-[mesh.plocal,mesh.tlocal,mesh.plocfc,mesh.tlocfc,permnode,permedge,permface] = masternodes(mesh.porder,dim,elemtype,nodetype);
+[mesh.plocal,mesh.tlocal,mesh.plocfc,mesh.tlocfc,permnode] = masternodes(mesh.porder,dim,elemtype);
 mesh.permnode = permnode;
-mesh.permedge = permedge;
-mesh.permface = permface;
-mesh.perm = permedge;
+mesh.permedge = permnode;
+mesh.permface = permnode;
+mesh.perm = permnode;
 
 mesh.dgnodes = createnodes(mesh);
 

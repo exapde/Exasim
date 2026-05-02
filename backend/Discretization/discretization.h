@@ -47,6 +47,7 @@ public:
     solstruct sol;
     resstruct res;
     appstruct app;
+    wallmodelstruct wallmodel;
     masterstruct master; 
     meshstruct mesh;
     tempstruct tmp;    
@@ -106,6 +107,8 @@ public:
     
     // evaluate a monitor function to monitor changes in solution QoIs for pseudotime stepping
     void evalMonitor(dstype* output, dstype* udg, dstype* wdg, Int nc, Int backed);
+
+    bool BuildWallModelData(Int ibc, dstype y1);
     
     // converge DG to CG
     void DG2CG(dstype* ucg, dstype* udg, dstype *utm, Int ncucg, Int ncudg, Int ncu, Int backend);
@@ -126,4 +129,3 @@ public:
 };
 
 #endif        
-

@@ -455,7 +455,7 @@ template <typename T> static void TemplateReallocate(T **data, Int n, Int backen
     TemplateMalloc(data, n, backend);
 }
 
-template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int n, Int backend)
+template <typename T> static void TemplateCopytoDevice(T *d_data, const T *h_data, Int n, Int backend)
 {
     if (backend <= 1)  {
         for (Int i=0; i<n; i++)
@@ -473,6 +473,17 @@ template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, Int
         CHECK( hipMemcpy(d_data, h_data, n * sizeof(T), hipMemcpyHostToDevice) );
     }
 #endif    
+}
+
+template <typename T> static void TemplateMallocCopytoDevice(T **d_data, const T *h_data, Int n, Int backend)
+{
+    if (n <= 0) {
+        *d_data = nullptr;
+        return;
+    }
+
+    TemplateMalloc(d_data, n, backend);
+    TemplateCopytoDevice(*d_data, h_data, n, backend);
 }
 
 template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n, Int backend)
@@ -730,6 +741,88 @@ struct appstruct {
         TemplateFree(dtcoef_u, backend);
         TemplateFree(dtcoef_q, backend);
         TemplateFree(dtcoef_w, backend);
+    }
+};
+
+struct wallmodelstruct {
+    Int initialized = 0;
+
+    Int ibc = -1;
+    Int nd = 0;
+    Int ncx = 0;
+    Int npe = 0;
+    Int npf = 0;
+    Int ngf = 0;
+    Int nfe = 0;
+    Int nfaces = 0;
+    Int npoints = 0;
+    Int nbe1 = 0;
+    dstype y1 = 0.0;
+
+    Int* faces = nullptr;
+    Int* nextfaces = nullptr;  // always allocated in CPU memory
+    Int* elems = nullptr;
+    Int* elemsx1 = nullptr;
+    dstype* xw = nullptr;
+    dstype* nw = nullptr;
+    dstype* x1 = nullptr;
+    dstype* xi1 = nullptr;
+    dstype* shap1 = nullptr;
+
+    Int szfaces = 0;
+    Int sznextfaces = 0;
+    Int szelems = 0;
+    Int szelemsx1 = 0;
+    Int szxw = 0;
+    Int sznw = 0;
+    Int szx1 = 0;
+    Int szxi1 = 0;
+    Int szshap1 = 0;
+
+    int sizeofint()
+    {
+        return szfaces + sznextfaces + szelems + szelemsx1;
+    }
+
+    int sizeoffloat()
+    {
+        return szxw + sznw + szx1 + szxi1 + szshap1;
+    }
+
+    void freememory(Int backend)
+    {
+        TemplateFree(faces, backend);
+        TemplateFree(nextfaces, 0);
+        TemplateFree(elems, backend);
+        TemplateFree(elemsx1, backend);
+        TemplateFree(xw, backend);
+        TemplateFree(nw, backend);
+        TemplateFree(x1, backend);
+        TemplateFree(xi1, backend);
+        TemplateFree(shap1, backend);
+
+        initialized = 0;
+        ibc = -1;
+        nd = 0;
+        ncx = 0;
+        npe = 0;
+        npf = 0;
+        ngf = 0;
+        nfe = 0;
+        nfaces = 0;
+        npoints = 0;
+        nbe1 = 0;
+        y1 = 0.0;
+
+        szfaces = 0;
+        sznextfaces = 0;
+        szelems = 0;
+        szelemsx1 = 0;
+        szxw = 0;
+        sznw = 0;
+        szx1 = 0;
+        szxi1 = 0;
+        szshap1 = 0;
     }
 };
 

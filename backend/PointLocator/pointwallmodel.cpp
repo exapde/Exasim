@@ -263,11 +263,12 @@ static inline bool ComputeXi1AndShapeFunctionsFromElementFaces(
     if (maxCandidates <= 0)
         return false;
 
-    std::vector<Int> pointElems(static_cast<size_t>(wm.npoints), -1);
+    //std::vector<Int> pointElems(static_cast<size_t>(wm.npoints), -1);
+    wm.elemsx1.resize(static_cast<size_t>(wm.npoints), -1);
     std::vector<Int> candidateElems(static_cast<size_t>(maxCandidates), -1);
 
     return FindPointsAndShapeFunctionsFromElementFaces(
-        pointElems.data(),
+        wm.elemsx1.data(),
         wm.xi1.data(),
         wm.shap1.data(),
         wm.x1.data(),
