@@ -835,8 +835,21 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   #   1. Runs `regenerate.sh <example>` to populate datain / my_model.hpp.
   #   2. Runs the binary with the app's pdeapp.txt.
   #   3. Diffs dataout/outqoi.txt against baseline/<example>_serial/.
-  # The validate script is the gate; here we just register tests for
-  # whichever binary family the current build dir actually produced.
+  #
+  # CTest fixtures wire the dependencies so a fresh `ctest` invocation
+  # builds text2code, builds the binary for the test, and runs
+  # regenerate.sh — all in the right order:
+  #
+  #   _build_text2code              (FIXTURES_SETUP    text2code)
+  #     ↓
+  #   _regen_<example>              (FIXTURES_SETUP    regen_<example>)
+  #     ↓
+  #   _build_<example>_<binary>     (FIXTURES_SETUP    build_<example>_<binary>)
+  #     ↓
+  #   <family>:<example>:<variant>  (FIXTURES_REQUIRED above two)
+  #
+  # `ctest` resolves the DAG; users just say `ctest -j` and the
+  # binaries get built / inputs regenerated automatically.
   # ======================================================================
   enable_testing()
 
@@ -844,34 +857,78 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
                         lshape isoq3d cone orion nsmach8 isoq sharpb2
                         naca0012unsteady)
 
-  # Variant per build dir — only one of these matches per build:
-  set(_validate_args "")
+  # Variant + binary suffix derived from the build's configure flags.
+  set(_validate_extra_args "")
   if (EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
     set(_variant "cpu")
-    set(_validate_args "--build" "${CMAKE_BINARY_DIR}")
+    set(_target_suffix "")
   elseif (EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
     set(_variant "gpu")
-    set(_validate_args "--variant" "gpu" "--build" "${CMAKE_BINARY_DIR}")
+    set(_target_suffix "_gpu")
+    set(_validate_extra_args "--variant" "gpu")
   elseif (EXASIM_MPI AND MPI_FOUND AND NOT (EXASIM_CUDA OR EXASIM_HIP))
     set(_variant "mpi")
-    set(_validate_args "--variant" "mpi" "--np" "2" "--build" "${CMAKE_BINARY_DIR}")
+    set(_target_suffix "_mpi")
+    set(_validate_extra_args "--variant" "mpi" "--np" "2")
   elseif (EXASIM_MPI AND MPI_FOUND AND (EXASIM_CUDA OR EXASIM_HIP))
     set(_variant "mpi_gpu")
-    set(_validate_args "--variant" "mpi_gpu" "--np" "2" "--build" "${CMAKE_BINARY_DIR}")
+    set(_target_suffix "_mpi_gpu")
+    set(_validate_extra_args "--variant" "mpi_gpu" "--np" "2")
   endif()
 
+  # Setup fixture: build text2code. text2code lives in a separate
+  # cmake project (text2code/text2code/) but its binary lands at
+  # ${EXASIM_DIR}/build/text2code regardless of where its own build
+  # dir is. The fixture runs cmake --build on its build dir if
+  # present; otherwise the test errors with a helpful message at
+  # its first invocation rather than silently using a stale binary.
+  add_test(NAME _build_text2code
+           COMMAND ${CMAKE_COMMAND} --build "${EXASIM_DIR}/text2code/text2code/build"
+                                    --parallel)
+  set_tests_properties(_build_text2code PROPERTIES
+      FIXTURES_SETUP text2code
+      TIMEOUT        300)
+
   foreach (_ex IN LISTS _codegen_examples)
-    add_test(NAME "codegen:${_ex}:${_variant}"
-             COMMAND bash "${EXASIM_DIR}/apps/library_example/validate_codegen.sh"
-                     ${_validate_args} "${_ex}"
+    # Per-example regenerate.sh fixture — depends on text2code being
+    # built (regenerate.sh shells out to ${EXASIM_DIR}/build/text2code).
+    add_test(NAME _regen_${_ex}
+             COMMAND bash "${EXASIM_DIR}/apps/library_example/regenerate.sh" "${_ex}"
              WORKING_DIRECTORY "${EXASIM_DIR}")
-    add_test(NAME "facade:${_ex}:${_variant}"
-             COMMAND bash "${EXASIM_DIR}/apps/library_example/validate_codegen.sh"
-                     --facade ${_validate_args} "${_ex}"
-             WORKING_DIRECTORY "${EXASIM_DIR}")
-    set_tests_properties("codegen:${_ex}:${_variant}" "facade:${_ex}:${_variant}"
-                         PROPERTIES TIMEOUT 600
-                                    PASS_REGULAR_EXPRESSION "\\[ OK \\]")
+    set_tests_properties(_regen_${_ex} PROPERTIES
+        FIXTURES_REQUIRED text2code
+        FIXTURES_SETUP    regen_${_ex}
+        TIMEOUT           120)
+
+    foreach (_stem codegen facade)
+      set(_target  "${_ex}_${_stem}${_target_suffix}")
+      set(_fixture "build_${_target}")
+
+      # Per-target build fixture. cmake --build with --target avoids
+      # rebuilding everything; the build is a no-op if the target's
+      # already up to date.
+      add_test(NAME _build_${_target}
+               COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}"
+                                        --target ${_target} --parallel)
+      set_tests_properties(_build_${_target} PROPERTIES
+          FIXTURES_SETUP ${_fixture}
+          TIMEOUT        600)
+
+      # The actual gate.
+      set(_test_args "${_validate_extra_args}" "--build" "${CMAKE_BINARY_DIR}")
+      if (_stem STREQUAL "facade")
+        list(PREPEND _test_args "--facade")
+      endif()
+
+      add_test(NAME "${_stem}:${_ex}:${_variant}"
+               COMMAND bash "${EXASIM_DIR}/apps/library_example/validate_codegen.sh"
+                       ${_test_args} "${_ex}"
+               WORKING_DIRECTORY "${EXASIM_DIR}")
+      set_tests_properties("${_stem}:${_ex}:${_variant}" PROPERTIES
+          FIXTURES_REQUIRED       "regen_${_ex};${_fixture}"
+          PASS_REGULAR_EXPRESSION "\\[ OK \\]"
+          TIMEOUT                 600)
+    endforeach()
   endforeach()
 endif()
 
