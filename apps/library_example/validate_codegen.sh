@@ -35,19 +35,21 @@ BUILD="$ROOT/build"
 VARIANT=""           # "" → _codegen, gpu → _codegen_gpu, etc.
 NP=1                 # rank count for mpi variants
 STEM="codegen"       # codegen | facade — chooses binary family
+SKIP_REGEN=0         # 1 → caller already populated grid.bin / datain
 EXAMPLES=()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --variant)  VARIANT="$2"; shift 2 ;;
-        --np)       NP="$2"; shift 2 ;;
-        --build)    BUILD="$2"; shift 2 ;;
-        --facade)   STEM="facade"; shift ;;
+        --variant)    VARIANT="$2"; shift 2 ;;
+        --np)         NP="$2"; shift 2 ;;
+        --build)      BUILD="$2"; shift 2 ;;
+        --facade)     STEM="facade"; shift ;;
+        --no-regen)   SKIP_REGEN=1; shift ;;
         --help|-h)
             sed -n '2,30p' "$0"
             exit 0
             ;;
-        *)          EXAMPLES+=("$1"); shift ;;
+        *)            EXAMPLES+=("$1"); shift ;;
     esac
 done
 
@@ -105,7 +107,9 @@ for name in "${EXAMPLES[@]}"; do
     # Running text2code on a different app between port and validate
     # leaves the dylib pointing at the wrong PDE → spurious crash.
     # Re-run regenerate.sh before each validate to restore consistency.
-    bash "$LIB/regenerate.sh" "$name" >/dev/null
+    if [ "$SKIP_REGEN" = "0" ]; then
+        bash "$LIB/regenerate.sh" "$name" >/dev/null
+    fi
 
     rm -rf "$cg_dir/dataout"
     mkdir -p "$cg_dir/dataout"

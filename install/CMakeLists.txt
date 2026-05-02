@@ -898,7 +898,12 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     set_tests_properties(_regen_${_ex} PROPERTIES
         FIXTURES_REQUIRED text2code
         FIXTURES_SETUP    regen_${_ex}
-        TIMEOUT           120)
+        # regenerate.sh runs text2code which writes shared
+        # backend/Model/libpdemodel{serial,cuda,hip}.so. Two regens
+        # in flight at the same time collide on those files and
+        # produce wrong libs. Serialize via a resource lock.
+        RESOURCE_LOCK     text2code_libs
+        TIMEOUT           300)
 
     foreach (_stem codegen facade)
       set(_target  "${_ex}_${_stem}${_target_suffix}")
@@ -914,8 +919,11 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           FIXTURES_SETUP ${_fixture}
           TIMEOUT        600)
 
-      # The actual gate.
-      set(_test_args "${_validate_extra_args}" "--build" "${CMAKE_BINARY_DIR}")
+      # The actual gate. `--no-regen` skips the inline
+      # regenerate.sh call inside validate_codegen.sh — the
+      # _regen_<example> fixture already populated grid.bin /
+      # my_model.hpp.
+      set(_test_args "${_validate_extra_args}" "--build" "${CMAKE_BINARY_DIR}" "--no-regen")
       if (_stem STREQUAL "facade")
         list(PREPEND _test_args "--facade")
       endif()
