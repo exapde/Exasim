@@ -34,6 +34,7 @@ BUILD="$ROOT/build"
 
 VARIANT=""           # "" → _codegen, gpu → _codegen_gpu, etc.
 NP=1                 # rank count for mpi variants
+STEM="codegen"       # codegen | facade — chooses binary family
 EXAMPLES=()
 
 while [ $# -gt 0 ]; do
@@ -41,6 +42,7 @@ while [ $# -gt 0 ]; do
         --variant)  VARIANT="$2"; shift 2 ;;
         --np)       NP="$2"; shift 2 ;;
         --build)    BUILD="$2"; shift 2 ;;
+        --facade)   STEM="facade"; shift ;;
         --help|-h)
             sed -n '2,30p' "$0"
             exit 0
@@ -80,10 +82,10 @@ fail=0
 for name in "${EXAMPLES[@]}"; do
     cg_dir="$LIB/${name}_codegen"
     base_dir="$BASE/${name}_serial"
-    bin="$BUILD/${name}_codegen${SUFFIX}"
+    bin="$BUILD/${name}_${STEM}${SUFFIX}"
 
     if [ ! -x "$bin" ]; then
-        echo "[SKIP] $name — $bin not built (cmake --build $BUILD --target ${name}_codegen${SUFFIX})"
+        echo "[SKIP] $name — $bin not built (cmake --build $BUILD --target ${name}_${STEM}${SUFFIX})"
         continue
     fi
     if [ ! -d "$cg_dir/datain" ] || [ ! -f "$cg_dir/grid.bin" ]; then
