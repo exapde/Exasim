@@ -826,6 +826,53 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   #     chemistry path that needs Mutation++ (HAVE_MPP) compiled in.
   #     Even legacy cput2cEXASIM doesn't converge on this app without
   #     Mutation++, so the codegen path can't either. Out of scope.
+
+  # ======================================================================
+  # CTest integration (HOT.7.9)
+  #
+  # `ctest` invokes apps/library_example/validate_codegen.sh per
+  # backend × example × family (codegen vs facade). Each test:
+  #   1. Runs `regenerate.sh <example>` to populate datain / my_model.hpp.
+  #   2. Runs the binary with the app's pdeapp.txt.
+  #   3. Diffs dataout/outqoi.txt against baseline/<example>_serial/.
+  # The validate script is the gate; here we just register tests for
+  # whichever binary family the current build dir actually produced.
+  # ======================================================================
+  enable_testing()
+
+  set(_codegen_examples poisson2d poisson3d periodic naca0012steady
+                        lshape isoq3d cone orion nsmach8 isoq sharpb2
+                        naca0012unsteady)
+
+  # Variant per build dir — only one of these matches per build:
+  set(_validate_args "")
+  if (EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+    set(_variant "cpu")
+    set(_validate_args "--build" "${CMAKE_BINARY_DIR}")
+  elseif (EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
+    set(_variant "gpu")
+    set(_validate_args "--variant" "gpu" "--build" "${CMAKE_BINARY_DIR}")
+  elseif (EXASIM_MPI AND MPI_FOUND AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+    set(_variant "mpi")
+    set(_validate_args "--variant" "mpi" "--np" "2" "--build" "${CMAKE_BINARY_DIR}")
+  elseif (EXASIM_MPI AND MPI_FOUND AND (EXASIM_CUDA OR EXASIM_HIP))
+    set(_variant "mpi_gpu")
+    set(_validate_args "--variant" "mpi_gpu" "--np" "2" "--build" "${CMAKE_BINARY_DIR}")
+  endif()
+
+  foreach (_ex IN LISTS _codegen_examples)
+    add_test(NAME "codegen:${_ex}:${_variant}"
+             COMMAND bash "${EXASIM_DIR}/apps/library_example/validate_codegen.sh"
+                     ${_validate_args} "${_ex}"
+             WORKING_DIRECTORY "${EXASIM_DIR}")
+    add_test(NAME "facade:${_ex}:${_variant}"
+             COMMAND bash "${EXASIM_DIR}/apps/library_example/validate_codegen.sh"
+                     --facade ${_validate_args} "${_ex}"
+             WORKING_DIRECTORY "${EXASIM_DIR}")
+    set_tests_properties("codegen:${_ex}:${_variant}" "facade:${_ex}:${_variant}"
+                         PROPERTIES TIMEOUT 600
+                                    PASS_REGULAR_EXPRESSION "\\[ OK \\]")
+  endforeach()
 endif()
 
 # ======================================================================

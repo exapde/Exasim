@@ -9,15 +9,22 @@ name: poisson2d (hand-written CPU)
 # MPI runner. Heavy deps (Kokkos, SymEngine) are cached by their
 # vendored-source SHA so reruns are ~3 minutes.
 
+# NOTE: temporarily disabled — the GitHub-hosted runner has been flaky
+# (build hangs / OOM during Kokkos+SymEngine compile). Re-enable by
+# restoring the `push` and `pull_request` triggers below. The
+# `workflow_dispatch` trigger is left so this can still be kicked
+# manually, and the `if: false` guard on the job keeps even manual
+# runs from going through until the runner is investigated.
 on:
-  push:
-    branches: [master, library-port]
-  pull_request:
-    branches: [master, library-port]
   workflow_dispatch:
+  # push:
+  #   branches: [master, library-port]
+  # pull_request:
+  #   branches: [master, library-port]
 
 jobs:
   build-and-run:
+    if: false           # disabled — runner broken; remove this line to re-enable
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
