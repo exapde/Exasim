@@ -36,6 +36,7 @@ VARIANT=""           # "" → _codegen, gpu → _codegen_gpu, etc.
 NP=1                 # rank count for mpi variants
 STEM="codegen"       # codegen | facade — chooses binary family
 SKIP_REGEN=0         # 1 → caller already populated grid.bin / datain
+QUICK=0              # 1 → run a small fast subset (HOT.7.14)
 EXAMPLES=()
 
 while [ $# -gt 0 ]; do
@@ -45,6 +46,7 @@ while [ $# -gt 0 ]; do
         --build)      BUILD="$2"; shift 2 ;;
         --facade)     STEM="facade"; shift ;;
         --no-regen)   SKIP_REGEN=1; shift ;;
+        --quick)      QUICK=1; shift ;;
         --help|-h)
             sed -n '2,30p' "$0"
             exit 0
@@ -61,10 +63,18 @@ if [ -d "$BUILD" ]; then
 fi
 
 if [ ${#EXAMPLES[@]} -eq 0 ]; then
-    EXAMPLES=(poisson2d poisson3d periodic naca0012steady
-              lshape isoq3d cone orion
-              nsmach8 isoq sharpb2
-              naca0012unsteady)
+    if [ "$QUICK" = "1" ]; then
+        # --quick subset for inner-loop iteration: small fast Poissons
+        # + a couple of heavier shapes that exercise NS + boundary
+        # logic. Skips naca0012unsteady (5min outlier), the slow
+        # lshape/cone/orion/isoq* runs, and sharpb2.
+        EXAMPLES=(poisson2d periodic naca0012steady)
+    else
+        EXAMPLES=(poisson2d poisson3d periodic naca0012steady
+                  lshape isoq3d cone orion
+                  nsmach8 isoq sharpb2
+                  naca0012unsteady)
+    fi
 fi
 
 # Map variant → binary suffix and runner prefix.
@@ -111,21 +121,30 @@ for name in "${EXAMPLES[@]}"; do
         bash "$LIB/regenerate.sh" "$name" >/dev/null
     fi
 
-    rm -rf "$cg_dir/dataout"
-    mkdir -p "$cg_dir/dataout"
+    # Per-gate dataout dir so codegen:X and facade:X (or different
+    # variants) can run in parallel without colliding. The binary's
+    # default dataoutpath is "$datapath/dataout"; override per-gate
+    # via a sed'd pdeapp_run_<stem>.txt that names a unique subdir.
+    out_subdir="dataout_${STEM}${SUFFIX}"
+    out_path="$cg_dir/$out_subdir"
+    rm -rf "$out_path"
+    mkdir -p "$out_path"
 
-    # MPI variants need ParallelPreprocessing at runtime to produce
-    # per-rank datain/meshN.bin files. port_codegen.sh hard-codes
-    # gendatain=1 in pdeapp.txt (skip-preproc, fast for serial), but
-    # under MPI that means the binary aborts looking for mesh1.bin /
-    # mesh2.bin. For MPI variants, we feed the binary a copy with
-    # gendatain=0 so <exasim/run.hpp> calls ParallelPreprocessing.
-    pdeapp_in="./pdeapp.txt"
+    # Build the per-gate pdeapp_run file:
+    #   - drop any existing dataoutpath line
+    #   - drop gendatain=1 for MPI variants (binary needs to call
+    #     ParallelPreprocessing at runtime; port_codegen.sh defaults
+    #     gendatain=1 for serial-fast path)
+    #   - append our per-gate dataoutpath
+    pdeapp_run="$cg_dir/pdeapp_run_${STEM}${SUFFIX}.txt"
+    sed_script='/^dataoutpath *=/d'
     if [ "$VARIANT" = "mpi" ] || [ "$VARIANT" = "mpi_gpu" ]; then
-        sed 's/^gendatain *= *1 *;/gendatain = 0;/' \
-            "$cg_dir/pdeapp.txt" > "$cg_dir/pdeapp_run.txt"
-        pdeapp_in="./pdeapp_run.txt"
+        sed_script="$sed_script
+s/^gendatain *= *1 *;/gendatain = 0;/"
     fi
+    sed "$sed_script" "$cg_dir/pdeapp.txt" > "$pdeapp_run"
+    echo "dataoutpath = \"$out_subdir\";" >> "$pdeapp_run"
+    pdeapp_in="./$(basename "$pdeapp_run")"
 
     if ! ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" "$pdeapp_in" >/dev/null ); then
         echo "[FAIL] $name — binary exited non-zero"
@@ -137,7 +156,7 @@ for name in "${EXAMPLES[@]}"; do
     # mpirun -np 2 with no datain/meshN.bin files). Without this guard,
     # the bin-md5 / numerical fallback below silently passes on zero
     # files iterated and prints "[ OK ]".
-    if [ -z "$(ls -A "$cg_dir/dataout" 2>/dev/null)" ]; then
+    if [ -z "$(ls -A "$out_path" 2>/dev/null)" ]; then
         echo "[FAIL] $name — binary produced no dataout/ files"
         fail=1
         continue
@@ -162,7 +181,7 @@ for name in "${EXAMPLES[@]}"; do
         missing=""
         for ((r=0; r<NP; r++)); do
             for stem in outudg outuhat; do
-                f="$cg_dir/dataout/${stem}_np${r}.bin"
+                f="$out_path/${stem}_np${r}.bin"
                 if [ ! -s "$f" ]; then missing="$missing $stem _np${r}.bin"; fi
             done
         done
@@ -176,7 +195,7 @@ for name in "${EXAMPLES[@]}"; do
     fi
 
     if [ -f "$base_dir/outqoi.txt" ]; then
-        if diff -q "$cg_dir/dataout/outqoi.txt" "$base_dir/outqoi.txt" >/dev/null; then
+        if diff -q "$out_path/outqoi.txt" "$base_dir/outqoi.txt" >/dev/null; then
             echo "[ OK ] $name (QoI byte-identical)"
         else
             # Codegen splits value+Jacobian into separate struct methods,
@@ -196,7 +215,7 @@ def parse(p):
         try: rows.append([float(t) for t in toks])
         except: pass
     return rows
-a=parse("$cg_dir/dataout/outqoi.txt")
+a=parse("$out_path/outqoi.txt")
 b=parse("$base_dir/outqoi.txt")
 if len(a)!=len(b) or any(len(r)!=len(s) for r,s in zip(a,b)):
     print("shape mismatch"); sys.exit(1)
@@ -215,12 +234,12 @@ PY
                 echo "[ OK ] $name (QoI numerically close — $close)"
             else
                 echo "[FAIL] $name — outqoi.txt differs beyond solver tolerance"
-                diff "$cg_dir/dataout/outqoi.txt" "$base_dir/outqoi.txt" || true
+                diff "$out_path/outqoi.txt" "$base_dir/outqoi.txt" || true
                 fail=1
             fi
         fi
     elif [ -f "$base_dir/md5.txt" ]; then
-        got="$( cd "$cg_dir/dataout" && md5 -r *.bin 2>/dev/null | sort )"
+        got="$( cd "$out_path" && md5 -r *.bin 2>/dev/null | sort )"
         want="$(sort "$base_dir/md5.txt")"
         if [ "$got" = "$want" ]; then
             echo "[ OK ] $name (bin md5s match)"
@@ -239,10 +258,10 @@ fail = 0
 def read(p):
     with open(p,'rb') as f: d=f.read()
     return struct.unpack(f'{len(d)//8}d', d)
-for fn in sorted(os.listdir("$cg_dir/dataout")):
+for fn in sorted(os.listdir("$out_path")):
     if not fn.endswith('.bin'): continue
     bp = os.path.join("$base_dir", fn)
-    cp = os.path.join("$cg_dir/dataout", fn)
+    cp = os.path.join("$out_path", fn)
     if not os.path.exists(bp): continue
     a, b = read(bp), read(cp)
     if len(a) != len(b):

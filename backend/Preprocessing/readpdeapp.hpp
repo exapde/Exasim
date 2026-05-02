@@ -837,14 +837,26 @@ PDE initializePDE(InputParams& params, int mpirank=0)
         
     if (pde.modelnumber<=0) {
       //pde.datainpath = make_path(pde.exasimpath, "build/datain");
-      //pde.dataoutpath = make_path(pde.exasimpath, "build/dataout");      
+      //pde.dataoutpath = make_path(pde.exasimpath, "build/dataout");
       pde.datainpath = make_path(pde.datapath, "datain");
-      pde.dataoutpath = make_path(pde.datapath, "dataout");      
+      pde.dataoutpath = make_path(pde.datapath, "dataout");
     } else if (pde.modelnumber>0) {
       //pde.datainpath = make_path(pde.exasimpath, "build/datain" + std::to_string(pde.modelnumber));
       //pde.dataoutpath = make_path(pde.exasimpath, "build/dataout" + std::to_string(pde.modelnumber));
       pde.datainpath = make_path(pde.datapath, "datain" + std::to_string(pde.modelnumber));
       pde.dataoutpath = make_path(pde.datapath, "dataout" + std::to_string(pde.modelnumber));
+    }
+    // HOT.7.14 — let pdeapp override datainpath / dataoutpath. Used
+    // by validate_codegen.sh to give each parallel ctest gate its
+    // own dataout dir so codegen:X and facade:X don't collide.
+    // Relative paths resolve against datapath; absolute paths win.
+    if (params.stringParams.count("datainpath")) {
+        std::string p = params.stringParams["datainpath"];
+        pde.datainpath = (!p.empty() && p[0] == '/') ? p : make_path(pde.datapath, p);
+    }
+    if (params.stringParams.count("dataoutpath")) {
+        std::string p = params.stringParams["dataoutpath"];
+        pde.dataoutpath = (!p.empty() && p[0] == '/') ? p : make_path(pde.datapath, p);
     }
     
     if (mpirank==0) std::cout << "Finished initializePDE.\n";

@@ -65,8 +65,21 @@ for opt in xdg.bin udg.bin vdg.bin wdg.bin partition.bin; do
 done
 
 cd "$CG_DIR"
-"$ROOT/build/text2code" ./pdeapp.txt >/dev/null
+# HOT.7.14 — write generated my_model.hpp + libpdemodel*.{so,dylib}
+# into this example's own dir. The shared backend/Model/ output was
+# the root cause of the test-matrix RESOURCE_LOCK serialization;
+# per-target dirs let parallel ctest gates run without clobbering.
+# Find a built text2code binary: prefer build/, fall back to any
+# build_*/ (e.g. build_cpu/, build_mpi_local/). The codegen-only
+# build dirs don't include text2code as a target.
+TEXT2CODE=""
+for cand in "$ROOT/build/text2code" "$ROOT"/build_*/text2code; do
+    if [ -x "$cand" ]; then TEXT2CODE="$cand"; break; fi
+done
+if [ -z "$TEXT2CODE" ]; then
+    echo "error: text2code binary not found (tried $ROOT/build/text2code and $ROOT/build_*/text2code)" >&2
+    exit 1
+fi
+"$TEXT2CODE" ./pdeapp.txt --out-dir "$CG_DIR" >/dev/null
 
-cp "$ROOT/backend/Model/my_model.hpp" "$CG_DIR/my_model.hpp"
-
-echo "[ OK ] regenerated ${NAME}_codegen (grid.bin, pdemodel.txt, datain/, my_model.hpp)"
+echo "[ OK ] regenerated ${NAME}_codegen (grid.bin, pdemodel.txt, datain/, my_model.hpp, libpdemodel*)"

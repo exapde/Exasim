@@ -644,18 +644,25 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       return()
     endif()
 
+    # HOT.7.14 — every codegen + facade target for `name` now picks up
+    # its `my_model.hpp` and dlopens its `libpdemodel*.{so,dylib}`
+    # from this per-example dir, not the shared backend/Model/. Drops
+    # the test-matrix RESOURCE_LOCK contention so gates can run -j8
+    # within a build dir AND in parallel across build dirs.
+    set(_codegen_dir "${EXASIM_DIR}/apps/library_example/${name}_codegen")
+
     # CPU variant (single-rank, no GPU).
     if(EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
       add_executable(${name}_codegen "${_main}")
       target_compile_definitions(${name}_codegen PRIVATE _TEXT2CODE)
       target_compile_options(${name}_codegen PRIVATE -std=c++17 -w -O2)
       target_include_directories(${name}_codegen PRIVATE
-          ${EXASIM_DIR}/include)
-      target_link_directories(${name}_codegen PRIVATE ${Model_LIB_DIR})
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_codegen PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_codegen PRIVATE
           Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
       link_metis(${name}_codegen)
-      set_target_properties(${name}_codegen PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_codegen PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     # MPI variant (multi-rank CPU).
@@ -664,12 +671,12 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_definitions(${name}_codegen_mpi PRIVATE _MPI _TEXT2CODE)
       target_compile_options(${name}_codegen_mpi PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
       target_include_directories(${name}_codegen_mpi PRIVATE
-          ${EXASIM_DIR}/include)
-      target_link_directories(${name}_codegen_mpi PRIVATE ${Model_LIB_DIR})
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_codegen_mpi PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_codegen_mpi PRIVATE
           Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
       link_metis(${name}_codegen_mpi)
-      set_target_properties(${name}_codegen_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_codegen_mpi PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     # GPU variant — one target name covers both CUDA and HIP. Which
@@ -684,8 +691,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_options(${name}_codegen_gpu PRIVATE
           -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
       target_include_directories(${name}_codegen_gpu PRIVATE
-          ${EXASIM_DIR}/include)
-      target_link_directories(${name}_codegen_gpu PRIVATE ${Model_LIB_DIR})
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_codegen_gpu PRIVATE "${_codegen_dir}")
       if(EXASIM_CUDA)
         target_compile_definitions(${name}_codegen_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_codegen_gpu PRIVATE
@@ -697,7 +704,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
             Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
       endif()
       link_metis(${name}_codegen_gpu)
-      set_target_properties(${name}_codegen_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_codegen_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     # MPI + GPU variant — multi-rank GPU. Each MPI rank binds one GPU
@@ -709,8 +716,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_options(${name}_codegen_mpi_gpu PRIVATE
           -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
       target_include_directories(${name}_codegen_mpi_gpu PRIVATE
-          ${EXASIM_DIR}/include)
-      target_link_directories(${name}_codegen_mpi_gpu PRIVATE ${Model_LIB_DIR})
+          ${EXASIM_DIR}/include "${_codegen_dir}")
+      target_link_directories(${name}_codegen_mpi_gpu PRIVATE "${_codegen_dir}")
       if(EXASIM_CUDA)
         target_compile_definitions(${name}_codegen_mpi_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_codegen_mpi_gpu PRIVATE
@@ -722,7 +729,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
             Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
       endif()
       link_metis(${name}_codegen_mpi_gpu)
-      set_target_properties(${name}_codegen_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_codegen_mpi_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     # ---------------- HOT.7.9: facade-driven variants -------------------
@@ -732,7 +739,6 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     # `my_model.hpp` is included via `target_include_directories` of
     # its codegen dir (so the same file is consumed by both mains).
     set(_facade_main "${EXASIM_DIR}/apps/library_example/main_facade.cpp")
-    set(_codegen_dir "${EXASIM_DIR}/apps/library_example/${name}_codegen")
 
     if(EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
       add_executable(${name}_facade "${_facade_main}")
@@ -740,11 +746,11 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_options(${name}_facade PRIVATE -std=c++17 -w -O2)
       target_include_directories(${name}_facade PRIVATE
           ${EXASIM_DIR}/include "${_codegen_dir}")
-      target_link_directories(${name}_facade PRIVATE ${Model_LIB_DIR})
+      target_link_directories(${name}_facade PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_facade PRIVATE
           Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
       link_metis(${name}_facade)
-      set_target_properties(${name}_facade PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_facade PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     if(EXASIM_MPI AND MPI_FOUND AND NOT (EXASIM_CUDA OR EXASIM_HIP))
@@ -753,11 +759,11 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_options(${name}_facade_mpi PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
       target_include_directories(${name}_facade_mpi PRIVATE
           ${EXASIM_DIR}/include "${_codegen_dir}")
-      target_link_directories(${name}_facade_mpi PRIVATE ${Model_LIB_DIR})
+      target_link_directories(${name}_facade_mpi PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_facade_mpi PRIVATE
           Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
       link_metis(${name}_facade_mpi)
-      set_target_properties(${name}_facade_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_facade_mpi PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     if(EXASIM_NOMPI AND (EXASIM_CUDA OR EXASIM_HIP))
@@ -767,7 +773,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
       target_include_directories(${name}_facade_gpu PRIVATE
           ${EXASIM_DIR}/include "${_codegen_dir}")
-      target_link_directories(${name}_facade_gpu PRIVATE ${Model_LIB_DIR})
+      target_link_directories(${name}_facade_gpu PRIVATE "${_codegen_dir}")
       if(EXASIM_CUDA)
         target_compile_definitions(${name}_facade_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_facade_gpu PRIVATE
@@ -779,7 +785,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
             Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
       endif()
       link_metis(${name}_facade_gpu)
-      set_target_properties(${name}_facade_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_facade_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
 
     if(EXASIM_MPI AND MPI_FOUND AND (EXASIM_CUDA OR EXASIM_HIP))
@@ -789,7 +795,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
       target_include_directories(${name}_facade_mpi_gpu PRIVATE
           ${EXASIM_DIR}/include "${_codegen_dir}")
-      target_link_directories(${name}_facade_mpi_gpu PRIVATE ${Model_LIB_DIR})
+      target_link_directories(${name}_facade_mpi_gpu PRIVATE "${_codegen_dir}")
       if(EXASIM_CUDA)
         target_compile_definitions(${name}_facade_mpi_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_facade_mpi_gpu PRIVATE
@@ -801,7 +807,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
             Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
       endif()
       link_metis(${name}_facade_mpi_gpu)
-      set_target_properties(${name}_facade_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
+      set_target_properties(${name}_facade_mpi_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
   endfunction()
 
@@ -846,12 +852,13 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   #     ↓
   #   <family>:<example>:<variant>  (FIXTURES_REQUIRED both above)
   #     └── runs validate_codegen.sh which itself does
-  #         regenerate.sh + binary + diff. This MUST be atomic
-  #         per gate: text2code writes a shared
-  #         backend/Model/libpdemodel*.so, and a different example's
-  #         regenerate would overwrite it between our regenerate
-  #         and our binary load. RESOURCE_LOCK below serializes the
-  #         gates against each other so that doesn't happen.
+  #         regenerate.sh + binary + diff.
+  #
+  # HOT.7.14: gates can run -j8 in parallel — text2code writes per-
+  # example libpdemodel*.{so,dylib} into apps/library_example/
+  # <name>_codegen/, and each binary's BUILD_RPATH points there
+  # (set by add_codegen_example()). No more shared backend/Model/
+  # libpdemodel.so → no RESOURCE_LOCK contention.
   #
   # `ctest` resolves the DAG; users just say `ctest -j` and the
   # binaries get built automatically.
@@ -895,31 +902,37 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       TIMEOUT        300)
 
   foreach (_ex IN LISTS _codegen_examples)
-    # Per-example regenerate.sh fixture — depends on text2code being
-    # built (regenerate.sh shells out to ${EXASIM_DIR}/build/text2code).
+    # Per-example regenerate fixture — runs ONCE per example to produce
+    # libpdemodel*.{so,dylib} + my_model.hpp in the example dir, which
+    # the codegen + facade binaries link against. With per-target
+    # output dirs (HOT.7.14), regens for different examples don't
+    # contend, so this fixture is per-example and parallel-safe.
+    add_test(NAME _regen_${_ex}
+             COMMAND bash "${EXASIM_DIR}/apps/library_example/regenerate.sh" "${_ex}")
+    set_tests_properties(_regen_${_ex} PROPERTIES
+        FIXTURES_SETUP    regen_${_ex}
+        FIXTURES_REQUIRED text2code
+        TIMEOUT           300)
+
     foreach (_stem codegen facade)
       set(_target  "${_ex}_${_stem}${_target_suffix}")
       set(_fixture "build_${_target}")
 
-      # Per-target build fixture. cmake --build with --target avoids
-      # rebuilding everything; the build is a no-op if the target's
-      # already up to date.
+      # Per-target build. The link step needs the example's
+      # libpdemodelserial.dylib (or .so / libpdemodelcuda.so); ensure
+      # the regen fixture has populated it before cmake --build.
       add_test(NAME _build_${_target}
                COMMAND ${CMAKE_COMMAND} --build "${CMAKE_BINARY_DIR}"
                                         --target ${_target} --parallel)
       set_tests_properties(_build_${_target} PROPERTIES
-          FIXTURES_SETUP ${_fixture}
-          TIMEOUT        600)
+          FIXTURES_SETUP    ${_fixture}
+          FIXTURES_REQUIRED regen_${_ex}
+          TIMEOUT           600)
 
-      # The actual gate. validate_codegen.sh runs regenerate.sh
-      # internally — keeping that *inside* the gate makes the
-      # gate atomic: regenerate writes libpdemodel*.so and the
-      # binary loads it before any other test can touch it
-      # (RESOURCE_LOCK below serializes gates against each other).
-      # If we hoisted regenerate into a separate fixture, the lib
-      # could be overwritten by a different example's regen between
-      # this gate's regenerate and its binary load.
-      set(_test_args "${_validate_extra_args}" "--build" "${CMAKE_BINARY_DIR}")
+      # Gate: regenerate already ran, binary already linked, just
+      # run the binary and diff. validate_codegen.sh skips its
+      # internal regen via --no-regen.
+      set(_test_args "${_validate_extra_args}" "--no-regen" "--build" "${CMAKE_BINARY_DIR}")
       if (_stem STREQUAL "facade")
         list(PREPEND _test_args "--facade")
       endif()
@@ -929,16 +942,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
                        ${_test_args} "${_ex}"
                WORKING_DIRECTORY "${EXASIM_DIR}")
       set_tests_properties("${_stem}:${_ex}:${_variant}" PROPERTIES
-          FIXTURES_REQUIRED       "text2code;${_fixture}"
+          FIXTURES_REQUIRED       "regen_${_ex};${_fixture}"
           PASS_REGULAR_EXPRESSION "\\[ OK \\]"
-          # text2code emits a SHARED `backend/Model/libpdemodel*.so`
-          # per regen. The binary's BUILD_RPATH points at that
-          # location, so a different example's regen running in
-          # parallel can overwrite the .so the gate's binary is
-          # about to load — runtime ncu/nd/ncw mismatch crashes.
-          # Lock gates against the same resource as regens to keep
-          # the .so consistent during the gate's binary startup.
-          RESOURCE_LOCK           text2code_libs
           TIMEOUT                 600)
     endforeach()
   endforeach()
