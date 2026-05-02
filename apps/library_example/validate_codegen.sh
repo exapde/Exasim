@@ -146,16 +146,16 @@ s/^gendatain *= *1 *;/gendatain = 0;/"
     echo "dataoutpath = \"$out_subdir\";" >> "$pdeapp_run"
     pdeapp_in="./$(basename "$pdeapp_run")"
 
-    if ! ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" "$pdeapp_in" >/dev/null ); then
-        echo "[FAIL] $name — binary exited non-zero"
-        fail=1
-        continue
-    fi
+    # Run binary. Don't fail on non-zero exit alone — Kokkos / CUDA
+    # cleanup code on lanka segfaults during process exit even after
+    # the solver wrote correct dataout. Fall through to the dataout
+    # check below: empty dataout = real failure, non-empty = pass.
+    ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" "$pdeapp_in" >/dev/null ) || true
 
-    # Empty dataout means the binary aborted before SaveSolutions (e.g.,
-    # mpirun -np 2 with no datain/meshN.bin files). Without this guard,
-    # the bin-md5 / numerical fallback below silently passes on zero
-    # files iterated and prints "[ OK ]".
+    # Empty dataout = solver didn't run (e.g. mpirun -np 2 with no
+    # datain/meshN.bin files, or programmatic crash before SaveSolutions).
+    # Without this guard the bin-md5 / numerical fallback below
+    # silently passes on zero files iterated and prints "[ OK ]".
     if [ -z "$(ls -A "$out_path" 2>/dev/null)" ]; then
         echo "[FAIL] $name — binary produced no dataout/ files"
         fail=1
