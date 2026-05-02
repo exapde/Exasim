@@ -920,25 +920,54 @@ inline void CSolution<M>::SaveSolutions(Int backend)
     else 
         if (((disc.common.currentstep+1) % disc.common.saveSolFreq) == 0) save = true;             
 
-    if (save == true) {        
+    if (save == true) {
         if (disc.common.saveSolOpt==0) {
             if (disc.common.spatialScheme > 0) {
-                ArrayExtract(disc.res.Rq, disc.sol.udg, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);                                                  
-                writearray(outsol, disc.res.Rq, disc.common.ndof1, backend);    
+                ArrayExtract(disc.res.Rq, disc.sol.udg, disc.common.npe, disc.common.nc, disc.common.ne1, 0, disc.common.npe, 0, disc.common.ncu, 0, disc.common.ne1);
+                writearray(outsol, disc.res.Rq, disc.common.ndof1, backend);
             }
             else
-                writearray(outsol, solv.sys.u, disc.common.ndof1, backend);    
+                writearray(outsol, solv.sys.u, disc.common.ndof1, backend);
         }
         else
-            writearray(outsol, disc.sol.udg, disc.common.ndofudg1, backend);    
-        
+            writearray(outsol, disc.sol.udg, disc.common.ndofudg1, backend);
+
         if (disc.common.ncw>0)
             writearray(outwdg, disc.sol.wdg, disc.common.ndofw1, backend);
 
         if (disc.common.spatialScheme==1)
             writearray(outuhat, disc.sol.uh, disc.common.ndofuhat, backend);
+
+        // HOT.7.18: write a global-element-id sidecar so the validate
+        // harness can aggregate per-rank outudg by global id and
+        // compare partition-invariantly. mesh.elempart[0..ne1) holds
+        // the global element index for each owned local element.
+        // Overwrites each call (data doesn't change between steps).
+        const Int ne1 = disc.common.ne1;
+        if (ne1 > 0 && disc.mesh.elempart && disc.common.saveOutputs != 0) {
+            std::string fn = disc.common.fileout + "elemid_np"
+                           + NumberToString(disc.common.mpiRank - disc.common.fileoffset)
+                           + ".bin";
+            std::ofstream ofs(fn, std::ios::binary | std::ios::trunc);
+            if (ofs) {
+                std::vector<int64_t> ids(ne1);
+                if (backend > 1) {
+#ifdef HAVE_GPU
+                    std::vector<Int> tmp(ne1);
+                    TemplateCopytoHost(tmp.data(), const_cast<Int*>(disc.mesh.elempart),
+                                       ne1, backend);
+                    for (Int i = 0; i < ne1; ++i) ids[i] = (int64_t)tmp[i];
+#endif
+                } else {
+                    for (Int i = 0; i < ne1; ++i)
+                        ids[i] = (int64_t)disc.mesh.elempart[i];
+                }
+                ofs.write(reinterpret_cast<const char*>(ids.data()),
+                          (std::streamsize)(ne1 * sizeof(int64_t)));
+            }
+        }
     }
-   
+
    if (disc.common.saveOutputs != 0 && disc.common.tdep==1) {
         if (((disc.common.currentstep+1) % disc.common.saveRestart) == 0)
         {

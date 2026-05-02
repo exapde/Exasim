@@ -163,14 +163,31 @@ s/^gendatain *= *1 *;/gendatain = 0;/"
     fi
 
     # Comparison strategy:
-    #   serial (VARIANT="") — bin-md5 / numerical against serial baseline.
-    #   MPI variants        — outqoi.txt is partition-invariant; per-rank
-    #                         outudg_np<r>.bin is NOT (rank-local slice).
-    #                         Prefer outqoi if available; else fall back
-    #                         to a structural "ran-cleanly" check.
+    #   1. element-L2 (HOT.7.18, preferred when both baseline + current
+    #      have outelemid_np<r>.bin sidecars; partition- and FP-order-
+    #      invariant — see apps/library_example/element_l2_diff.py).
+    #   2. outqoi.txt diff (partition-invariant scalar QoI integrals).
+    #   3. bin-md5 / numerical fallback (serial only; FP-fragile).
+    #   4. "ran-cleanly" structural check (MPI without outqoi baseline).
     is_mpi=0
     if [ "$VARIANT" = "mpi" ] || [ "$VARIANT" = "mpi_gpu" ]; then
         is_mpi=1
+    fi
+
+    # Element-L2 takes priority when both sides have the elemid sidecar.
+    if [ -f "$base_dir/outelemid_np0.bin" ] && [ -f "$out_path/outelemid_np0.bin" ]; then
+        diff_out="$(python3 "$LIB/element_l2_diff.py" \
+            --baseline-dir "$base_dir" \
+            --current-dir  "$out_path" \
+            --np "$NP" 2>&1)"
+        diff_status=$?
+        if [ $diff_status -eq 0 ]; then
+            echo "[ OK ] $name (element-L2: $diff_out)"
+        else
+            echo "[FAIL] $name — element-L2: $diff_out"
+            fail=1
+        fi
+        continue
     fi
 
     if [ "$is_mpi" = "1" ] && [ ! -f "$base_dir/outqoi.txt" ]; then
