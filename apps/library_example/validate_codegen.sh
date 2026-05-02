@@ -113,7 +113,21 @@ for name in "${EXAMPLES[@]}"; do
 
     rm -rf "$cg_dir/dataout"
     mkdir -p "$cg_dir/dataout"
-    if ! ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" ./pdeapp.txt >/dev/null ); then
+
+    # MPI variants need ParallelPreprocessing at runtime to produce
+    # per-rank datain/meshN.bin files. port_codegen.sh hard-codes
+    # gendatain=1 in pdeapp.txt (skip-preproc, fast for serial), but
+    # under MPI that means the binary aborts looking for mesh1.bin /
+    # mesh2.bin. For MPI variants, we feed the binary a copy with
+    # gendatain=0 so <exasim/run.hpp> calls ParallelPreprocessing.
+    pdeapp_in="./pdeapp.txt"
+    if [ "$VARIANT" = "mpi" ] || [ "$VARIANT" = "mpi_gpu" ]; then
+        sed 's/^gendatain *= *1 *;/gendatain = 0;/' \
+            "$cg_dir/pdeapp.txt" > "$cg_dir/pdeapp_run.txt"
+        pdeapp_in="./pdeapp_run.txt"
+    fi
+
+    if ! ( cd "$cg_dir" && "${RUNNER[@]}" "$bin" "$pdeapp_in" >/dev/null ); then
         echo "[FAIL] $name — binary exited non-zero"
         fail=1
         continue
@@ -126,6 +140,38 @@ for name in "${EXAMPLES[@]}"; do
     if [ -z "$(ls -A "$cg_dir/dataout" 2>/dev/null)" ]; then
         echo "[FAIL] $name — binary produced no dataout/ files"
         fail=1
+        continue
+    fi
+
+    # Comparison strategy:
+    #   serial (VARIANT="") — bin-md5 / numerical against serial baseline.
+    #   MPI variants        — outqoi.txt is partition-invariant; per-rank
+    #                         outudg_np<r>.bin is NOT (rank-local slice).
+    #                         Prefer outqoi if available; else fall back
+    #                         to a structural "ran-cleanly" check.
+    is_mpi=0
+    if [ "$VARIANT" = "mpi" ] || [ "$VARIANT" = "mpi_gpu" ]; then
+        is_mpi=1
+    fi
+
+    if [ "$is_mpi" = "1" ] && [ ! -f "$base_dir/outqoi.txt" ]; then
+        # No partition-invariant baseline: just verify each rank wrote
+        # its expected output bins. This is weaker than numerical
+        # validation but catches the common failure modes (binary abort,
+        # missing SaveSolutions, wrong rank count).
+        missing=""
+        for ((r=0; r<NP; r++)); do
+            for stem in outudg outuhat; do
+                f="$cg_dir/dataout/${stem}_np${r}.bin"
+                if [ ! -s "$f" ]; then missing="$missing $stem _np${r}.bin"; fi
+            done
+        done
+        if [ -z "$missing" ]; then
+            echo "[ OK ] $name (ran cleanly, $NP ranks wrote bins; no QoI baseline for cross-rank check)"
+        else
+            echo "[FAIL] $name — missing per-rank bins:$missing"
+            fail=1
+        fi
         continue
     fi
 
