@@ -1,10 +1,10 @@
-# Exasim header-only API — reference
+# Model contract
 
-For a step-by-step tutorial that walks through writing a Poisson 2D
-solver from scratch (math, `pdeapp.txt`, `main.cpp`, building it both
-in-tree and out-of-tree), see `doc/getting_started.md`. This document
-is the **API reference** — it lists every method on the `Model`
-contract, signatures, defaults, and indexing layouts.
+Reference for the `Model` C++ struct that Exasim's templated FEM
+internals consume. Every method, every signature, defaults, and
+indexing layouts.
+
+Tutorial walkthrough: [`hand-written-model.md`](hand-written-model.md).
 
 Exasim's templated FEM internals (HDG residual assembly, GMRES solver,
 preconditioner, time stepping, visualization, QoI integration) are
@@ -177,29 +177,28 @@ SymEngine expressions, then run `text2code <pdeapp.txt>`. The same
 header-only `my_model.hpp` is emitted — no `.so`, no link-time ABI.
 See `apps/library_example/poisson2d_codegen/` for an example.
 
-Both paths converge on the same struct shape; the templated runtime
-doesn't care which producer fulfilled the contract.
+Both paths produce the same struct shape; the templated runtime
+consumes them identically.
 
 ## What's installed
 
 `find_package(Exasim REQUIRED)` exposes:
 
-- `Exasim::headers` — INTERFACE target adding the include directories
-  for `<exasim/...>` and the backend headers.
-- Templated FEM internals: `<exasim/{discretization,solver,preconditioner,solution,visualization}.hpp>`
-- Pointwise kernel templates: `<exasim/kernels/{flux,source,boundary,
-  interface,init,tdfunc,eos,sourcew,visualization,qoi,output}.hpp>`
-- Driver wrappers: `<exasim/drivers.hpp>`
-- Model contract: `<exasim/model.hpp>`
+| Component | Header |
+|---|---|
+| FEM internals | `<exasim/{discretization,solver,preconditioner,solution,visualization}.hpp>` |
+| Pointwise kernel templates | `<exasim/kernels/{flux,source,boundary,interface,init,tdfunc,eos,sourcew,visualization,qoi,output}.hpp>` |
+| Driver wrappers | `<exasim/drivers.hpp>` |
+| Model contract | `<exasim/model.hpp>` |
+| CLI driver | `<exasim/run.hpp>` |
+| Embedded API | `<exasim/solver_facade.hpp>` |
 
-Exasim does not install a compiled library — the runtime is the
-templated `<exasim/...>` headers, instantiated in your TU on `MyModel`.
+`Exasim::headers` is INTERFACE-only; no compiled library is shipped.
+The runtime exists in your TU after the templated kernels inline
+your pointwise math at build time.
 
 ## See also
 
-- `LIBRARY_PLAN.md` — phased plan documenting the port from the
-  legacy `libpdemodel.so` ABI to the header-only template path.
-- `apps/library_example/README.md` — how to run the in-tree examples
-  (both hand-written and codegen).
-- `apps/library_example/port_codegen.sh` — automation for adapting any
-  pdemodel.txt to the codegen path with baseline regression.
+- Tutorial: [`hand-written-model.md`](hand-written-model.md)
+- Codegen: [`codegen-text2code.md`](codegen-text2code.md)
+- Embedded API: [`embedded-facade.md`](embedded-facade.md)

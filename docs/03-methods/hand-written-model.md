@@ -1,23 +1,11 @@
-# Getting started — writing a new PDE in Exasim
+# Hand-written `Model`
 
-This walks through building a Poisson 2D solver from scratch:
+Walk-through of writing a Poisson 2D solver: the math in
+`my_model.hpp`, runtime config in `pdeapp.txt`, the 3-line `main.cpp`,
+and the build (in-tree and out-of-tree).
 
-- the math you write in `my_model.hpp`
-- the runtime configuration in `pdeapp.txt`
-- the 3-line `main.cpp`
-- how to build it in-tree (use one of the
-  `apps/library_example/<name>/` slots) and out-of-tree (with
-  `find_package(Exasim)`).
-
-For the full `Model` contract reference (every method, every signature,
-when it's called) see [`model-contract.md`](model-contract.md).
-
-For the codegen authoring path (write `pdemodel.txt` in the SymEngine
-DSL, run `text2code`, get `my_model.hpp` for free) see
-[`codegen-text2code.md`](codegen-text2code.md). This document covers
-the hand-written path.
-
----
+Full `Model` contract: [`model-contract.md`](model-contract.md).
+Codegen authoring: [`codegen-text2code.md`](codegen-text2code.md).
 
 ## The PDE
 
@@ -270,33 +258,15 @@ optionally `dataout/outqoi.txt` (if you defined `qoi_volume` /
 
 ## Validating
 
-For a manufactured solution, the `qoi_volume` method can return
-`(u - uexact)²` — Exasim integrates that over the domain and you read
-the squared L² error from `outqoi.txt`. See `apps/library_example/poisson2d/my_model.hpp`'s
-`qoi_volume` method for a working example.
+For a manufactured solution, return `(u - uexact)²` from `qoi_volume`.
+Exasim integrates and writes the squared L² error to `outqoi.txt`.
+See `apps/library_example/poisson2d/my_model.hpp` for a working
+example.
 
-For comparing your hand-written model to a text2code-generated one,
-or comparing two builds bit-for-bit, see
-`apps/library_example/validate_codegen.sh`.
+Test harness: [`../04-internals/testing.md`](../04-internals/testing.md).
 
-## Common gotchas
+## See also
 
-**Newton diverges with garbage residual at iter 1:** check that your
-Jacobians are layout-correct (column-major, j outer / i inner; see the
-inline comment on `flux_jac_uq` above). The runtime can converge the
-first iteration on a bad Jacobian and then diverge.
-
-**`ncu_runtime != ncu` assertion at iter 0:** the compile-time `ncu`
-in your `Model` doesn't match the runtime's view from `pdeapp.txt`.
-Make sure both agree.
-
-**Initial state is all zeros, then NaN:** if your problem requires a
-non-trivial initial condition (NS freestream, e.g.), make sure you
-override `initu(ui, x, uinf, mu)` to set it. The `ModelDefaults` default
-zero-fills.
-
-**Build failure mentioning `cout`:** `<exasim/run.hpp>` opens with
-`using namespace std;` at file scope before pulling in the backend
-headers (which use unqualified `cout`, `vector`, etc.). If you need a
-clean global namespace, write your own MPI/Kokkos init and instantiate
-`CSolution<MyModel>` directly instead of going through the façade.
+- Embedded driving: [`embedded-facade.md`](embedded-facade.md)
+- Backend builds: [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md)
+- Tutorial: [`../../tutorial/01-handwritten-cli/`](../../tutorial/01-handwritten-cli/README.md)

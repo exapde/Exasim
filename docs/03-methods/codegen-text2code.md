@@ -1,154 +1,118 @@
-# Catalog: how to run an Exasim app
+# Codegen — `pdemodel.txt` + text2code
 
-Every app has at most three independent dimensions:
+Author the math symbolically in the SymEngine DSL. text2code reads
+`pdemodel.txt` and emits:
 
-|                 | Author the model               | Author the runtime config        | Author the mesh                  |
-| --------------- | ------------------------------ | -------------------------------- | -------------------------------- |
-| Hand-written    | `my_model.hpp` (CRTP)          | C++ struct (PDE / InputParams)   | C++ flat arrays (`set_mesh*`)    |
-| Convenience     | `pdemodel.txt` → `text2code`   | `pdeapp.txt`                     | `grid.bin`/`grid.txt` on disk    |
+- `my_model.hpp` — a templated `Model` struct (`GeneratedModel`)
+- `libpdemodel{serial,cuda,hip}.{so,dylib}` — the same kernels
+  pre-compiled for the legacy AbiAdapter path
 
-Each dimension is independent — you can mix authoring styles. Below is
-the catalog of binaries Exasim ships and the command line for each.
+The generated `my_model.hpp` satisfies the same contract as a
+hand-written one ([`model-contract.md`](model-contract.md)) and is
+consumed by `<exasim/run.hpp>` and `ExasimSolver<M>` identically.
 
-For each "family" there are four backend variants:
+## Authoring
 
-| suffix             | what                                  |
-| ------------------ | ------------------------------------- |
-| (none)             | single-rank serial CPU                |
-| `_gpu`             | single-rank CUDA or HIP               |
-| `_mpi`             | multi-rank serial CPU                 |
-| `_mpi_gpu`         | multi-rank CUDA or HIP                |
-
-Which backend a binary supports is decided at *configure* time
-(`-DEXASIM_CUDA=ON`, `-DEXASIM_MPI=ON`, etc.) — the four variants live
-in four CMake build dirs (`build_cpu/`, `build_gpu/`, `build_mpi/`,
-`build_mpi_gpu/`).
-
----
-
-## Family A — codegen + `<exasim/run.hpp>` (legacy)
-
-The legacy path. `text2code` emits `my_model.hpp` from
-`pdemodel.txt`, and the binary's `main.cpp` is a 3-liner that calls
-`exasim::run<GeneratedModel>(argc, argv)`. Runtime configuration
-comes from a `pdeapp.txt` text file.
+`pdemodel.txt` declares the equation in a small DSL:
 
 ```
-build_cpu/poisson2d_codegen           ./pdeapp.txt
-build_gpu/poisson2d_codegen_gpu       ./pdeapp.txt
-mpirun -np N build_mpi/poisson2d_codegen_mpi          ./pdeapp.txt
-mpirun -np N build_mpi_gpu/poisson2d_codegen_mpi_gpu  ./pdeapp.txt
+outputs Flux, Source, Tdfunc, Ubou, Fbou, FbouHdg, Initu, VisScalars
+
+function Flux(x, uq, v, w, eta, mu, t)
+    output_size(f) = 2;
+    f[0] = mu[0] * uq[1];
+    f[1] = mu[0] * uq[2];
+end
+
+function Source(x, uq, v, w, eta, mu, t)
+    output_size(s) = 1;
+    s[0] = 2.0 * pi * pi * sin(pi * x[0]) * sin(pi * x[1]);
+end
+
+…
 ```
 
-Outputs go to `dataout/outudg_np<r>.bin` etc., per the `pdeapp.txt`'s
-`dataoutpath`. The runtime preprocessor writes intermediate
-`datain/{app,master,mesh,sol}.bin` per rank (always — the file ABI is
-load-bearing here).
+text2code generates the Jacobians via SymEngine's symbolic
+differentiation; you don't write them by hand.
 
-12 codegen examples ship: `poisson2d`, `poisson3d`, `periodic`,
-`naca0012steady`, `naca0012unsteady`, `lshape`, `isoq3d`, `isoq`,
-`cone`, `orion`, `nsmach8`, `sharpb2`. Each gets four binaries.
-
-## Family B — codegen + `ExasimSolver<M>` façade
-
-Same `my_model.hpp` and `pdeapp.txt` as Family A, but the binary's
-main is `apps/library_example/main_facade.cpp` which routes through
-`ExasimSolver<GeneratedModel>::load_pdeapp(filename) + .solve(...)`.
-For tests, the externally-visible behavior is identical to Family A
-(reads `pdeapp.txt`, writes `dataout/`).
+`pdeapp.txt` declares the runtime config (porder, tau, NewtonTol,
+boundary conditions, mesh file, etc.). Layout:
 
 ```
-build_cpu/poisson2d_facade            ./pdeapp.txt
-build_gpu/poisson2d_facade_gpu        ./pdeapp.txt
-mpirun -np N build_mpi/poisson2d_facade_mpi          ./pdeapp.txt
-mpirun -np N build_mpi_gpu/poisson2d_facade_mpi_gpu  ./pdeapp.txt
+my_app/
+├── pdemodel.txt       # SymEngine DSL → math
+├── pdeapp.txt         # runtime config
+├── grid.bin           # mesh
+└── main.cpp           # 3 lines
 ```
 
-Same 12 examples as Family A.
+`main.cpp`:
 
-## Family C — hand-written model + façade (in-memory)
-
-`apps/library_example/solve_square/solve_square_facade.cpp` is the
-canonical example. The model, mesh (`set_mesh` or
-`set_mesh_distributed`), boundary classifiers (`add_boundary` lambdas),
-and physics params live entirely in C++. No `pdeapp.txt`, no
-`pdemodel.txt`, no `grid.bin`, no `dataout/` writes.
-
-```
-build_cpu/solve_square_facade
-build_gpu/solve_square_facade_gpu
-mpirun -np N build_mpi/solve_square_facade_mpi
-mpirun -np N build_mpi_gpu/solve_square_facade_mpi_gpu
+```cpp
+#include <exasim/run.hpp>
+#include "my_model.hpp"
+int main(int argc, char** argv) {
+    return exasim::run<GeneratedModel>(argc, argv);
+}
 ```
 
-Each takes no command-line arguments — the problem is hard-coded in
-the source. Output is read from `solver.udg()` after `solver.solve()`.
+## Generation
 
-A second variant `solve_square` (without `_facade` suffix) drives the
-same problem manually via `CPreprocessing::take()` +
-`CSolution<M>(Preprocessed&&, ...)` — useful for readers who want to
-see what the façade hides.
+`apps/library_example/regenerate.sh <name>` runs text2code:
 
-## Family D — hand-written model + `<exasim/run.hpp>` + pdeapp.txt
-
-Hand-written `my_model.hpp` but using the legacy file-driven runtime.
-`apps/library_example/poisson2d/main.cpp` is the canonical example.
-
-```
-build_cpu/poisson2d_template          ./pdeapp.txt
-build_gpu/poisson2d_template_gpu      ./pdeapp.txt
-mpirun -np N build_mpi/poisson2d_template_mpi          ./pdeapp.txt
+```bash
+cd apps/library_example/poisson2d_codegen
+bash ../regenerate.sh poisson2d
+ls
+# my_model.hpp                    ← include it from main.cpp
+# libpdemodelserial.dylib         ← linked at runtime
+# Code2Cpp.cpp + SymbolicFunctions.{cpp,hpp}  ← intermediate
+# datain/                          ← serialized mesh
 ```
 
-(No `_mpi_gpu` variant for poisson2d_template today; same shape as A
-otherwise.)
+text2code writes everything into the example's own directory; nothing
+goes to a shared `backend/Model/`.
 
----
+## Run
 
-## Validation
-
-`apps/library_example/validate_codegen.sh` runs each binary and
-compares output against `baseline/<name>_serial/`:
-
-```
-# Family A (codegen):
-bash apps/library_example/validate_codegen.sh                              # cpu
-bash apps/library_example/validate_codegen.sh --variant gpu      --build build_gpu
-bash apps/library_example/validate_codegen.sh --variant mpi      --build build_mpi      --np 2
-bash apps/library_example/validate_codegen.sh --variant mpi_gpu  --build build_mpi_gpu  --np 2
-
-# Family B (facade) — same flags + --facade:
-bash apps/library_example/validate_codegen.sh --facade
-bash apps/library_example/validate_codegen.sh --facade --variant gpu      --build build_gpu
-bash apps/library_example/validate_codegen.sh --facade --variant mpi --np 2 --build build_mpi
-bash apps/library_example/validate_codegen.sh --facade --variant mpi_gpu --np 2 --build build_mpi_gpu
-
-# Single example:
-bash apps/library_example/validate_codegen.sh --facade poisson2d
+```bash
+cmake --build build_cpu --target poisson2d_codegen
+cd apps/library_example/poisson2d_codegen
+$EXASIM/build_cpu/poisson2d_codegen ./pdeapp.txt
 ```
 
-The harness gates: `outqoi.txt` byte-identical (preferred), or
-`md5(*.bin)` match, or rel-RMS of bin contents < 1e-6 (numerical
-fallback).
+For GPU / MPI / MPI+GPU substitute the matching binary suffix and
+build directory. See [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md).
 
----
+## With the embedded API
 
-## CTest integration
+The same generated `my_model.hpp` works with `ExasimSolver<M>`. The
+generic main lives at `apps/library_example/main_facade.cpp`:
 
-`CMakeLists.txt` registers the same gates as CTest tests:
-
-```
-cmake --build build_cpu
-ctest --test-dir build_cpu              # runs every Family A + B test
-ctest --test-dir build_cpu -R poisson2d # filter by name
-ctest --test-dir build_cpu -j16         # parallel
-ctest --test-dir build_mpi --output-on-failure
+```cpp
+exasim::ExasimSolver<GeneratedModel> solver;
+solver.load_pdeapp(argv[1], mpirank);
+solver.solve(mpiprocs, mpirank);
 ```
 
-Each test wraps the binary invocation with the matching baseline diff.
-The test names follow `<family>:<example>:<backend>`, e.g.,
-`facade:poisson2d:mpi`.
+Build target: `<name>_facade`. Each codegen example reuses the same
+generic `main_facade.cpp` with the example's `my_model.hpp` on the
+include path.
 
-For binaries that need preprocessed inputs (`datain/`, `my_model.hpp`),
-each test depends on a `regenerate_<example>` fixture that runs
-`regenerate.sh` once.
+## In-tree examples
+
+12 codegen apps under `apps/library_example/<name>_codegen/`:
+
+```
+poisson2d  poisson3d  periodic  naca0012steady  naca0012unsteady
+lshape  isoq3d  isoq  cone  orion  nsmach8  sharpb2
+```
+
+Each gets eight binaries (4 backends × `_codegen` and `_facade`).
+
+## See also
+
+- Hand-written authoring: [`hand-written-model.md`](hand-written-model.md)
+- Embedded driving: [`embedded-facade.md`](embedded-facade.md)
+- Legacy AbiAdapter driving: [`abi-adapter.md`](abi-adapter.md)
+- Tutorial: [`../../tutorial/`](../../tutorial/README.md)

@@ -16,26 +16,14 @@ Pass threshold: `< 1e-3`. Well above platform-numerics drift (typical
 This file documents the sidecar format, the comparison script, and
 how to record a new baseline.
 
-## Why element-L2
+## Properties
 
-The legacy gating compared `outudg_np0.bin` to a recorded baseline
-byte-for-byte (or via per-file rel-RMS). That had two problems:
-
-1. **Partition-fragile.** Under MPI, each rank writes its locally-
-   owned elements in an order chosen by ParMETIS. Different `np`,
-   different partition algorithm, different load balance — different
-   byte order. The baseline recorded in serial wasn't comparable to
-   any non-trivial MPI run.
-2. **FP-order-fragile.** The same algorithm with the same inputs
-   produces slightly different last-bit results on different
-   hardware (different BLAS, different SIMD width, different fused
-   multiply-add policy). GMRES + Newton iteration accumulates this
-   drift. A tight rel-RMS threshold like 1e-6 was tripping
-   spuriously across platforms.
-
-Element-L2 fixes both: sort element blocks by global element ID
-before comparing (partition-invariant), and use a relative L2 norm
-with a `1e-3` threshold (FP-order-tolerant).
+- **Partition-invariant.** Aggregate by global element ID and sort
+  before comparing. Different `np`, different ParMETIS choices,
+  different load balance — same metric.
+- **FP-order-tolerant.** Relative L2 with a `1e-3` threshold absorbs
+  last-bit drift between BLAS implementations / SIMD widths / FMA
+  policies that accumulates through GMRES + Newton iterations.
 
 ## The sidecar
 
