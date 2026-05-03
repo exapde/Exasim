@@ -1,0 +1,58 @@
+// Runtime configuration consumed by `exasim::run<Poisson2D>`.
+// The runtime parses this file at startup, sets up the PDE struct,
+// reads the mesh from `meshfile`, and solves.
+
+model = "ModelD";
+modelfile = "pdemodel.txt";
+meshfile = "grid.bin";
+discretization = "hdg";
+platform = "cpu";
+
+builtinmodelID = 1;
+gendatain = 0;
+mpiprocs = 1;
+debugmode = 0;
+runmode = 0;
+modelnumber = 0;
+
+porder = 3;
+pgauss = 6;
+torder = 1;
+nstage = 1;
+
+ncu = 1;
+ncw = 0;
+neb = 4096;
+nfb = 8192;
+
+saveSolBouFreq = 1;
+ibs = 1;
+
+NewtonIter = 20;
+NewtonTol = 1e-08;
+GMRESiter = 50;
+GMRESrestart = 25;
+GMREStol = 1e-08;
+GMRESortho = 1;
+ppdegree = 1;
+RBdim = 0;
+matvecorder = 1;
+matvectol = 0.001;
+precMatrixType = 0;
+preconditioner = 1;
+
+time = 0;
+tau = [1];
+dt = [1];
+physicsparam = [1.0];
+externalparam = [0, 0];
+
+boundaryconditions = [1];
+boundaryexpressions = ["abs(y)<1e-8 || abs(y-1)<1e-8 || abs(x-1)<1e-8 || abs(x)<1e-8"];
+curvedboundaries = [0];
+curvedboundaryexprs = [""];
+periodicboundaries1 = [];
+periodicexprs1 = [];
+periodicboundaries2 = [];
+periodicexprs2 = [];
+interfaceconditions = [];

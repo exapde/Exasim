@@ -1,38 +1,36 @@
-# 04 — Codegen + embedded `ExasimSolver<M>`
+# 04 — Codegen Model with the embedded `ExasimSolver<M>`
 
-Authoring: SymEngine DSL in `pdemodel.txt` (same as path 03).
-Driving: `ExasimSolver<GeneratedModel>::load_pdeapp(…)`. The facade
-parses `pdeapp.txt` itself and runs in-memory — no `datain/*.bin`
-round-trip.
+This section solves Poisson 2D on the unit square using the
+codegen authoring path together with the embedded library API.
+`text2code` generates the model header from `pdemodel.txt`;
+`main.cpp` constructs an `ExasimSolver<GeneratedModel>`, calls
+`load_pdeapp(argv[1])` to parse `pdeapp.txt`, and runs the
+solver.
 
-The generic main lives at `apps/library_example/main_facade.cpp`:
+## Files
 
-```cpp
-exasim::ExasimSolver<GeneratedModel> solver;
-solver.load_pdeapp(argv[1], mpirank);
-solver.solve(mpiprocs, mpirank);
-const double* udg = solver.udg();
-```
+- `pdemodel.txt` is the SymEngine DSL describing the PDE
+  (identical to the file in path 03).
+- `main.cpp` constructs the embedded solver, calls
+  `load_pdeapp`, and invokes `solve()`. Multi-rank builds bind
+  one rank per device using `MPI_COMM_TYPE_SHARED`.
+- `pdeapp.txt` is the runtime configuration that `load_pdeapp`
+  parses.
+- `grid.bin` is the binary mesh referenced by `pdeapp.txt`.
+- `CMakeLists.txt` builds `tutorial_04_codegen_facade`. The build
+  consumes the codegen output from this directory.
 
-The same `main_facade.cpp` is reused by all 12 codegen examples;
-each `<name>_facade` cmake target compiles it with that example's
-`my_model.hpp` on the include path.
-
-## Generate + run
-
-```bash
-cd apps/library_example/poisson2d_codegen
-bash ../regenerate.sh poisson2d
-cmake --build $EXASIM/build_cpu --target poisson2d_facade
-$EXASIM/build_cpu/poisson2d_facade ./pdeapp.txt
-```
-
-For multi-rank, `pdeapp.txt`'s `gendatain=1` flag must be flipped to
-`0` so the binary calls `ParallelPreprocessing` at runtime. The
-test harness does this automatically (see `apps/library_example/validate_codegen.sh`);
-for direct invocation:
+## Build and run
 
 ```bash
-sed 's/^gendatain *= *1/gendatain = 0/' pdeapp.txt > pdeapp_run.txt
-mpirun -np 2 $EXASIM/build_mpi/poisson2d_facade_mpi ./pdeapp_run.txt
+cd $EXASIM
+$EXASIM/build/text2code --out-dir $EXASIM/tutorial/04-codegen-facade \
+    $EXASIM/tutorial/04-codegen-facade/pdeapp.txt
+cmake --build build_cpu --target tutorial_04_codegen_facade
+cd $EXASIM/tutorial/04-codegen-facade
+mkdir -p datain dataout
+$EXASIM/build_cpu/tutorial_04_codegen_facade ./pdeapp.txt
 ```
+
+For multi-rank builds, prepend `mpirun -np N` and use the matching
+`build_mpi` or `build_mpi_gpu` directory.

@@ -822,6 +822,10 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     endif()
   endfunction()
 
+  # Tutorial subprojects. Building these always (when the
+  # library examples are on) gives a self-contained walkthrough.
+  add_subdirectory(${EXASIM_DIR}/tutorial ${CMAKE_CURRENT_BINARY_DIR}/tutorial)
+
   add_codegen_example(poisson2d)
   add_codegen_example(poisson3d)
   add_codegen_example(periodic)

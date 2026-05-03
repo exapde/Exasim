@@ -1,38 +1,35 @@
-# 01 — Hand-written model + legacy CLI
+# 01 — Hand-written Model with the legacy CLI
 
-Authoring: hand-written C++ struct `Poisson2D` in `my_model.hpp`.
-Driving: `exasim::run<Poisson2D>(argc, argv)` reading `pdeapp.txt`.
+This section solves Poisson 2D on the unit square using a hand-
+written `Poisson2D` C++ struct and Exasim's legacy command-line
+interface.
 
-Source: `apps/library_example/poisson2d/`. The struct is in
-`my_model.hpp`; the three-line `main.cpp` is:
+## Files
 
-```cpp
-#include <exasim/run.hpp>
-#include "my_model.hpp"
-int main(int argc, char** argv) {
-    return exasim::run<Poisson2D>(argc, argv);
-}
-```
+- `my_model.hpp` defines the `Poisson2D` struct that satisfies the
+  contract in `<exasim/model.hpp>`. The struct provides the flux,
+  source, boundary, and initial-condition methods that the templated
+  FEM internals call.
+- `main.cpp` instantiates the runtime by calling
+  `exasim::run<Poisson2D>(argc, argv)`. The function reads
+  `pdeapp.txt`, runs preprocessing, solves, and writes the
+  converged state to `dataout/`.
+- `pdeapp.txt` configures the runtime: discretization order,
+  solver tolerances, boundary conditions, mesh path, physics
+  parameters, and so on.
+- `grid.bin` is the binary mesh file consumed by the runtime.
+- `CMakeLists.txt` builds the binary as `tutorial_01_handwritten_cli`.
 
-## Run
+## Build and run
 
 ```bash
-cmake --build build_cpu --target poisson2d_template
-cd apps/library_example/poisson2d
+cd $EXASIM
+cmake --build build_cpu --target tutorial_01_handwritten_cli
+cd $EXASIM/tutorial/01-handwritten-cli
 mkdir -p datain dataout
-$EXASIM/build_cpu/poisson2d_template ./pdeapp.txt
-ls dataout/        # outudg_np0.bin, outuhat_np0.bin, outqoi.txt, ...
+$EXASIM/build_cpu/tutorial_01_handwritten_cli ./pdeapp.txt
 ```
 
-For MPI:
-
-```bash
-cd apps/library_example/poisson2d
-mpirun -np 2 $EXASIM/build_mpi/poisson2d_template_mpi ./pdeapp.txt
-```
-
-## Read the solution
-
-The runtime writes binaries that the validation harness reads.
-For programmatic access from the same binary, switch to the facade
-([`../02-handwritten-facade/`](../02-handwritten-facade/README.md)).
+The runtime writes `dataout/outudg_np0.bin` and friends. The
+test driver `tutorial/run-all.sh` calls these steps and verifies
+that the output files exist.
