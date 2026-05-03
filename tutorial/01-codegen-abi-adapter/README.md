@@ -1,13 +1,17 @@
-# 05 — Codegen Model with the AbiAdapter driver
+# 01 — Codegen Model with the AbiAdapter driver
 
-This section solves Poisson 2D using the codegen authoring path
-together with the legacy `cput2cEXASIM` family of binaries. The
-runtime is `backend/Main/main.cpp`, which calls
-`exasim::run<exasim::detail::AbiAdapter>(argc, argv)`. The
+This is the most automated entry point. You write two text files
+(`pdemodel.txt` describing the math, `pdeapp.txt` configuring the
+runtime), point the prebuilt `cput2cEXASIM` binary at them, and
+nothing else: no C++, no CMake, no build step on your side.
+
+The runtime under the hood is `backend/Main/main.cpp`, which
+calls `exasim::run<exasim::detail::AbiAdapter>(argc, argv)`. The
 `AbiAdapter` marker type instructs the FEM templates to dispatch
 every kernel through the `libpdemodel.hpp` ABI: linked symbols
 inside `libpdemodel{serial,cuda,hip}.{so,dylib}` are resolved at
-load time.
+load time. `text2code` produces those libraries from
+`pdemodel.txt`.
 
 The AbiAdapter binaries are built by Exasim itself when the CMake
 option `WITH_TEXT2CODE=ON` is set; this section reuses those
@@ -24,17 +28,17 @@ binaries rather than building one of its own.
 
 Configure Exasim with `-DWITH_TEXT2CODE=ON` so that
 `cput2cEXASIM` is built. The AbiAdapter binary's `RPATH` is
-hard-coded to `backend/Model/`, so this path runs `text2code`
+hard-coded to `backend/Model/`, so this section runs `text2code`
 without `--out-dir` to populate that location.
 
 ```bash
 cd $EXASIM
-cmake -S install -B build_cpu -DWITH_TEXT2CODE=ON ...
-cmake --build build_cpu --target cput2cEXASIM
-cd $EXASIM/tutorial/05-codegen-abi-adapter
+cmake -S install -B build -DWITH_TEXT2CODE=ON ...
+cmake --build build --target cput2cEXASIM
+cd $EXASIM/tutorial/01-codegen-abi-adapter
 $EXASIM/build/text2code ./pdeapp.txt          # writes backend/Model/libpdemodel*
 mkdir -p datain dataout
-$EXASIM/build_cpu/cput2cEXASIM ./pdeapp.txt
+$EXASIM/build/cput2cEXASIM ./pdeapp.txt
 ```
 
 The AbiAdapter MPI and GPU variants are named `cpumpit2cEXASIM`,

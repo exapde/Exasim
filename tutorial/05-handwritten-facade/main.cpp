@@ -1,4 +1,4 @@
-// Tutorial path 02 — hand-written Model + ExasimSolver<M>.
+// Tutorial path 05 — hand-written Model + ExasimSolver<M>.
 //
 // The mesh, boundary tagging, polynomial order, and physics
 // parameters are set on the solver object. After `solver.solve()`
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
             if (v > maxabs) maxabs = v;
         }
         if (mpirank == 0) {
-            std::printf("[tutorial_02] udg: %lld doubles, max|udg| = %.5f\n",
+            std::printf("[tutorial_05] udg: %lld doubles, max|udg| = %.5f\n",
                         static_cast<long long>(udg_n), maxabs);
         }
     }

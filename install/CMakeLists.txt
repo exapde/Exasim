@@ -968,8 +968,10 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     endforeach()
   endforeach()
 
-  # End-to-end tutorial smoke (the four supported authoring × driving
-  # combinations on poisson2d) for the current backend variant.
+  # End-to-end tutorial smoke for the current backend variant. The
+  # six sections (codegen+AbiAdapter / codegen+CLI / codegen+facade /
+  # hand-written+CLI / hand-written+facade / hand-written+facade-MPI)
+  # are exercised against poisson2d.
   set(_tut_args "--variant" "${_variant}" "--build" "${CMAKE_BINARY_DIR}")
   if (EXASIM_MPI AND MPI_FOUND)
     list(APPEND _tut_args "--np" "2")

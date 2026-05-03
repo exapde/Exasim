@@ -1,4 +1,4 @@
-# 01 — Hand-written Model with the legacy CLI
+# 04 — Hand-written Model with the legacy CLI
 
 This section solves Poisson 2D on the unit square using a hand-
 written `Poisson2D` C++ struct and Exasim's legacy command-line
@@ -18,16 +18,16 @@ interface.
   solver tolerances, boundary conditions, mesh path, physics
   parameters, and so on.
 - `grid.bin` is the binary mesh file consumed by the runtime.
-- `CMakeLists.txt` builds the binary as `tutorial_01_handwritten_cli`.
+- `CMakeLists.txt` builds the binary as `tutorial_04_handwritten_cli`.
 
 ## Build and run
 
 ```bash
 cd $EXASIM
-cmake --build build_cpu --target tutorial_01_handwritten_cli
-cd $EXASIM/tutorial/01-handwritten-cli
+cmake --build build --target tutorial_04_handwritten_cli
+cd $EXASIM/tutorial/04-handwritten-cli
 mkdir -p datain dataout
-$EXASIM/build_cpu/tutorial_01_handwritten_cli ./pdeapp.txt
+$EXASIM/build/tutorial_04_handwritten_cli ./pdeapp.txt
 ```
 
 The runtime writes `dataout/outudg_np0.bin` and friends. The

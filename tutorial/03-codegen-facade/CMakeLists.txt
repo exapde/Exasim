@@ -1,15 +1,14 @@
-# Tutorial path 03 — codegen Model + legacy CLI driver.
+# Tutorial path 04 — codegen Model + embedded `ExasimSolver<M>`.
 #
-# Builds `tutorial_03_codegen_cli` from `main.cpp`. The build
+# Builds `tutorial_03_codegen_facade` from `main.cpp`. The build
 # requires `my_model.hpp` and `libpdemodelserial.{so,dylib}` to
-# already exist in this directory; both are produced by running
-# `text2code --out-dir <here> ./pdeapp.txt`. The script
-# `tutorial/run-all.sh` runs `text2code` before invoking
+# exist in this directory. The script `tutorial/run-all.sh`
+# generates them with `text2code --out-dir <here>` before invoking
 # `cmake --build`.
 
 cmake_minimum_required(VERSION 3.16)
 
-set(_target tutorial_03_codegen_cli)
+set(_target tutorial_03_codegen_facade)
 
 add_executable(${_target} main.cpp)
 target_compile_features(${_target} PRIVATE cxx_std_17)

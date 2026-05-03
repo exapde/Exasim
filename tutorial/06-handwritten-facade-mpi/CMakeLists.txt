@@ -1,12 +1,15 @@
-# Tutorial path 01 — hand-written Model + legacy CLI driver.
+# Tutorial path 06 — hand-written Model + ExasimSolver<M> with a
+# distributed mesh.
 #
-# Builds the binary `tutorial_01_handwritten_cli` against the
-# Exasim header-only library. The binary takes `pdeapp.txt` as its
-# single argument and writes its output to `dataout/`.
+# Builds `tutorial_06_handwritten_facade_mpi`, which is meaningful
+# only on MPI-enabled build dirs (`build_mpi`, `build_mpi_gpu`).
+# On serial build dirs the binary still compiles and runs as a
+# single rank with mpiprocs=1, but the path is exercised primarily
+# under `mpirun -np N`.
 
 cmake_minimum_required(VERSION 3.16)
 
-set(_target tutorial_01_handwritten_cli)
+set(_target tutorial_06_handwritten_facade_mpi)
 
 add_executable(${_target} main.cpp)
 target_compile_features(${_target} PRIVATE cxx_std_17)
@@ -15,9 +18,6 @@ target_include_directories(${_target} PRIVATE
     ${EXASIM_DIR}/include
     "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# The target links Kokkos for the device-portable kernels and the
-# text2code-emitted model library that the legacy ABI expects to be
-# present at link time. Both also feed the templated kernels.
 target_link_directories(${_target} PRIVATE ${Model_LIB_DIR})
 target_link_libraries(${_target} PRIVATE
     Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})

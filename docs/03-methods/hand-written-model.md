@@ -272,4 +272,4 @@ Test harness: [`../04-internals/testing.md`](../04-internals/testing.md).
 
 - Embedded driving: [`embedded-facade.md`](embedded-facade.md)
 - Backend builds: [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md)
-- Tutorial: [`../../tutorial/01-handwritten-cli/`](../../tutorial/01-handwritten-cli/README.md)
+- Tutorial: [`../../tutorial/04-handwritten-cli/`](../../tutorial/04-handwritten-cli/README.md)

@@ -1,4 +1,4 @@
-// Tutorial path 01 — hand-written Model + legacy CLI driver.
+// Tutorial path 04 — hand-written Model + legacy CLI driver.
 //
 // `exasim::run<Poisson2D>(argc, argv)` reads `pdeapp.txt` from
 // `argv[1]`, runs preprocessing (mesh, master element, DMD), solves
