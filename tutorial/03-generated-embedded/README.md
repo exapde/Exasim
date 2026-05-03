@@ -336,27 +336,45 @@ this directory does not contain a checked-in copy.
 
 ### `CMakeLists.txt`
 
+This is the standalone CMakeLists a real out-of-tree consumer of
+Exasim would write. The in-tree tutorial build does not consume it
+— it registers the same target via `tutorial/CMakeLists.txt`.
+
 ```cmake
 cmake_minimum_required(VERSION 3.16)
+project(tutorial_03_generated_embedded CXX)
+set(CMAKE_CXX_STANDARD 17)
 
-set(_target tutorial_03_generated_embedded)
+find_package(Exasim REQUIRED)
+find_package(Kokkos REQUIRED)
+find_package(BLAS   REQUIRED)
+find_package(LAPACK REQUIRED)
 
-add_executable(${_target} main.cpp)
-tutorial_configure_target(${_target})
+add_executable(${PROJECT_NAME} main.cpp)
+target_compile_definitions(${PROJECT_NAME} PRIVATE _TEXT2CODE)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Exasim::headers Kokkos::kokkos
+    ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
-target_link_directories(${_target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-set_target_properties(${_target} PROPERTIES
+target_link_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(${PROJECT_NAME} PRIVATE pdemodelserial)
+set_target_properties(${PROJECT_NAME} PROPERTIES
     BUILD_RPATH "${CMAKE_CURRENT_SOURCE_DIR}")
 ```
 
-`tutorial_configure_target` is a helper defined in
-`tutorial/CMakeLists.txt` that adds the right backend defines and
-libraries for the active build variant: `_CUDA` and the CUDA
-runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
-`_HIP` on AMD GPUs, `_MPI` on MPI-enabled builds, and
-`_TEXT2CODE` everywhere. The local `target_link_directories` and
-`BUILD_RPATH` overrides point the linker at this section's own
-`libpdemodel*.{so,dylib}`.
+To build standalone:
+
+```bash
+cmake --install $EXASIM/build --prefix /opt/exasim
+$EXASIM/build/text2code --out-dir . ./pdeapp.txt
+cmake -S . -B build \
+      -DCMAKE_PREFIX_PATH=/opt/exasim \
+      -DKokkos_DIR=/opt/exasim/external/kokkos
+cmake --build build
+mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
+./build/tutorial_03_generated_embedded ./pdeapp.txt
+```
 
 ### `grid.bin`
 

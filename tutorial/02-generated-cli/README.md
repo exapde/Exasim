@@ -280,36 +280,57 @@ system requires `text2code` to run first.
 
 ### `CMakeLists.txt`
 
+This is the standalone CMakeLists a real out-of-tree consumer of
+Exasim would write. The in-tree tutorial build does not consume it
+— it registers the same target via `tutorial/CMakeLists.txt`.
+
 ```cmake
 cmake_minimum_required(VERSION 3.16)
+project(tutorial_02_generated_cli CXX)
+set(CMAKE_CXX_STANDARD 17)
 
-set(_target tutorial_02_generated_cli)
+find_package(Exasim REQUIRED)
+find_package(Kokkos REQUIRED)
+find_package(BLAS   REQUIRED)
+find_package(LAPACK REQUIRED)
 
-add_executable(${_target} main.cpp)
-tutorial_configure_target(${_target})
+add_executable(${PROJECT_NAME} main.cpp)
+target_compile_definitions(${PROJECT_NAME} PRIVATE _TEXT2CODE)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Exasim::headers Kokkos::kokkos
+    ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
-target_link_directories(${_target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-set_target_properties(${_target} PROPERTIES
+target_link_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(${PROJECT_NAME} PRIVATE pdemodelserial)
+set_target_properties(${PROJECT_NAME} PROPERTIES
     BUILD_RPATH "${CMAKE_CURRENT_SOURCE_DIR}")
 ```
 
-`tutorial_configure_target` is a helper defined in
-`tutorial/CMakeLists.txt` that adds the right backend defines and
-libraries for the active build variant: `_CUDA` and the CUDA
-runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
-`_HIP` and the HIP runtime on AMD GPUs, `_MPI` on MPI-enabled
-builds, and `_TEXT2CODE` everywhere. It also picks the right
-`libpdemodel{serial,cuda,hip}.{so,dylib}` to link against. Without
-the `_CUDA` / `_HIP` / `_MPI` defines, `<exasim/run.hpp>` would
-fall back to CPU code paths even on a GPU build dir, which causes
-incorrect behavior because Kokkos still allocates memory on the
-device.
+`find_package(Exasim REQUIRED)` finds the installed Exasim from
+`cmake --install $EXASIM/build --prefix /opt/exasim`; it provides
+the `Exasim::headers` INTERFACE target. The user picks their own
+Kokkos build, BLAS, and LAPACK — Exasim does not propagate
+`find_dependency` for those.
 
-The local `target_link_directories` and `BUILD_RPATH` overrides
-point the linker at this section's own `libpdemodelserial.*` (or
-`libpdemodelcuda.*`, etc., once those variants are emitted by
-`text2code`), instead of the global `Model_LIB_DIR` placeholder
-that the in-tree apps use.
+The `target_link_directories` line points the linker at the local
+`libpdemodelserial.{so,dylib}` that `text2code` emits when run with
+`--out-dir .` against this directory's `pdeapp.txt`. The
+`BUILD_RPATH` makes the runtime loader find that library at
+launch.
+
+To build standalone:
+
+```bash
+cmake --install $EXASIM/build --prefix /opt/exasim
+$EXASIM/build/text2code --out-dir . ./pdeapp.txt
+cmake -S . -B build \
+      -DCMAKE_PREFIX_PATH=/opt/exasim \
+      -DKokkos_DIR=/opt/exasim/external/kokkos
+cmake --build build
+mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
+./build/tutorial_02_generated_cli ./pdeapp.txt
+```
 
 ### `grid.bin`
 

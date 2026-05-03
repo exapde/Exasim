@@ -360,30 +360,55 @@ hand-written struct from `my_model.hpp`.
 
 ### `CMakeLists.txt`
 
+This is the standalone CMakeLists a real out-of-tree consumer of
+Exasim would write. The in-tree tutorial build does not consume it
+— it registers the same target via `tutorial/CMakeLists.txt`.
+
 ```cmake
 cmake_minimum_required(VERSION 3.16)
+project(tutorial_04_handwritten_cli CXX)
+set(CMAKE_CXX_STANDARD 17)
 
-set(_target tutorial_04_handwritten_cli)
+find_package(Exasim REQUIRED)
+find_package(Kokkos REQUIRED)
+find_package(BLAS   REQUIRED)
+find_package(LAPACK REQUIRED)
 
-add_executable(${_target} main.cpp)
-tutorial_configure_target(${_target})
+add_executable(${PROJECT_NAME} main.cpp)
+target_compile_definitions(${PROJECT_NAME} PRIVATE _TEXT2CODE)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Exasim::headers Kokkos::kokkos
+    ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
-target_link_directories(${_target} PRIVATE ${Model_LIB_DIR})
-set_target_properties(${_target} PROPERTIES
-    BUILD_RPATH "${Model_LIB_DIR}")
+target_link_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(${PROJECT_NAME} PRIVATE pdemodelserial)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    BUILD_RPATH "${CMAKE_CURRENT_SOURCE_DIR}")
 ```
 
-`tutorial_configure_target` is a helper defined in
-`tutorial/CMakeLists.txt` that adds the right backend defines and
-libraries for the active build variant: `_CUDA` and the CUDA
-runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
-`_HIP` on AMD GPUs, `_MPI` on MPI-enabled builds, and
-`_TEXT2CODE` everywhere. It also picks `libpdemodelserial`,
-`libpdemodelcuda`, or `libpdemodelhip` depending on the variant.
-
 The hand-written `Poisson2D` struct is what's actually compiled
-into the binary; the link-time `libpdemodel*` library is present
-only because the legacy ABI plumbing expects it.
+into the binary; the link-time `libpdemodelserial.{so,dylib}` is
+a placeholder the legacy ABI plumbing still expects when
+`_TEXT2CODE` is defined. Run `text2code` once on the local
+`pdemodel.txt` to produce it:
+
+```bash
+$EXASIM/build/text2code --out-dir . ./pdemodel.txt
+```
+
+To build standalone:
+
+```bash
+cmake --install $EXASIM/build --prefix /opt/exasim
+$EXASIM/build/text2code --out-dir . ./pdemodel.txt
+cmake -S . -B build \
+      -DCMAKE_PREFIX_PATH=/opt/exasim \
+      -DKokkos_DIR=/opt/exasim/external/kokkos
+cmake --build build
+mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
+./build/tutorial_04_handwritten_cli ./pdeapp.txt
+```
 
 ### `grid.bin`
 
