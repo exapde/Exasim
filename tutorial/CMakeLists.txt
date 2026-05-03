@@ -83,9 +83,13 @@ function(tutorial_add_target target source_path)
         target_link_libraries(${target} PRIVATE
             ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
         # Compile libpdemodel.cpp as a CUDA TU so its Kokkos kernels
-        # use the same backend the rest of the binary does.
+        # use the same backend the rest of the binary does. Match
+        # the flags text2code uses when it builds libpdemodelcuda.so
+        # standalone — Kokkos `KOKKOS_INLINE_FUNCTION` lambdas need
+        # nvcc's extended-lambda + relaxed-constexpr.
         set_source_files_properties(${_pdemodel_src} PROPERTIES
-            LANGUAGE CUDA)
+            LANGUAGE CUDA
+            COMPILE_OPTIONS "--expt-extended-lambda;--expt-relaxed-constexpr")
     elseif(EXASIM_HIP)
         target_compile_definitions(${target} PRIVATE _HIP)
         set_source_files_properties(${_pdemodel_src} PROPERTIES
