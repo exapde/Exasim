@@ -362,27 +362,24 @@ cmake_minimum_required(VERSION 3.16)
 set(_target tutorial_04_handwritten_cli)
 
 add_executable(${_target} main.cpp)
-target_compile_features(${_target} PRIVATE cxx_std_17)
-target_compile_definitions(${_target} PRIVATE _TEXT2CODE)
-target_include_directories(${_target} PRIVATE
-    ${EXASIM_DIR}/include
-    "${CMAKE_CURRENT_SOURCE_DIR}")
+tutorial_configure_target(${_target})
 
 target_link_directories(${_target} PRIVATE ${Model_LIB_DIR})
-target_link_libraries(${_target} PRIVATE
-    Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
-link_metis(${_target})
 set_target_properties(${_target} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     BUILD_RPATH "${Model_LIB_DIR}")
 ```
 
-The target compiles `main.cpp` against the Exasim headers and
-links it against Kokkos, BLAS/LAPACK, and the
-`libpdemodelserial.{so,dylib}` placeholder under
-`backend/Model/`. The hand-written `Poisson2D` struct is what's
-actually compiled into the binary; the link-time library is
-present only because the legacy ABI plumbing expects it.
+`tutorial_configure_target` is a helper defined in
+`tutorial/CMakeLists.txt` that adds the right backend defines and
+libraries for the active build variant: `_CUDA` and the CUDA
+runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
+`_HIP` on AMD GPUs, `_MPI` on MPI-enabled builds, and
+`_TEXT2CODE` everywhere. It also picks `libpdemodelserial`,
+`libpdemodelcuda`, or `libpdemodelhip` depending on the variant.
+
+The hand-written `Poisson2D` struct is what's actually compiled
+into the binary; the link-time `libpdemodel*` library is present
+only because the legacy ABI plumbing expects it.
 
 ### `grid.bin`
 

@@ -404,22 +404,17 @@ cmake_minimum_required(VERSION 3.16)
 set(_target tutorial_06_handwritten_distributed)
 
 add_executable(${_target} main.cpp)
-target_compile_features(${_target} PRIVATE cxx_std_17)
-target_compile_definitions(${_target} PRIVATE _TEXT2CODE)
-target_include_directories(${_target} PRIVATE
-    ${EXASIM_DIR}/include
-    "${CMAKE_CURRENT_SOURCE_DIR}")
+tutorial_configure_target(${_target})
 
 target_link_directories(${_target} PRIVATE ${Model_LIB_DIR})
-target_link_libraries(${_target} PRIVATE
-    Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
-link_metis(${_target})
 set_target_properties(${_target} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     BUILD_RPATH "${Model_LIB_DIR}")
 ```
 
-Identical to section 05's `CMakeLists.txt` modulo target name. The
-target compiles `main.cpp` against the Exasim headers and links it
-against Kokkos, BLAS/LAPACK, ParMETIS (via `link_metis`), and the
-`libpdemodelserial.{so,dylib}` placeholder under `backend/Model/`.
+`tutorial_configure_target` is a helper defined in
+`tutorial/CMakeLists.txt` that adds the right backend defines and
+libraries for the active build variant: `_CUDA` and the CUDA
+runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
+`_HIP` on AMD GPUs, `_MPI` on MPI-enabled builds, and
+`_TEXT2CODE` everywhere. It also calls `link_metis(${_target})`
+so ParMETIS is linked for the distributed mesh path.

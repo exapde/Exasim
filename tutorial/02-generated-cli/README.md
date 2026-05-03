@@ -282,28 +282,30 @@ cmake_minimum_required(VERSION 3.16)
 set(_target tutorial_02_generated_cli)
 
 add_executable(${_target} main.cpp)
-target_compile_features(${_target} PRIVATE cxx_std_17)
-target_compile_definitions(${_target} PRIVATE _TEXT2CODE)
-target_include_directories(${_target} PRIVATE
-    ${EXASIM_DIR}/include
-    "${CMAKE_CURRENT_SOURCE_DIR}")
+tutorial_configure_target(${_target})
 
 target_link_directories(${_target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(${_target} PRIVATE
-    Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
-link_metis(${_target})
 set_target_properties(${_target} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
     BUILD_RPATH "${CMAKE_CURRENT_SOURCE_DIR}")
 ```
 
-The target compiles `main.cpp` against the Exasim headers and
-links it against Kokkos, BLAS/LAPACK, and the
-text2code-emitted `libpdemodelserial.{so,dylib}` from this
-directory (`${T2C_CPU_LIB}` resolves to `pdemodelserial`). The
-`BUILD_RPATH` tells the linker where to find `libpdemodelserial.*`
-at run time. `_TEXT2CODE` is defined because the compiled model
-header expects this macro to gate the codegen call sites.
+`tutorial_configure_target` is a helper defined in
+`tutorial/CMakeLists.txt` that adds the right backend defines and
+libraries for the active build variant: `_CUDA` and the CUDA
+runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
+`_HIP` and the HIP runtime on AMD GPUs, `_MPI` on MPI-enabled
+builds, and `_TEXT2CODE` everywhere. It also picks the right
+`libpdemodel{serial,cuda,hip}.{so,dylib}` to link against. Without
+the `_CUDA` / `_HIP` / `_MPI` defines, `<exasim/run.hpp>` would
+fall back to CPU code paths even on a GPU build dir, which causes
+incorrect behavior because Kokkos still allocates memory on the
+device.
+
+The local `target_link_directories` and `BUILD_RPATH` overrides
+point the linker at this section's own `libpdemodelserial.*` (or
+`libpdemodelcuda.*`, etc., once those variants are emitted by
+`text2code`), instead of the global `Model_LIB_DIR` placeholder
+that the in-tree apps use.
 
 ### `grid.bin`
 

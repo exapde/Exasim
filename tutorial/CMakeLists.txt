@@ -24,6 +24,48 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+# Helper: configure a tutorial target with the right backend defines
+# and libraries for the active build variant.
+#
+# `<exasim/run.hpp>` translates `_CUDA` / `_HIP` / `_MPI` into
+# `HAVE_CUDA` / `HAVE_HIP` / `HAVE_MPI`. Without these defines the
+# code falls back to CPU paths even on a GPU build dir, which causes
+# cuBLAS to be skipped and the host BLAS to read host pointers that
+# alias unmapped GPU memory.
+#
+# Mirrors the per-target pattern used in install/CMakeLists.txt for
+# the in-tree apps (`poisson2d_template_gpu`, `solve_square_facade_gpu`,
+# etc.).
+function(tutorial_configure_target _target)
+    target_compile_features(${_target} PRIVATE cxx_std_17)
+    target_compile_definitions(${_target} PRIVATE _TEXT2CODE)
+    target_include_directories(${_target} PRIVATE
+        ${EXASIM_DIR}/include
+        "${CMAKE_CURRENT_SOURCE_DIR}")
+
+    if(EXASIM_MPI AND MPI_FOUND)
+        target_compile_definitions(${_target} PRIVATE _MPI)
+        target_link_libraries(${_target} PRIVATE ${MPI_LIBRARIES})
+    endif()
+
+    if(EXASIM_CUDA)
+        target_compile_definitions(${_target} PRIVATE _CUDA)
+        target_link_libraries(${_target} PRIVATE
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+    elseif(EXASIM_HIP)
+        target_compile_definitions(${_target} PRIVATE _HIP)
+        target_link_libraries(${_target} PRIVATE ${T2C_HIP_LIB})
+    else()
+        target_link_libraries(${_target} PRIVATE ${T2C_CPU_LIB})
+    endif()
+
+    target_link_libraries(${_target} PRIVATE
+        Kokkos::kokkos ${lapackblas_libraries})
+    link_metis(${_target})
+    set_target_properties(${_target} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+endfunction()
+
 # Section 00 — overview only; no binary to build.
 
 # Section 01 — generated model with prebuilt solver. The binary is
