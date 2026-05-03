@@ -48,7 +48,7 @@ plain text2code invocation above.
 ## Test coverage
 
 `tutorial:run-all:cpu` runs `cput2cEXASIM` against `poisson2d`
-([`../../tutorial/01-codegen-abi-adapter/`](../../tutorial/01-codegen-abi-adapter/README.md)).
+([`../../tutorial/01-generated-prebuilt/`](../../tutorial/01-generated-prebuilt/README.md)).
 The AbiAdapter MPI / GPU variants
 (`cpumpit2cEXASIM`, `gput2cEXASIM`, `gpumpit2cEXASIM`) compile when
 `WITH_TEXT2CODE=ON` but are not currently part of the test matrix.

@@ -6,12 +6,12 @@
 # tutorial binary, runs it, and verifies the output.
 #
 # Sections are ordered by decreasing automation:
-#   01 — codegen + AbiAdapter    (drop two text files; prebuilt binary)
-#   02 — codegen + legacy CLI    (3-line main, header-only)
-#   03 — codegen + facade        (load_pdeapp from C++)
-#   04 — hand-written + CLI
-#   05 — hand-written + facade   (set_mesh)
-#   06 — hand-written + facade   (set_mesh_distributed; MPI only)
+#   01 — generated + prebuilt    (drop two text files; prebuilt binary)
+#   02 — generated + CLI         (3-line main, header-only)
+#   03 — generated + embedded    (load_pdeapp from C++)
+#   04 — handwritten + CLI
+#   05 — handwritten + embedded  (set_mesh, in-memory)
+#   06 — handwritten + distributed (set_mesh_distributed; MPI only)
 #
 # Usage:  bash tutorial/run-all.sh [--variant cpu|gpu|mpi|mpi_gpu]
 #                                  [--build <dir>] [--np N]
@@ -72,7 +72,7 @@ record_skip() { SKIPPED+=("$1"); echo "[SKIP]   $1"; }
 
 # Run text2code on a tutorial section's pdeapp.txt to populate
 # my_model.hpp and libpdemodel*.{so,dylib} in that section's
-# directory. The codegen-CLI and codegen-facade sections need
+# directory. The generated-CLI and generated-embedded sections need
 # this to exist before `cmake --build` can link the binary.
 generate_codegen() {
     local dir="$1"
@@ -98,17 +98,17 @@ set_mpiprocs() {
     fi
 }
 
-# ---- Section 01 ---- codegen + AbiAdapter ----------------------
+# ---- Section 01 ---- generated + prebuilt ----------------------
 case "$VARIANT" in
     cpu)     S1_BIN_NAME="cput2cEXASIM" ;;
     mpi)     S1_BIN_NAME="cpumpit2cEXASIM" ;;
     gpu)     S1_BIN_NAME="gput2cEXASIM" ;;
     mpi_gpu) S1_BIN_NAME="gpumpit2cEXASIM" ;;
 esac
-S1_NAME="01: codegen + AbiAdapter ($S1_BIN_NAME)"
+S1_NAME="01: generated + prebuilt ($S1_BIN_NAME)"
 S1_BIN="$BUILD/$S1_BIN_NAME"
 if [ -x "$S1_BIN" ]; then
-    cd "$TUT/01-codegen-abi-adapter"
+    cd "$TUT/01-generated-prebuilt"
     rm -rf datain dataout
     mkdir -p datain dataout
     set_mpiprocs pdeapp.txt pdeapp_run.txt
@@ -123,15 +123,15 @@ else
     record_skip "$S1_NAME ($S1_BIN not built; configure with WITH_TEXT2CODE=ON)"
 fi
 
-# ---- Section 02 ---- codegen + legacy CLI ----------------------
-S2_NAME="02: codegen + run.hpp"
-S2_TARGET="tutorial_02_codegen_cli"
+# ---- Section 02 ---- generated + CLI ---------------------------
+S2_NAME="02: generated + CLI"
+S2_TARGET="tutorial_02_generated_cli"
 S2_BIN="$BUILD/$S2_TARGET"
-if generate_codegen "02-codegen-cli" \
+if generate_codegen "02-generated-cli" \
    && cmake "$BUILD" -B "$BUILD" > /dev/null 2>&1 \
    && build_target "$S2_TARGET" \
    && [ -x "$S2_BIN" ]; then
-    cd "$TUT/02-codegen-cli"
+    cd "$TUT/02-generated-cli"
     rm -rf datain dataout
     mkdir -p datain dataout
     set_mpiprocs pdeapp.txt pdeapp_run.txt
@@ -145,15 +145,15 @@ else
     record_skip "$S2_NAME (target $S2_TARGET not buildable)"
 fi
 
-# ---- Section 03 ---- codegen + facade --------------------------
-S3_NAME="03: codegen + ExasimSolver<M>::load_pdeapp"
-S3_TARGET="tutorial_03_codegen_facade"
+# ---- Section 03 ---- generated + embedded ----------------------
+S3_NAME="03: generated + embedded"
+S3_TARGET="tutorial_03_generated_embedded"
 S3_BIN="$BUILD/$S3_TARGET"
-if generate_codegen "03-codegen-facade" \
+if generate_codegen "03-generated-embedded" \
    && cmake "$BUILD" -B "$BUILD" > /dev/null 2>&1 \
    && build_target "$S3_TARGET" \
    && [ -x "$S3_BIN" ]; then
-    cd "$TUT/03-codegen-facade"
+    cd "$TUT/03-generated-embedded"
     rm -rf datain dataout
     mkdir -p datain dataout
     set_mpiprocs pdeapp.txt pdeapp_run.txt
@@ -167,8 +167,8 @@ else
     record_skip "$S3_NAME (target $S3_TARGET not buildable)"
 fi
 
-# ---- Section 04 ---- hand-written + legacy CLI -----------------
-S4_NAME="04: hand-written + run.hpp"
+# ---- Section 04 ---- handwritten + CLI -------------------------
+S4_NAME="04: handwritten + CLI"
 S4_TARGET="tutorial_04_handwritten_cli"
 S4_BIN="$BUILD/$S4_TARGET"
 if build_target "$S4_TARGET" && [ -x "$S4_BIN" ]; then
@@ -186,12 +186,12 @@ else
     record_skip "$S4_NAME (target $S4_TARGET not buildable)"
 fi
 
-# ---- Section 05 ---- hand-written + facade ---------------------
-S5_NAME="05: hand-written + ExasimSolver<M>::set_mesh"
-S5_TARGET="tutorial_05_handwritten_facade"
+# ---- Section 05 ---- handwritten + embedded --------------------
+S5_NAME="05: handwritten + embedded"
+S5_TARGET="tutorial_05_handwritten_embedded"
 S5_BIN="$BUILD/$S5_TARGET"
 if build_target "$S5_TARGET" && [ -x "$S5_BIN" ]; then
-    cd "$TUT/05-handwritten-facade"
+    cd "$TUT/05-handwritten-embedded"
     if EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$S5_BIN" > /tmp/tut_05.log 2>&1 \
         && grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_05.log; then
         record_pass "$S5_NAME"
@@ -202,14 +202,14 @@ else
     record_skip "$S5_NAME (target $S5_TARGET not buildable)"
 fi
 
-# ---- Section 06 ---- hand-written + set_mesh_distributed (MPI) -
-S6_NAME="06: hand-written + ExasimSolver<M>::set_mesh_distributed"
-S6_TARGET="tutorial_06_handwritten_facade_mpi"
+# ---- Section 06 ---- handwritten + distributed (MPI) -----------
+S6_NAME="06: handwritten + distributed"
+S6_TARGET="tutorial_06_handwritten_distributed"
 S6_BIN="$BUILD/$S6_TARGET"
 if [ "$IS_MPI" != 1 ]; then
     record_skip "$S6_NAME (variant $VARIANT is not MPI; section 06 is MPI-only)"
 elif build_target "$S6_TARGET" && [ -x "$S6_BIN" ]; then
-    cd "$TUT/06-handwritten-facade-mpi"
+    cd "$TUT/06-handwritten-distributed"
     if EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$S6_BIN" > /tmp/tut_06.log 2>&1 \
         && grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_06.log; then
         record_pass "$S6_NAME"

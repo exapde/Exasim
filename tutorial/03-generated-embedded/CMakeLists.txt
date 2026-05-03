@@ -1,6 +1,6 @@
-# Tutorial path 04 — codegen Model + embedded `ExasimSolver<M>`.
+# Tutorial section 03 — generated model with the embedded solver.
 #
-# Builds `tutorial_03_codegen_facade` from `main.cpp`. The build
+# Builds `tutorial_03_generated_embedded` from `main.cpp`. The build
 # requires `my_model.hpp` and `libpdemodelserial.{so,dylib}` to
 # exist in this directory. The script `tutorial/run-all.sh`
 # generates them with `text2code --out-dir <here>` before invoking
@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(_target tutorial_03_codegen_facade)
+set(_target tutorial_03_generated_embedded)
 
 add_executable(${_target} main.cpp)
 target_compile_features(${_target} PRIVATE cxx_std_17)

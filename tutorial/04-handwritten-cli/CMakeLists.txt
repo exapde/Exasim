@@ -1,4 +1,4 @@
-# Tutorial path 01 — hand-written Model + legacy CLI driver.
+# Tutorial section 04 — handwritten model with the CLI wrapper.
 #
 # Builds the binary `tutorial_04_handwritten_cli` against the
 # Exasim header-only library. The binary takes `pdeapp.txt` as its

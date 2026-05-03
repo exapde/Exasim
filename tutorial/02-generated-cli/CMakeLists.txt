@@ -1,6 +1,6 @@
-# Tutorial path 03 — codegen Model + legacy CLI driver.
+# Tutorial section 02 — generated model with the CLI wrapper.
 #
-# Builds `tutorial_02_codegen_cli` from `main.cpp`. The build
+# Builds `tutorial_02_generated_cli` from `main.cpp`. The build
 # requires `my_model.hpp` and `libpdemodelserial.{so,dylib}` to
 # already exist in this directory; both are produced by running
 # `text2code --out-dir <here> ./pdeapp.txt`. The script
@@ -9,7 +9,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(_target tutorial_02_codegen_cli)
+set(_target tutorial_02_generated_cli)
 
 add_executable(${_target} main.cpp)
 target_compile_features(${_target} PRIVATE cxx_std_17)

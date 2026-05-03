@@ -1,15 +1,13 @@
-# Tutorial path 06 — hand-written Model + ExasimSolver<M> with a
-# distributed mesh.
+# Tutorial section 05 — handwritten model with the embedded solver.
 #
-# Builds `tutorial_06_handwritten_facade_mpi`, which is meaningful
-# only on MPI-enabled build dirs (`build_mpi`, `build_mpi_gpu`).
-# On serial build dirs the binary still compiles and runs as a
-# single rank with mpiprocs=1, but the path is exercised primarily
-# under `mpirun -np N`.
+# Builds `tutorial_05_handwritten_embedded`. The binary builds its
+# own mesh as flat C arrays, drives the solver through the
+# `ExasimSolver<Poisson2D>` API, and prints the maximum absolute
+# value of the converged `udg`.
 
 cmake_minimum_required(VERSION 3.16)
 
-set(_target tutorial_06_handwritten_facade_mpi)
+set(_target tutorial_05_handwritten_embedded)
 
 add_executable(${_target} main.cpp)
 target_compile_features(${_target} PRIVATE cxx_std_17)
