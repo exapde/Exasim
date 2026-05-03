@@ -1479,18 +1479,21 @@ struct sysstruct {
         TemplateFree(q, backend); 
         TemplateFree(p, backend); 
         TemplateFree(randvect, backend);
-        if (backend <= 1)
-          TemplateFree(tempmem, backend);    
-        else if (backend==2) {
-#ifdef HAVE_CUDA                
-          cudaFreeHost(tempmem);      
-#endif                         
-        }        
-        else if (backend == 3) {
-#ifdef HAVE_HIP
-            CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
+        if (tempmem != nullptr) {
+            if (backend <= 1)
+              TemplateFree(tempmem, backend);
+            else if (backend==2) {
+#ifdef HAVE_CUDA
+              cudaFreeHost(tempmem);
 #endif
-        }        
+            }
+            else if (backend == 3) {
+#ifdef HAVE_HIP
+                CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
+#endif
+            }
+            tempmem = nullptr;
+        }
         TemplateFree(utmp, backend);            
         TemplateFree(wtmp, backend);             
         TemplateFree(udgprev, backend);  

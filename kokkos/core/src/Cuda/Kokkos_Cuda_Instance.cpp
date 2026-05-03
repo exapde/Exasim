@@ -644,13 +644,27 @@ void Cuda::impl_finalize() {
   (void)Impl::cuda_global_unique_token_locks(true);
   desul::Impl::finalize_lock_arrays();  // FIXME
 
+  // Guard map accesses against null / stale entries. When Kokkos is
+  // statically linked into both the main exe and a downstream shared
+  // library (e.g. text2code's libpdemodelcuda.so), each translation
+  // unit has its own copy of these static maps; impl_finalize is
+  // called once per copy and the second call sees stale pointers.
+  // After freeing each entry, null it out so the second pass is a
+  // no-op rather than a crash.
   for (const auto cuda_device : Kokkos::Impl::CudaInternal::cuda_devices) {
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(cuda_device));
-    KOKKOS_IMPL_CUDA_SAFE_CALL(
-        cudaFreeHost(Kokkos::Impl::CudaInternal::constantMemHostStagingPerDevice
-                         [cuda_device]));
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventDestroy(
-        Kokkos::Impl::CudaInternal::constantMemReusablePerDevice[cuda_device]));
+    if (auto* p = Kokkos::Impl::CudaInternal::
+                       constantMemHostStagingPerDevice[cuda_device]) {
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFreeHost(p));
+      Kokkos::Impl::CudaInternal::constantMemHostStagingPerDevice[cuda_device]
+          = nullptr;
+    }
+    if (auto ev = Kokkos::Impl::CudaInternal::
+                       constantMemReusablePerDevice[cuda_device]) {
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventDestroy(ev));
+      Kokkos::Impl::CudaInternal::constantMemReusablePerDevice[cuda_device]
+          = nullptr;
+    }
   }
 
   auto &deep_copy_space = Impl::cuda_get_deep_copy_space(/*initialize*/ false);
