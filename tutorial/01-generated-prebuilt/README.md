@@ -27,7 +27,9 @@ is configured with `-DWITH_TEXT2CODE=ON`:
 
 - `pdemodel.txt` — the PDE expressed in the SymEngine DSL.
 - `pdeapp.txt` — runtime configuration consumed by the binary.
-- `grid.bin` — binary mesh for the unit square.
+- `grid.bin` — binary mesh for the unit square. Not checked in;
+  regenerate with the tutorial generator described in
+  [Files: `grid.bin`](#gridbin) below.
 
 ## Build and run
 
@@ -43,6 +45,7 @@ cmake -S install -B build -DWITH_TEXT2CODE=ON
 cmake --build build --target cput2cEXASIM
 cd $EXASIM/tutorial/01-generated-prebuilt
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 $EXASIM/build/text2code ./pdeapp.txt
 $EXASIM/build/cput2cEXASIM ./pdeapp.txt
 ```
@@ -55,6 +58,7 @@ cmake -S install -B build_gpu -DWITH_TEXT2CODE=ON -DEXASIM_NOMPI=ON -DEXASIM_CUD
 cmake --build build_gpu --target gput2cEXASIM
 cd $EXASIM/tutorial/01-generated-prebuilt
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 $EXASIM/build/text2code ./pdeapp.txt
 $EXASIM/build_gpu/gput2cEXASIM ./pdeapp.txt
 ```
@@ -69,6 +73,7 @@ cmake -S install -B build_mpi -DWITH_TEXT2CODE=ON -DEXASIM_MPI=ON
 cmake --build build_mpi --target cpumpit2cEXASIM
 cd $EXASIM/tutorial/01-generated-prebuilt
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 $EXASIM/build/text2code ./pdeapp.txt
 mpirun -np 2 $EXASIM/build_mpi/cpumpit2cEXASIM ./pdeapp.txt
 ```
@@ -81,6 +86,7 @@ cmake -S install -B build_mpi_gpu -DWITH_TEXT2CODE=ON -DEXASIM_MPI=ON -DEXASIM_C
 cmake --build build_mpi_gpu --target gpumpit2cEXASIM
 cd $EXASIM/tutorial/01-generated-prebuilt
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 $EXASIM/build/text2code ./pdeapp.txt
 mpirun -np 2 $EXASIM/build_mpi_gpu/gpumpit2cEXASIM ./pdeapp.txt
 ```
@@ -271,6 +277,16 @@ to set `mpiprocs = N` before launching `mpirun -np N`.
 
 ### `grid.bin`
 
-A binary blob in the format `[size(p), size(t), p(:), t(:)]`. See
-[section gridbin](../00-overview/README.md#gridbin) of the
-overview for the format and origin.
+The mesh file referenced by `meshfile = "grid.bin"` in
+`pdeapp.txt`. Not checked in. Regenerate with:
+
+```bash
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
+```
+
+The script imports `SquareMesh` from
+`frontends/Python/Mesh/squaremesh.py` (pure NumPy, no `gmsh`)
+and writes a 16x16 Cartesian quad mesh on the unit square in the
+legacy `writebin` format `[size(p), size(t), p(:), t(:)]`. See
+[section gridbin](../00-overview/README.md#gridbin) of the overview
+for the format details.

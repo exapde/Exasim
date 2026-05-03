@@ -37,6 +37,7 @@ $EXASIM/build/text2code --out-dir $EXASIM/tutorial/03-generated-embedded \
 cmake --build build --target tutorial_03_generated_embedded
 cd $EXASIM/tutorial/03-generated-embedded
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 $EXASIM/build/tutorial_03_generated_embedded ./pdeapp.txt
 ```
 
@@ -49,6 +50,7 @@ $EXASIM/build/text2code --out-dir $EXASIM/tutorial/03-generated-embedded \
 cmake --build build_gpu --target tutorial_03_generated_embedded
 cd $EXASIM/tutorial/03-generated-embedded
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 $EXASIM/build_gpu/tutorial_03_generated_embedded ./pdeapp.txt
 ```
 
@@ -63,6 +65,7 @@ $EXASIM/build/text2code --out-dir $EXASIM/tutorial/03-generated-embedded \
 cmake --build build_mpi --target tutorial_03_generated_embedded
 cd $EXASIM/tutorial/03-generated-embedded
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 mpirun -np 2 $EXASIM/build_mpi/tutorial_03_generated_embedded ./pdeapp.txt
 ```
 
@@ -75,6 +78,7 @@ $EXASIM/build/text2code --out-dir $EXASIM/tutorial/03-generated-embedded \
 cmake --build build_mpi_gpu --target tutorial_03_generated_embedded
 cd $EXASIM/tutorial/03-generated-embedded
 mkdir -p datain dataout
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
 mpirun -np 2 $EXASIM/build_mpi_gpu/tutorial_03_generated_embedded ./pdeapp.txt
 ```
 
@@ -356,6 +360,16 @@ runtime/cuBLAS libraries on `build_gpu` and `build_mpi_gpu`,
 
 ### `grid.bin`
 
-A binary blob in the format `[size(p), size(t), p(:), t(:)]`. See
-[section gridbin](../00-overview/README.md#gridbin) of the
-overview for the format and origin.
+The mesh file referenced by `meshfile = "grid.bin"` in
+`pdeapp.txt`. Not checked in. Regenerate with:
+
+```bash
+python3 $EXASIM/tutorial/tools/squaregrid.py 16 ./grid.bin
+```
+
+The script imports `SquareMesh` from
+`frontends/Python/Mesh/squaremesh.py` (pure NumPy, no `gmsh`)
+and writes a 16x16 Cartesian quad mesh on the unit square in the
+legacy `writebin` format `[size(p), size(t), p(:), t(:)]`. See
+[section gridbin](../00-overview/README.md#gridbin) of the overview
+for the format details.

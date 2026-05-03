@@ -98,6 +98,18 @@ set_mpiprocs() {
     fi
 }
 
+# Generate grid.bin in a tutorial section that needs one.
+# The script imports SquareMesh from frontends/Python/Mesh and
+# writes a 16x16 Cartesian quad mesh on the unit square in the
+# legacy writebin format. Pure NumPy; no gmsh dependency.
+PY="${PYTHON:-python3}"
+generate_grid_bin() {
+    local dir="$1"
+    "$PY" "$EXASIM/tutorial/tools/squaregrid.py" 16 \
+        "$TUT/$dir/grid.bin" \
+        > "/tmp/tut_${dir}_grid.log" 2>&1
+}
+
 # ---- Section 01 ---- generated + prebuilt ----------------------
 case "$VARIANT" in
     cpu)     S1_BIN_NAME="cput2cEXASIM" ;;
@@ -111,6 +123,7 @@ if [ -x "$S1_BIN" ]; then
     cd "$TUT/01-generated-prebuilt"
     rm -rf datain dataout
     mkdir -p datain dataout
+    generate_grid_bin "01-generated-prebuilt"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
     if "$EXASIM/build/text2code" ./pdeapp_run.txt > /tmp/tut_01_t2c.log 2>&1 \
         && "${RUNNER[@]}" "$S1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 \
@@ -134,6 +147,7 @@ if generate_codegen "02-generated-cli" \
     cd "$TUT/02-generated-cli"
     rm -rf datain dataout
     mkdir -p datain dataout
+    generate_grid_bin "02-generated-cli"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
     if "${RUNNER[@]}" "$S2_BIN" ./pdeapp_run.txt > /tmp/tut_02.log 2>&1 \
         && [ -f "dataout/outudg_np0.bin" ]; then
@@ -156,6 +170,7 @@ if generate_codegen "03-generated-embedded" \
     cd "$TUT/03-generated-embedded"
     rm -rf datain dataout
     mkdir -p datain dataout
+    generate_grid_bin "03-generated-embedded"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
     if "${RUNNER[@]}" "$S3_BIN" ./pdeapp_run.txt > /tmp/tut_03.log 2>&1 \
         && [ -f "dataout/outudg_np0.bin" ]; then
@@ -175,6 +190,7 @@ if build_target "$S4_TARGET" && [ -x "$S4_BIN" ]; then
     cd "$TUT/04-handwritten-cli"
     rm -rf datain dataout
     mkdir -p datain dataout
+    generate_grid_bin "04-handwritten-cli"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
     if "${RUNNER[@]}" "$S4_BIN" ./pdeapp_run.txt > /tmp/tut_04.log 2>&1 \
         && [ -f "dataout/outudg_np0.bin" ]; then
