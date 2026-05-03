@@ -120,15 +120,10 @@ class CudaInternal {
   bool was_initialized = false;
   bool was_finalized   = false;
 
-  // Function-local statics (Meyers singletons) — see comment in
-  // Kokkos_Serial.hpp::all_instances() for rationale. Avoids
-  // duplicate atexit destructor registration when the symbol is
-  // visible from both libkokkoscore.so and a consumer like
-  // libpdemodelcuda.so.
-  static std::set<int>& cuda_devices();
-  static std::map<int, unsigned long*>& constantMemHostStagingPerDevice();
-  static std::map<int, cudaEvent_t>& constantMemReusablePerDevice();
-  static std::map<int, std::mutex>& constantMemMutexPerDevice();
+  static std::set<int> cuda_devices;
+  static std::map<int, unsigned long*> constantMemHostStagingPerDevice;
+  static std::map<int, cudaEvent_t> constantMemReusablePerDevice;
+  static std::map<int, std::mutex> constantMemMutexPerDevice;
 
   static CudaInternal& singleton();
 

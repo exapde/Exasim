@@ -149,7 +149,7 @@ void cuda_device_synchronize(const std::string &name) {
       []()
 #endif
       {
-        for (int cuda_device : Kokkos::Impl::CudaInternal::cuda_devices()) {
+        for (int cuda_device : Kokkos::Impl::CudaInternal::cuda_devices) {
           KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(cuda_device));
           KOKKOS_IMPL_CUDA_SAFE_CALL(cudaDeviceSynchronize());
         }
@@ -280,23 +280,21 @@ void CudaInternal::initialize(cudaStream_t stream) {
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(m_cudaDev));
 
   m_stream = stream;
-  CudaInternal::cuda_devices().insert(m_cudaDev);
+  CudaInternal::cuda_devices.insert(m_cudaDev);
 
   // Allocate a staging buffer for constant mem in pinned host memory
   // and an event to avoid overwriting driver for previous kernel launches
-  auto& host_staging = constantMemHostStagingPerDevice();
-  if (!host_staging[m_cudaDev]) {
+  if (!constantMemHostStagingPerDevice[m_cudaDev]) {
     void *constant_memory_void_ptr = nullptr;
     KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_malloc_host_wrapper(
         &constant_memory_void_ptr, CudaTraits::ConstantMemoryUsage)));
-    host_staging[m_cudaDev] =
+    constantMemHostStagingPerDevice[m_cudaDev] =
         static_cast<unsigned long *>(constant_memory_void_ptr);
   }
 
-  auto& reusable_events = constantMemReusablePerDevice();
-  if (!reusable_events[m_cudaDev])
+  if (!constantMemReusablePerDevice[m_cudaDev])
     KOKKOS_IMPL_CUDA_SAFE_CALL(cuda_event_create_with_flags_wrapper(
-        &reusable_events[m_cudaDev], cudaEventDisableTiming));
+        &constantMemReusablePerDevice[m_cudaDev], cudaEventDisableTiming));
 
   //----------------------------------
   // Multiblock reduction uses scratch flags for counters
@@ -646,16 +644,13 @@ void Cuda::impl_finalize() {
   (void)Impl::cuda_global_unique_token_locks(true);
   desul::Impl::finalize_lock_arrays();  // FIXME
 
-  {
-    auto& host_staging =
-        Kokkos::Impl::CudaInternal::constantMemHostStagingPerDevice();
-    auto& reusable =
-        Kokkos::Impl::CudaInternal::constantMemReusablePerDevice();
-    for (const auto cuda_device : Kokkos::Impl::CudaInternal::cuda_devices()) {
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(cuda_device));
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFreeHost(host_staging[cuda_device]));
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventDestroy(reusable[cuda_device]));
-    }
+  for (const auto cuda_device : Kokkos::Impl::CudaInternal::cuda_devices) {
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(cuda_device));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        cudaFreeHost(Kokkos::Impl::CudaInternal::constantMemHostStagingPerDevice
+                         [cuda_device]));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventDestroy(
+        Kokkos::Impl::CudaInternal::constantMemReusablePerDevice[cuda_device]));
   }
 
   auto &deep_copy_space = Impl::cuda_get_deep_copy_space(/*initialize*/ false);
@@ -753,23 +748,11 @@ int g_cuda_space_factory_initialized =
 
 int CudaInternal::m_cudaArch = -1;
 cudaDeviceProp CudaInternal::m_deviceProp;
-// Function-local Meyers singletons — see Kokkos_Cuda_Instance.hpp.
-std::set<int>& CudaInternal::cuda_devices() {
-  static std::set<int> s;
-  return s;
-}
-std::map<int, unsigned long*>& CudaInternal::constantMemHostStagingPerDevice() {
-  static std::map<int, unsigned long*> m;
-  return m;
-}
-std::map<int, cudaEvent_t>& CudaInternal::constantMemReusablePerDevice() {
-  static std::map<int, cudaEvent_t> m;
-  return m;
-}
-std::map<int, std::mutex>& CudaInternal::constantMemMutexPerDevice() {
-  static std::map<int, std::mutex> m;
-  return m;
-}
+std::set<int> CudaInternal::cuda_devices = {};
+std::map<int, unsigned long *> CudaInternal::constantMemHostStagingPerDevice =
+    {};
+std::map<int, cudaEvent_t> CudaInternal::constantMemReusablePerDevice = {};
+std::map<int, std::mutex> CudaInternal::constantMemMutexPerDevice     = {};
 
 }  // namespace Impl
 

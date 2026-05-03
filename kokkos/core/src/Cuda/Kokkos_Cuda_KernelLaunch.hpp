@@ -581,13 +581,13 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
     int cuda_device = cuda_instance->m_cudaDev;
     // Wait until the previous kernel that uses the constant buffer is done
     std::lock_guard<std::mutex> lock(
-        CudaInternal::constantMemMutexPerDevice()[cuda_device]);
+        CudaInternal::constantMemMutexPerDevice[cuda_device]);
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventSynchronize(
-        CudaInternal::constantMemReusablePerDevice()[cuda_device]));
+        CudaInternal::constantMemReusablePerDevice[cuda_device]));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging =
-        CudaInternal::constantMemHostStagingPerDevice()[cuda_device];
+        cuda_instance->constantMemHostStagingPerDevice[cuda_device];
     memcpy(static_cast<void*>(staging), static_cast<const void*>(&driver),
            sizeof(DriverType));
 
@@ -606,7 +606,7 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
 
     // Record an event that says when the constant buffer can be reused
     KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_event_record_wrapper(
-        CudaInternal::constantMemReusablePerDevice()[cuda_device])));
+        CudaInternal::constantMemReusablePerDevice[cuda_device])));
   }
 
   inline static void create_parallel_launch_graph_node(
