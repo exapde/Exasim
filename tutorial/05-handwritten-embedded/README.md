@@ -1,4 +1,4 @@
-# 05 — Handwritten model with the embedded solver
+# 05 — Handwritten model with the embedded solver (single rank)
 
 The user writes the model header (`my_model.hpp`) by hand, then
 constructs an `ExasimSolver<Poisson2D>` from C++ and configures
@@ -13,15 +13,23 @@ This is the embedded path for users who own the mesh data
 structures: optimization loops, reduced-order modeling,
 PDE-constrained inverse problems, and multi-physics couplings.
 
+This section is **single rank only**: `set_mesh` expects the full
+mesh on every rank, no partitioning happens, and `main.cpp` does
+not initialize MPI. The CMake build skips the target when
+`EXASIM_MPI=ON`. For a true distributed-memory variant where each
+rank owns a slice of the mesh and ParMETIS repartitions inside
+`solve()`, see [section 06](../06-handwritten-distributed/README.md).
+
 ## Files
 
 - `my_model.hpp` — C++ struct `Poisson2D` implementing the
   `<exasim/model.hpp>` contract.
 - `main.cpp` — embedded driver. Builds a 16×16 Cartesian quad
   mesh on `[0,1]²`, configures the solver, calls `solve()`,
-  prints `max|udg|`.
+  prints `max|udg|`. No MPI calls.
 - `CMakeLists.txt` — out-of-tree build for
-  `tutorial_05_handwritten_embedded`.
+  `tutorial_05_handwritten_embedded`. Only added to the build when
+  `EXASIM_MPI=OFF`.
 
 The runtime expects to find the master-element node tables under
 `$EXASIM/backend/Preprocessing/`, so the binary needs the
@@ -43,28 +51,6 @@ EXASIM_DIR=$EXASIM $EXASIM/build/tutorial_05_handwritten_embedded
 cd $EXASIM
 cmake --build build_gpu --target tutorial_05_handwritten_embedded
 EXASIM_DIR=$EXASIM $EXASIM/build_gpu/tutorial_05_handwritten_embedded
-```
-
-### MPI
-
-The `main.cpp` in this section uses `set_mesh`, which expects the
-full mesh on every rank. Each rank performs its own work on the
-shared mesh; no partitioning happens. For a true distributed mesh
-where each rank owns a slice and ParMETIS repartitions, see
-section 06.
-
-```bash
-cd $EXASIM
-cmake --build build_mpi --target tutorial_05_handwritten_embedded
-EXASIM_DIR=$EXASIM mpirun -np 2 $EXASIM/build_mpi/tutorial_05_handwritten_embedded
-```
-
-### MPI+GPU
-
-```bash
-cd $EXASIM
-cmake --build build_mpi_gpu --target tutorial_05_handwritten_embedded
-EXASIM_DIR=$EXASIM mpirun -np 2 $EXASIM/build_mpi_gpu/tutorial_05_handwritten_embedded
 ```
 
 The expected output is `max|udg| = 3.14158` (the maximum absolute
@@ -239,16 +225,7 @@ to enough digits to match `text2code`'s SymEngine output exactly.
 #include <vector>
 
 int main(int argc, char** argv) {
-    int mpiprocs = 1, mpirank = 0;
-#ifdef HAVE_MPI
-    MPI_Init(&argc, &argv);
-    EXASIM_COMM_WORLD = MPI_COMM_WORLD;
-    EXASIM_COMM_LOCAL = MPI_COMM_WORLD;
-    MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
-    MPI_Comm_rank(EXASIM_COMM_WORLD, &mpirank);
-#else
     (void)argc; (void)argv;
-#endif
 
     Kokkos::initialize();
     {
@@ -300,25 +277,17 @@ int main(int argc, char** argv) {
             double v = std::abs(udg[i]);
             if (v > maxabs) maxabs = v;
         }
-        if (mpirank == 0) {
-            std::printf("[tutorial_05] udg: %lld doubles, max|udg| = %.5f\n",
-                        static_cast<long long>(udg_n), maxabs);
-        }
+        std::printf("[tutorial_05] udg: %lld doubles, max|udg| = %.5f\n",
+                    static_cast<long long>(udg_n), maxabs);
     }
     Kokkos::finalize();
-#ifdef HAVE_MPI
-    MPI_Finalize();
-#endif
     return 0;
 }
 ```
 
-The `HAVE_MPI` block initializes MPI and stores the world
-communicator on the global handles `EXASIM_COMM_WORLD` and
-`EXASIM_COMM_LOCAL`. `Kokkos::initialize()` brings up the device
-runtime; everything between it and `Kokkos::finalize()` runs
-inside an explicit scope so all device-allocating objects are
-destroyed before finalize.
+`Kokkos::initialize()` brings up the device runtime; everything
+between it and `Kokkos::finalize()` runs inside an explicit scope
+so all device-allocating objects are destroyed before finalize.
 
 The two nested `for` loops on `(j, i)` build the mesh data:
 `p[2*idx + d]` is the `d`th coordinate of node `idx`, and
@@ -336,10 +305,10 @@ match the `porder` and `pgauss` fields of the file-driven sections.
 `set_physics_params({1.0})` sets `mu[0] = 1`. `solve()` (no
 arguments — single rank) runs the Newton/GMRES loop in place.
 
-After `solve()`, `solver.udg()` returns a pointer to the locally
-owned converged mixed state, and `solver.udg_size()` returns its
+After `solve()`, `solver.udg()` returns a pointer to the
+converged mixed state, and `solver.udg_size()` returns its
 element count. The driver scans it to find the maximum absolute
-value and prints the result on rank 0.
+value and prints the result.
 
 ### `CMakeLists.txt`
 

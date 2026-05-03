@@ -62,8 +62,12 @@ my_model.hpp (you write)        pdemodel.txt (you write)
                           };
 ```
 
-The runtime instantiates `CSolution<MyModel>`. The Model contract is
-documented in [`03-methods/hand-written-model.md`](../03-methods/hand-written-model.md).
+The runtime instantiates `CSolution<MyModel>`. The full Model
+contract (every method, every signature, default semantics, and
+indexing layouts) is documented in
+[`02-model-contract.md`](../02-model-contract.md). For a worked
+example see
+[`tutorial/04-handwritten-cli/`](../../tutorial/04-handwritten-cli/README.md).
 
 ## Driving paths
 

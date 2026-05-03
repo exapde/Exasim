@@ -4,7 +4,7 @@ Reference for the `Model` C++ struct that Exasim's templated FEM
 internals consume. Every method, every signature, defaults, and
 indexing layouts.
 
-Tutorial walkthrough: [`hand-written-model.md`](hand-written-model.md).
+Tutorial walkthrough: [`tutorial/04-handwritten-cli/`](../tutorial/04-handwritten-cli/README.md).
 
 Exasim's templated FEM internals (HDG residual assembly, GMRES solver,
 preconditioner, time stepping, visualization, QoI integration) are
@@ -199,6 +199,7 @@ your pointwise math at build time.
 
 ## See also
 
-- Tutorial: [`hand-written-model.md`](hand-written-model.md)
-- Codegen: [`codegen-text2code.md`](codegen-text2code.md)
-- Embedded API: [`embedded-facade.md`](embedded-facade.md)
+- Tutorial walkthrough (handwritten + CLI): [`tutorial/04-handwritten-cli/`](../tutorial/04-handwritten-cli/README.md)
+- Tutorial walkthrough (embedded `ExasimSolver<M>`): [`tutorial/05-handwritten-embedded/`](../tutorial/05-handwritten-embedded/README.md)
+- Tutorial walkthrough (`text2code`-generated model): [`tutorial/02-generated-cli/`](../tutorial/02-generated-cli/README.md)
+- Tutorial overview: [`tutorial/00-overview/`](../tutorial/00-overview/README.md)

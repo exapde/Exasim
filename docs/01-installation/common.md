@@ -62,9 +62,13 @@ make -j16 install
 
 ## Build SymEngine + text2code
 
-Required for the codegen authoring path
-([`docs/03-methods/codegen-text2code.md`](../03-methods/codegen-text2code.md)).
-Skip if you only use the hand-written Model path.
+Required for the generated-PDE authoring path (the user describes
+the PDE as `pdemodel.txt` in a SymEngine DSL; `text2code` emits
+the C++ model header). Skip if you only use the handwritten model
+path. Worked examples in
+[`tutorial/01-generated-prebuilt/`](../../tutorial/01-generated-prebuilt/README.md),
+[`tutorial/02-generated-cli/`](../../tutorial/02-generated-cli/README.md),
+and [`tutorial/03-generated-embedded/`](../../tutorial/03-generated-embedded/README.md).
 
 ```bash
 cd $EXASIM/text2code/symengine
@@ -100,5 +104,6 @@ Layout:
 
 Consumer projects do `find_package(Exasim REQUIRED)` and link
 `Exasim::headers Kokkos::kokkos MPI::MPI_CXX`. See
-[`03-methods/hand-written-model.md`](../03-methods/hand-written-model.md)
-for the consumer CMake template.
+[`02-model-contract.md`](../02-model-contract.md)
+for the consumer CMake template, and any tutorial section under
+[`tutorial/`](../../tutorial/) for a worked build.

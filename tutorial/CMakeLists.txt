@@ -90,8 +90,11 @@ endforeach()
 # Section 04 — handwritten model + CLI wrapper.
 add_subdirectory(04-handwritten-cli)
 
-# Section 05 — handwritten model + embedded solver (in-memory mesh).
-add_subdirectory(05-handwritten-embedded)
+# Section 05 — handwritten model + embedded solver (in-memory mesh,
+# single rank only). Section 06 is the distributed counterpart.
+if(NOT EXASIM_MPI)
+    add_subdirectory(05-handwritten-embedded)
+endif()
 
 # Section 06 — handwritten model + embedded solver (distributed
 # mesh). Builds and links on every backend variant; meaningful

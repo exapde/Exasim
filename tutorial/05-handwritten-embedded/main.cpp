@@ -1,8 +1,11 @@
-// Tutorial path 05 — hand-written Model + ExasimSolver<M>.
+// Tutorial section 05 — handwritten model + ExasimSolver<M> with
+// an in-memory mesh, single rank only.
 //
 // The mesh, boundary tagging, polynomial order, and physics
 // parameters are set on the solver object. After `solver.solve()`
-// the converged solution is read back via `solver.udg()`.
+// the converged solution is read back via `solver.udg()`. For a
+// distributed-memory variant that uses `set_mesh_distributed`, see
+// section 06.
 
 #include <exasim/run.hpp>            // pulls common preamble + kokkos + namespace std
 #include <exasim/solver_facade.hpp>
@@ -15,16 +18,7 @@
 #include <vector>
 
 int main(int argc, char** argv) {
-    int mpiprocs = 1, mpirank = 0;
-#ifdef HAVE_MPI
-    MPI_Init(&argc, &argv);
-    EXASIM_COMM_WORLD = MPI_COMM_WORLD;
-    EXASIM_COMM_LOCAL = MPI_COMM_WORLD;
-    MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
-    MPI_Comm_rank(EXASIM_COMM_WORLD, &mpirank);
-#else
     (void)argc; (void)argv;
-#endif
 
     Kokkos::initialize();
     {
@@ -76,14 +70,9 @@ int main(int argc, char** argv) {
             double v = std::abs(udg[i]);
             if (v > maxabs) maxabs = v;
         }
-        if (mpirank == 0) {
-            std::printf("[tutorial_05] udg: %lld doubles, max|udg| = %.5f\n",
-                        static_cast<long long>(udg_n), maxabs);
-        }
+        std::printf("[tutorial_05] udg: %lld doubles, max|udg| = %.5f\n",
+                    static_cast<long long>(udg_n), maxabs);
     }
     Kokkos::finalize();
-#ifdef HAVE_MPI
-    MPI_Finalize();
-#endif
     return 0;
 }

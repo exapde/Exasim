@@ -51,12 +51,11 @@ Documentation lives under [`docs/`](docs/) — start at
 
 Quick pointers:
 
-- [`docs/00-introduction.md`](docs/00-introduction.md) — what Exasim is + the authoring × driving × backend matrix
+- [`tutorial/`](tutorial/) — solve Poisson 2D through every supported path; the worked walkthrough for picking among the PDE × Solver × Mesh combinations
+- [`docs/00-introduction.md`](docs/00-introduction.md) — what Exasim is and how the pieces fit together
 - [`docs/01-installation.md`](docs/01-installation.md) — per-platform install (macOS, Linux CPU, Linux + NVIDIA, Linux + AMD)
-- [`docs/02-methods-overview.md`](docs/02-methods-overview.md) — which combination should I use?
-- [`docs/03-methods/`](docs/03-methods/) — walkthroughs per combination
-- [`docs/04-internals/`](docs/04-internals/) — test harness, baseline format, architecture
-- [`tutorial/`](tutorial/) — solve Poisson 2D through every supported path
+- [`docs/02-model-contract.md`](docs/02-model-contract.md) — full reference for the `Model` C++ struct that the templated FEM internals consume
+- [`docs/03-internals/`](docs/03-internals/) — test harness, baseline format, architecture
 
 The legacy `pdemodel.txt` + `text2code` + `cput2cEXASIM` workflow stays
 fully supported. text2code now also emits a `my_model.hpp` for the

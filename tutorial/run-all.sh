@@ -202,13 +202,15 @@ else
     record_skip "$S4_NAME (target $S4_TARGET not buildable)"
 fi
 
-# ---- Section 05 ---- handwritten + embedded --------------------
+# ---- Section 05 ---- handwritten + embedded (single-rank only) -
 S5_NAME="05: handwritten + embedded"
 S5_TARGET="tutorial_05_handwritten_embedded"
 S5_BIN="$BUILD/$S5_TARGET"
-if build_target "$S5_TARGET" && [ -x "$S5_BIN" ]; then
+if [ "$IS_MPI" = 1 ]; then
+    record_skip "$S5_NAME (variant $VARIANT is MPI; section 05 is single-rank only — see section 06)"
+elif build_target "$S5_TARGET" && [ -x "$S5_BIN" ]; then
     cd "$TUT/05-handwritten-embedded"
-    if EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$S5_BIN" > /tmp/tut_05.log 2>&1 \
+    if EXASIM_DIR="$EXASIM" "$S5_BIN" > /tmp/tut_05.log 2>&1 \
         && grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_05.log; then
         record_pass "$S5_NAME"
     else

@@ -25,7 +25,7 @@ specification has been pulled from external artifacts into C++:
 | [02](../02-generated-cli/README.md)         | built | built | built | The user writes a 3-line `main.cpp` that calls `exasim::run<GeneratedModel>(argc, argv)` and owns the resulting binary. |
 | [03](../03-generated-embedded/README.md)    | built | built | built | The solver lives as a C++ object you own (`ExasimSolver<GeneratedModel>`), but its parameters still come from `pdeapp.txt` via `load_pdeapp`. |
 | [04](../04-handwritten-cli/README.md)       | C++   | built | built | Same shape as section 02, but the model is a hand-written `Poisson2D` struct instead of a generated one. |
-| [05](../05-handwritten-embedded/README.md)  | C++   | C++   | C++   | Single rank. The mesh, boundary predicates, polynomial order, and physics parameters are all set in C++; the converged solution is read back through `solver.udg()`. |
+| [05](../05-handwritten-embedded/README.md)  | C++   | C++   | C++   | Single rank only (`set_mesh` expects the full mesh on every rank; `main.cpp` does not initialize MPI; the CMake build skips this target when `EXASIM_MPI=ON`). The mesh, boundary predicates, polynomial order, and physics parameters are all set in C++; the converged solution is read back through `solver.udg()`. |
 | [06](../06-handwritten-distributed/README.md) | C++ | C++   | C++   | Distributed across MPI ranks. Each rank builds its own slice of the mesh and hands it to `set_mesh_distributed`; ParMETIS repartitions inside `solve()`. |
 
 There are eight points in the 2×2×2 lattice in principle. Sections
