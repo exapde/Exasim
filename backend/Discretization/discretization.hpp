@@ -254,10 +254,19 @@ inline CDiscretization<M>::CDiscretization(P&& pre, string fileout, string exasi
     // Move/copy the four runtime structs from the Preprocessed bundle
     // into our members. Raw pointer ownership transfers; the caller
     // is expected not to use `pre` after this point.
-    sol    = pre.sol;
-    app    = pre.app;
-    master = pre.master;
-    mesh   = pre.mesh;
+    //
+    // For backend>1 (GPU), `app`/`master`/`mesh`/`sol` will be filled
+    // with device pointers by gpuInit, so we skip the host copy here.
+    // Otherwise the host pointers from `pre` would alias into the
+    // host scratch structs (`happ` etc.) below; when `happ.freememory(1)`
+    // releases them via std::free, the device-side struct retains
+    // dangling pointers that the destructor then tries to cudaFree.
+    if (backend <= 1) {
+        sol    = pre.sol;
+        app    = pre.app;
+        master = pre.master;
+        mesh   = pre.mesh;
+    }
 
     if (backend > 1) {
 #ifdef HAVE_GPU

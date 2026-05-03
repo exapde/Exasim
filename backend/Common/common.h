@@ -771,37 +771,32 @@ struct appstruct {
     // custom destructor
     void freememory(Int backend)
     {
-        #define _APP_FREE(field) do { \
-            fprintf(stderr, "[appstruct::freememory] " #field " = %p (backend=%d)\n", (void*)field, (int)backend); \
-            TemplateFree(field, backend); \
-        } while(0)
-        _APP_FREE(lsize);
-        _APP_FREE(nsize);
-        _APP_FREE(ndims);
-        _APP_FREE(comm);
-        _APP_FREE(porder);
-        _APP_FREE(flag);
-        _APP_FREE(problem);
-        _APP_FREE(stgib);
-        _APP_FREE(vindx);
-        _APP_FREE(interfacefluxmap);
-        _APP_FREE(uinf);
-        _APP_FREE(dt);
-        _APP_FREE(dae_dt);
-        _APP_FREE(factor);
-        _APP_FREE(physicsparam);
-        _APP_FREE(solversparam);
-        _APP_FREE(tau);
-        _APP_FREE(stgdata);
-        _APP_FREE(stgparam);
-        _APP_FREE(avparam);
-        _APP_FREE(fc_u);
-        _APP_FREE(fc_q);
-        _APP_FREE(fc_w);
-        _APP_FREE(dtcoef_u);
-        _APP_FREE(dtcoef_q);
-        _APP_FREE(dtcoef_w);
-        #undef _APP_FREE
+        TemplateFree(lsize, backend);
+        TemplateFree(nsize, backend);
+        TemplateFree(ndims, backend);
+        TemplateFree(comm, backend);
+        TemplateFree(porder, backend);
+        TemplateFree(flag, backend);
+        TemplateFree(problem, backend);
+        TemplateFree(stgib, backend);
+        TemplateFree(vindx, backend);
+        TemplateFree(interfacefluxmap, backend);
+        TemplateFree(uinf, backend);
+        TemplateFree(dt, backend);
+        TemplateFree(dae_dt, backend);
+        TemplateFree(factor, backend);
+        TemplateFree(physicsparam, backend);
+        TemplateFree(solversparam, backend);
+        TemplateFree(tau, backend);
+        TemplateFree(stgdata, backend);
+        TemplateFree(stgparam, backend);
+        TemplateFree(avparam, backend);
+        TemplateFree(fc_u, backend);
+        TemplateFree(fc_q, backend);
+        TemplateFree(fc_w, backend);
+        TemplateFree(dtcoef_u, backend);
+        TemplateFree(dtcoef_q, backend);
+        TemplateFree(dtcoef_w, backend);
     }
 };
 
