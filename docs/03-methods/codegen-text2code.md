@@ -49,7 +49,7 @@ load-bearing here).
 `naca0012steady`, `naca0012unsteady`, `lshape`, `isoq3d`, `isoq`,
 `cone`, `orion`, `nsmach8`, `sharpb2`. Each gets four binaries.
 
-## Family B — codegen + `ExasimSolver<M>` façade (HOT.7.9)
+## Family B — codegen + `ExasimSolver<M>` façade
 
 Same `my_model.hpp` and `pdeapp.txt` as Family A, but the binary's
 main is `apps/library_example/main_facade.cpp` which routes through

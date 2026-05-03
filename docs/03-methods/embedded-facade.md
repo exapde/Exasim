@@ -36,11 +36,12 @@ modeling, coupled multi-physics, anywhere you want to drive Exasim
 from a containing program rather than from a shell.
 
 For the underlying `Model` contract (the per-element pointwise math
-the FEM internals call) see `doc/header_only_api.md`. For the codegen
-authoring path (write `pdemodel.txt`, get `my_model.hpp` for free)
-see `apps/library_example/README.md`. This doc is about the *driver*
-side — how to feed mesh + state to the solver and pull results back
-out.
+the FEM internals call) see [`model-contract.md`](model-contract.md).
+For the codegen authoring path (write `pdemodel.txt`, get
+`my_model.hpp` for free) see
+[`codegen-text2code.md`](codegen-text2code.md). This doc is about
+the *driver* side — how to feed mesh + state to the solver and pull
+results back out.
 
 ## Sections
 
@@ -149,9 +150,13 @@ Under the hood the facade calls `CPreprocessing::takeParallel(comm)`,
 which runs ParMETIS, builds the DMD (distributed mesh decomposition),
 sendrecvs ghost rows, and builds the four runtime structs (app /
 master / mesh / sol) **all in memory**. No per-rank `datain/*.bin`
-files are written or read. (HOT.7.13 made this the default. The
-`EXASIM_FACADE_INMEMORY_MPI=0` env var falls back to the legacy
-file ABI as an escape hatch.)
+files are written or read.
+
+The escape-hatch `EXASIM_FACADE_INMEMORY_MPI=0` env var falls back
+to the legacy file ABI for debugging — it writes per-rank
+`datain/{app,master,mesh,sol}.bin` via `ParallelPreprocessing`, then
+constructs `CSolution<M>(filein, …)` which reads them back. Same
+final numerics; useful when bisecting a runtime issue.
 
 `add_boundary` predicates run on every face the solver inspects —
 including faces owned by other ranks before partitioning. That's
@@ -220,8 +225,8 @@ source file produces four binaries:
 All four CMake builds are independent dirs that all consume the same
 sources; switching is just a different `cmake -B build_<variant>`
 configure plus the matching Kokkos `-DKokkos_DIR`. See
-`doc/tutorial_cpu_gpu_mpi.md` for the exact configure lines and
-mpirun usage.
+[`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md) for the exact
+configure lines and mpirun usage.
 
 For multi-rank GPU, each rank pins one device:
 
@@ -291,7 +296,9 @@ Now any subsequent run (any backend, any partition) gates against
 that baseline via `element_l2_diff.py`. See
 `apps/library_example/element_l2_diff.py` for the comparison logic.
 
-The full test infrastructure is documented in `doc/testing.md`.
+The full test infrastructure is documented in
+[`../04-internals/testing.md`](../04-internals/testing.md), and the
+baseline format in [`../04-internals/baselines.md`](../04-internals/baselines.md).
 
 ## 7. Diagnosing test failures
 
@@ -318,18 +325,17 @@ If only the `facade` stem fails, suspect a facade-specific
 regression — start by comparing the per-iteration Newton trajectory
 against `codegen` (capture stdout from both runs and `diff`).
 
-The `doc/known_test_divergences.md` file tracks open known-failures
-that aren't regressions — currently `orion:mpi`, `orion:mpi_gpu`,
-`periodic:mpi`, `periodic:mpi_gpu` (all partition-handling bugs in
-the legacy code, both stems lockstep).
+[`04-internals/known-divergences.md`](../04-internals/known-divergences.md)
+tracks the small handful of open known-failures and their
+classification.
 
 ---
 
 ## Where to go next
 
-- **Authoring the math**: `doc/getting_started.md` (hand-written),
-  `apps/library_example/README.md` (codegen via `pdemodel.txt`).
-- **Model contract reference**: `doc/header_only_api.md`.
-- **Backend matrix details**: `doc/tutorial_cpu_gpu_mpi.md`.
-- **Test harness layers**: `doc/testing.md`.
-- **App catalog (12 example PDEs)**: `doc/running_apps.md`.
+- **Authoring the math**: [`hand-written-model.md`](hand-written-model.md)
+  (hand-written), [`codegen-text2code.md`](codegen-text2code.md) (codegen via `pdemodel.txt`).
+- **Model contract reference**: [`model-contract.md`](model-contract.md).
+- **Backend matrix details**: [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md).
+- **Test harness layers**: [`../04-internals/testing.md`](../04-internals/testing.md).
+- **Architecture & internals**: [`../04-internals/architecture.md`](../04-internals/architecture.md).

@@ -1,0 +1,5 @@
+
+# Build outputs — platform-specific; rebuild via the install steps
+# in docs/01-installation.md.
+METIS/bin/
+ParMETIS/bin/

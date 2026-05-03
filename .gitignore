@@ -12,7 +12,6 @@
 *.asv
 .gitignore~
 .DS_Store
-docs/
 *.aux
 *.log
 *.out

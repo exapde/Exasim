@@ -573,16 +573,36 @@ Each writes nothing to the working directory (`saveOutputs = 0` by
 default in the façade); read the converged state from the `udg()`
 accessor inside `main()`.
 
-> **MPI status (HOT.7.7):** the in-memory ABI is wired for CPU + GPU.
-> MPI variants currently error out with a "use file path" message
-> because `meshFromArrays` produces a serial mesh and ParMETIS
-> expects distributed metadata (`elemGlobalID`, `elmdist`,
-> `ne_global`). The proper fix — a `solver.set_mesh_distributed(…)`
-> API where each rank provides its slice and ParMETIS repartitions —
-> is queued as HOT.7.8. For multi-rank runs today, drop down to
-> the legacy file-driven `CSolution<M>(filein, ...)` constructor
-> (§6) and use `mpirun` with the `_codegen_mpi` /
-> `_codegen_mpi_gpu` binaries.
+### Multi-rank: `set_mesh_distributed`
+
+The MPI variants of the embedded API let each rank give the solver
+its own slice of the global mesh. ParMETIS then repartitions for
+load balance internally, so the initial split can be any reasonable
+contiguous-range layout:
+
+```cpp
+int np_local, ne_local, node_off, elem_off;
+compute_local_range(nv, mpiprocs, mpirank, np_local, node_off);
+compute_local_range(ne, mpiprocs, mpirank, ne_local, elem_off);
+
+std::vector<double> p_local(2 * np_local);
+std::vector<int>    t_local(4 * ne_local);
+// fill p_local with this rank's range of nodes
+// fill t_local with this rank's range of elements
+//   (vertex IDs are GLOBAL — rank doesn't need to own all referenced vertices)
+
+solver.set_mesh_distributed(
+    p_local.data(), t_local.data(),
+    np_local, ne_local, /*nve=*/4,
+    /*np_global=*/nv, /*ne_global=*/ne);
+solver.add_boundary(...);
+solver.solve(mpiprocs, mpirank);
+```
+
+Stays in memory throughout — no per-rank `datain/*.bin` round-trip.
+See [`embedded-facade.md`](embedded-facade.md) §2 for full multi-rank
+walkthrough, including the `EXASIM_FACADE_INMEMORY_MPI=0` escape
+hatch and `add_boundary` predicate semantics.
 
 ---
 

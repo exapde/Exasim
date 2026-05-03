@@ -10,12 +10,12 @@ This walks through building a Poisson 2D solver from scratch:
   `find_package(Exasim)`).
 
 For the full `Model` contract reference (every method, every signature,
-when it's called) see `doc/header_only_api.md`.
+when it's called) see [`model-contract.md`](model-contract.md).
 
 For the codegen authoring path (write `pdemodel.txt` in the SymEngine
 DSL, run `text2code`, get `my_model.hpp` for free) see
-`apps/library_example/README.md`. This document covers the
-hand-written path.
+[`codegen-text2code.md`](codegen-text2code.md). This document covers
+the hand-written path.
 
 ---
 
