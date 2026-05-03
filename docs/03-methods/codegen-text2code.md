@@ -33,7 +33,8 @@ end
 ```
 
 text2code generates the Jacobians via SymEngine's symbolic
-differentiation; you don't write them by hand.
+differentiation. The author writes the math once; text2code emits
+the derivative-bearing kernels.
 
 `pdeapp.txt` declares the runtime config (porder, tau, NewtonTol,
 boundary conditions, mesh file, etc.). Layout:

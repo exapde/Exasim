@@ -1,9 +1,10 @@
 # Embedded — `ExasimSolver<M>`
 
 `ExasimSolver<M>` is the C++ API for driving Exasim from a containing
-program. Mesh, boundaries, polynomial order, and parameters are set
-on the solver object; the converged solution is returned via
-accessors. No `pdeapp.txt`, `datain/*.bin`, or `dataout/*.bin`.
+program. The mesh, boundaries, polynomial order, and physics
+parameters are set on the solver object; the converged solution is
+returned through accessors. The mesh and parameters live in C++
+values you pass to the solver, and the output stays in memory.
 
 ```cpp
 #include <exasim/solver_facade.hpp>
@@ -113,8 +114,9 @@ std::vector<double> p_local(2 * np_local);
 std::vector<int>    t_local(4 * ne_local);
 // ... fill p_local with this rank's contiguous range of nodes
 // ... fill t_local with this rank's contiguous range of elements
-//     (vertex IDs are GLOBAL — ParMETIS doesn't need the rank to
-//     own all referenced vertices)
+//     (the t_local entries are global vertex IDs; ParMETIS will
+//     fetch the corresponding nodes from whatever rank holds them
+//     during partition migration)
 
 solver.set_mesh_distributed(
     p_local.data(), t_local.data(),

@@ -58,8 +58,10 @@ solver.solve();
 const double* udg = solver.udg();
 ```
 
-In-memory throughout. No `pdeapp.txt`, no `datain/*.bin`, no
-`dataout/*.bin` round-trip.
+The mesh, boundaries, polynomial order, and physics parameters
+are set in C++. The converged solution is returned through
+accessors on the solver object. The driver keeps its data in
+memory across the entire solve.
 
 Walkthrough: [`03-methods/embedded-facade.md`](03-methods/embedded-facade.md).
 

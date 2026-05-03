@@ -27,8 +27,9 @@ The HDG flux is `f = μ ∇u`, i.e. `f[0] = μ uq[1]`, `f[1] = μ uq[2]`.
 ## Step 1: `my_model.hpp`
 
 Inherit `exasim::ModelDefaults<Self>` (CRTP) and override the methods
-your PDE needs. Methods you don't define get zero-fill defaults from
-the base class.
+your PDE needs. The base class provides zero-fill defaults for every
+method, so a `Model` that overrides only the methods relevant to its
+PDE compiles and runs.
 
 ```cpp
 #pragma once
@@ -149,11 +150,13 @@ struct Poisson2D : exasim::ModelDefaults<Poisson2D> {
 };
 ```
 
-What you don't write: `tdfunc`, `sourcew`, `eos`, `vis_*`, `qoi_*`,
-`fhat`, `uhat`, `stab`, the LDG-path Jacobians, the `*_jac_w` blocks,
-the `init{q,udg,wdg,odg}` initializers — `ModelDefaults<Poisson2D>` zero-
-fills them. The runtime never calls into a method whose default makes
-the math wrong; defaults are deliberately "absent" semantics.
+The base class `ModelDefaults<Poisson2D>` supplies zero-fill
+defaults for every other method on the contract: `tdfunc`,
+`sourcew`, `eos`, `vis_*`, `qoi_*`, `fhat`, `uhat`, `stab`, the
+LDG-path Jacobians, the `*_jac_w` blocks, and the `init{q,udg,wdg,odg}`
+initializers. The defaults represent "absent" semantics, and the
+runtime relies on the compile-time constants (`ncw`, `nco`, etc.)
+to skip calls whose output would be unused.
 
 ## Step 2: `pdeapp.txt`
 

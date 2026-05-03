@@ -32,8 +32,8 @@ Two independent dimensions: how you **author** the math, and how you
 | **Hand-written `Model`** | A C++ struct with `KOKKOS_INLINE_FUNCTION static` methods (Flux, Source, BCs, ICs, …) | Full control, custom math, hand-derived Jacobians, no DSL learning curve |
 | **Symbolic codegen** | `pdemodel.txt` in the SymEngine DSL; text2code emits `my_model.hpp` | Concise math, automatic CSE, derivative generation (Jacobians for free) |
 
-Both produce the same `my_model.hpp` shape — the templated core
-doesn't know which path generated it.
+Both produce the same `my_model.hpp` shape, and the templated
+core consumes either one identically.
 
 ### Driving
 
