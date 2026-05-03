@@ -35,8 +35,19 @@
 namespace Kokkos {
 namespace Impl {
 
-std::vector<SerialInternal*> SerialInternal::all_instances;
-std::mutex SerialInternal::all_instances_mutex;
+// Function-local Meyers singletons — see Kokkos_Serial.hpp for
+// the rationale (avoids duplicate atexit destructor registration
+// when the static is referenced from a shared library and its
+// consumer).
+std::vector<SerialInternal*>& SerialInternal::all_instances() {
+  static std::vector<SerialInternal*> instances;
+  return instances;
+}
+
+std::mutex& SerialInternal::all_instances_mutex() {
+  static std::mutex m;
+  return m;
+}
 
 bool SerialInternal::is_initialized() { return m_is_initialized; }
 
@@ -49,8 +60,8 @@ void SerialInternal::initialize() {
 
   // guard pushing to all_instances
   {
-    std::scoped_lock lock(all_instances_mutex);
-    all_instances.push_back(this);
+    std::scoped_lock lock(all_instances_mutex());
+    all_instances().push_back(this);
   }
 }
 
@@ -71,13 +82,14 @@ void SerialInternal::finalize() {
 
   // guard erasing from all_instances
   {
-    std::scoped_lock lock(all_instances_mutex);
-    auto it = std::find(all_instances.begin(), all_instances.end(), this);
-    if (it == all_instances.end())
+    std::scoped_lock lock(all_instances_mutex());
+    auto& instances = all_instances();
+    auto it = std::find(instances.begin(), instances.end(), this);
+    if (it == instances.end())
       Kokkos::abort(
           "Execution space instance to be removed couldn't be found!");
-    std::swap(*it, all_instances.back());
-    all_instances.pop_back();
+    std::swap(*it, instances.back());
+    instances.pop_back();
   }
 }
 
