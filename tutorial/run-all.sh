@@ -46,17 +46,20 @@ if [ -z "$BUILD" ]; then
 fi
 
 case "$VARIANT" in
-    cpu)     SUFFIX="";          RUNNER=();                 IS_MPI=0 ;;
-    gpu)     SUFFIX="_gpu";      RUNNER=();                 IS_MPI=0 ;;
-    mpi)     SUFFIX="_mpi";      RUNNER=(mpirun -np "$NP"); IS_MPI=1 ;;
-    mpi_gpu) SUFFIX="_mpi_gpu";  RUNNER=(mpirun -np "$NP"); IS_MPI=1 ;;
+    cpu)     RUNNER=();                 IS_MPI=0 ;;
+    gpu)     RUNNER=();                 IS_MPI=0 ;;
+    mpi)     RUNNER=(mpirun -np "$NP"); IS_MPI=1 ;;
+    mpi_gpu) RUNNER=(mpirun -np "$NP"); IS_MPI=1 ;;
 esac
 
 if [ -d "$BUILD" ]; then
     BUILD="$(cd "$BUILD" && pwd)"
 fi
 
-echo "[tutorial] VARIANT = $VARIANT (suffix=$SUFFIX)"
+# Tutorial CMake targets carry no variant suffix; each backend
+# variant has its own build dir, which already disambiguates the
+# binary location.
+echo "[tutorial] VARIANT = $VARIANT"
 echo "[tutorial] BUILD   = $BUILD"
 [ "$IS_MPI" = 1 ] && echo "[tutorial] NP      = $NP"
 
@@ -122,7 +125,7 @@ fi
 
 # ---- Section 02 ---- codegen + legacy CLI ----------------------
 S2_NAME="02: codegen + run.hpp"
-S2_TARGET="tutorial_02_codegen_cli${SUFFIX}"
+S2_TARGET="tutorial_02_codegen_cli"
 S2_BIN="$BUILD/$S2_TARGET"
 if generate_codegen "02-codegen-cli" \
    && cmake "$BUILD" -B "$BUILD" > /dev/null 2>&1 \
@@ -144,7 +147,7 @@ fi
 
 # ---- Section 03 ---- codegen + facade --------------------------
 S3_NAME="03: codegen + ExasimSolver<M>::load_pdeapp"
-S3_TARGET="tutorial_03_codegen_facade${SUFFIX}"
+S3_TARGET="tutorial_03_codegen_facade"
 S3_BIN="$BUILD/$S3_TARGET"
 if generate_codegen "03-codegen-facade" \
    && cmake "$BUILD" -B "$BUILD" > /dev/null 2>&1 \
@@ -166,7 +169,7 @@ fi
 
 # ---- Section 04 ---- hand-written + legacy CLI -----------------
 S4_NAME="04: hand-written + run.hpp"
-S4_TARGET="tutorial_04_handwritten_cli${SUFFIX}"
+S4_TARGET="tutorial_04_handwritten_cli"
 S4_BIN="$BUILD/$S4_TARGET"
 if build_target "$S4_TARGET" && [ -x "$S4_BIN" ]; then
     cd "$TUT/04-handwritten-cli"
@@ -185,7 +188,7 @@ fi
 
 # ---- Section 05 ---- hand-written + facade ---------------------
 S5_NAME="05: hand-written + ExasimSolver<M>::set_mesh"
-S5_TARGET="tutorial_05_handwritten_facade${SUFFIX}"
+S5_TARGET="tutorial_05_handwritten_facade"
 S5_BIN="$BUILD/$S5_TARGET"
 if build_target "$S5_TARGET" && [ -x "$S5_BIN" ]; then
     cd "$TUT/05-handwritten-facade"
@@ -201,7 +204,7 @@ fi
 
 # ---- Section 06 ---- hand-written + set_mesh_distributed (MPI) -
 S6_NAME="06: hand-written + ExasimSolver<M>::set_mesh_distributed"
-S6_TARGET="tutorial_06_handwritten_facade_mpi${SUFFIX}"
+S6_TARGET="tutorial_06_handwritten_facade_mpi"
 S6_BIN="$BUILD/$S6_TARGET"
 if [ "$IS_MPI" != 1 ]; then
     record_skip "$S6_NAME (variant $VARIANT is not MPI; section 06 is MPI-only)"
