@@ -965,17 +965,17 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   endforeach()
 
   # End-to-end tutorial smoke (the four supported authoring × driving
-  # combinations on poisson2d). Only on the CPU build dir to avoid
-  # rebuilding the same binaries four times.
-  if (EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
-    add_test(NAME tutorial:run-all
-             COMMAND bash "${EXASIM_DIR}/tutorial/run-all.sh"
-                     --build "${CMAKE_BINARY_DIR}"
-             WORKING_DIRECTORY "${EXASIM_DIR}")
-    set_tests_properties(tutorial:run-all PROPERTIES
-        FIXTURES_REQUIRED "regen_poisson2d;build_poisson2d_codegen;build_poisson2d_facade"
-        TIMEOUT           600)
+  # combinations on poisson2d) for the current backend variant.
+  set(_tut_args "--variant" "${_variant}" "--build" "${CMAKE_BINARY_DIR}")
+  if (EXASIM_MPI AND MPI_FOUND)
+    list(APPEND _tut_args "--np" "2")
   endif()
+  add_test(NAME "tutorial:run-all:${_variant}"
+           COMMAND bash "${EXASIM_DIR}/tutorial/run-all.sh" ${_tut_args}
+           WORKING_DIRECTORY "${EXASIM_DIR}")
+  set_tests_properties("tutorial:run-all:${_variant}" PROPERTIES
+      FIXTURES_REQUIRED "regen_poisson2d;build_poisson2d_codegen${_target_suffix};build_poisson2d_facade${_target_suffix}"
+      TIMEOUT           600)
 endif()
 
 # ======================================================================
