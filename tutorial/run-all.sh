@@ -116,22 +116,33 @@ grep -q "OK ]" /tmp/tut_04.log || fail "04: no OK"
 pass "04"
 
 # ---- Path 05 ---- codegen + AbiAdapter
-# Only attempted on CPU single-rank since cput2cEXASIM is gated on
-# WITH_TEXT2CODE=ON. The binary's RPATH is hardcoded to
-# backend/Model/, so we re-run text2code without --out-dir to
-# populate that location before invoking the binary.
-P5_BIN="$BUILD/cput2cEXASIM"
-if [ "$VARIANT" = "cpu" ] && [ -x "$P5_BIN" ]; then
-    echo "[tutorial] path 05 — codegen + AbiAdapter"
+# Variant → binary name mapping. AbiAdapter binaries are gated on
+# WITH_TEXT2CODE=ON. The RPATH is hardcoded to backend/Model/, so
+# re-run text2code without --out-dir to populate that location
+# before invoking the binary.
+case "$VARIANT" in
+    cpu)     P5_NAME="cput2cEXASIM" ;;
+    mpi)     P5_NAME="cpumpit2cEXASIM" ;;
+    gpu)     P5_NAME="gput2cEXASIM" ;;
+    mpi_gpu) P5_NAME="gpumpit2cEXASIM" ;;
+esac
+P5_BIN="$BUILD/$P5_NAME"
+echo "[tutorial] path 05 — codegen + AbiAdapter ($P5_NAME)"
+if [ -x "$P5_BIN" ]; then
     cd "$APP/poisson2d_codegen"
     "$EXASIM/build/text2code" ./pdeapp.txt > /tmp/tut_05_t2c.log 2>&1 \
         || fail "05: text2code failed"
-    "$P5_BIN" ./pdeapp.txt > /tmp/tut_05.log 2>&1 \
-        || fail "05: $P5_BIN"
+    if [ "$IS_MPI" = 1 ]; then
+        "${RUNNER[@]}" "$P5_BIN" ./pdeapp.txt > /tmp/tut_05.log 2>&1 \
+            || fail "05: $P5_BIN"
+    else
+        "$P5_BIN" ./pdeapp.txt > /tmp/tut_05.log 2>&1 \
+            || fail "05: $P5_BIN"
+    fi
     grep -q "Updated Norm:" /tmp/tut_05.log || fail "05: no Newton convergence"
     pass "05"
 else
-    echo "[SKIP] 05: cput2cEXASIM not available for variant $VARIANT (needs WITH_TEXT2CODE=ON, CPU)"
+    echo "[SKIP] 05: $P5_BIN not built (needs WITH_TEXT2CODE=ON)"
 fi
 
 echo "[tutorial] $VARIANT: all paths pass"
