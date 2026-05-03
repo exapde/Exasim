@@ -1336,6 +1336,191 @@ inline void setperiodicfaces(
     } // ip
 }
 
+// ----------------------------------------------------------------
+// HOT.7.17 — periodic node-ID merging for the MPI path.
+//
+// The serial setperiodicfaces (makemeshexasim.hpp) rewrites
+// connectivity t so that periodic-paired vertices share the SAME
+// vertex ID. After that, buildConn's mkf2e_hash naturally pairs
+// periodic faces because the two sides have identical sorted
+// vertex IDs.
+//
+// The parallel setperiodicfaces (above) updates t2t with global
+// element IDs but does NOT merge the global node IDs. Result:
+// the runtime's buildConn (vertex-id-based) treats periodic faces
+// as boundary faces, producing wrong solutions (32% off serial on
+// our periodic test).
+//
+// This routine fixes it: collect periodic-boundary nodes per
+// rank, match them by the same q-coordinate xiny() that
+// setperiodicfaces uses on faces, and rewrite mesh.nodeGlobalID
+// so each pair shares a canonical (smaller) global ID. Called
+// from ParallelPreprocessing right after setperiodicfaces and
+// before computeElementToGlobalNodeMap.
+// ----------------------------------------------------------------
+inline void mergePeriodicNodeIDs(Mesh& mesh, MPI_Comm comm)
+{
+    if (mesh.nprdexpr <= 0) return;
+
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    const int dim   = mesh.dim;
+    const int ncomp = mesh.nprdcom;
+    const int nve   = mesh.nve;
+    const int nvf   = mesh.nvf;
+    const int nfe   = mesh.nfe;
+    const int ne    = mesh.ne;
+    const int* localfaces = mesh.localfaces.data();
+
+    double x = 0.0, y = 0.0, z = 0.0;
+    te_parser tep;
+    tep.set_variables_and_functions({{"x", &x}, {"y", &y}, {"z", &z}});
+
+    // Final node remap, applied after all periodic pairs processed.
+    // Map: global node ID → canonical global node ID (the smaller of
+    // each matched pair). Iteration: chase canonicals until stable
+    // (handles 3-way periodic, e.g. xy-periodic 2D box where corner
+    // nodes have three names that all canonicalize to the smallest).
+    std::unordered_map<int, int> remap;
+
+    for (int ip = 0; ip < mesh.nprdexpr; ++ip) {
+        const int bc1 = mesh.periodicBoundaries1[ip] - 1;
+        const int bc2 = mesh.periodicBoundaries2[ip] - 1;
+
+        // Collect this rank's local nodes on each side. A node
+        // can appear in multiple faces — dedupe by local node ID.
+        std::unordered_set<int> nodes1Local, nodes2Local;
+        for (int e = 0; e < ne; ++e) {
+            for (int lf = 0; lf < nfe; ++lf) {
+                int val = mesh.t2t[lf + nfe * e];
+                // After setperiodicfaces ran, t2t was rewritten for
+                // periodic faces (val is now a global element ID).
+                // We need the ORIGINAL boundary marker. Easier: skip
+                // anything not currently a -1 boundary marker — at
+                // this call site we ALSO need bc1/bc2 markers, but
+                // those were overwritten. Approach: re-derive from
+                // mesh.bf if available, else fall back to walking
+                // faces and checking the boundaryConditions list.
+                if (val >= 0) continue;  // not a boundary face
+                int k = -val - 1;
+                if (k != bc1 && k != bc2) continue;
+
+                auto& sink = (k == bc1) ? nodes1Local : nodes2Local;
+                for (int i = 0; i < nvf; ++i) {
+                    int ln_face = localfaces[i + nvf * lf];
+                    int node    = mesh.t[ln_face + nve * e];
+                    sink.insert(node);
+                }
+            }
+        }
+
+        // Build per-rank arrays of (gnode, q[0..ncomp-1]).
+        auto buildSide = [&](std::unordered_set<int>& nodesLocal,
+                             char** exprs,
+                             std::vector<int>& gnodes,
+                             std::vector<double>& q)
+        {
+            gnodes.reserve(nodesLocal.size());
+            q.reserve(nodesLocal.size() * ncomp);
+            for (int n : nodesLocal) {
+                gnodes.push_back(mesh.nodeGlobalID[n]);
+                const double* xp = &mesh.p[dim * n];
+                x = (dim > 0) ? xp[0] : 0.0;
+                y = (dim > 1) ? xp[1] : 0.0;
+                z = (dim > 2) ? xp[2] : 0.0;
+                for (int c = 0; c < ncomp; ++c)
+                    q.push_back(tep.evaluate(exprs[ip * ncomp + c]));
+            }
+        };
+
+        std::vector<int>    g1Local, g2Local;
+        std::vector<double> q1Local, q2Local;
+        buildSide(nodes1Local, mesh.periodicExprs1, g1Local, q1Local);
+        buildSide(nodes2Local, mesh.periodicExprs2, g2Local, q2Local);
+
+        int n1loc = (int)g1Local.size();
+        int n2loc = (int)g2Local.size();
+
+        // Allgather everything.
+        std::vector<int> counts1(size), counts2(size);
+        MPI_Allgather(&n1loc, 1, MPI_INT, counts1.data(), 1, MPI_INT, comm);
+        MPI_Allgather(&n2loc, 1, MPI_INT, counts2.data(), 1, MPI_INT, comm);
+
+        std::vector<int> disp1(size), disp2(size);
+        int n1glob = 0, n2glob = 0;
+        for (int r = 0; r < size; ++r) {
+            disp1[r] = n1glob; n1glob += counts1[r];
+            disp2[r] = n2glob; n2glob += counts2[r];
+        }
+        if (n1glob == 0 || n2glob == 0) continue;
+
+        std::vector<int>    g1_g(n1glob), g2_g(n2glob);
+        std::vector<double> q1_g(n1glob * ncomp), q2_g(n2glob * ncomp);
+
+        MPI_Allgatherv(g1Local.data(), n1loc, MPI_INT,
+                       g1_g.data(), counts1.data(), disp1.data(), MPI_INT, comm);
+        MPI_Allgatherv(g2Local.data(), n2loc, MPI_INT,
+                       g2_g.data(), counts2.data(), disp2.data(), MPI_INT, comm);
+        {
+            std::vector<int> qc(size), qd(size);
+            for (int r = 0; r < size; ++r) {
+                qc[r] = counts1[r] * ncomp; qd[r] = disp1[r] * ncomp;
+            }
+            MPI_Allgatherv(q1Local.data(), n1loc * ncomp, MPI_DOUBLE,
+                           q1_g.data(), qc.data(), qd.data(), MPI_DOUBLE, comm);
+            for (int r = 0; r < size; ++r) {
+                qc[r] = counts2[r] * ncomp; qd[r] = disp2[r] * ncomp;
+            }
+            MPI_Allgatherv(q2Local.data(), n2loc * ncomp, MPI_DOUBLE,
+                           q2_g.data(), qc.data(), qd.data(), MPI_DOUBLE, comm);
+        }
+
+        // Match side 1 nodes to side 2 nodes by q-coordinate.
+        std::vector<int> in(n1glob, -1);
+        xiny<double>(in.data(), q1_g.data(), q2_g.data(),
+                     n1glob, n2glob, ncomp);
+
+        // Each match defines a (g1, g2) pair → both rename to
+        // min(g1, g2). Multiple ranks see the same global pairs
+        // (we Allgathered everything); the remap is identical
+        // across ranks by construction.
+        for (int j = 0; j < n1glob; ++j) {
+            int idx2 = in[j];
+            if (idx2 < 0) continue;
+            int g1 = g1_g[j];
+            int g2 = g2_g[idx2];
+            int canon = std::min(g1, g2);
+            int other = std::max(g1, g2);
+            if (canon != other)
+                remap[other] = canon;
+        }
+    }
+
+    if (remap.empty()) return;
+
+    // Resolve transitive maps (for corner nodes shared between
+    // two periodic pairs, e.g. xy-periodic 2D box).
+    auto resolve = [&](int g) {
+        while (true) {
+            auto it = remap.find(g);
+            if (it == remap.end() || it->second == g) return g;
+            g = it->second;
+        }
+    };
+    for (auto& kv : remap) kv.second = resolve(kv.second);
+
+    // Apply remap to this rank's nodeGlobalID.
+    for (auto& g : mesh.nodeGlobalID) {
+        auto it = remap.find(g);
+        if (it != remap.end()) g = it->second;
+    }
+    if (rank == 0)
+        std::cout << "[mergePeriodicNodeIDs] merged " << remap.size()
+                  << " periodic node pairs across " << size << " ranks\n";
+}
+
 inline void computeElementToGlobalNodeMap(Mesh& mesh, const vector<int> &elempart)
 {
     const int nve = mesh.nve;
@@ -2831,9 +3016,17 @@ DMD initializeDMD(Mesh& mesh, const Master& master, const PDE& pde, MPI_Comm com
     else 
       readParFieldFromBinaryFile(make_path(pde.datapath, pde.xdgfile), mesh.elemGlobalID, mesh.xdg, mesh.xdgdims);
             
-    setperiodicfaces(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.p.data(),    
+    // HOT.7.17 — must run BEFORE setperiodicfaces. setperiodicfaces
+    // overwrites t2t boundary markers for periodic faces with global
+    // element IDs, so we lose the ability to identify periodic-
+    // boundary nodes by walking t2t. mergePeriodicNodeIDs unifies
+    // global node IDs across periodic faces so the runtime's
+    // buildConn (vertex-id-based) sees periodic faces as interior.
+    mergePeriodicNodeIDs(mesh, comm);
+
+    setperiodicfaces(mesh.t2t.data(), mesh.t.data(), mesh.localfaces.data(), mesh.p.data(),
         mesh.elemGlobalID.data(), mesh.periodicBoundaries1.data(), mesh.periodicBoundaries2.data(),
-        mesh.periodicExprs1, mesh.periodicExprs2, mesh.dim, mesh.nve, mesh.nvf, mesh.nfe, mesh.ne, 
+        mesh.periodicExprs1, mesh.periodicExprs2, mesh.dim, mesh.nve, mesh.nvf, mesh.nfe, mesh.ne,
         mesh.nprdexpr, mesh.nprdcom, nboufaces, comm, dmd.nbinfo);
                                         
     dmd.numneigh = static_cast<int>(dmd.nbinfo.size() / 6); 
