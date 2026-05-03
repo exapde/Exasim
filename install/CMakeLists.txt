@@ -941,14 +941,15 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
                COMMAND bash "${EXASIM_DIR}/apps/library_example/validate_codegen.sh"
                        ${_test_args} "${_ex}"
                WORKING_DIRECTORY "${EXASIM_DIR}")
-      # 1200s gate timeout — cone (104k elems) and sharpb2 (15k) on
-      # lanka CPU under -j8 contention can take ~10 min. 600s was
-      # tripping false timeouts even though the solver was making
-      # progress. Faster GPU/MPI variants finish well under this.
+      # 1800s gate timeout — Mac runs cone (104k elems) and
+      # sharpb2 (15k) at 134/144s, but lanka CPU under -j8 contention
+      # is ~10x slower per-thread on these heavy NS meshes. 1200s
+      # was still tripping. GPU / MPI variants are much faster and
+      # finish well under this.
       set_tests_properties("${_stem}:${_ex}:${_variant}" PROPERTIES
           FIXTURES_REQUIRED       "regen_${_ex};${_fixture}"
           PASS_REGULAR_EXPRESSION "\\[ OK \\]"
-          TIMEOUT                 1200)
+          TIMEOUT                 1800)
     endforeach()
   endforeach()
 endif()
