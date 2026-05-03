@@ -1,33 +1,35 @@
-# 05 — Codegen + AbiAdapter (legacy `cput2cEXASIM`)
+# 05 — Codegen + AbiAdapter (`cput2cEXASIM` and family)
 
-Authoring: SymEngine DSL in `pdemodel.txt`.
-Driving: `cput2cEXASIM` (or `cpumpit2cEXASIM`, `gput2cEXASIM`,
-`gpumpit2cEXASIM`). These binaries are built from
-`backend/Main/main.cpp`, which calls
+The original Exasim driving path. `backend/Main/main.cpp` calls
 `exasim::run<exasim::detail::AbiAdapter>(argc, argv)`. The
-`AbiAdapter` marker tells the FEM templates to dispatch every kernel
-through `dlsym` against `libpdemodel{serial,cuda,hip}.{so,dylib}`.
+`AbiAdapter` marker tells the FEM templates to dispatch every
+kernel through the legacy `libpdemodel.hpp` ABI — i.e. linked
+symbols in `libpdemodel{serial,cuda,hip}.{so,dylib}` resolved at
+load time.
 
-## Status
+The binary's RPATH points at `backend/Model/`, so text2code must
+write its output there (not the per-target dir).
 
-This path is not currently exercised by the test matrix. A spot-check
-with `cput2cEXASIM` on `poisson2d` produces NaN residual at Newton
-iteration 0 — the dispatch through libpdemodel disagrees with the
-templated runtime in some way. Treat as deprecated until a
-regression test brings it back to green.
-
-For new code use path 03 ([`03-codegen-cli/`](../03-codegen-cli/README.md))
-or path 04 ([`04-codegen-facade/`](../04-codegen-facade/README.md)).
-
-## Build + run (for reference)
+## Generate + run
 
 ```bash
-cmake -S install -B build_cpu -DWITH_TEXT2CODE=ON ...
-cmake --build build_cpu --target cput2cEXASIM
-cd apps/library_example/poisson2d_codegen
-bash ../regenerate.sh poisson2d
-$EXASIM/build_cpu/cput2cEXASIM ./pdeapp.txt
+cd $EXASIM/apps/library_example/poisson2d_codegen
+$EXASIM/build/text2code ./pdeapp.txt   # writes backend/Model/libpdemodel*.dylib
+$EXASIM/build/cput2cEXASIM ./pdeapp.txt
 ```
 
-See [`../../docs/03-methods/abi-adapter.md`](../../docs/03-methods/abi-adapter.md)
-for the full target list.
+For MPI / GPU / MPI+GPU: `cpumpit2cEXASIM`, `gput2cEXASIM`,
+`gpumpit2cEXASIM`. These are gated on `WITH_TEXT2CODE=ON` at
+configure time.
+
+## Note on text2code output
+
+The other tutorial paths use `regenerate.sh`, which calls
+`text2code --out-dir <example_dir>`. The output goes to the
+example's own directory and the example's binary RPATH-loads
+from there. The AbiAdapter binaries
+(`cput2cEXASIM`, etc.) do NOT honor that — their RPATH is
+hardcoded to `backend/Model/`. Always run `text2code` without
+`--out-dir` before running the AbiAdapter binaries.
+
+Reference: [`../../docs/03-methods/abi-adapter.md`](../../docs/03-methods/abi-adapter.md).

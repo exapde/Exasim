@@ -3,11 +3,12 @@
 The original Exasim driving path. `backend/Main/main.cpp` calls
 `exasim::run<exasim::detail::AbiAdapter>(argc, argv)`. The
 `AbiAdapter` marker type instructs the FEM templates to dispatch
-every kernel call through the legacy `libpdemodel.hpp` ABI — i.e.
-`dlsym` lookup against `libpdemodel{serial,cuda,hip}.{so,dylib}`.
+every kernel call through the legacy `libpdemodel.hpp` ABI: the
+binary RPATH-links `libpdemodel{serial,cuda,hip}.{so,dylib}` from
+`backend/Model/`.
 
 text2code generates the library from `pdemodel.txt`; the binary
-loads it at runtime.
+loads it at startup.
 
 ## Targets
 
@@ -34,35 +35,20 @@ cmake --build build --target cput2cEXASIM
 
 ```bash
 cd apps/library_example/poisson2d_codegen
-bash ../regenerate.sh poisson2d            # generate libpdemodel*
+$EXASIM/build/text2code ./pdeapp.txt       # writes backend/Model/libpdemodel*
 $EXASIM/build/cput2cEXASIM ./pdeapp.txt
 ```
 
-The binary's `RPATH` points at `apps/library_example/<name>_codegen/`
-(per-example output dir), so it picks up the freshly-generated
-library.
+The binary's RPATH is `backend/Model/`. text2code without
+`--out-dir` writes there. The codegen + facade tutorials use
+`regenerate.sh` which passes `--out-dir <example_dir>` for parallel-
+safe per-example libs; cput2cEXASIM does not honor that, so use the
+plain text2code invocation above.
 
-## Status
+## Test coverage
 
-The AbiAdapter path is **not exercised by the test matrix**. The 12
-codegen examples in `apps/library_example/<name>_codegen/` use the
-templated `GeneratedModel` path (their `main.cpp` calls
-`exasim::run<GeneratedModel>(argc, argv)`), not the AbiAdapter.
-
-A spot-check on `cput2cEXASIM` against `poisson2d` produces NaN
-residual at Newton iteration 0 — the dispatch through libpdemodel
-disagrees with the runtime in some way. Diagnosis pending; treat
-this path as deprecated until a regression test brings it back to
-green. The templated path
-([`hand-written-model.md`](hand-written-model.md),
-[`embedded-facade.md`](embedded-facade.md)) is the supported entry
-point for new code.
-
-## When you'd want this path
-
-- Reproducing pre-templated-path Exasim runs.
-- Migrating an old project that depended on `cput2cEXASIM`'s exact
-  CLI surface.
-- Bisecting whether a regression came from the runtime kernels or
-  the templated dispatch — the AbiAdapter path bypasses the
-  templated kernel<M> wrappers entirely.
+`tutorial:run-all:cpu` runs `cput2cEXASIM` against `poisson2d`
+([`../../tutorial/05-codegen-abi-adapter/`](../../tutorial/05-codegen-abi-adapter/README.md)).
+The AbiAdapter MPI / GPU variants
+(`cpumpit2cEXASIM`, `gput2cEXASIM`, `gpumpit2cEXASIM`) compile when
+`WITH_TEXT2CODE=ON` but are not currently part of the test matrix.
