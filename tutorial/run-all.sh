@@ -59,9 +59,9 @@ pass() { echo "[ OK ]  $1"; }
 fail() { echo "[FAIL] $1"; exit 1; }
 
 # ---- Path 01 ---- hand-written + run.hpp
-# poisson2d_template doesn't have multi-backend variants in the
-# library_example layout — only the codegen / facade families do.
-# Skip path 01 for non-CPU variants and note it.
+# The committed pdeapp.txt has mpiprocs=2; sed to match the actual
+# rank count this variant runs with. Single-rank variants need
+# mpiprocs=1; mpi variants run via mpirun -np $NP and need mpiprocs=$NP.
 P1_BIN="$BUILD/poisson2d_template${SUFFIX}"
 echo "[tutorial] path 01 — hand-written + legacy CLI"
 if [ -x "$P1_BIN" ]; then
@@ -69,9 +69,14 @@ if [ -x "$P1_BIN" ]; then
     rm -rf datain dataout
     mkdir -p datain dataout
     if [ "$IS_MPI" = 1 ]; then
-        "${RUNNER[@]}" "$P1_BIN" ./pdeapp.txt > /tmp/tut_01.log 2>&1 || fail "01: $P1_BIN"
+        sed "s/^mpiprocs *=.*/mpiprocs = $NP;/" pdeapp.txt > pdeapp_run.txt
     else
-        "$P1_BIN" ./pdeapp.txt > /tmp/tut_01.log 2>&1 || fail "01: $P1_BIN"
+        sed 's/^mpiprocs *=.*/mpiprocs = 1;/' pdeapp.txt > pdeapp_run.txt
+    fi
+    if [ "$IS_MPI" = 1 ]; then
+        "${RUNNER[@]}" "$P1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 || fail "01: $P1_BIN"
+    else
+        "$P1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 || fail "01: $P1_BIN"
     fi
     [ -f "dataout/outudg_np0.bin" ] || fail "01: no outudg"
     pass "01"
