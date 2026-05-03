@@ -447,14 +447,25 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfigVersion.cmake
     DESTINATION lib/cmake/Exasim)
 
-# If text2code has already been built (text2code is configured as a
-# separate CMake project — see text2code/text2code/CMakeLists.txt),
-# pick up the binary and ship it. Users can invoke it as
-# `${CMAKE_INSTALL_PREFIX}/bin/text2code <pdeapp.txt>`.
-set(_text2code_bin "${EXASIM_DIR}/build/text2code")
-if(EXISTS "${_text2code_bin}")
-    install(PROGRAMS "${_text2code_bin}" DESTINATION bin)
-endif()
+# Build + install text2code as part of the main install target.
+# text2code is its own CMake sub-project (text2code/text2code/) that
+# emits its binary into ${EXASIM_DIR}/build/text2code. We use
+# ExternalProject_Add so the main build/install drive it transparently.
+include(ExternalProject)
+set(_t2c_src     "${EXASIM_DIR}/text2code/text2code")
+set(_t2c_build   "${CMAKE_CURRENT_BINARY_DIR}/text2code-build")
+set(_t2c_binary  "${EXASIM_DIR}/build/text2code")
+ExternalProject_Add(text2code_ext
+    SOURCE_DIR        ${_t2c_src}
+    BINARY_DIR        ${_t2c_build}
+    CMAKE_ARGS        -DEXASIM_ROOT=${EXASIM_DIR}
+                      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    BUILD_BYPRODUCTS  ${_t2c_binary}
+    INSTALL_COMMAND   ""
+    BUILD_ALWAYS      OFF)
+install(PROGRAMS ${_t2c_binary} DESTINATION bin
+        OPTIONAL)  # OPTIONAL so the install doesn't fail if text2code
+                   # was disabled (the rest of Exasim still works).
 
 # ======================================================================
 #  HOT.3 — user-facing examples driven by CSolution<MyModel>
@@ -952,6 +963,19 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           TIMEOUT                 1800)
     endforeach()
   endforeach()
+
+  # End-to-end tutorial smoke (the four supported authoring × driving
+  # combinations on poisson2d). Only on the CPU build dir to avoid
+  # rebuilding the same binaries four times.
+  if (EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
+    add_test(NAME tutorial:run-all
+             COMMAND bash "${EXASIM_DIR}/tutorial/run-all.sh"
+                     --build "${CMAKE_BINARY_DIR}"
+             WORKING_DIRECTORY "${EXASIM_DIR}")
+    set_tests_properties(tutorial:run-all PROPERTIES
+        FIXTURES_REQUIRED "regen_poisson2d;build_poisson2d_codegen;build_poisson2d_facade"
+        TIMEOUT           600)
+  endif()
 endif()
 
 # ======================================================================

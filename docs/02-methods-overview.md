@@ -1,123 +1,96 @@
-# 2. Methods overview
+# Methods overview
 
-There are three independent choices when running Exasim:
+Three independent choices when running Exasim.
 
 | Dimension | Options |
 |---|---|
-| **How you author the math** | Hand-written `Model` C++ struct, or symbolic `pdemodel.txt` + text2code |
-| **How you drive the solver** | Legacy CLI (`exasim::run<M>(argc, argv)`) or embedded library (`ExasimSolver<M>`) |
-| **What backend it runs on** | CPU, GPU (CUDA / HIP), MPI, MPI+GPU |
+| Authoring | hand-written `Model` struct, or symbolic `pdemodel.txt` + text2code |
+| Driving | legacy CLI `exasim::run<M>(argc, argv)`, or embedded library `ExasimSolver<M>`, or AbiAdapter (text2code-generated `libpdemodel*.so` loaded via `cput2cEXASIM` and friends) |
+| Backend | CPU, GPU (CUDA / HIP), MPI, MPI+GPU |
 
-These dimensions are independent — every authoring × driving × backend
-combination works.
+Every authoring × driving × backend combination works. The model
+contract, runtime kernels, and pdeapp/grid contract are identical
+across them.
 
-## Decision tree
+## Authoring
 
-```
-                      ┌─ Standalone binary, runtime-configured?
-                      │     → Legacy CLI driving
-                      │       (read pdeapp.txt, mesh from disk, write dataout/)
-Need a CLI tool? ─────┤
-                      │
-                      └─ Embed in a containing C++ program?
-                            → ExasimSolver<M> driving
-                              (mesh as flat C arrays, params as method calls,
-                               solution from accessors, no disk round-trip)
+### Hand-written `Model`
 
+Write a C++ struct with `KOKKOS_INLINE_FUNCTION static` methods
+(Flux, Source, Ubou, Initu, Tau, …). Full contract in
+[`03-methods/model-contract.md`](03-methods/model-contract.md).
 
-                              ┌─ Hand-derive the math?
-                              │     → Hand-written Model struct
-                              │       (full control, learn the contract)
-Where does the math come from?─┤
-                              │
-                              └─ Symbolic / quick-iteration?
-                                    → Codegen path
-                                      (write pdemodel.txt in a small DSL,
-                                       text2code emits the Jacobians,
-                                       my_model.hpp is generated)
-```
+### Codegen via `pdemodel.txt`
 
-## The four binaries each combination produces
+Write the math symbolically in the SymEngine DSL. `text2code` reads
+`pdemodel.txt`, generates `my_model.hpp`, and compiles
+`libpdemodel{serial,cuda,hip}.{so,dylib}`. The generated `my_model.hpp`
+satisfies the same contract a hand-written struct does.
 
-For any concrete `<name>` and authoring choice, the build produces
-four binaries (one per backend):
+Walkthrough: [`03-methods/codegen-text2code.md`](03-methods/codegen-text2code.md).
 
-```
-build_cpu/<name>          # CPU, single rank
-build_gpu/<name>_gpu      # GPU (CUDA or HIP), single rank
-build_mpi/<name>_mpi      # CPU, multi-rank MPI
-build_mpi_gpu/<name>_mpi_gpu  # GPU + MPI, multi-rank
+## Driving
+
+### Legacy CLI — `exasim::run<M>(argc, argv)`
+
+`main.cpp` is three lines:
+```cpp
+#include <exasim/run.hpp>
+#include "my_model.hpp"
+int main(int argc, char** argv) {
+    return exasim::run<MyModel>(argc, argv);
+}
 ```
 
-These come from the same source files; the difference is which
-Kokkos build prefix is linked and which `EXASIM_*` defines are set
-at compile time.
+The binary reads `pdeapp.txt` from disk, runs preprocessing into
+`datain/*.bin`, solves, writes `dataout/*.bin`.
 
-## What's the same across all combinations
+Walkthrough: [`03-methods/hand-written-model.md`](03-methods/hand-written-model.md).
 
-- The model contract (`Flux`, `Source`, `Ubou`, `Initu`, `Tau`, …).
-  The signatures are identical whether you wrote them by hand or
-  text2code emitted them.
-- The runtime kernels (`<exasim/solution.hpp>` instantiates the
-  templated FEM internals on whatever `Model` you give it).
-- The mesh, boundary, and parameter contract (the `Model` struct
-  declares only the math; the surrounding `pdeapp.txt` or
-  `ExasimSolver<M>` calls supply the rest).
+### Embedded library — `ExasimSolver<M>`
 
-## Concrete walkthroughs
+```cpp
+exasim::ExasimSolver<MyModel> solver;
+solver.set_mesh(p.data(), t.data(), nv, ne, nve);
+solver.add_boundary(tag, [](const double* x){ … });
+solver.set_polynomial_order(3);
+solver.solve();
+const double* udg = solver.udg();
+```
 
-For each combination there's a focused walkthrough:
+In-memory throughout. No `pdeapp.txt`, no `datain/*.bin`, no
+`dataout/*.bin` round-trip.
 
-| Combination | Doc |
-|---|---|
-| Hand-written + legacy | [`03-methods/hand-written-model.md`](03-methods/hand-written-model.md) |
-| Hand-written + embedded | [`03-methods/embedded-facade.md`](03-methods/embedded-facade.md) (also covers codegen + embedded) |
-| Codegen + legacy | [`03-methods/codegen-text2code.md`](03-methods/codegen-text2code.md) |
-| Codegen + embedded | [`03-methods/embedded-facade.md`](03-methods/embedded-facade.md) §`load_pdeapp` |
-| Backend-specific build & run | [`03-methods/cpu-gpu-mpi-mpigpu.md`](03-methods/cpu-gpu-mpi-mpigpu.md) |
+Walkthrough: [`03-methods/embedded-facade.md`](03-methods/embedded-facade.md).
 
-## Embedding pros and cons
+### AbiAdapter — `cput2cEXASIM` / `gpumpit2cEXASIM` and friends
 
-The embedded library API (`ExasimSolver<M>`) is the recommended
-default for new code. It is:
+The original Exasim driving path. `backend/Main/main.cpp` calls
+`exasim::run<exasim::detail::AbiAdapter>(argc, argv)`; the AbiAdapter
+dispatches every kernel call through `dlsym` lookup against
+`libpdemodel{serial,cuda,hip}.{so,dylib}`. text2code generates the
+library; the binary loads it at runtime.
 
-- **In-memory throughout** — no `pdeapp.txt`, `datain/*.bin`, or
-  `dataout/*.bin` round-trips. Your program builds the mesh as
-  C arrays, passes them to the solver, and reads `udg()` /
-  `uhat()` / `wdg()` accessors when the solve completes.
-- **Type-safe** — boundary classifiers are C++ lambdas, not
-  tinyexpr strings parsed at runtime. Misuse fails at compile time.
-- **MPI-aware** — `set_mesh_distributed` lets each rank give its
-  own slice of the global mesh. ParMETIS partitions for load
-  balance internally.
+Walkthrough: [`03-methods/abi-adapter.md`](03-methods/abi-adapter.md).
 
-The legacy CLI driving (`exasim::run<M>(argc, argv)`) is preferred
-when:
+## Backend
 
-- You want a runnable binary configured by a text file (HPC
-  job scripts, parameter studies).
-- You're calling Exasim from Julia / Python / MATLAB via subprocess.
-- You're working with an existing `pdeapp.txt` workflow you don't
-  want to port.
+Compile-time choice driven by CMake flags. Same source code, four
+binaries:
 
-Both produce identical numerics. Same `Model` struct, same FEM
-kernels — just different ways to feed them inputs and read outputs.
+| Variant | Kokkos build | EXASIM flags | Binary suffix |
+|---|---|---|---|
+| CPU | `kokkos/buildserial` | `EXASIM_NOMPI=ON` | (none) |
+| GPU | `kokkos/buildcuda` or `buildhip` | `EXASIM_NOMPI=ON, EXASIM_CUDA=ON` (or `EXASIM_HIP=ON`) | `_gpu` |
+| MPI | `kokkos/buildserial` | `EXASIM_MPI=ON` | `_mpi` |
+| MPI+GPU | `kokkos/buildcuda` or `buildhip` | `EXASIM_MPI=ON, EXASIM_CUDA=ON` | `_mpi_gpu` |
 
-## Hand-written vs codegen pros and cons
+Build instructions per platform in
+[`01-installation.md`](01-installation.md). Backend-specific runtime
+notes in [`03-methods/cpu-gpu-mpi-mpigpu.md`](03-methods/cpu-gpu-mpi-mpigpu.md).
 
-Hand-written:
-- Full control over the math, especially Jacobian derivations.
-- No SymEngine learning curve.
-- Custom physics that don't fit the DSL (e.g. table lookups,
-  external solvers in your `Source` term).
-- Easier to debug when residuals misbehave — you know what every
-  line is doing.
+## See also
 
-Codegen:
-- Concise — write the math once, derivatives are auto-generated.
-- Less boilerplate than hand-writing dozens of pointwise
-  functions for a complex PDE.
-- Integrated with `text2code`'s SymEngine CSE so output is fast.
-
-Both produce the same `my_model.hpp` shape; `<exasim/run.hpp>`
-and `ExasimSolver<M>` don't know which path created it.
+For a guided tour through every authoring × driving combination on
+the same Poisson problem, see
+[`tutorial/`](../tutorial/README.md).

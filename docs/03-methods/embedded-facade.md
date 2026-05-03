@@ -1,17 +1,15 @@
-# In-memory Exasim — `ExasimSolver<M>` walkthrough
+# Embedded — `ExasimSolver<M>`
 
-An end-to-end guide to running Exasim *without* `pdeapp.txt` /
-`datain/` / `dataout/` round-trips on disk. The math, the mesh, the
-parameters, and the solution all live in C++ values you pass to and
-read from a façade object.
-
-This is the path most users should take for new code:
+`ExasimSolver<M>` is the C++ API for driving Exasim from a containing
+program. Mesh, boundaries, polynomial order, and parameters are set
+on the solver object; the converged solution is returned via
+accessors. No `pdeapp.txt`, `datain/*.bin`, or `dataout/*.bin`.
 
 ```cpp
 #include <exasim/solver_facade.hpp>
 #include "my_model.hpp"
 
-int main(int argc, char** argv) {
+int main() {
     Kokkos::initialize();
     {
         exasim::ExasimSolver<MyModel> solver;
@@ -20,28 +18,14 @@ int main(int argc, char** argv) {
         solver.set_polynomial_order(3);
         solver.set_physics_params({1.0});
         solver.solve();
-
         const double* udg = solver.udg();
-        // ... do something with the solution
     }
     Kokkos::finalize();
 }
 ```
 
-The legacy `<exasim/run.hpp>` + `pdeapp.txt` + `cmd_line` driver stays
-supported and is a fine choice when you want a CLI binary that ingests
-text files. The facade is the right choice when Exasim is *embedded*
-in another C++ program — design optimization loops, reduced-order
-modeling, coupled multi-physics, anywhere you want to drive Exasim
-from a containing program rather than from a shell.
-
-For the underlying `Model` contract (the per-element pointwise math
-the FEM internals call) see [`model-contract.md`](model-contract.md).
-For the codegen authoring path (write `pdemodel.txt`, get
-`my_model.hpp` for free) see
-[`codegen-text2code.md`](codegen-text2code.md). This doc is about
-the *driver* side — how to feed mesh + state to the solver and pull
-results back out.
+Model contract: [`model-contract.md`](model-contract.md).
+Codegen authoring: [`codegen-text2code.md`](codegen-text2code.md).
 
 ## Sections
 
@@ -90,16 +74,16 @@ const double* udg = solver.udg();
 int64_t       n   = solver.udg_size();
 ```
 
-Typed boundary predicates beat the legacy tinyexpr strings in two
-ways. (a) compile-time checked — typos and wrong field accesses
-fail to build, not at runtime parse time. (b) full C++ — capture
-state, call any function, no string DSL.
+Curved boundaries:
 
-Polynomial-defined boundary geometry uses
-`add_curved_boundary(tag, level_set_fn)` — same shape, takes a
-level-set function `f(x)` that's zero on the curve. The runtime does
-a Newton step `x ← x - f·∇f / |∇f|²` to project mesh nodes onto the
-curve.
+```cpp
+solver.add_curved_boundary(/*tag=*/2, [](const double* x){
+    return x[0]*x[0] + x[1]*x[1] - 1.0;   // unit circle level-set
+});
+```
+
+The runtime projects mesh nodes onto the curve via Newton step
+`x ← x - f·∇f / |∇f|²`.
 
 ## 2. Multi-rank (MPI)
 
@@ -112,16 +96,13 @@ MPI_Comm_size(EXASIM_COMM_WORLD, &mpiprocs);
 MPI_Comm_rank(EXASIM_COMM_WORLD, &mpirank);
 ```
 
-You can call MPI either before or after `Kokkos::initialize()` — both
-are tested. The two `EXASIM_COMM_*` globals are the communicator
-Exasim uses internally; assigning `MPI_COMM_WORLD` (or any sub-
-communicator you've made) is enough.
+The `EXASIM_COMM_*` globals are the communicator Exasim uses
+internally. Assign `MPI_COMM_WORLD` or any sub-communicator.
 
-Each rank then gives the solver its own slice of the global mesh,
-with `t_local` referring to vertices by **global** node IDs. The
-partitioner (ParMETIS) repartitions for load balance, so you can
-hand it any reasonable initial split — contiguous stripes work
-fine:
+Each rank gives the solver its own slice of the global mesh, with
+`t_local` referring to vertices by global node IDs. ParMETIS
+repartitions for load balance internally; the initial split can be
+any reasonable contiguous-range layout:
 
 ```cpp
 int np_local, ne_local, node_off, elem_off;
@@ -146,22 +127,17 @@ solver.add_boundary(...);
 solver.solve(mpiprocs, mpirank);
 ```
 
-Under the hood the facade calls `CPreprocessing::takeParallel(comm)`,
-which runs ParMETIS, builds the DMD (distributed mesh decomposition),
-sendrecvs ghost rows, and builds the four runtime structs (app /
-master / mesh / sol) **all in memory**. No per-rank `datain/*.bin`
-files are written or read.
+The facade calls `CPreprocessing::takeParallel(comm)` internally:
+ParMETIS partitions, DMD is built, ghost rows are sendrecv'd, and
+the four runtime structs (app / master / mesh / sol) are built in
+memory.
 
-The escape-hatch `EXASIM_FACADE_INMEMORY_MPI=0` env var falls back
-to the legacy file ABI for debugging — it writes per-rank
-`datain/{app,master,mesh,sol}.bin` via `ParallelPreprocessing`, then
-constructs `CSolution<M>(filein, …)` which reads them back. Same
-final numerics; useful when bisecting a runtime issue.
+`EXASIM_FACADE_INMEMORY_MPI=0` env var routes through the file ABI
+(per-rank `datain/{app,master,mesh,sol}.bin`) for debugging.
 
-`add_boundary` predicates run on every face the solver inspects —
-including faces owned by other ranks before partitioning. That's
-how a single boundary predicate on rank 0 can tag faces that ParMETIS
-later assigns to rank 5.
+`add_boundary` predicates are evaluated on every face including
+faces partitioned to other ranks; a predicate on rank 0 tags faces
+that ParMETIS later assigns to any rank.
 
 ## 3. Reading the converged state
 
@@ -202,33 +178,26 @@ solver.load_pdeapp(argv[1], mpirank);  // parses pdeapp.txt
 solver.solve(mpiprocs, mpirank);
 ```
 
-`load_pdeapp` reads the same `pdeapp.txt` the legacy `<exasim/run.hpp>`
-binary would — `meshfile`, `boundaryconditions`, `boundaryexpressions`,
-all of it. The facade then reads the mesh from disk and runs the
-same in-memory pipeline as the programmatic path.
-
-This is what `apps/library_example/main_facade.cpp` uses — one
-generic main reusable across all 12 codegen examples.
+`load_pdeapp` parses `pdeapp.txt` and runs the same in-memory
+pipeline as the programmatic path. `apps/library_example/main_facade.cpp`
+uses this; the same generic `main` is reused by all 12 codegen
+examples.
 
 ## 5. The four backend variants
 
-Backend is a **compile-time** decision, not a runtime one. The same
-source file produces four binaries:
+Backend is a compile-time decision. Same source file, four binaries:
 
-| variant         | Kokkos lib          | EXASIM flags                     | binary suffix    |
-| --------------- | ------------------- | -------------------------------- | ---------------- |
-| CPU             | `kokkos/buildserial` | `EXASIM_NOMPI=ON`               | (none)           |
-| GPU             | `kokkos/buildcuda`  | `EXASIM_NOMPI=ON, EXASIM_CUDA=ON` | `_gpu`          |
-| MPI             | `kokkos/buildserial` | `EXASIM_MPI=ON`                  | `_mpi`           |
-| MPI+GPU         | `kokkos/buildcuda`  | `EXASIM_MPI=ON, EXASIM_CUDA=ON`  | `_mpi_gpu`       |
+| Variant | Kokkos lib | EXASIM flags | Binary suffix |
+|---|---|---|---|
+| CPU | `kokkos/buildserial` | `EXASIM_NOMPI=ON` | (none) |
+| GPU | `kokkos/buildcuda` | `EXASIM_NOMPI=ON, EXASIM_CUDA=ON` | `_gpu` |
+| MPI | `kokkos/buildserial` | `EXASIM_MPI=ON` | `_mpi` |
+| MPI+GPU | `kokkos/buildcuda` | `EXASIM_MPI=ON, EXASIM_CUDA=ON` | `_mpi_gpu` |
 
-All four CMake builds are independent dirs that all consume the same
-sources; switching is just a different `cmake -B build_<variant>`
-configure plus the matching Kokkos `-DKokkos_DIR`. See
-[`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md) for the exact
-configure lines and mpirun usage.
+Configure lines per platform: [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md)
+and [`../01-installation.md`](../01-installation.md).
 
-For multi-rank GPU, each rank pins one device:
+Multi-rank GPU device binding:
 
 ```cpp
 #ifdef HAVE_CUDA
@@ -237,8 +206,7 @@ For multi-rank GPU, each rank pins one device:
 ```
 
 `shmrank` is the rank within the host-shared-memory communicator
-(`MPI_COMM_TYPE_SHARED`), so multi-host runs with N GPUs per host
-land cleanly.
+(`MPI_COMM_TYPE_SHARED`).
 
 ## 6. Testing your model
 
@@ -302,40 +270,27 @@ baseline format in [`../04-internals/baselines.md`](../04-internals/baselines.md
 
 ## 7. Diagnosing test failures
 
-When a test fails, the harness prints a relative element-L2 magnitude:
+Failure messages contain the relative element-L2 magnitude:
 
 ```
 [FAIL] foo — element-L2: outudg: relative element-L2 = 3.258e-01 (>1e-03) over 64 elements
 ```
 
-Use the magnitude to localize the problem:
+| Relative L2 | Reading |
+|---|---|
+| 1e-12 to 1e-7 | FP-order drift; passes |
+| 1e-3 to 1e-2 | borderline; check `NewtonTol`, `GMREStol` |
+| > 1e-1 | real divergence; check partition / boundary handling |
 
-| relative L2     | likely cause                                              |
-| --------------- | --------------------------------------------------------- |
-| ~ 1e-12 to 1e-7 | passes; FP-order drift across platforms                   |
-| ~ 1e-3 to 1e-2  | borderline; check `NewtonTol` and `GMREStol` in pdeapp    |
-| > 1e-1          | real divergence — check partition / boundary handling     |
+Identical L2 magnitude on both `codegen:X:V` and `facade:X:V`
+means the divergence is shared between paths.
 
-If both `codegen:X:V` and `facade:X:V` produce **identical** L2
-magnitudes (lockstep), the divergence isn't facade-specific — it's
-something both paths share (most likely a partition-handling bug
-under MPI, or recorded baseline drift).
+Open known-failures: [`../04-internals/known-divergences.md`](../04-internals/known-divergences.md).
 
-If only the `facade` stem fails, suspect a facade-specific
-regression — start by comparing the per-iteration Newton trajectory
-against `codegen` (capture stdout from both runs and `diff`).
+## See also
 
-[`04-internals/known-divergences.md`](../04-internals/known-divergences.md)
-tracks the small handful of open known-failures and their
-classification.
-
----
-
-## Where to go next
-
-- **Authoring the math**: [`hand-written-model.md`](hand-written-model.md)
-  (hand-written), [`codegen-text2code.md`](codegen-text2code.md) (codegen via `pdemodel.txt`).
-- **Model contract reference**: [`model-contract.md`](model-contract.md).
-- **Backend matrix details**: [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md).
-- **Test harness layers**: [`../04-internals/testing.md`](../04-internals/testing.md).
-- **Architecture & internals**: [`../04-internals/architecture.md`](../04-internals/architecture.md).
+- Model contract: [`model-contract.md`](model-contract.md)
+- Codegen authoring: [`codegen-text2code.md`](codegen-text2code.md)
+- Backend builds: [`cpu-gpu-mpi-mpigpu.md`](cpu-gpu-mpi-mpigpu.md)
+- Test harness: [`../04-internals/testing.md`](../04-internals/testing.md)
+- Architecture: [`../04-internals/architecture.md`](../04-internals/architecture.md)

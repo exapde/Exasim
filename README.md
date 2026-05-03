@@ -46,11 +46,17 @@ int main(int argc, char** argv) {
 }
 ```
 
-Documentation:
-- **`doc/getting_started.md`** — step-by-step tutorial (Poisson 2D from scratch)
-- **`doc/header_only_api.md`** — `Model` contract reference (every method, every signature)
-- **`apps/library_example/README.md`** — in-tree examples (12 codegen + 1 hand-written) and the `port_codegen.sh` / `validate_codegen.sh` harness
-- **`include/exasim/README.md`** — public header layout
+Documentation lives under [`docs/`](docs/) — start at
+[`docs/README.md`](docs/README.md) for the table of contents.
+
+Quick pointers:
+
+- [`docs/00-introduction.md`](docs/00-introduction.md) — what Exasim is + the authoring × driving × backend matrix
+- [`docs/01-installation.md`](docs/01-installation.md) — per-platform install (macOS, Linux CPU, Linux + NVIDIA, Linux + AMD)
+- [`docs/02-methods-overview.md`](docs/02-methods-overview.md) — which combination should I use?
+- [`docs/03-methods/`](docs/03-methods/) — walkthroughs per combination
+- [`docs/04-internals/`](docs/04-internals/) — test harness, baseline format, architecture
+- [`tutorial/`](tutorial/) — solve Poisson 2D through every supported path
 
 The legacy `pdemodel.txt` + `text2code` + `cput2cEXASIM` workflow stays
 fully supported. text2code now also emits a `my_model.hpp` for the
