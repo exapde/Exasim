@@ -43,12 +43,34 @@ cmake_minimum_required(VERSION 3.16)
 # causes the host BLAS to read host pointers that alias unmapped
 # device memory.
 function(tutorial_add_target target source_path)
-    add_executable(${target} ${source_path})
+    # Compile the templated `libpdemodel.cpp` directly into each binary
+    # rather than linking it as a separately-loaded shared library. The
+    # in-tree harness historically links `libpdemodel{serial,cuda,hip}.so`
+    # (built by `text2code` under `backend/Model/`); on GPU that ends up
+    # with Kokkos statically present in BOTH the main exe and
+    # `libpdemodel*.so`, and Kokkos's static class members
+    # (e.g. `SerialInternal::all_instances`,
+    # `CudaInternal::constantMemHostStagingPerDevice`) get duplicate
+    # `__cxa_atexit` destructor registrations — one per DSO. At program
+    # exit both fire and double-free the same heap storage, aborting the
+    # process with `free(): double free detected in tcache 2` (or
+    # `Kokkos::Cuda ERROR: Failed to call Kokkos::Cuda::finalize()`).
+    #
+    # The compute output is correct — the crash is purely on shutdown —
+    # but it makes every tutorial binary exit non-zero on GPU.
+    # Compiling `libpdemodel.cpp` as a TU of the main binary keeps the
+    # process single-DSO with respect to Kokkos, so the destructor is
+    # registered exactly once. The math, the per-rank `outudg_np*.bin`
+    # files, and the `max|udg|` value are all unchanged; the binary
+    # simply exits cleanly.
+    set(_pdemodel_src "${EXASIM_DIR}/backend/Model/libpdemodel.cpp")
+    add_executable(${target} ${source_path} ${_pdemodel_src})
     target_compile_features(${target} PRIVATE cxx_std_17)
     target_compile_definitions(${target} PRIVATE _TEXT2CODE)
     get_filename_component(_section_dir "${source_path}" DIRECTORY)
     target_include_directories(${target} PRIVATE
         ${EXASIM_DIR}/include
+        "${EXASIM_DIR}/backend/Model"
         "${_section_dir}")
 
     if(EXASIM_MPI AND MPI_FOUND)
@@ -59,12 +81,15 @@ function(tutorial_add_target target source_path)
     if(EXASIM_CUDA)
         target_compile_definitions(${target} PRIVATE _CUDA)
         target_link_libraries(${target} PRIVATE
-            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+        # Compile libpdemodel.cpp as a CUDA TU so its Kokkos kernels
+        # use the same backend the rest of the binary does.
+        set_source_files_properties(${_pdemodel_src} PROPERTIES
+            LANGUAGE CUDA)
     elseif(EXASIM_HIP)
         target_compile_definitions(${target} PRIVATE _HIP)
-        target_link_libraries(${target} PRIVATE ${T2C_HIP_LIB})
-    else()
-        target_link_libraries(${target} PRIVATE ${T2C_CPU_LIB})
+        set_source_files_properties(${_pdemodel_src} PROPERTIES
+            LANGUAGE HIP)
     endif()
 
     target_link_libraries(${target} PRIVATE
@@ -81,11 +106,10 @@ endfunction()
 # under WITH_TEXT2CODE=ON. The tutorial directory holds only inputs.
 
 # --- Sections 02 and 03 — generated + (CLI | embedded) ----------
-# Both require text2code-emitted files (my_model.hpp +
-# libpdemodelserial.{so,dylib}) to exist in the section dir at
-# link time. We add the targets only when those artifacts are
-# present, which tutorial/run-all.sh ensures by running text2code
-# first.
+# Both need text2code to have emitted `my_model.hpp` into the
+# section dir before configure, since main.cpp #includes it. We
+# add the targets only when that artifact is present, which
+# `tutorial/run-all.sh` ensures by running text2code first.
 foreach(_pair IN ITEMS
     "02-generated-cli|tutorial_02_generated_cli"
     "03-generated-embedded|tutorial_03_generated_embedded")
@@ -95,10 +119,6 @@ foreach(_pair IN ITEMS
     set(_section "${CMAKE_CURRENT_SOURCE_DIR}/${_dir}")
     if(EXISTS "${_section}/my_model.hpp")
         tutorial_add_target(${_target} "${_section}/main.cpp")
-        # The codegen library lives in the section's source dir.
-        target_link_directories(${_target} PRIVATE "${_section}")
-        set_target_properties(${_target} PROPERTIES
-            BUILD_RPATH "${_section}")
     else()
         message(STATUS "tutorial: ${_dir} skipped (run text2code --out-dir <path> first)")
     endif()
@@ -107,18 +127,12 @@ endforeach()
 # --- Section 04 — handwritten + CLI -----------------------------
 tutorial_add_target(tutorial_04_handwritten_cli
     "${CMAKE_CURRENT_SOURCE_DIR}/04-handwritten-cli/main.cpp")
-target_link_directories(tutorial_04_handwritten_cli PRIVATE ${Model_LIB_DIR})
-set_target_properties(tutorial_04_handwritten_cli PROPERTIES
-    BUILD_RPATH "${Model_LIB_DIR}")
 
 # --- Section 05 — handwritten + embedded (single rank only) -----
 # Skipped on MPI builds; section 06 is the distributed counterpart.
 if(NOT EXASIM_MPI)
     tutorial_add_target(tutorial_05_handwritten_embedded
         "${CMAKE_CURRENT_SOURCE_DIR}/05-handwritten-embedded/main.cpp")
-    target_link_directories(tutorial_05_handwritten_embedded PRIVATE ${Model_LIB_DIR})
-    set_target_properties(tutorial_05_handwritten_embedded PROPERTIES
-        BUILD_RPATH "${Model_LIB_DIR}")
 endif()
 
 # --- Section 06 — handwritten + distributed ---------------------
@@ -126,6 +140,3 @@ endif()
 # under `mpirun -np N` on MPI-enabled builds.
 tutorial_add_target(tutorial_06_handwritten_distributed
     "${CMAKE_CURRENT_SOURCE_DIR}/06-handwritten-distributed/main.cpp")
-target_link_directories(tutorial_06_handwritten_distributed PRIVATE ${Model_LIB_DIR})
-set_target_properties(tutorial_06_handwritten_distributed PROPERTIES
-    BUILD_RPATH "${Model_LIB_DIR}")
