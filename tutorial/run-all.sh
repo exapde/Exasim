@@ -23,7 +23,6 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# Default build dir per variant if not provided.
 if [ -z "$BUILD" ]; then
     case "$VARIANT" in
         cpu)     BUILD="$EXASIM/build" ;;
@@ -35,13 +34,12 @@ if [ -z "$BUILD" ]; then
 fi
 
 case "$VARIANT" in
-    cpu)     SUFFIX="";          RUNNER=();                       IS_MPI=0 ;;
-    gpu)     SUFFIX="_gpu";      RUNNER=();                       IS_MPI=0 ;;
-    mpi)     SUFFIX="_mpi";      RUNNER=(mpirun -np "$NP");       IS_MPI=1 ;;
-    mpi_gpu) SUFFIX="_mpi_gpu";  RUNNER=(mpirun -np "$NP");       IS_MPI=1 ;;
+    cpu)     SUFFIX="";          RUNNER=();                 IS_MPI=0 ;;
+    gpu)     SUFFIX="_gpu";      RUNNER=();                 IS_MPI=0 ;;
+    mpi)     SUFFIX="_mpi";      RUNNER=(mpirun -np "$NP"); IS_MPI=1 ;;
+    mpi_gpu) SUFFIX="_mpi_gpu";  RUNNER=(mpirun -np "$NP"); IS_MPI=1 ;;
 esac
 
-# Make BUILD absolute since the subshells `cd` into example dirs.
 if [ -d "$BUILD" ]; then
     BUILD="$(cd "$BUILD" && pwd)"
 fi
@@ -55,15 +53,21 @@ echo "[tutorial] BUILD   = $BUILD"
 echo "[tutorial] regenerating poisson2d codegen artifacts ..."
 bash "$APP/regenerate.sh" poisson2d > /dev/null
 
-pass() { echo "[ OK ]  $1"; }
-fail() { echo "[FAIL] $1"; exit 1; }
+PASSED=()
+FAILED=()
+SKIPPED=()
+record_pass() { PASSED+=("$1"); echo "[ OK ]   $1"; }
+record_fail() { FAILED+=("$1"); echo "[FAIL]   $1"; }
+record_skip() { SKIPPED+=("$1"); echo "[SKIP]   $1"; }
+
+run_cmd() {
+    # Wrapper: run a command, capture exit. Returns 0/non-zero.
+    "$@"
+}
 
 # ---- Path 01 ---- hand-written + run.hpp
-# The committed pdeapp.txt has mpiprocs=2; sed to match the actual
-# rank count this variant runs with. Single-rank variants need
-# mpiprocs=1; mpi variants run via mpirun -np $NP and need mpiprocs=$NP.
+P1_NAME="01: hand-written + run.hpp"
 P1_BIN="$BUILD/poisson2d_template${SUFFIX}"
-echo "[tutorial] path 01 — hand-written + legacy CLI"
 if [ -x "$P1_BIN" ]; then
     cd "$APP/poisson2d"
     rm -rf datain dataout
@@ -73,81 +77,82 @@ if [ -x "$P1_BIN" ]; then
     else
         sed 's/^mpiprocs *=.*/mpiprocs = 1;/' pdeapp.txt > pdeapp_run.txt
     fi
-    if [ "$IS_MPI" = 1 ]; then
-        "${RUNNER[@]}" "$P1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 || fail "01: $P1_BIN"
+    if "${RUNNER[@]}" "$P1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 \
+        && [ -f "dataout/outudg_np0.bin" ]; then
+        record_pass "$P1_NAME"
     else
-        "$P1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 || fail "01: $P1_BIN"
+        record_fail "$P1_NAME ($P1_BIN)"
     fi
-    [ -f "dataout/outudg_np0.bin" ] || fail "01: no outudg"
-    pass "01"
 else
-    echo "[SKIP] 01: $P1_BIN not built (poisson2d_template only built on CPU)"
+    record_skip "$P1_NAME ($P1_BIN not built)"
 fi
 
 # ---- Path 02 ---- hand-written + facade
-# solve_square_facade reads master-node tables relative to EXASIM_DIR
-# at runtime; pass it via env var.
+P2_NAME="02: hand-written + ExasimSolver<M>"
 P2_BIN="$BUILD/solve_square_facade${SUFFIX}"
-echo "[tutorial] path 02 — hand-written + ExasimSolver<M>"
 if [ -x "$P2_BIN" ]; then
     cd "$EXASIM"
-    if [ "$IS_MPI" = 1 ]; then
-        EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$P2_BIN" > /tmp/tut_02.log 2>&1 || fail "02: $P2_BIN"
+    if EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$P2_BIN" > /tmp/tut_02.log 2>&1 \
+        && grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_02.log; then
+        record_pass "$P2_NAME"
     else
-        EXASIM_DIR="$EXASIM" "$P2_BIN" > /tmp/tut_02.log 2>&1 || fail "02: $P2_BIN"
+        record_fail "$P2_NAME ($P2_BIN)"
     fi
-    grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_02.log || fail "02: solve_square didn't converge"
-    pass "02"
 else
-    echo "[SKIP] 02: $P2_BIN not built"
+    record_skip "$P2_NAME ($P2_BIN not built)"
 fi
 
 # ---- Path 03 ---- codegen + run.hpp
-echo "[tutorial] path 03 — codegen + legacy CLI"
+P3_NAME="03: codegen + run.hpp"
 ARGS=(--no-regen --build "$BUILD")
 [ "$IS_MPI" = 1 ] && ARGS=(--variant "$VARIANT" --np "$NP" "${ARGS[@]}")
-[ "$VARIANT" = "gpu" ]     && ARGS=(--variant gpu     "${ARGS[@]}")
-[ "$VARIANT" = "mpi_gpu" ] && ARGS=("${ARGS[@]}")  # already set above
-bash "$APP/validate_codegen.sh" "${ARGS[@]}" poisson2d > /tmp/tut_03.log 2>&1 \
-    || fail "03: validate_codegen.sh poisson2d"
-grep -q "OK ]" /tmp/tut_03.log || fail "03: no OK"
-pass "03"
-
-# ---- Path 04 ---- codegen + facade
-echo "[tutorial] path 04 — codegen + ExasimSolver<M>::load_pdeapp"
-bash "$APP/validate_codegen.sh" --facade "${ARGS[@]}" poisson2d > /tmp/tut_04.log 2>&1 \
-    || fail "04: validate_codegen.sh --facade poisson2d"
-grep -q "OK ]" /tmp/tut_04.log || fail "04: no OK"
-pass "04"
-
-# ---- Path 05 ---- codegen + AbiAdapter
-# Variant → binary name mapping. AbiAdapter binaries are gated on
-# WITH_TEXT2CODE=ON. The RPATH is hardcoded to backend/Model/, so
-# re-run text2code without --out-dir to populate that location
-# before invoking the binary.
-case "$VARIANT" in
-    cpu)     P5_NAME="cput2cEXASIM" ;;
-    mpi)     P5_NAME="cpumpit2cEXASIM" ;;
-    gpu)     P5_NAME="gput2cEXASIM" ;;
-    mpi_gpu) P5_NAME="gpumpit2cEXASIM" ;;
-esac
-P5_BIN="$BUILD/$P5_NAME"
-echo "[tutorial] path 05 — codegen + AbiAdapter ($P5_NAME)"
-if [ -x "$P5_BIN" ]; then
-    cd "$APP/poisson2d_codegen"
-    "$EXASIM/build/text2code" ./pdeapp.txt > /tmp/tut_05_t2c.log 2>&1 \
-        || fail "05: text2code failed"
-    if [ "$IS_MPI" = 1 ]; then
-        "${RUNNER[@]}" "$P5_BIN" ./pdeapp.txt > /tmp/tut_05.log 2>&1 \
-            || fail "05: $P5_BIN"
-    else
-        "$P5_BIN" ./pdeapp.txt > /tmp/tut_05.log 2>&1 \
-            || fail "05: $P5_BIN"
-    fi
-    grep -q "Updated Norm:" /tmp/tut_05.log || fail "05: no Newton convergence"
-    pass "05"
+[ "$VARIANT" = "gpu" ] && ARGS=(--variant gpu "${ARGS[@]}")
+if bash "$APP/validate_codegen.sh" "${ARGS[@]}" poisson2d > /tmp/tut_03.log 2>&1 \
+    && grep -q "OK ]" /tmp/tut_03.log; then
+    record_pass "$P3_NAME"
 else
-    echo "[SKIP] 05: $P5_BIN not built (needs WITH_TEXT2CODE=ON)"
+    record_fail "$P3_NAME"
 fi
 
-echo "[tutorial] $VARIANT: all paths pass"
+# ---- Path 04 ---- codegen + facade
+P4_NAME="04: codegen + ExasimSolver<M>::load_pdeapp"
+if bash "$APP/validate_codegen.sh" --facade "${ARGS[@]}" poisson2d > /tmp/tut_04.log 2>&1 \
+    && grep -q "OK ]" /tmp/tut_04.log; then
+    record_pass "$P4_NAME"
+else
+    record_fail "$P4_NAME"
+fi
+
+# ---- Path 05 ---- codegen + AbiAdapter
+case "$VARIANT" in
+    cpu)     P5_NAME_BIN="cput2cEXASIM" ;;
+    mpi)     P5_NAME_BIN="cpumpit2cEXASIM" ;;
+    gpu)     P5_NAME_BIN="gput2cEXASIM" ;;
+    mpi_gpu) P5_NAME_BIN="gpumpit2cEXASIM" ;;
+esac
+P5_NAME="05: codegen + AbiAdapter ($P5_NAME_BIN)"
+P5_BIN="$BUILD/$P5_NAME_BIN"
+if [ -x "$P5_BIN" ]; then
+    cd "$APP/poisson2d_codegen"
+    if "$EXASIM/build/text2code" ./pdeapp.txt > /tmp/tut_05_t2c.log 2>&1 \
+        && "${RUNNER[@]}" "$P5_BIN" ./pdeapp.txt > /tmp/tut_05.log 2>&1 \
+        && grep -q "Updated Norm:" /tmp/tut_05.log; then
+        record_pass "$P5_NAME"
+    else
+        record_fail "$P5_NAME"
+    fi
+else
+    record_skip "$P5_NAME ($P5_BIN not built; needs WITH_TEXT2CODE=ON)"
+fi
+
+echo
+echo "[tutorial] $VARIANT summary:"
+echo "  passed:  ${#PASSED[@]}"
+echo "  failed:  ${#FAILED[@]}"
+echo "  skipped: ${#SKIPPED[@]}"
+if [ ${#FAILED[@]} -gt 0 ]; then
+    echo
+    for f in "${FAILED[@]}"; do echo "  - $f"; done
+    exit 1
+fi
+exit 0
