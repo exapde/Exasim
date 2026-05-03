@@ -61,15 +61,8 @@ class SerialInternal {
 
   std::mutex m_instance_mutex;
 
-  // Function-local statics (Meyers singletons) instead of static
-  // class members. Avoids the duplicate-destructor bug that fires
-  // when the symbol is visible from both a shared library and its
-  // consumer: each TU registers its own atexit destructor for the
-  // class member, both fire at exit, and the second destruction is
-  // a double-free. Function-local statics are guaranteed to be
-  // initialized and destroyed exactly once.
-  static std::vector<SerialInternal*>& all_instances();
-  static std::mutex& all_instances_mutex();
+  static std::vector<SerialInternal*> all_instances;
+  static std::mutex all_instances_mutex;
 
   // Resize thread team data scratch memory
   void resize_thread_team_data(size_t pool_reduce_bytes,
@@ -155,8 +148,8 @@ class Serial {
 #else
     auto fence = []() {
       std::lock_guard<std::mutex> lock_all_instances(
-          Impl::SerialInternal::all_instances_mutex());
-      for (auto* instance_ptr : Impl::SerialInternal::all_instances()) {
+          Impl::SerialInternal::all_instances_mutex);
+      for (auto* instance_ptr : Impl::SerialInternal::all_instances) {
         std::lock_guard<std::mutex> lock_instance(
             instance_ptr->m_instance_mutex);
       }
