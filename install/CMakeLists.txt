@@ -45,6 +45,34 @@ set(BM_CPU_LIB  builtinmodelserial)
 set(BM_CUDA_LIB builtinmodelcuda)
 set(BM_HIP_LIB  builtinmodelhip)
 
+# ---- Option: AddressSanitizer (ASAN) -------------------------------------
+#
+# Use to chase host-side memory bugs (use-after-free, double-free, OOB).
+# When ON, every Exasim target gets `-fsanitize=address
+# -fno-omit-frame-pointer` on host compiles and `-fsanitize=address` at
+# link. CUDA TUs also get the flags via `-Xcompiler`.
+#
+# Recommended runtime envs to pair with this:
+#   ASAN_OPTIONS=protect_shadow_gap=0:detect_leaks=0:abort_on_error=1
+#   LSAN_OPTIONS=suppressions=/dev/null
+#
+# `protect_shadow_gap=0` is required for CUDA (cuBLAS/cuRAND etc. mmap
+# into the shadow gap region by default and ASAN flags those as bugs).
+#
+# Caveat: ASAN does not catch errors *inside* CUDA kernels — use
+# compute-sanitizer for those.
+option(EXASIM_ASAN "Build with AddressSanitizer (-fsanitize=address)" OFF)
+
+if(EXASIM_ASAN)
+  message(STATUS "EXASIM_ASAN              = ON  (host-side memory error detection)")
+  add_compile_options(
+      $<$<COMPILE_LANGUAGE:CXX,C>:-fsanitize=address>
+      $<$<COMPILE_LANGUAGE:CXX,C>:-fno-omit-frame-pointer>
+      $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fsanitize=address>
+      $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fno-omit-frame-pointer>)
+  add_link_options(-fsanitize=address)
+endif()
+
 # ---- Option: link METIS / ParMETIS / GKlib -------------------------------
 option(WITH_PARMETIS "Build extra EXASIM executables that link metis libraries" OFF)
 
@@ -999,6 +1027,7 @@ message(STATUS "EXASIM_TUOLUMNE           = ${EXASIM_TUOLUMNE}")
 message(STATUS "WITH_TEXT2CODE            = ${WITH_TEXT2CODE}")
 message(STATUS "WITH_BUILTINMODEL         = ${WITH_BUILTINMODEL}")
 message(STATUS "WITH_PARMETIS             = ${WITH_PARMETIS}")
+message(STATUS "EXASIM_ASAN               = ${EXASIM_ASAN}")
 
 message(STATUS "Model_LIB_DIR             = ${Model_LIB_DIR}")
 message(STATUS "BuiltinModel_LIB_DIR      = ${BuiltinModel_LIB_DIR}")
