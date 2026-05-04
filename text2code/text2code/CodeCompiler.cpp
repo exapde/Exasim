@@ -282,8 +282,11 @@ int executeCppCode(ParsedSpec& spec)
         std::cout<<"Compiling " + sourcefile + " successfully.\n";
                                   
     std::cout << "Running " << exefile << " ...\n";
+    // Pass spec.modelpath as argv[1]; the generated Code2Cpp uses it
+    // to seed ssv.modelpath instead of relying on a baked-in default.
     std::string run = with_exe_if_windows(exefile);
-    status = std::system(quote(run).c_str());
+    std::string run_cmd = quote(run) + " " + quote(spec.modelpath);
+    status = std::system(run_cmd.c_str());
     if (status != 0) 
         error("code2cpp execution failed! Please compile text2code with -DUSE_CMAKE=ON and use cmake to run text2code.");            
     else
