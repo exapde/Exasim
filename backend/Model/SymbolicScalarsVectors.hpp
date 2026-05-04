@@ -8,8 +8,10 @@ class SymbolicScalarsVectors {
 
 public:
 
-    // path to model folder 
-    std::string modelpath = "/Users/teoc/projects/exasim2/Exasim/backend/Model/";
+    // path to model folder; Code2Cpp's main() sets this from argv[1].
+    // Default is empty (writes relative to cwd) so the committed
+    // snapshot doesn't bake in any one developer's absolute path.
+    std::string modelpath = "";
 
     // input symbolic scalars
     Expression t;

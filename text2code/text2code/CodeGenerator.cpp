@@ -57,10 +57,15 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
 
     os << "#include \"SymbolicFunctions.cpp\"\n";
     os << "#include \"SymbolicScalarsVectors.cpp\"\n\n";
-                
-    os << "int main() \n";
+
+    os << "int main(int argc, char* argv[]) \n";
     os << "{\n";
-    os << "  SymbolicScalarsVectors ssv;\n\n";
+    os << "  SymbolicScalarsVectors ssv;\n";
+    // Path to the model folder is supplied by text2code's
+    // executeCppCode at runtime (argv[1]); no absolute path is baked
+    // into the generated headers. If absent, modelpath stays at its
+    // default (empty), and outputs are written relative to cwd.
+    os << "  if (argc > 1) ssv.modelpath = argv[1];\n\n";
     os << "  for (int i=0; i<ssv.outputfunctions.size(); i++) {\n";
     os << "    std::string funcname = ssv.funcnames[i];\n";    
     os << "    if (ssv.outputfunctions[i] == true) {\n";
@@ -587,8 +592,11 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     os << "class SymbolicScalarsVectors {\n\n";
     os << "public:\n\n";
     
-    os << "    // path to model folder \n";
-    os << "    std::string modelpath = \"" << spec.modelpath << "\";\n\n";
+    os << "    // path to model folder; Code2Cpp's main() sets this\n";
+    os << "    // from argv[1]. Default left empty (writes relative\n";
+    os << "    // to cwd) so generated headers don't bake an absolute\n";
+    os << "    // path tied to the developer who ran codegen.\n";
+    os << "    std::string modelpath = \"\";\n\n";
     
     // Scalars
     os << "    // input symbolic scalars\n";
