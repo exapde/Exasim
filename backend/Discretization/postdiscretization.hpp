@@ -168,6 +168,8 @@ inline CDiscretization<M>::~CDiscretization()
     if (common.mpiRank==0) printf("CDiscretization destructor: tmp memory is freed successfully.\n");
     res.freememory(common.backend);
     if (common.mpiRank==0) printf("CDiscretization destructor: res memory is freed successfully.\n");
+    wallmodel.freememory(common.backend);
+    if (common.mpiRank==0) printf("CDiscretization destructor: wallmodel memory is freed successfully.\n");
     common.freememory();
     if (common.mpiRank==0) printf("CDiscretization destructor: common memory is freed successfully.\n");
 

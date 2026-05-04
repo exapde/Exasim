@@ -50,6 +50,7 @@ public:
     solstruct sol;
     resstruct res;
     appstruct app;
+    wallmodelstruct wallmodel;
     masterstruct master; 
     meshstruct mesh;
     tempstruct tmp;    
@@ -130,4 +131,3 @@ public:
 };
 
 #endif        
-

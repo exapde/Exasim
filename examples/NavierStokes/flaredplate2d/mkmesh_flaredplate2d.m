@@ -49,6 +49,7 @@ nodetype = 0;
 bndexpr = {'all(p(:,2)<min(p0(:,2))+1e-6)','all(p(:,1)>max(p0(:,1))-1e-6)', ...
            'all(p(:,2)>max(p0(:,2))-1e-6)','true'};    
 mesh = mkmesh(p,t,porder,bndexpr,elemtype,nodetype);
+
 pnew = p;
 ind1 = p(:,1)<=1+1e-8;           
 ind3 = p(:,1)>1-1e-8 & p(:,1) <= 2+1e-8;
