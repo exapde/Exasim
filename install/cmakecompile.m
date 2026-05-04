@@ -32,24 +32,29 @@ end
 
 if mpiprocs==1 
   if pde.platform == "gpu"
-    comstr = "!cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF " + mystr;    
+    comstr = "!cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    target = "gpuEXASIM";
   elseif pde.platform == "hip"
-    comstr = "!cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF " + mystr;      
+    comstr = "!cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    target = "gpuEXASIM";
   else
-    comstr = "!cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF " + mystr;
+    comstr = "!cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    target = "cpuEXASIM";
   end
 else
   if pde.platform == "gpu"
-    comstr = "!cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF " + mystr;  
+    comstr = "!cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    target = "gpumpiEXASIM";
   elseif pde.platform == "hip"
-    comstr = "!cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF " + mystr;    
+    comstr = "!cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    target = "gpumpiEXASIM";
   else
-    comstr = "!cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF " + mystr;
+    comstr = "!cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    target = "cpumpiEXASIM";
   end  
 end
 
 eval(comstr);  
-eval("!cmake --build . --verbose");
+eval("!cmake --build . --target " + target + " --verbose");
 
 cd(char(cdir));
-

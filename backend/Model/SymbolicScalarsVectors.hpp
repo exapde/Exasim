@@ -3,13 +3,14 @@
 #include "SymbolicFunctions.hpp"
 #include <algorithm>
 #include <tuple>
+#include <regex>
 
 class SymbolicScalarsVectors {
 
 public:
 
     // path to model folder 
-    std::string modelpath = "/Users/teoc/projects/exasim2/Exasim/backend/Model/";
+    std::string modelpath = "/Users/cuongnguyen/Documents/GitHub/Exasim/backend/Model/";
 
     // input symbolic scalars
     Expression t;
@@ -24,7 +25,6 @@ public:
     std::vector<Expression> eta;
     std::vector<Expression> w;
     std::vector<Expression> tau;
-    std::vector<Expression> uext;
 
     // vector sizes
     int szx;
@@ -36,7 +36,6 @@ public:
     int szeta;
     int szw;
     int sztau;
-    int szuext;
     bool exasim;
 
     std::vector<bool> outputfunctions;

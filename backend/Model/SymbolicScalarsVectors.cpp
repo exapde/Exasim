@@ -10,9 +10,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          x[i] = Expression("x"  + std::to_string(i));
     }
 
-    szmu = 1;
-    mu.resize(1);
-    for (int i = 0; i < 1; ++i) {
+    szmu = 8;
+    mu.resize(8);
+    for (int i = 0; i < 8; ++i) {
          mu[i] = Expression("mu"  + std::to_string(i));
     }
 
@@ -22,9 +22,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          v[i] = Expression("v"  + std::to_string(i));
     }
 
-    szuhat = 1;
-    uhat.resize(1);
-    for (int i = 0; i < 1; ++i) {
+    szuhat = 4;
+    uhat.resize(4);
+    for (int i = 0; i < 4; ++i) {
          uhat[i] = Expression("uhat"  + std::to_string(i));
     }
 
@@ -34,9 +34,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          n[i] = Expression("n"  + std::to_string(i));
     }
 
-    szuq = 3;
-    uq.resize(3);
-    for (int i = 0; i < 3; ++i) {
+    szuq = 12;
+    uq.resize(12);
+    for (int i = 0; i < 12; ++i) {
          uq[i] = Expression("uq"  + std::to_string(i));
     }
 
@@ -58,15 +58,9 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
          tau[i] = Expression("tau"  + std::to_string(i));
     }
 
-    szuext = 1;
-    uext.resize(1);
-    for (int i = 0; i < 1; ++i) {
-         uext[i] = Expression("uext"  + std::to_string(i));
-    }
-
     exasim = true;
 
-    outputfunctions.assign(13, false);
+    outputfunctions.assign(7, false);
     outputfunctions[0] = true;
     outputfunctions[1] = true;
     outputfunctions[2] = true;
@@ -74,16 +68,10 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
     outputfunctions[4] = true;
     outputfunctions[5] = true;
     outputfunctions[6] = true;
-    outputfunctions[7] = true;
-    outputfunctions[8] = true;
-    outputfunctions[9] = true;
-    outputfunctions[10] = true;
-    outputfunctions[11] = true;
-    outputfunctions[12] = true;
 
-    batch = {"x", "uq", "v", "w", "uhat", "n", "uext"};
+    batch = {"x", "uq", "v", "w", "uhat", "n"};
 
-    funcnames = {"Flux", "Source", "Tdfunc", "Fbou", "Ubou", "FbouHdg", "Initu", "VisScalars", "VisVectors", "QoIvolume", "QoIboundary", "Fint", "Fext"};
+    funcnames = {"Flux", "Source", "Tdfunc", "Fbou", "Ubou", "FbouHdg", "Initu"};
 
     funcargs = {
         {"x", "uq", "v", "w", "eta", "mu", "t"},
@@ -92,13 +80,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
         {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
         {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
-        {"x", "eta", "mu"},
-        {"x", "uq", "v", "w", "eta", "mu", "t"},
-        {"x", "uq", "v", "w", "eta", "mu", "t"},
-        {"x", "uq", "v", "w", "eta", "mu", "t"},
-        {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
-        {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
-        {"x", "uq", "v", "w", "uhat", "n", "uext", "tau", "eta", "mu", "t"}
+        {"x", "eta", "mu"}
     };
 
     funcargssizes = {
@@ -108,13 +90,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
         {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
         {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
-        {"szx", "szeta", "szmu"},
-        {"szx", "szuq", "szv", "szw", "szeta", "szmu", "szt"},
-        {"szx", "szuq", "szv", "szw", "szeta", "szmu", "szt"},
-        {"szx", "szuq", "szv", "szw", "szeta", "szmu", "szt"},
-        {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
-        {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
-        {"szx", "szuq", "szv", "szw", "szuhat", "szn", "szuext", "sztau", "szeta", "szmu", "szt"}
+        {"szx", "szeta", "szmu"}
     };
 
     funcdecls = {
@@ -124,13 +100,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
        "void Fbou(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
        "void Ubou(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
        "void FbouHdg(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "void Initu(dstype* f, const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)", 
-       "void VisScalars(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "void VisVectors(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "void QoIvolume(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "void QoIboundary(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "void Fint(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "void Fext(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* uext, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int szuext, const int sztau, const int szeta, const int szmu)"
+       "void Initu(dstype* f, const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)"
     };
 
     funcjacdecls = {
@@ -140,13 +110,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* uext, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int szuext, const int sztau, const int szeta, const int szmu)"
+       "const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)"
     };
 
     inputvectors = {
@@ -156,13 +120,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"uext", uext}, {"tau", tau}, {"eta", eta}, {"mu", mu}}
+        {{"x", x}, {"eta", eta}, {"mu", mu}}
     };
 
     inputscalars = {
@@ -172,13 +130,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {{"t", t}},
         {{"t", t}},
         {{"t", t}},
-        {},
-        {{"t", t}},
-        {{"t", t}},
-        {{"t", t}},
-        {{"t", t}},
-        {{"t", t}},
-        {{"t", t}}
+        {}
     };
 
     jacobianInputs = {
@@ -188,22 +140,10 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {uq, w, uhat},
         {uq, w, uhat},
         {uq, w, uhat},
-        {},
-        {uq, w},
-        {uq, w},
-        {uq, w},
-        {uq, w, uhat},
-        {uq, w, uhat},
-        {uq, w, uhat}
+        {}
     };
 
     hessianInputs = {
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
         {},
         {},
         {},
@@ -240,24 +180,6 @@ std::vector<Expression> SymbolicScalarsVectors::evaluateSymbolicFunctions(int ca
       break;
     case 6:
       f = Initu(x, eta, mu);
-      break;
-    case 7:
-      f = VisScalars(x, uq, v, w, eta, mu, t);
-      break;
-    case 8:
-      f = VisVectors(x, uq, v, w, eta, mu, t);
-      break;
-    case 9:
-      f = QoIvolume(x, uq, v, w, eta, mu, t);
-      break;
-    case 10:
-      f = QoIboundary(x, uq, v, w, uhat, n, tau, eta, mu, t);
-      break;
-    case 11:
-      f = Fint(x, uq, v, w, uhat, n, tau, eta, mu, t);
-      break;
-    case 12:
-      f = Fext(x, uq, v, w, uhat, n, uext, tau, eta, mu, t);
       break;
     default:
       throw std::runtime_error("Invalid function call in evaluateSymbolicFunctions");
@@ -801,6 +723,13 @@ void SymbolicScalarsVectors::emit_pointwise_value(
 
     std::vector<std::pair<std::string, std::vector<Expression>>> inputs = inputvectors[functionid];
     C99CodePrinter cpp;
+
+    auto kokkosify = [](std::string s) -> std::string {
+        static const std::regex math_re(
+            R"((\b(?:pow|sqrt|exp|log|sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|fabs|atan2)\b)(?=\s*\())");
+        return std::regex_replace(s, math_re, "Kokkos::$1");
+    };
+
     for (const auto& [name, vec] : inputs) {
         for (size_t j = 0; j < vec.size(); ++j) {
             if (depends_on(vec[j])) {
@@ -813,13 +742,13 @@ void SymbolicScalarsVectors::emit_pointwise_value(
     if (!replacements.empty()) os << "\n";
     for (size_t n = 0; n < replacements.size(); ++n) {
         std::string var_name = cpp.apply(*replacements[n].first);
-        std::string rhs      = cpp.apply(*replacements[n].second);
+        std::string rhs      = kokkosify(cpp.apply(*replacements[n].second));
         os << "        const double " << var_name << " = " << rhs << ";\n";
     }
     os << "\n";
 
     for (size_t n = 0; n < f.size(); ++n) {
-        os << "        f[" << n << "] = " << cpp.apply(*reduced_exprs[n]) << ";\n";
+        os << "        f[" << n << "] = " << kokkosify(cpp.apply(*reduced_exprs[n])) << ";\n";
     }
 
     os << "    }\n\n";
@@ -846,6 +775,13 @@ void SymbolicScalarsVectors::emit_pointwise_value_per_ib(
     };
 
     C99CodePrinter cpp;
+
+    auto kokkosify = [](std::string s) -> std::string {
+        static const std::regex math_re(
+            R"((\b(?:pow|sqrt|exp|log|sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|fabs|atan2)\b)(?=\s*\())");
+        return std::regex_replace(s, math_re, "Kokkos::$1");
+    };
+
     for (int n = 0; n < nbc; ++n) {
         std::vector<Expression> g(szuhat);
         for (int m = 0; m < szuhat; ++m) g[m] = f[m + n * szuhat];
@@ -878,12 +814,12 @@ void SymbolicScalarsVectors::emit_pointwise_value_per_ib(
         if (!replacements.empty()) os << "\n";
         for (size_t k = 0; k < replacements.size(); ++k) {
             std::string var_name = cpp.apply(*replacements[k].first);
-            std::string rhs      = cpp.apply(*replacements[k].second);
+            std::string rhs      = kokkosify(cpp.apply(*replacements[k].second));
             os << "            const double " << var_name << " = " << rhs << ";\n";
         }
         os << "\n";
         for (size_t k = 0; k < g.size(); ++k) {
-            os << "            f[" << k << "] = " << cpp.apply(*reduced_exprs[k]) << ";\n";
+            os << "            f[" << k << "] = " << kokkosify(cpp.apply(*reduced_exprs[k])) << ";\n";
         }
         os << "        }\n";
     }
@@ -906,21 +842,21 @@ void SymbolicScalarsVectors::generateModelHeader(const std::string& filename) {
     hfile << "#include <exasim/model.hpp>\n\n";
     hfile << "struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {\n";
     hfile << "    static constexpr int nd     = 2;\n";
-    hfile << "    static constexpr int ncu    = 1;\n";
+    hfile << "    static constexpr int ncu    = 4;\n";
     hfile << "    static constexpr int ncw    = 0;\n";
     hfile << "    static constexpr int nco    = 0;\n";
-    hfile << "    static constexpr int nparam = 1;\n";
+    hfile << "    static constexpr int nparam = 8;\n";
     hfile << "    static constexpr auto disc  = exasim::Discretization::HDG;\n";
     hfile << "    static constexpr int Nq = ncu * (1 + nd);\n\n";
     // ----- Volume value methods -----
     static const std::vector<std::tuple<std::string, std::string, std::string>>
         volume_methods = {
-        {"Flux",       "flux",        "double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t"},
-        {"Source",     "source",      "double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t"},
-        {"Tdfunc",     "tdfunc",      "double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t"},
-        {"VisScalars", "vis_scalars", "double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t"},
-        {"VisVectors", "vis_vectors", "double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t"},
-        {"QoIvolume",  "qoi_volume",  "double f[], const double x[], const double uq[], const double w[], const double mu[], const double uinf[], double t"},
+        {"Flux",       "flux",        "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"Source",     "source",      "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"Tdfunc",     "tdfunc",      "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"VisScalars", "vis_scalars", "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"VisVectors", "vis_vectors", "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"QoIvolume",  "qoi_volume",  "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
     };
     for (const auto& [funcname, method_name, sig] : volume_methods) {
         auto it = std::find(funcnames.begin(), funcnames.end(), funcname);
@@ -954,8 +890,8 @@ void SymbolicScalarsVectors::generateModelHeader(const std::string& filename) {
         {"QoIboundary", "qoi_boundary"},
     };
     const std::string boundary_sig =
-        "double f[], int ib, const double x[], const double uq[], const double w[],"
-        " const double uh[], const double n[], const double tau[],"
+        "double f[], int ib, const double x[], const double uq[], const double v[],"
+        " const double w[], const double uh[], const double n[], const double tau[],"
         " const double mu[], const double uinf[], double t";
     for (const auto& [funcname, method_name] : boundary_methods) {
         auto it = std::find(funcnames.begin(), funcnames.end(), funcname);
@@ -986,7 +922,7 @@ void SymbolicScalarsVectors::generateModelHeader(const std::string& filename) {
         {"Source", "source", {"source_jac_uq", "source_jac_w"}},
     };
     const std::string volume_sig =
-        "double f[], const double x[], const double uq[], const double w[],"
+        "double f[], const double x[], const double uq[], const double v[], const double w[],"
         " const double mu[], const double uinf[], double t";
     for (const auto& [funcname, value_name, jac_names] : volume_jac_methods) {
         auto it = std::find(funcnames.begin(), funcnames.end(), funcname);

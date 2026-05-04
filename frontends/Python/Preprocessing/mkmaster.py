@@ -15,8 +15,7 @@ def mkmaster(dim,porder,pgauss,elemtype,nodetype):
 
     gpe, gwe = gaussnodes(pgauss,dim,elemtype)
     gpe = array(gpe,float)
-    gwe = array(gwe,float)
-    gwe = reshape(gwe,(gwe.size,1))
+    gwe = array(gwe,float).reshape(-1)
     # shape functions and derivatives on the master volume element
     shapeg = mkshape(porder,xpe,gpe,elemtype)
     shapen = mkshape(porder,xpe,xpe,elemtype)
@@ -39,6 +38,7 @@ def mkmaster(dim,porder,pgauss,elemtype,nodetype):
     if dim>1:
         # Gauss points and weights on the master face element
         gpf, gwf = gaussnodes(pgauss,dim-1,elemtype)
+        gwf = array(gwf,float).reshape(-1)
         # shape functions and derivatives on the master face element
         shapfg = mkshape(porder,xpf,gpf,elemtype)
         shapfn = mkshape(porder,xpf,xpf,elemtype)
@@ -65,6 +65,7 @@ def mkmaster(dim,porder,pgauss,elemtype,nodetype):
 
     xp1d = masternodes(porder,1,elemtype)[0]
     gp1d,gw1d = gaussnodes(pgauss,1,elemtype)
+    gw1d = array(gw1d,float).reshape(-1)
     shap1dg = mkshape(porder,xp1d,gp1d,elemtype)
     shap1dn = mkshape(porder,xp1d,xp1d,elemtype)
 

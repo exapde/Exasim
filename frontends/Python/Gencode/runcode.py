@@ -36,9 +36,16 @@ def runcode(pde, numpde):
         else:
             cmd = f"{mpirun} -np {pde['mpiprocs']} ./gpumpiEXASIM {pdenum} {DataPath}/datain/ {DataPath}/dataout/out"
 
-    start_time = time.time()    
-    subprocess.run(cmd, shell=True)    
+    start_time = time.time()
+    result = subprocess.run(cmd, shell=True)
     end_time = time.time()
+
+    if result.returncode != 0:
+        os.chdir(cdir)
+        raise RuntimeError(
+            f"Exasim backend run failed with exit code {result.returncode}. "
+            f"Command: {cmd}"
+        )
     
     print(f"Elapsed time: {end_time - start_time} seconds")
     

@@ -620,7 +620,8 @@ inline void CDiscretization<M>::postInit(Int backend)
     }
 }
  
-bool CDiscretization::BuildWallModelData(Int ibc, dstype y1)
+template <class M>
+inline bool CDiscretization<M>::BuildWallModelData(Int ibc, dstype y1)
 {
     if (common.backend > 1)
         error("BuildWallModelData is not implemented for GPU/HIP backends because the point locator wall-model builder is host-only.");
