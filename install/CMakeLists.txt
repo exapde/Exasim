@@ -33,9 +33,48 @@ set(BuiltinModel_LIB_DIR   ${EXASIM_DIR}/backend/Model/BuiltIn)
 option(WITH_TEXT2CODE "Build extra EXASIM executables that link text2code-generated dynamic libraries" OFF)
 
 # logical names for text2code-produced shared libs (lib<name>.so/.dylib/.dll)
+# — historically each binary linked one of these as a separately
+# loaded .so. We now compile `backend/Model/libpdemodel.cpp` inline
+# instead (see `exasim_link_pdemodel()` below). text2code still
+# emits the .so files for legacy callers, but in-tree binaries no
+# longer load them.
 set(T2C_CPU_LIB  pdemodelserial)
 set(T2C_CUDA_LIB pdemodelcuda)
 set(T2C_HIP_LIB  pdemodelhip)
+
+# Compile `backend/Model/libpdemodel.cpp` directly into `target`,
+# replacing the legacy pattern `target_link_libraries(... ${T2C_*_LIB})`
+# which used to load text2code's
+# `libpdemodel{serial,cuda,hip}.{so,dylib}` as a separately loaded
+# shared library.
+#
+# Why: with the `.so` pattern, Kokkos ends up statically linked into
+# both the main exe and the loaded `libpdemodel*.so`, and Kokkos's
+# static class members (`SerialInternal::all_instances`,
+# `CudaInternal::constantMemHostStagingPerDevice`, ...) get duplicate
+# `__cxa_atexit` destructor registrations — one per DSO. At program
+# exit both fire and double-free the same heap storage, aborting
+# with `free(): double free detected in tcache 2` /
+# `Kokkos::Cuda ERROR: Failed to call Kokkos::Cuda::finalize()`.
+# Math is correct; only shutdown is broken.
+#
+# Compiling `libpdemodel.cpp` as a TU of the binary keeps the
+# process single-DSO with respect to Kokkos, so the destructor is
+# registered exactly once.
+function(exasim_link_pdemodel target)
+  set(_pdemodel_src "${EXASIM_DIR}/backend/Model/libpdemodel.cpp")
+  target_sources(${target} PRIVATE ${_pdemodel_src})
+  target_include_directories(${target} PRIVATE
+    "${EXASIM_DIR}/backend/Model")
+  if(EXASIM_CUDA)
+    set_source_files_properties(${_pdemodel_src} PROPERTIES
+      LANGUAGE CUDA
+      COMPILE_OPTIONS "--expt-extended-lambda;--expt-relaxed-constexpr")
+  elseif(EXASIM_HIP)
+    set_source_files_properties(${_pdemodel_src} PROPERTIES
+      LANGUAGE HIP)
+  endif()
+endfunction()
 
 # ---- Option: build EXASIM variants that link builtinmodel libs ----
 option(WITH_BUILTINMODEL "Build extra EXASIM executables that link builtin PDE model dynamic libraries" OFF)
@@ -169,8 +208,8 @@ if(EXASIM_CUDA)
       target_compile_definitions(gput2cEXASIM PRIVATE _CUDA _TEXT2CODE)
       target_compile_options(gput2cEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
       target_link_libraries(gput2cEXASIM PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES}
-        ${T2C_CUDA_LIB})
+        Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+    exasim_link_pdemodel(gput2cEXASIM)
       link_metis(gput2cEXASIM)   # METIS
       set_target_properties(gput2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
@@ -208,8 +247,8 @@ if(EXASIM_CUDA)
         target_compile_definitions(gpumpit2cEXASIM PRIVATE _MPI _CUDA _TEXT2CODE)
         target_compile_options(gpumpit2cEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
         target_link_libraries(gpumpit2cEXASIM PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${MPI_LIBRARIES}
-          ${T2C_CUDA_LIB})
+          Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${MPI_LIBRARIES})
+    exasim_link_pdemodel(gpumpit2cEXASIM)
         link_metis(gpumpit2cEXASIM) # METIS
         set_target_properties(gpumpit2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
       endif()
@@ -261,7 +300,7 @@ elseif(EXASIM_HIP)
       target_link_directories(gput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(gput2cEXASIM PRIVATE _HIP _TEXT2CODE)
       target_compile_options(gput2cEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
-      target_link_libraries(gput2cEXASIM PRIVATE Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${T2C_HIP_LIB})
+      target_link_libraries(gput2cEXASIM PRIVATE Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries})
       link_metis(gput2cEXASIM)   # METIS
       set_target_properties(gput2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
@@ -298,8 +337,7 @@ elseif(EXASIM_HIP)
         target_compile_definitions(gpumpit2cEXASIM PRIVATE _MPI _HIP _TEXT2CODE)
         target_compile_options(gpumpit2cEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
         target_link_libraries(gpumpit2cEXASIM PRIVATE
-          Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${MPI_LIBRARIES}
-          ${T2C_HIP_LIB})
+          Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${MPI_LIBRARIES})
         link_metis(gpumpit2cEXASIM) # METIS
         set_target_properties(gpumpit2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
       endif()
@@ -338,7 +376,8 @@ else()
       add_executable(cput2cEXASIM ${MAIN_SOURCES})
       target_link_directories(cput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(cput2cEXASIM PRIVATE _TEXT2CODE)
-      target_link_libraries(cput2cEXASIM PRIVATE Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+      target_link_libraries(cput2cEXASIM PRIVATE Kokkos::kokkos ${lapackblas_libraries})
+    exasim_link_pdemodel(cput2cEXASIM)
       target_compile_options(cput2cEXASIM PRIVATE -std=c++17 -w -O2)   
       link_metis(cput2cEXASIM)   # METIS
       set_target_properties(cput2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
@@ -375,7 +414,8 @@ else()
         target_link_directories(cpumpit2cEXASIM PRIVATE ${Model_LIB_DIR})
         target_compile_definitions(cpumpit2cEXASIM PRIVATE _MPI _TEXT2CODE)
         target_compile_options(cpumpit2cEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
-        target_link_libraries(cpumpit2cEXASIM PRIVATE Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+        target_link_libraries(cpumpit2cEXASIM PRIVATE Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+    exasim_link_pdemodel(cpumpit2cEXASIM)
         link_metis(cpumpit2cEXASIM) # METIS
         set_target_properties(cpumpit2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
       endif()
@@ -537,7 +577,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         ${EXASIM_DIR}/include)
     target_link_directories(poisson2d_template PRIVATE ${Model_LIB_DIR})
     target_link_libraries(poisson2d_template PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+        Kokkos::kokkos ${lapackblas_libraries})
+    exasim_link_pdemodel(poisson2d_template)
     link_metis(poisson2d_template)
     set_target_properties(poisson2d_template PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
 
@@ -552,7 +593,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         ${EXASIM_DIR}/include)
     target_link_directories(solve_square PRIVATE ${Model_LIB_DIR})
     target_link_libraries(solve_square PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+        Kokkos::kokkos ${lapackblas_libraries})
+    exasim_link_pdemodel(solve_square)
     link_metis(solve_square)
     set_target_properties(solve_square PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
 
@@ -566,7 +608,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         ${EXASIM_DIR}/include)
     target_link_directories(solve_square_facade PRIVATE ${Model_LIB_DIR})
     target_link_libraries(solve_square_facade PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+        Kokkos::kokkos ${lapackblas_libraries})
+    exasim_link_pdemodel(solve_square_facade)
     link_metis(solve_square_facade)
     set_target_properties(solve_square_facade PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
@@ -580,7 +623,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     target_include_directories(solve_square_facade_mpi PRIVATE ${EXASIM_DIR}/include)
     target_link_directories(solve_square_facade_mpi PRIVATE ${Model_LIB_DIR})
     target_link_libraries(solve_square_facade_mpi PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+        Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+    exasim_link_pdemodel(solve_square_facade_mpi)
     link_metis(solve_square_facade_mpi)
     set_target_properties(solve_square_facade_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
@@ -598,11 +642,12 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_definitions(solve_square_facade_gpu PRIVATE _CUDA)
       target_link_libraries(solve_square_facade_gpu PRIVATE
           Kokkos::kokkos ${lapackblas_libraries}
-          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+    exasim_link_pdemodel(solve_square_facade_gpu)
     else()
       target_compile_definitions(solve_square_facade_gpu PRIVATE _HIP)
       target_link_libraries(solve_square_facade_gpu PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+          Kokkos::kokkos ${lapackblas_libraries})
     endif()
     link_metis(solve_square_facade_gpu)
     set_target_properties(solve_square_facade_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
@@ -621,11 +666,12 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_definitions(solve_square_facade_mpi_gpu PRIVATE _CUDA)
       target_link_libraries(solve_square_facade_mpi_gpu PRIVATE
           Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES}
-          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+    exasim_link_pdemodel(solve_square_facade_mpi_gpu)
     else()
       target_compile_definitions(solve_square_facade_mpi_gpu PRIVATE _HIP)
       target_link_libraries(solve_square_facade_mpi_gpu PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
     endif()
     link_metis(solve_square_facade_mpi_gpu)
     set_target_properties(solve_square_facade_mpi_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
@@ -647,11 +693,12 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       target_compile_definitions(poisson2d_template_gpu PRIVATE _CUDA)
       target_link_libraries(poisson2d_template_gpu PRIVATE
           Kokkos::kokkos ${lapackblas_libraries}
-          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+          ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+    exasim_link_pdemodel(poisson2d_template_gpu)
     else()
       target_compile_definitions(poisson2d_template_gpu PRIVATE _HIP)
       target_link_libraries(poisson2d_template_gpu PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+          Kokkos::kokkos ${lapackblas_libraries})
     endif()
     link_metis(poisson2d_template_gpu)
     set_target_properties(poisson2d_template_gpu PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
@@ -666,7 +713,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         ${EXASIM_DIR}/include)
     target_link_directories(poisson2d_template_mpi PRIVATE ${Model_LIB_DIR})
     target_link_libraries(poisson2d_template_mpi PRIVATE
-        Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+        Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+    exasim_link_pdemodel(poisson2d_template_mpi)
     link_metis(poisson2d_template_mpi)
     set_target_properties(poisson2d_template_mpi PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
   endif()
@@ -699,7 +747,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           ${EXASIM_DIR}/include "${_codegen_dir}")
       target_link_directories(${name}_codegen PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_codegen PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+          Kokkos::kokkos ${lapackblas_libraries})
+      exasim_link_pdemodel(${name}_codegen)
       link_metis(${name}_codegen)
       set_target_properties(${name}_codegen PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
@@ -713,7 +762,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           ${EXASIM_DIR}/include "${_codegen_dir}")
       target_link_directories(${name}_codegen_mpi PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_codegen_mpi PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+      exasim_link_pdemodel(${name}_codegen_mpi)
       link_metis(${name}_codegen_mpi)
       set_target_properties(${name}_codegen_mpi PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
@@ -736,11 +786,13 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         target_compile_definitions(${name}_codegen_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_codegen_gpu PRIVATE
             Kokkos::kokkos ${lapackblas_libraries}
-            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+      exasim_link_pdemodel(${name}_codegen_gpu)
       else()
         target_compile_definitions(${name}_codegen_gpu PRIVATE _HIP)
         target_link_libraries(${name}_codegen_gpu PRIVATE
-            Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+            Kokkos::kokkos ${lapackblas_libraries})
+      exasim_link_pdemodel(${name}_codegen_gpu)
       endif()
       link_metis(${name}_codegen_gpu)
       set_target_properties(${name}_codegen_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
@@ -761,11 +813,13 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         target_compile_definitions(${name}_codegen_mpi_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_codegen_mpi_gpu PRIVATE
             Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES}
-            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+      exasim_link_pdemodel(${name}_codegen_mpi_gpu)
       else()
         target_compile_definitions(${name}_codegen_mpi_gpu PRIVATE _HIP)
         target_link_libraries(${name}_codegen_mpi_gpu PRIVATE
-            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
+            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+      exasim_link_pdemodel(${name}_codegen_mpi_gpu)
       endif()
       link_metis(${name}_codegen_mpi_gpu)
       set_target_properties(${name}_codegen_mpi_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
@@ -787,7 +841,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           ${EXASIM_DIR}/include "${_codegen_dir}")
       target_link_directories(${name}_facade PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_facade PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${T2C_CPU_LIB})
+          Kokkos::kokkos ${lapackblas_libraries})
+      exasim_link_pdemodel(${name}_facade)
       link_metis(${name}_facade)
       set_target_properties(${name}_facade PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
@@ -800,7 +855,8 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
           ${EXASIM_DIR}/include "${_codegen_dir}")
       target_link_directories(${name}_facade_mpi PRIVATE "${_codegen_dir}")
       target_link_libraries(${name}_facade_mpi PRIVATE
-          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_CPU_LIB})
+          Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+      exasim_link_pdemodel(${name}_facade_mpi)
       link_metis(${name}_facade_mpi)
       set_target_properties(${name}_facade_mpi PROPERTIES BUILD_RPATH "${_codegen_dir}")
     endif()
@@ -817,11 +873,13 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         target_compile_definitions(${name}_facade_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_facade_gpu PRIVATE
             Kokkos::kokkos ${lapackblas_libraries}
-            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+      exasim_link_pdemodel(${name}_facade_gpu)
       else()
         target_compile_definitions(${name}_facade_gpu PRIVATE _HIP)
         target_link_libraries(${name}_facade_gpu PRIVATE
-            Kokkos::kokkos ${lapackblas_libraries} ${T2C_HIP_LIB})
+            Kokkos::kokkos ${lapackblas_libraries})
+      exasim_link_pdemodel(${name}_facade_gpu)
       endif()
       link_metis(${name}_facade_gpu)
       set_target_properties(${name}_facade_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
@@ -839,11 +897,13 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
         target_compile_definitions(${name}_facade_mpi_gpu PRIVATE _CUDA)
         target_link_libraries(${name}_facade_mpi_gpu PRIVATE
             Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES}
-            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${T2C_CUDA_LIB})
+            ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+      exasim_link_pdemodel(${name}_facade_mpi_gpu)
       else()
         target_compile_definitions(${name}_facade_mpi_gpu PRIVATE _HIP)
         target_link_libraries(${name}_facade_mpi_gpu PRIVATE
-            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES} ${T2C_HIP_LIB})
+            Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+      exasim_link_pdemodel(${name}_facade_mpi_gpu)
       endif()
       link_metis(${name}_facade_mpi_gpu)
       set_target_properties(${name}_facade_mpi_gpu PROPERTIES BUILD_RPATH "${_codegen_dir}")
