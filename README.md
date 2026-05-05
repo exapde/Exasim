@@ -1,5 +1,5 @@
 <p align="center">
-<img src="doc/exasimlogosmall.png">
+<img src="docs/exasimlogosmall.png">
 </p>
 
 # Generating Discontinuous Galerkin Codes For Extreme Scalable Simulations
