@@ -113,20 +113,20 @@
 // instead of using this façade.
 using namespace std;
 
-#include "../../backend/Common/common.h"
-#include "../../backend/Common/cpuimpl.h"
-#include "../../backend/Common/kokkosimpl.h"
-#include "../../backend/Common/pblas.h"
+#include <backend/Common/common.h>
+#include <backend/Common/cpuimpl.h>
+#include <backend/Common/kokkosimpl.h>
+#include <backend/Common/pblas.h>
 
-#include "../../backend/Discretization/discretization.hpp"
-#include "../../backend/Preconditioning/preconditioner.hpp"
-#include "../../backend/Solver/solver.hpp"
-#include "../../backend/Visualization/visualization.hpp"
-#include "../../backend/PointLocator/pointlocator.hpp"
-#include "../../backend/Solution/solution.hpp"
+#include <backend/Discretization/discretization.hpp>
+#include <backend/Preconditioning/preconditioner.hpp>
+#include <backend/Solver/solver.hpp>
+#include <backend/Visualization/visualization.hpp>
+#include <backend/PointLocator/pointlocator.hpp>
+#include <backend/Solution/solution.hpp>
 
 #ifdef HAVE_SHARED_MODEL_LIB
-#include "../../backend/Preprocessing/preprocessing.hpp"
+#include <backend/Preprocessing/preprocessing.hpp>
 #endif
 
 #include "detail/abi_adapter.hpp"

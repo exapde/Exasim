@@ -38,8 +38,8 @@
 
 #include <exasim/run.hpp>                         // pulls common.h, all backend headers, `using namespace std;`
 #include <exasim/model.hpp>                       // exasim::ModelDefaults, is_model_v
-#include "../../backend/Preprocessing/structs.hpp"
-#include "../../backend/Preprocessing/buildstructs.hpp"
+#include <backend/Preprocessing/structs.hpp>
+#include <backend/Preprocessing/buildstructs.hpp>
 
 namespace exasim {
 

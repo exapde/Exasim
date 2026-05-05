@@ -5,4 +5,4 @@
 // functions defined inside the class definition, implicitly inline),
 // so no separate .cpp translation unit is needed.
 #pragma once
-#include "../../backend/Visualization/visualization.hpp"
+#include <backend/Visualization/visualization.hpp>
