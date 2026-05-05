@@ -103,14 +103,20 @@
 
 #include <Kokkos_Core.hpp>
 
-// The backend headers below transitively use unqualified `cout`,
-// `vector`, `string`, `endl`, etc. They were written assuming
-// `using namespace std;` at the top of the TU (the previous
-// `backend/Main/main.cpp` had it at file scope). We bring `std::*`
-// in here so consumers don't have to. This deliberately pollutes
-// the namespace at the point of `#include <exasim/run.hpp>` — if
-// a downstream project objects, they should write their own main()
-// instead of using this façade.
+// PR #73 review NB2: the global `using namespace std;` previously
+// here leaked the entire std namespace into every consumer TU of
+// <exasim/run.hpp>. The proper fix is to fully-qualify `std::*` in
+// the backend headers transitively included below — backend code
+// uses unqualified `cout`, `vector`, `string`, `scientific`,
+// `chrono::high_resolution_clock`, etc., which means a per-symbol
+// `using std::X;` list isn't enough; the sweep must touch the
+// backend sources directly.
+//
+// Tracked as a follow-up: backend/**/*.h{,pp} need `std::` qualifier
+// added to ~600 unqualified-name sites. Until that lands, the
+// `using namespace std;` stays — its scope and effect were already
+// documented; removing it without the sweep just shifts the failure
+// from the linker to the compiler. Reviewer marked NB2 non-blocking.
 using namespace std;
 
 #include <backend/Common/common.h>
