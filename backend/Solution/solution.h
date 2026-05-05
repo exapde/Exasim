@@ -42,7 +42,7 @@
 #define __SOLUTION_H__
 
 // Common helper: open file and write 3-element header [a0, a1, a2]
-void open_and_write(std::ofstream& ofs,
+inline void open_and_write(std::ofstream& ofs,
                     const std::string& prefix,
                     int rank, int offset,
                     int a0, int a1, int a2,

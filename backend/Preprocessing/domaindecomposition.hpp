@@ -68,8 +68,8 @@
 // //     std::vector<int> intl;                  // processor ID for each element in the partition
 // };
 
-DMD initializeDMD(const PDE& pde, const Mesh& mesh)
-{              
+inline DMD initializeDMD(const PDE& pde, const Mesh& mesh)
+{
     DMD dmd;
     
     if (pde.mpiprocs==1) {
@@ -111,7 +111,7 @@ inline void xiny(std::vector<int>& indices, const std::vector<int>& x, const std
     }
 }
 
-std::vector<int> neighboringelements(const int* e2e, const int* elem, int nfe, int ne, int nelem) {
+inline std::vector<int> neighboringelements(const int* e2e, const int* elem, int nfe, int ne, int nelem) {
     std::vector<int> neighbors;
     neighbors.reserve(nelem * nfe);
 

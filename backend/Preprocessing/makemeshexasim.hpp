@@ -1383,7 +1383,7 @@ inline Mesh meshFromArraysDistributed(const double* p_local, const int* t_local,
     return mesh;
 }
 
-Mesh initializeMesh(InputParams& params, PDE& pde)
+inline Mesh initializeMesh(InputParams& params, PDE& pde)
 {
     Mesh mesh;
     readMeshFromFile(make_path(pde.datapath, pde.meshfile), mesh);
@@ -1465,7 +1465,7 @@ Mesh initializeMesh(InputParams& params, PDE& pde)
 
 #ifdef HAVE_MPI
 
-Mesh initializeParMesh(const InputParams& params, const ParsedSpec& spec, PDE& pde, MPI_Comm comm) 
+inline Mesh initializeParMesh(const InputParams& params, const ParsedSpec& spec, PDE& pde, MPI_Comm comm) 
 {
     Mesh mesh;
     readParMeshFromFile(make_path(pde.datapath, pde.meshfile), mesh, comm);                       
