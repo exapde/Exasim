@@ -62,6 +62,9 @@ else
   end  
 end
 
+# Julia's `run` on a Cmd throws ProcessFailedException on nonzero
+# exit, so configure / build failures already propagate up — no
+# explicit status check needed (PR #73 review NB3).
 run(stringcommand(comstr));
 run(stringcommand("cmake --build . --target " * target));
 

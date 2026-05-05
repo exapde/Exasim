@@ -1,6 +1,6 @@
-#include "../../include/exasim/drivers.hpp"
-#include "../../include/exasim/detail/abi_adapter.hpp"
-#include "../../include/exasim/detail/driver_dispatch.hpp"
+#include <exasim/drivers.hpp>
+#include <exasim/detail/abi_adapter.hpp>
+#include <exasim/detail/driver_dispatch.hpp>
 
 /*
   uequation.cpp

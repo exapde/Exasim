@@ -38,8 +38,8 @@
 
 #include <exasim/run.hpp>                         // pulls common.h, all backend headers, `using namespace std;`
 #include <exasim/model.hpp>                       // exasim::ModelDefaults, is_model_v
-#include "../../backend/Preprocessing/structs.hpp"
-#include "../../backend/Preprocessing/buildstructs.hpp"
+#include <backend/Preprocessing/structs.hpp>
+#include <backend/Preprocessing/buildstructs.hpp>
 
 namespace exasim {
 
@@ -324,9 +324,13 @@ public:
 
         // CSolution expects the multi-model bookkeeping arrays even
         // for a single-model run (see <exasim/run.hpp> ~line 358).
+        // Storage lives on the facade, not on solver_, so reusing the
+        // facade across multiple solve() calls doesn't leak.
         solver_->disc.common.nomodels = 1;
-        solver_->disc.common.ncarray  = new Int[1]{ solver_->disc.common.nc };
-        solver_->disc.sol.udgarray    = new dstype*[1]{ &solver_->disc.sol.udg[0] };
+        ncarray_storage_  = { solver_->disc.common.nc };
+        udgarray_storage_ = { &solver_->disc.sol.udg[0] };
+        solver_->disc.common.ncarray  = ncarray_storage_.data();
+        solver_->disc.sol.udgarray    = udgarray_storage_.data();
 
         std::ofstream resnorms;
         solver_->SolveProblem(resnorms, backend);
@@ -356,13 +360,10 @@ public:
     CSolution<M>*       solver()       noexcept { return solver_.get(); }
     const CSolution<M>* solver() const noexcept { return solver_.get(); }
 
-    ~ExasimSolver()
-    {
-        if (solver_) {
-            delete[] solver_->disc.common.ncarray;
-            delete[] solver_->disc.sol.udgarray;
-        }
-    }
+    // ncarray_storage_ / udgarray_storage_ are std::vector members,
+    // so the implicit destructor handles their teardown. Leave the
+    // body empty rather than re-introducing raw delete[] paths.
+    ~ExasimSolver() = default;
 
     // Non-copyable (CSolution<M> owns malloc'd C arrays through raw
     // pointers — copying would double-free).
@@ -388,6 +389,13 @@ private:
 
     std::unique_ptr<CSolution<M>> solver_;
     bool solved_ = false;
+
+    // Storage for the multi-model bookkeeping arrays CSolution
+    // expects (see ~line 327 for setup). Owned here, not by solver_,
+    // because solver_ can be replaced by a subsequent solve() call;
+    // the previous owner ship-by-raw-pointer leaked these on reuse.
+    std::vector<Int>      ncarray_storage_;
+    std::vector<dstype*>  udgarray_storage_;
 
     // Host-side caches for GPU runs: disc.sol.{udg,uh,wdg} live on
     // device, so udg()/uhat()/wdg() copy them to host on first call.

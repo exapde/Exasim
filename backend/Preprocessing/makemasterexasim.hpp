@@ -1016,7 +1016,7 @@
 //     return ncols_out;
 // }
 
-Master initializeMaster(PDE& pde, Mesh& mesh, int rank=0)
+inline Master initializeMaster(PDE& pde, Mesh& mesh, int rank=0)
 {    
     Master master;
     

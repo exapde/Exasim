@@ -21,7 +21,7 @@
 #ifndef __PRECONDITIONER_H__
 #define __PRECONDITIONER_H__
 
-#include "../../include/exasim/detail/abi_adapter.hpp"
+#include <exasim/detail/abi_adapter.hpp>
 
 template <class M> class CDiscretization;   // forward decl
 

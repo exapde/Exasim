@@ -3,4 +3,4 @@
 // backend/Common/kokkosimpl.h move into src/exasim_core/kokkosimpl.cpp; this
 // file then carries declarations only.
 #pragma once
-#include "../../backend/Common/kokkosimpl.h"
+#include <backend/Common/kokkosimpl.h>

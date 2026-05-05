@@ -115,7 +115,7 @@ std::vector<T> parseList(const std::string& buffer) {
 }
 
 // Helper to parse a list of strings in braces
-std::vector<std::string> parseStringList(const std::string& buffer) {    
+inline std::vector<std::string> parseStringList(const std::string& buffer) {
     std::vector<std::string> result;
     std::regex string_regex("\"([^\"]*)\"");
     auto begin = std::sregex_iterator(buffer.begin(), buffer.end(), string_regex);
@@ -133,7 +133,7 @@ inline std::string trim(const std::string& s) {
     return (start == std::string::npos) ? "" : s.substr(start, end - start + 1);
 }
 
-std::vector<std::string> tokenizeBraceList(const std::string& input) {
+inline std::vector<std::string> tokenizeBraceList(const std::string& input) {
     std::vector<std::string> tokens;
     std::string current;
     int parenLevel = 0;
@@ -152,7 +152,7 @@ std::vector<std::string> tokenizeBraceList(const std::string& input) {
     return tokens;
 }
 
-std::vector<double> parseExpression(const std::string& expr) {
+inline std::vector<double> parseExpression(const std::string& expr) {
     std::string content = expr;
 
     // Extract content between first { and last }
@@ -184,7 +184,7 @@ std::vector<double> parseExpression(const std::string& expr) {
     return result;
 }
 
-InputParams parseInputFile(const std::string& filename, int mpirank=0) 
+inline InputParams parseInputFile(const std::string& filename, int mpirank=0)
 {
     InputParams params;
     
@@ -512,7 +512,7 @@ inline void pdeFinalizeDerived(PDE& pde)
     pde.solversparam = {pde.NewtonTol, pde.GMREStol, pde.matvectol, pde.NLparam};
 }
 
-PDE initializePDE(InputParams& params, int mpirank=0)
+inline PDE initializePDE(InputParams& params, int mpirank=0)
 {
     PDE pde;
     

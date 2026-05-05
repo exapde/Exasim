@@ -22,7 +22,7 @@
 #ifndef __SOLVER_H__
 #define __SOLVER_H__
 
-#include "../../include/exasim/detail/abi_adapter.hpp"
+#include <exasim/detail/abi_adapter.hpp>
 
 template <class M> class CDiscretization;   // forward decl
 

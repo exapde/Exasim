@@ -1386,7 +1386,7 @@ namespace te_builtins
     } // namespace te_builtins
 
 //--------------------------------------------------
-void te_parser::te_free_parameters(te_expr* texp)
+inline void te_parser::te_free_parameters(te_expr* texp)
     {
     if (texp == nullptr)
         {
@@ -1413,7 +1413,7 @@ void te_parser::te_free_parameters(te_expr* texp)
     }
 
 //--------------------------------------------------
-const std::set<te_variable> te_parser::m_functions = { // NOLINT
+inline const std::set<te_variable> te_parser::m_functions = { // NOLINT
     { "abs", static_cast<te_fun1>(te_builtins::te_absolute_value), TE_PURE },
     { "acos", static_cast<te_fun1>(te_builtins::te_acos), TE_PURE },
     // variadic, accepts 1-24 arguments
@@ -1521,7 +1521,7 @@ const std::set<te_variable> te_parser::m_functions = { // NOLINT
 };
 
 //--------------------------------------------------
-void te_parser::next_token(te_parser::state* theState)
+inline void te_parser::next_token(te_parser::state* theState)
     {
     assert(theState);
     if (theState == nullptr)
@@ -1905,7 +1905,7 @@ void te_parser::next_token(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::base(te_parser::state* theState)
+inline te_expr* te_parser::base(te_parser::state* theState)
     {
     /* <base>      =    <constant> | <variable> | <function-0> {"(" ")"} | <function-1> <power> |
                         <function-X> "(" <expr> {"," <expr>} ")" | "(" <list> ")" */
@@ -2028,7 +2028,7 @@ te_expr* te_parser::base(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::list(te_parser::state* theState)
+inline te_expr* te_parser::list(te_parser::state* theState)
     {
     /* <list>      =    <expr> {"," <expr>} */
     te_expr* ret = expr_level1(theState);
@@ -2045,7 +2045,7 @@ te_expr* te_parser::list(te_parser::state* theState)
 
 // Operator precedence, lowest to highest:
 //--------------------------------------------------
-te_expr* te_parser::expr_level1(te_parser::state* theState)
+inline te_expr* te_parser::expr_level1(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(logic operations) <term>} */
     // These are the lowest of operator precedence
@@ -2065,7 +2065,7 @@ te_expr* te_parser::expr_level1(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level2(te_parser::state* theState)
+inline te_expr* te_parser::expr_level2(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(logic operations) <term>} */
     // next to lowest in precedence...
@@ -2084,7 +2084,7 @@ te_expr* te_parser::expr_level2(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level3(te_parser::state* theState)
+inline te_expr* te_parser::expr_level3(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(logic operations) <term>} */
     // next to lowest in precedence...
@@ -2103,7 +2103,7 @@ te_expr* te_parser::expr_level3(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level4(te_parser::state* theState)
+inline te_expr* te_parser::expr_level4(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(logic operations) <term>} */
     // next to lowest in precedence...
@@ -2122,7 +2122,7 @@ te_expr* te_parser::expr_level4(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level5(te_parser::state* theState)
+inline te_expr* te_parser::expr_level5(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(logic operations) <term>} */
     // next to lowest in precedence...
@@ -2141,7 +2141,7 @@ te_expr* te_parser::expr_level5(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level6(te_parser::state* theState)
+inline te_expr* te_parser::expr_level6(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(logic operations) <term>} */
     // next to lowest in precedence...
@@ -2161,7 +2161,7 @@ te_expr* te_parser::expr_level6(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level7(te_parser::state* theState)
+inline te_expr* te_parser::expr_level7(te_parser::state* theState)
     {
     /* <expr>      =    <term> {(comparison operators) <term>} */
     te_expr* ret = expr_level8(theState);
@@ -2182,7 +2182,7 @@ te_expr* te_parser::expr_level7(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level8(te_parser::state* theState)
+inline te_expr* te_parser::expr_level8(te_parser::state* theState)
     {
     /* <expr>      =    <term> {("<<" | ">>") <term>} */
     te_expr* ret = expr_level9(theState);
@@ -2212,7 +2212,7 @@ te_expr* te_parser::expr_level8(te_parser::state* theState)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::expr_level9(te_parser::state* theState)
+inline te_expr* te_parser::expr_level9(te_parser::state* theState)
     {
     /* <expr>      =    <term> {("+" | "-") <term>} */
     te_expr* ret = term(theState);
@@ -2232,7 +2232,7 @@ te_expr* te_parser::expr_level9(te_parser::state* theState)
 
 // Higher levels of operator precedence:
 //--------------------------------------------------
-te_expr* te_parser::term(te_parser::state* theState)
+inline te_expr* te_parser::term(te_parser::state* theState)
     {
     /* <term>      =    <factor> {("*" | "/" | "%") <factor>} */
     // third from highest level of operator precedence
@@ -2254,7 +2254,7 @@ te_expr* te_parser::term(te_parser::state* theState)
 
 //--------------------------------------------------
 #ifdef TE_POW_FROM_RIGHT
-te_expr* te_parser::factor(te_parser::state* theState)
+inline te_expr* te_parser::factor(te_parser::state* theState)
     {
     /* <factor>    =    <power> {"^" <power>} */
     // second from highest level of operator precedence
@@ -2301,7 +2301,7 @@ te_expr* te_parser::factor(te_parser::state* theState)
     return ret;
     }
 #else
-te_expr* te_parser::factor(te_parser::state* theState)
+inline te_expr* te_parser::factor(te_parser::state* theState)
     {
     /* <factor>    =    <power> {"^" <power>} */
     // second from highest level of operator precedence
@@ -2321,7 +2321,7 @@ te_expr* te_parser::factor(te_parser::state* theState)
 #endif
 
 //--------------------------------------------------
-te_expr* te_parser::power(te_parser::state* theState)
+inline te_expr* te_parser::power(te_parser::state* theState)
     {
     /* <power>     =    {("-" | "+")} <base> */
     // highest level of operator precedence
@@ -2382,7 +2382,7 @@ auto make_function_arg_list(const F& fn, std::index_sequence<Indices...>)
     return std::make_tuple(fn(Indices)...);
     }
 
-te_type te_parser::te_eval(const te_expr* texp)
+inline te_type te_parser::te_eval(const te_expr* texp)
     {
     if (texp == nullptr)
         {
@@ -2438,7 +2438,7 @@ te_type te_parser::te_eval(const te_expr* texp)
     }
 
 //--------------------------------------------------
-void te_parser::optimize(te_expr* texp)
+inline void te_parser::optimize(te_expr* texp)
     {
     if (texp == nullptr)
         {
@@ -2478,7 +2478,7 @@ void te_parser::optimize(te_expr* texp)
     }
 
 //--------------------------------------------------
-te_expr* te_parser::te_compile(const std::string_view expression, std::set<te_variable>& variables)
+inline te_expr* te_parser::te_compile(const std::string_view expression, std::set<te_variable>& variables)
     {
     state theState(expression.data(), TE_DEFAULT, variables);
 
@@ -2502,7 +2502,7 @@ te_expr* te_parser::te_compile(const std::string_view expression, std::set<te_va
     }
 
 //--------------------------------------------------
-bool te_parser::compile(const std::string_view expression)
+inline bool te_parser::compile(const std::string_view expression)
     {
     reset_state();
     if (get_list_separator() == get_decimal_separator())
@@ -2580,7 +2580,7 @@ bool te_parser::compile(const std::string_view expression)
     }
 
 //--------------------------------------------------
-te_type te_parser::evaluate()
+inline te_type te_parser::evaluate()
     {
     try
         {
@@ -2605,7 +2605,7 @@ te_type te_parser::evaluate()
     }
 
 //--------------------------------------------------
-te_type
+inline te_type
 te_parser::evaluate(const std::string_view expression) // NOLINT(-readability-identifier-naming)
     {
     if (compile(expression))
@@ -2625,7 +2625,7 @@ te_parser::evaluate(const std::string_view expression) // NOLINT(-readability-id
 
 //--------------------------------------------------
 // cppcheck-suppress unusedFunction
-std::string te_parser::list_available_functions_and_variables()
+inline std::string te_parser::list_available_functions_and_variables()
     {
     std::string report = "Built-in Functions:\n";
     for (const auto& func : m_functions)
@@ -2642,7 +2642,7 @@ std::string te_parser::list_available_functions_and_variables()
 
 //--------------------------------------------------
 // cppcheck-suppress unusedFunction
-std::string te_parser::info()
+inline std::string te_parser::info()
     {
     std::string sysInfo{ "TinyExpr++ system info:\n=======================\n" };
 #ifdef TE_FLOAT

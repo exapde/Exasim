@@ -19,7 +19,7 @@
  * Date: 2025
  */
 
-#include "../../include/exasim/run.hpp"
+#include <exasim/run.hpp>
 
 int main(int argc, char** argv) {
     return exasim::run<exasim::detail::AbiAdapter>(argc, argv);

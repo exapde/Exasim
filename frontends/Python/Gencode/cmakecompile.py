@@ -34,11 +34,14 @@ def cmakecompile(pde):
             comstr = ["cmake", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_CUDA=OFF", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
             target = "cpumpiEXASIM"
 
-    subprocess.run(comstr)
-    subprocess.run(["cmake", "--build", ".", "--target", target])
+    # check=True so configure / build failures surface here, not as
+    # confusing downstream errors when the runner can't find the
+    # binary or fetchsolution sees missing dataout files.
+    subprocess.run(comstr, check=True)
+    subprocess.run(["cmake", "--build", ".", "--target", target], check=True)
 
     os.chdir(cdir)
-    
+
     return comstr
 
     # print("Run C++ Exasim code ...")

@@ -1,8 +1,8 @@
 #ifndef __POSTDISCRETIZATION
 #define __POSTDISCRETIZATION
 
-#include "../../include/exasim/drivers.hpp"            // exasim::*Driver<M>
-#include "../../include/exasim/detail/driver_dispatch.hpp"  // EXASIM_DRIVER_CALL
+#include <exasim/drivers.hpp>            // exasim::*Driver<M>
+#include <exasim/detail/driver_dispatch.hpp>  // EXASIM_DRIVER_CALL
 
 #include "postdiscretization.h"
 #include "ioutilities.hpp"

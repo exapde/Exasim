@@ -245,7 +245,7 @@ template <typename T> T * readarray(ifstream &in, Int N)
     return a;
 }
 
-Int * readiarrayfromdouble(ifstream &in, Int N)
+inline Int * readiarrayfromdouble(ifstream &in, Int N)
 {
     Int *a;
     if (N>0) {      

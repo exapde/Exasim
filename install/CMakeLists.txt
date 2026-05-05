@@ -14,6 +14,14 @@ project(exasim LANGUAGES CXX)
 
 get_filename_component(EXASIM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 
+# Global include path so the public wrappers' angle-form
+# `<backend/...>` includes resolve to ${EXASIM_DIR}/backend/. Out-of-
+# tree consumers go through Exasim::headers (which sets the same
+# resolution against <prefix>/include); this directory-scope rule
+# covers in-tree targets that don't link Exasim::headers explicitly
+# (cpuEXASIM, the library examples, the tutorial subprojects, etc.).
+include_directories(${EXASIM_DIR} ${EXASIM_DIR}/include)
+
 # Exasim's main program is located here
 set(EXASIM_MAIN_DIR ${EXASIM_DIR}/backend/Main)
 file(GLOB MAIN_SOURCES ${EXASIM_MAIN_DIR}/main.cpp)
@@ -462,8 +470,16 @@ add_library(Exasim::headers ALIAS exasim_headers)
 set_target_properties(exasim_headers PROPERTIES EXPORT_NAME headers)
 
 target_include_directories(exasim_headers INTERFACE
+    # Public include forms (post-B1):
+    #   <exasim/...>  resolves under <prefix>/include/exasim/
+    #                 (in-tree: ${EXASIM_DIR}/include/exasim/)
+    #   <backend/...> resolves under <prefix>/include/backend/
+    #                 (in-tree: ${EXASIM_DIR}/backend/)
+    # In-tree we expose ${EXASIM_DIR} itself so <backend/...> hits the
+    # source tree directly; installed we expose <prefix>/include so it
+    # hits the installed copy under include/backend/.
     $<BUILD_INTERFACE:${EXASIM_DIR}/include>
-    $<BUILD_INTERFACE:${EXASIM_DIR}/backend>
+    $<BUILD_INTERFACE:${EXASIM_DIR}>
     $<INSTALL_INTERFACE:include>)
 
 target_compile_features(exasim_headers INTERFACE cxx_std_17)
@@ -477,11 +493,15 @@ install(DIRECTORY ${EXASIM_DIR}/include/exasim/
         PATTERN "*.hpp"
         PATTERN "*.h")
 
-# backend/ headers are #include'd by include/exasim/*.hpp via relative
-# paths (e.g., `#include "../common.h"`). Install the .h / .hpp / .cpp
-# files (the .cpp files here are template-impl bodies #include'd by .h
-# headers, not standalone TUs). Skip backend/Model/* — that's the
-# legacy ABI which downstream consumers don't need on the templated path.
+# backend/ headers are #include'd by include/exasim/*.hpp via the
+# angle-form `<backend/...>` (B1). Install the .h / .hpp / .cpp files
+# (.cpp files here are template-impl bodies #include'd by .h headers,
+# not standalone TUs). Skip backend/Model/* — that's the legacy ABI
+# which downstream consumers don't need on the templated path. The
+# only exception is libpdemodel.{hpp,cpp}, which downstream consumers
+# DO need: the AbiAdapter else-branch in EXASIM_DRIVER_CALL pulls
+# *Driver shims that call the per-model kernels (KokkosFlux, etc.),
+# and libpdemodel.cpp provides those kernel TUs.
 install(DIRECTORY ${EXASIM_DIR}/backend/
     DESTINATION include/backend
     FILES_MATCHING
@@ -489,6 +509,12 @@ install(DIRECTORY ${EXASIM_DIR}/backend/
         PATTERN "*.h"
         PATTERN "*.cpp"
         REGEX "/Model/" EXCLUDE)
+install(FILES
+        ${EXASIM_DIR}/backend/Model/libpdemodel.hpp
+        ${EXASIM_DIR}/backend/Model/libpdemodel.cpp
+        ${EXASIM_DIR}/backend/Model/KokkosDrivers.cpp
+        ${EXASIM_DIR}/backend/Model/ModelDrivers.cpp
+    DESTINATION include/backend/Model)
 
 install(TARGETS exasim_headers
     EXPORT  ExasimTargets)
@@ -1070,6 +1096,20 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   set_tests_properties("tutorial:run-all:${_variant}" PROPERTIES
       FIXTURES_REQUIRED "regen_poisson2d;build_poisson2d_codegen${_target_suffix};build_poisson2d_facade${_target_suffix}"
       TIMEOUT           600)
+endif()
+
+# ======================================================================
+#  Reusable-library tests (PR #73 review B-Test1, B-Test2)
+# ======================================================================
+#
+# Off by default so the standard build is unaffected. Some of these
+# targets are expected to FAIL until the matching review blocker is
+# fixed — the failure is the regression check.
+option(EXASIM_BUILD_TESTS
+       "Build reusable-library smoke tests under tests/ (multi-TU consumer, install consumer)"
+       OFF)
+if(EXASIM_BUILD_TESTS)
+  add_subdirectory(${EXASIM_DIR}/tests ${CMAKE_CURRENT_BINARY_DIR}/tests)
 endif()
 
 # ======================================================================
