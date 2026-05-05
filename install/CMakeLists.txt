@@ -545,7 +545,7 @@ install(PROGRAMS ${_t2c_binary} DESTINATION bin
 
 option(EXASIM_BUILD_LIBRARY_EXAMPLES
        "Build user-facing examples that consume Exasim as a header-only template library"
-       ON)
+       OFF)
 
 if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   # Even though CSolution<Poisson2D> never takes the AbiAdapter path
