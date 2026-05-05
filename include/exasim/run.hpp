@@ -132,6 +132,63 @@ using namespace std;
 #include "detail/abi_adapter.hpp"
 
 namespace exasim {
+namespace detail {
+
+// RAII guards for MPI and Kokkos init/finalize. exasim::run<M>() has
+// many early-return error paths after MPI_Init / Kokkos::initialize;
+// without RAII, each one had to remember to call the matching
+// finalize, and several didn't — leaving MPI/Kokkos half-shut-down
+// on the way out. With these guards, every return point unwinds the
+// stack and the destructors fire in reverse construction order, so
+// Kokkos::finalize precedes MPI_Finalize automatically.
+//
+// Each guard is "ownership-aware": if MPI/Kokkos is already
+// initialized when the guard is constructed, the guard does NOT
+// call finalize on destruction. This makes run<M>() safe to call
+// from a host that already manages MPI/Kokkos lifecycle (e.g. a
+// long-lived facade that calls run<M>() multiple times).
+
+#ifdef HAVE_MPI
+struct MpiScope {
+    bool _owned = false;
+    MpiScope(int* argc, char*** argv) {
+        int already = 0;
+        MPI_Initialized(&already);
+        if (!already) {
+            MPI_Init(argc, argv);
+            _owned = true;
+        }
+    }
+    ~MpiScope() {
+        if (_owned) {
+            int finalized = 0;
+            MPI_Finalized(&finalized);
+            if (!finalized) MPI_Finalize();
+        }
+    }
+    MpiScope(const MpiScope&) = delete;
+    MpiScope& operator=(const MpiScope&) = delete;
+};
+#endif
+
+struct KokkosScope {
+    bool _owned = false;
+    KokkosScope(int& argc, char** argv) {
+        if (!Kokkos::is_initialized() && !Kokkos::is_finalized()) {
+            Kokkos::initialize(argc, argv);
+            _owned = true;
+        }
+    }
+    ~KokkosScope() {
+        if (_owned && Kokkos::is_initialized() && !Kokkos::is_finalized()) {
+            Kokkos::finalize();
+        }
+    }
+    KokkosScope(const KokkosScope&) = delete;
+    KokkosScope& operator=(const KokkosScope&) = delete;
+};
+
+} // namespace detail
 
 template <class M = exasim::detail::AbiAdapter>
 inline int run(int argc, char** argv) {
@@ -140,7 +197,7 @@ inline int run(int argc, char** argv) {
     (void)localprocs; (void)localrank;
 
 #ifdef HAVE_MPI
-    MPI_Init(&argc, &argv);
+    detail::MpiScope _mpi_scope(&argc, &argv);
 
     EXASIM_COMM_WORLD = MPI_COMM_WORLD;
     EXASIM_COMM_LOCAL = MPI_COMM_WORLD;
@@ -230,7 +287,7 @@ inline int run(int argc, char** argv) {
               << std::endl;
 #endif
 
-  Kokkos::initialize(argc, argv);
+  detail::KokkosScope _kokkos_scope(argc, argv);
   {
 
     std::string filein[10];
@@ -519,12 +576,9 @@ inline int run(int argc, char** argv) {
     delete[] pdemodel;
     delete[] out;
   }
-  Kokkos::finalize();
-
-#ifdef HAVE_MPI
-  MPI_Finalize();
-#endif
-
+  // _kokkos_scope and (if HAVE_MPI) _mpi_scope finalize here via RAII
+  // when the function returns; explicit Kokkos::finalize / MPI_Finalize
+  // are gone so every early-return path is balanced for free.
   return 0;
 }
 
