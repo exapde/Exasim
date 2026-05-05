@@ -225,8 +225,8 @@ Right now the branch tends toward ``everything becomes \texttt{Thing<M>}''.
 A better style is:
 
 \begin{itemize}[leftmargin=*]
-\item \texttt{SolverCore} owns runtime state
-\item \texttt{DiscretizationCore} owns discretization state
+\item \texttt{CSolver} owns runtime state
+\item \texttt{CDiscretization} owns discretization state
 \item \texttt{ModelContext} supplies model-dependent operations
 \item \texttt{RunSession} manages MPI/Kokkos lifecycle
 \item \texttt{ExasimSolver} composes those pieces
