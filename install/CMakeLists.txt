@@ -493,11 +493,15 @@ install(DIRECTORY ${EXASIM_DIR}/include/exasim/
         PATTERN "*.hpp"
         PATTERN "*.h")
 
-# backend/ headers are #include'd by include/exasim/*.hpp via relative
-# paths (e.g., `#include "../common.h"`). Install the .h / .hpp / .cpp
-# files (the .cpp files here are template-impl bodies #include'd by .h
-# headers, not standalone TUs). Skip backend/Model/* — that's the
-# legacy ABI which downstream consumers don't need on the templated path.
+# backend/ headers are #include'd by include/exasim/*.hpp via the
+# angle-form `<backend/...>` (B1). Install the .h / .hpp / .cpp files
+# (.cpp files here are template-impl bodies #include'd by .h headers,
+# not standalone TUs). Skip backend/Model/* — that's the legacy ABI
+# which downstream consumers don't need on the templated path. The
+# only exception is libpdemodel.{hpp,cpp}, which downstream consumers
+# DO need: the AbiAdapter else-branch in EXASIM_DRIVER_CALL pulls
+# *Driver shims that call the per-model kernels (KokkosFlux, etc.),
+# and libpdemodel.cpp provides those kernel TUs.
 install(DIRECTORY ${EXASIM_DIR}/backend/
     DESTINATION include/backend
     FILES_MATCHING
@@ -505,6 +509,12 @@ install(DIRECTORY ${EXASIM_DIR}/backend/
         PATTERN "*.h"
         PATTERN "*.cpp"
         REGEX "/Model/" EXCLUDE)
+install(FILES
+        ${EXASIM_DIR}/backend/Model/libpdemodel.hpp
+        ${EXASIM_DIR}/backend/Model/libpdemodel.cpp
+        ${EXASIM_DIR}/backend/Model/KokkosDrivers.cpp
+        ${EXASIM_DIR}/backend/Model/ModelDrivers.cpp
+    DESTINATION include/backend/Model)
 
 install(TARGETS exasim_headers
     EXPORT  ExasimTargets)
