@@ -30,31 +30,42 @@ if exist("gpumpiEXASIM", "file")
     delete(char("gpumpiEXASIM"));
 end
 
-if mpiprocs==1 
+if mpiprocs==1
   if pde.platform == "gpu"
-    comstr = "!cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
     target = "gpuEXASIM";
   elseif pde.platform == "hip"
-    comstr = "!cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
     target = "gpuEXASIM";
   else
-    comstr = "!cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
     target = "cpuEXASIM";
   end
 else
   if pde.platform == "gpu"
-    comstr = "!cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
     target = "gpumpiEXASIM";
   elseif pde.platform == "hip"
-    comstr = "!cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
     target = "gpumpiEXASIM";
   else
-    comstr = "!cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
+    comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D WITH_TEXT2CODE=OFF -D WITH_BUILTINMODEL=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF " + mystr;
     target = "cpumpiEXASIM";
-  end  
+  end
 end
 
-eval(comstr);  
-eval("!cmake --build . --target " + target + " --verbose");
+% Use system() and check the exit code so configure / build failures
+% surface immediately rather than hiding behind missing-binary errors
+% downstream. The previous `eval("!cmake ...")` swallowed nonzero exit.
+status = system(char(comstr));
+if status ~= 0
+    cd(char(cdir));
+    error("Exasim:cmakecompile", "cmake configure failed (exit %d)", status);
+end
+status = system(char("cmake --build . --target " + target + " --verbose"));
+if status ~= 0
+    cd(char(cdir));
+    error("Exasim:cmakecompile", "cmake --build %s failed (exit %d)", char(target), status);
+end
 
 cd(char(cdir));
