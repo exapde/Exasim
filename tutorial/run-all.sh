@@ -70,6 +70,66 @@ record_pass() { PASSED+=("$1"); echo "[ OK ]   $1"; }
 record_fail() { FAILED+=("$1"); echo "[FAIL]   $1"; }
 record_skip() { SKIPPED+=("$1"); echo "[SKIP]   $1"; }
 
+# Sections allowed to exit nonzero on this variant due to known
+# finalize-time teardown bugs. The compute output is still required
+# to be present, so this is not blanket immunity — only the exit
+# code is forgiven, and only on the variants where the bug is
+# actually triggered.
+#
+# Empirical baseline (all CPU sections exit 0 today): leaving cpu
+# and mpi strict catches new regressions immediately. GPU variants
+# are the ones with the Kokkos::Cuda::finalize / libpdemodelcuda
+# `std::map<int, CUevent_st*>` double-free race on teardown — the
+# math is correct, the output files are written, but the process
+# exits with a signal. Real fix lives in the reverted Meyers-
+# singleton work and is tracked separately.
+case "$VARIANT" in
+    gpu|mpi_gpu)
+        QUARANTINE_NONZERO=(01 02 03 04 05 06)
+        ;;
+    *)
+        QUARANTINE_NONZERO=()
+        ;;
+esac
+
+is_quarantined() {
+    local sec="$1"
+    [ ${#QUARANTINE_NONZERO[@]} -eq 0 ] && return 1
+    local q
+    for q in "${QUARANTINE_NONZERO[@]}"; do
+        [ "$q" = "$sec" ] && return 0
+    done
+    return 1
+}
+
+# Classify a section run.
+#   $1 = section id (matched against QUARANTINE_NONZERO)
+#   $2 = section display name
+#   $3 = process exit code (numeric)
+#   $4..$N = output check (run as a command; success means output present)
+#
+# Pass criteria:
+#   - output check passes AND exit_code == 0
+#   - output check passes AND section is quarantined for this variant
+# Fail criteria:
+#   - output check fails (no usable result; quarantine does not apply)
+#   - nonzero exit AND section is not quarantined
+classify_run() {
+    local sec="$1" name="$2" exit_code="$3"
+    shift 3
+    if ! "$@"; then
+        record_fail "$name (no output produced; exit=$exit_code)"
+        return
+    fi
+    if [ "$exit_code" -eq 0 ]; then
+        record_pass "$name"
+    elif is_quarantined "$sec"; then
+        record_pass "$name (quarantined for variant=$VARIANT: nonzero exit $exit_code accepted)"
+    else
+        record_fail "$name (exit=$exit_code; nonzero not quarantined for variant=$VARIANT)"
+    fi
+}
+
 # Run text2code on a tutorial section's pdeapp.txt to populate
 # my_model.hpp and libpdemodel*.{so,dylib} in that section's
 # directory. The generated-CLI and generated-embedded sections need
@@ -110,16 +170,13 @@ generate_grid_bin() {
         > "/tmp/tut_${dir}_grid.log" 2>&1
 }
 
-# A run is judged on output, not on exit code.
-#
-# Several GPU shutdown paths in the Exasim runtime / cuBLAS / Kokkos
-# stack are known to abort during finalize even when the math is
-# correct (a static `std::map<int, CUevent_st*>` in libpdemodelcuda.so
-# races with Kokkos::Cuda::finalize and double-frees). The compute is
-# fine — `outudg_np0.bin` is written and `max|udg|` is correct — but
-# the binary exits with a signal. Each section's pass criterion is
-# therefore strictly an output check; the run command is allowed to
-# fail.
+# Pass criteria: zero exit code AND expected output present.
+# Sections in QUARANTINE_NONZERO (above) may exit nonzero on this
+# variant if the output check still passes — that pinhole is for
+# the documented GPU teardown bug only. CPU and MPI variants are
+# strict; the lenient global "judge on output, not exit code" policy
+# was removed because it hid real teardown regressions on every
+# variant in service of one variant's known bug.
 
 # ---- Section 01 ---- generated + prebuilt ----------------------
 case "$VARIANT" in
@@ -142,12 +199,8 @@ if [ -x "$S1_BIN" ]; then
     generate_grid_bin "01-generated-prebuilt"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
     "$EXASIM/build/text2code" ./pdeapp_run.txt > /tmp/tut_01_t2c.log 2>&1
-    "${RUNNER[@]}" "$S1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1 || true
-    if grep -q "Updated Norm:" /tmp/tut_01.log; then
-        record_pass "$S1_NAME"
-    else
-        record_fail "$S1_NAME"
-    fi
+    "${RUNNER[@]}" "$S1_BIN" ./pdeapp_run.txt > /tmp/tut_01.log 2>&1
+    classify_run "01" "$S1_NAME" $? grep -q "Updated Norm:" /tmp/tut_01.log
 else
     record_skip "$S1_NAME ($S1_BIN not built; configure with WITH_TEXT2CODE=ON)"
 fi
@@ -165,12 +218,8 @@ if generate_codegen "02-generated-cli" \
     mkdir -p datain dataout
     generate_grid_bin "02-generated-cli"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
-    "${RUNNER[@]}" "$S2_BIN" ./pdeapp_run.txt > /tmp/tut_02.log 2>&1 || true
-    if [ -f "dataout/outudg_np0.bin" ]; then
-        record_pass "$S2_NAME"
-    else
-        record_fail "$S2_NAME ($S2_BIN)"
-    fi
+    "${RUNNER[@]}" "$S2_BIN" ./pdeapp_run.txt > /tmp/tut_02.log 2>&1
+    classify_run "02" "$S2_NAME" $? test -f "dataout/outudg_np0.bin"
 else
     record_skip "$S2_NAME (target $S2_TARGET not buildable)"
 fi
@@ -188,12 +237,8 @@ if generate_codegen "03-generated-embedded" \
     mkdir -p datain dataout
     generate_grid_bin "03-generated-embedded"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
-    "${RUNNER[@]}" "$S3_BIN" ./pdeapp_run.txt > /tmp/tut_03.log 2>&1 || true
-    if [ -f "dataout/outudg_np0.bin" ]; then
-        record_pass "$S3_NAME"
-    else
-        record_fail "$S3_NAME ($S3_BIN)"
-    fi
+    "${RUNNER[@]}" "$S3_BIN" ./pdeapp_run.txt > /tmp/tut_03.log 2>&1
+    classify_run "03" "$S3_NAME" $? test -f "dataout/outudg_np0.bin"
 else
     record_skip "$S3_NAME (target $S3_TARGET not buildable)"
 fi
@@ -208,12 +253,8 @@ if build_target "$S4_TARGET" && [ -x "$S4_BIN" ]; then
     mkdir -p datain dataout
     generate_grid_bin "04-handwritten-cli"
     set_mpiprocs pdeapp.txt pdeapp_run.txt
-    "${RUNNER[@]}" "$S4_BIN" ./pdeapp_run.txt > /tmp/tut_04.log 2>&1 || true
-    if [ -f "dataout/outudg_np0.bin" ]; then
-        record_pass "$S4_NAME"
-    else
-        record_fail "$S4_NAME ($S4_BIN)"
-    fi
+    "${RUNNER[@]}" "$S4_BIN" ./pdeapp_run.txt > /tmp/tut_04.log 2>&1
+    classify_run "04" "$S4_NAME" $? test -f "dataout/outudg_np0.bin"
 else
     record_skip "$S4_NAME (target $S4_TARGET not buildable)"
 fi
@@ -226,12 +267,8 @@ if [ "$IS_MPI" = 1 ]; then
     record_skip "$S5_NAME (variant $VARIANT is MPI; section 05 is single-rank only — see section 06)"
 elif build_target "$S5_TARGET" && [ -x "$S5_BIN" ]; then
     cd "$TUT/05-handwritten-embedded"
-    EXASIM_DIR="$EXASIM" "$S5_BIN" > /tmp/tut_05.log 2>&1 || true
-    if grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_05.log; then
-        record_pass "$S5_NAME"
-    else
-        record_fail "$S5_NAME ($S5_BIN)"
-    fi
+    EXASIM_DIR="$EXASIM" "$S5_BIN" > /tmp/tut_05.log 2>&1
+    classify_run "05" "$S5_NAME" $? grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_05.log
 else
     record_skip "$S5_NAME (target $S5_TARGET not buildable)"
 fi
@@ -244,12 +281,8 @@ if [ "$IS_MPI" != 1 ]; then
     record_skip "$S6_NAME (variant $VARIANT is not MPI; section 06 is MPI-only)"
 elif build_target "$S6_TARGET" && [ -x "$S6_BIN" ]; then
     cd "$TUT/06-handwritten-distributed"
-    EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$S6_BIN" > /tmp/tut_06.log 2>&1 || true
-    if grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_06.log; then
-        record_pass "$S6_NAME"
-    else
-        record_fail "$S6_NAME ($S6_BIN)"
-    fi
+    EXASIM_DIR="$EXASIM" "${RUNNER[@]}" "$S6_BIN" > /tmp/tut_06.log 2>&1
+    classify_run "06" "$S6_NAME" $? grep -qE "max\|udg\| = 3.1415[89]" /tmp/tut_06.log
 else
     record_skip "$S6_NAME (target $S6_TARGET not buildable)"
 fi
