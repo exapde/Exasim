@@ -14,9 +14,9 @@
  * - ~CSolver(): Destructor for cleanup.
  *
  * Methods:
- * - void PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int backend):
+ * - void PseudoTransientContinuation(CDiscretization& disc, CPreconditioner& prec, std::ofstream& out, Int backend):
  *     Implements the PTC method to solve linear or nonlinear systems.
- * - void NewtonSolver(CDiscretization& disc, CPreconditioner& prec, ofstream& out, Int N, Int spatialScheme, Int backend):
+ * - void NewtonSolver(CDiscretization& disc, CPreconditioner& prec, std::ofstream& out, Int N, Int spatialScheme, Int backend):
  *     Solves systems using the Newton method with configurable parameters.
  */
 #ifndef __SOLVER_H__

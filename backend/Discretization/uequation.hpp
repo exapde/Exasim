@@ -79,9 +79,9 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
     Int n11 = n10 + nga*ncu*ncw;        // wg_uq
     Int nm = nge*e1*(ncx+nd*nd+1);
 
-    // cout<<"j="<<jth<<endl;
-    // cout<<"e1="<<e1<<endl;
-    // cout<<"e2="<<e2<<endl;
+    // std::cout<<"j="<<jth<<std::endl;
+    // std::cout<<"e1="<<e1<<std::endl;
+    // std::cout<<"e2="<<e2<<std::endl;
 
     dstype *xg = &sol.elemg[nm];
     dstype *Xx = &sol.elemg[nm+n1];
@@ -184,7 +184,7 @@ inline void uEquationElemBlock(solstruct &sol, resstruct &res, appstruct &app, m
     }    
 
     if (common.debugMode==1) {      
-      string filename;
+      std::string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
       else
@@ -551,7 +551,7 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
     }
     
   if (common.debugMode==1) {    
-    string filename;
+    std::string filename;
     if (common.mpiProcs==1)
       filename = common.fileout;
     else
@@ -693,7 +693,7 @@ inline void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, 
     }
 
     if (common.debugMode==1) {    
-      string filename;
+      std::string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
       else
@@ -775,7 +775,7 @@ inline void uEquationSchurBlock(solstruct &sol, resstruct &res, appstruct &app, 
     }
     
     if (common.debugMode==1) {    
-      string filename;
+      std::string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
       else

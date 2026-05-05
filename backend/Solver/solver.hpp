@@ -14,11 +14,11 @@
         Destructor. Frees memory allocated for the system structure and prints a message
         if running on the root MPI rank.
 
-    - void PseudoTransientContinuation(CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream& out, Int backend)
+    - void PseudoTransientContinuation(CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream& out, Int backend)
         Solves the nonlinear system using the Pseudo-Transient Continuation (PTC) method.
         Updates the solution vector and the discretization's UDG field.
 
-    - void NewtonSolver(CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream& out, Int N, Int spatialScheme, Int backend)
+    - void NewtonSolver(CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream& out, Int N, Int spatialScheme, Int backend)
         Solves the nonlinear system using a Newton-based solver. The number of iterations (N)
         and the spatial discretization scheme can be specified. Updates the UDG field if
         spatialScheme is zero.

@@ -590,7 +590,7 @@ inline void callParMetis(Mesh& mesh, const PDE& pde, MPI_Comm comm)
       partitionMeshParMETIS(mesh.epart_local, mesh.t, mesh.elmdist, mesh.nve, mesh.nvf, size, comm);
     }
     else {        
-      vector<double> tm;
+      std::vector<double> tm;
       readarrayfrombinaryfile(make_path(pde.datapath, pde.partitionfile), tm);      
       int n1 = mesh.elmdist[rank];
       int n2 = mesh.elmdist[rank+1];
@@ -644,7 +644,7 @@ inline void mke2e_fill_first_neighbors(int*       e2e,
                                  int        nnf,
                                  int        nfe,
                                  MPI_Comm   comm,
-                                 vector<int>  &nbinfoVec)
+                                 std::vector<int>  &nbinfoVec)
 {
     int rank, size;
     MPI_Comm_rank(comm, &rank);
@@ -656,7 +656,7 @@ inline void mke2e_fill_first_neighbors(int*       e2e,
 
     // ------------------------------------------------------------------
     // 1. Collect all faces with e2e == -1 (potential boundary or remote)
-    //    Owner rule: owner = min(global_node_ids) % size
+    //    Owner rule: owner = std::min(global_node_ids) % size
     // ------------------------------------------------------------------
     struct LocalFaceRecord {
         std::array<int,4> gnodes; // global node IDs of this face
@@ -924,7 +924,7 @@ inline void mke2e_fill_first_neighbors(int*       e2e,
 //
 // Assumes eval_expr(char* expr, const double* x, int dim) is available.
 // HOT.7.8 — predicate-based variant of the parallel setboundaryfaces.
-// Same boundary classification logic as the tinyexpr string overload
+// Same boundary classification logic as the tinyexpr std::string overload
 // below, sourcing from typed C++ predicates instead.
 inline int setboundaryfaces(
     int* t2t,
@@ -1483,7 +1483,7 @@ inline void mergePeriodicNodeIDs(Mesh& mesh, MPI_Comm comm)
                      n1glob, n2glob, ncomp);
 
         // Each match defines a (g1, g2) pair → both rename to
-        // min(g1, g2). Multiple ranks see the same global pairs
+        // std::min(g1, g2). Multiple ranks see the same global pairs
         // (we Allgathered everything); the remap is identical
         // across ranks by construction.
         for (int j = 0; j < n1glob; ++j) {
@@ -1521,7 +1521,7 @@ inline void mergePeriodicNodeIDs(Mesh& mesh, MPI_Comm comm)
                   << " periodic node pairs across " << size << " ranks\n";
 }
 
-inline void computeElementToGlobalNodeMap(Mesh& mesh, const vector<int> &elempart)
+inline void computeElementToGlobalNodeMap(Mesh& mesh, const std::vector<int> &elempart)
 {
     const int nve = mesh.nve;
     const int ne  = mesh.ne;
@@ -3197,7 +3197,7 @@ inline void writesol(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& m
     writeDoubleVector(nsize);
     writeDoubleVector(ndims);
 
-    vector<double> xdg(master.npe*mesh.dim*ne, 0);
+    std::vector<double> xdg(master.npe*mesh.dim*ne, 0);
     select_columns(xdg.data(), mesh.xdg.data(), dmd.elempart_local.data(), master.npe*mesh.dim, mesh.ne);
     sendrecvdata(comm, dmd.nbsd, dmd.elemsendpts, dmd.elemrecvpts, 
                  dmd.localelemsend, dmd.localelemrecv, xdg, xdg, master.npe*mesh.dim);
@@ -3270,7 +3270,7 @@ inline void writesol(Mesh& mesh, const DMD& dmd, const PDE& pde, const Master& m
 // 
 //     // ------------------------------------------------------------------
 //     // 1. Collect all faces with e2e == -1 (potential boundary or remote)
-//     //    Owner rule: owner = min(global_node_ids) % size
+//     //    Owner rule: owner = std::min(global_node_ids) % size
 //     // ------------------------------------------------------------------
 //     struct LocalFaceRecord {
 //         std::array<int,4> gnodes; // global node IDs of this face

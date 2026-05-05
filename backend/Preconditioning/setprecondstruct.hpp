@@ -23,7 +23,7 @@
 template <class Model>
 inline void setprecondstruct(precondstruct &precond, CDiscretization<Model>& disc, Int backend)
 {
-    Int N = max(disc.common.ndof1, disc.common.ndofuhat);
+    Int N = std::max(disc.common.ndof1, disc.common.ndofuhat);
     Int M = disc.common.RBdim;
 
     TemplateMalloc(&precond.W, N*M, backend);

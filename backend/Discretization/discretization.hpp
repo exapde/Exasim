@@ -247,7 +247,7 @@ inline void crs_init(commonstruct& common, meshstruct& mesh, int *elem, int nse,
       
 // Both CPU and GPU constructor
 template <class M>
-inline CDiscretization<M>::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
+inline CDiscretization<M>::CDiscretization(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, Int mpirank, 
         Int fileoffset, Int omprank, Int backend, Int builtinmodelID) 
 {
     common.backend = backend;
@@ -257,11 +257,11 @@ inline CDiscretization<M>::CDiscretization(string filein, string fileout, string
 
     if (mpirank==0) {      
 #ifdef HAVE_TEXT2CODE
-      cout<< "Model Driver = ../Model/ModelDrivers.cpp"<<endl;
+      std::cout<< "Model Driver = ../Model/ModelDrivers.cpp"<<std::endl;
 #elif defined(HAVE_BUILTINMODEL)
-      cout<< "Model Driver = ../Model/BuiltIn/BuiltinModelDrivers.cpp"<<endl;
+      std::cout<< "Model Driver = ../Model/BuiltIn/BuiltinModelDrivers.cpp"<<std::endl;
 #else
-      cout<< "Model Driver = ../Model/KokkosDrivers.cpp"<<endl;
+      std::cout<< "Model Driver = ../Model/KokkosDrivers.cpp"<<std::endl;
 #endif      
     }
 
@@ -317,7 +317,7 @@ inline CDiscretization<M>::CDiscretization(string filein, string fileout, string
 // bundle and skips readInput entirely.
 template <class M>
 template <class P>
-inline CDiscretization<M>::CDiscretization(P&& pre, string fileout, string exasimpath, Int mpiprocs,
+inline CDiscretization<M>::CDiscretization(P&& pre, std::string fileout, std::string exasimpath, Int mpiprocs,
         Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)
 {
     common.backend        = backend;
@@ -327,11 +327,11 @@ inline CDiscretization<M>::CDiscretization(P&& pre, string fileout, string exasi
 
     if (mpirank == 0) {
 #ifdef HAVE_TEXT2CODE
-        cout << "Model Driver = ../Model/ModelDrivers.cpp" << endl;
+        std::cout << "Model Driver = ../Model/ModelDrivers.cpp" << std::endl;
 #elif defined(HAVE_BUILTINMODEL)
-        cout << "Model Driver = ../Model/BuiltIn/BuiltinModelDrivers.cpp" << endl;
+        std::cout << "Model Driver = ../Model/BuiltIn/BuiltinModelDrivers.cpp" << std::endl;
 #else
-        cout << "Model Driver = ../Model/KokkosDrivers.cpp" << endl;
+        std::cout << "Model Driver = ../Model/KokkosDrivers.cpp" << std::endl;
 #endif
     }
 
@@ -450,7 +450,7 @@ inline void CDiscretization<M>::postInit(Int backend)
       int maxbc = 0; // maximum number of boundary conditions
       for (int i=0; i<nfe*ne; i++) {
         if (mesh.bf[i] > 0) nboufaces++;
-        maxbc = max(maxbc, mesh.bf[i]);
+        maxbc = std::max(maxbc, mesh.bf[i]);
       }
       common.maxnbc = maxbc;      
       
@@ -517,9 +517,9 @@ inline void CDiscretization<M>::postInit(Int backend)
       else if (common.preconditioner==2) // Superelement additive Schwarz preconditioner
         res.szP = npf*ncu*npf*ncu*common.nse*common.nnz;        
       res.szV = ncu*npf*nf*(common.gmresRestart+1); // Krylov vectors in GMRES
-      res.szK = max(res.szK, res.szP + res.szV);              
+      res.szK = std::max(res.szK, res.szP + res.szV);              
       res.szF = npe*ncu*npf*nfe*ncu*common.ne;      
-      res.szipiv = max(max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
+      res.szipiv = std::max(std::max(npf*nfe,npe)*ncu*neb, ncu*npf*common.nfb);
             
       TemplateMalloc(&res.H, res.szH, backend);
       TemplateMalloc(&res.K, res.szK, backend);      
@@ -569,7 +569,7 @@ inline void CDiscretization<M>::postInit(Int backend)
 // #endif
 
       // compute uhat by getting u on faces
-        // std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh<<endl;
+        // std::cout <<"app.read_uh in discretization.cpp is : " << common.read_uh<<std::endl;
       if (!common.read_uh){
           if (common.mpiRank==0) 
               printf("===============================Constructing uh==========================\n");

@@ -8,43 +8,43 @@
 
     Functions:
 
-    - void readappstruct(string filename, appstruct &app)
+    - void readappstruct(std::string filename, appstruct &app)
         Reads application parameters from a binary file into an appstruct object. Handles initialization
         of physics and solver parameters, and optionally initializes Mutation++ mixture options if enabled.
 
-    - void writeappstruct(string filename, appstruct &app)
+    - void writeappstruct(std::string filename, appstruct &app)
         Writes the contents of an appstruct object to a binary file.
 
-    - void readmasterstruct(string filename, masterstruct &master)
+    - void readmasterstruct(std::string filename, masterstruct &master)
         Reads master element data from a binary file into a masterstruct object.
 
-    - void writemasterstruct(string filename, masterstruct &master)
+    - void writemasterstruct(std::string filename, masterstruct &master)
         Writes the contents of a masterstruct object to a binary file.
 
-    - void readmeshstruct(string filename, meshstruct &mesh)
+    - void readmeshstruct(std::string filename, meshstruct &mesh)
         Reads mesh connectivity and partitioning data from a binary file into a meshstruct object.
 
-    - void writemeshstruct(string filename, meshstruct &mesh)
+    - void writemeshstruct(std::string filename, meshstruct &mesh)
         Writes the contents of a meshstruct object to a binary file.
 
-    - void readsolstruct(string filename, solstruct &sol)
+    - void readsolstruct(std::string filename, solstruct &sol)
         Reads solution data (coordinates, unknowns, auxiliary variables) from a binary file into a solstruct object.
 
-    - void writesolstruct(string filename, solstruct &sol)
+    - void writesolstruct(std::string filename, solstruct &sol)
         Writes the contents of a solstruct object to a binary file.
 
-    - void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, Int mpirank)
+    - void readsolstruct(std::string filename, solstruct &sol, appstruct &app, masterstruct &master, meshstruct &mesh, Int mpirank)
         Reads solution data from a binary file, with additional logic for initializing solution arrays
         based on the application, master, and mesh structures, and MPI rank.
 
-    - void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+    - void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, std::string filein, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
         Reads all input data structures from binary files, handling both serial and parallel (MPI) cases.
 
-    - void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+    - void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, std::string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
         Writes all output data structures to binary files, handling both serial and parallel (MPI) cases.
 
     Dependencies:
-        - Standard C++ libraries: <string>, <fstream>
+        - Standard C++ libraries: <std::string>, <std::fstream>
         - Optional: Mutation++ library (if HAVE_MPP is defined)
         - Custom types: appstruct, masterstruct, meshstruct, solstruct, Int, dstype
         - Utility functions: readiarrayfromdouble, readarray, writeiarraytodouble, writearray, error, NumberToString, cpuArraySetValue, cpuArrayInsert, cpuInituDriver, cpuInitudgDriver, cpuInitodgDriver, cpuInitwdgDriver, CPUFREE
@@ -62,10 +62,10 @@
 #include <mutation++.h>
 #endif
 
-inline void readappstruct(string filename, appstruct &app)
+inline void readappstruct(std::string filename, appstruct &app)
 {
     // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
+    std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
     
     if (!in) 
         error("Unable to open file " + filename);
@@ -110,16 +110,16 @@ inline void readappstruct(string filename, appstruct &app)
 
     #ifdef HAVE_MPP
         char a[50];
-        in.getline(a, 50, 'X');
-        string MixtureName = a;
+        in.std::getline(a, 50, 'X');
+        std::string MixtureName = a;
         
         char b[50];
-        in.getline(b, 50, 'X');
-        string StateModel = b;
+        in.std::getline(b, 50, 'X');
+        std::string StateModel = b;
 
         char c[50];
-        in.getline(c, 50, 'X');
-        string ThermoDB = c;
+        in.std::getline(c, 50, 'X');
+        std::string ThermoDB = c;
 
         Mutation::MixtureOptions opts(MixtureName);
         opts.setStateModel(StateModel);
@@ -172,10 +172,10 @@ inline void readappstruct(string filename, appstruct &app)
     in.close();
 }
 
-inline void writeappstruct(string filename, appstruct &app)
+inline void writeappstruct(std::string filename, appstruct &app)
 {
     // Open file to write
-    ofstream out(filename.c_str(), ios::out | ios::binary);
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
 
     if (!out) {
         error("Unable to open file " + filename);
@@ -205,10 +205,10 @@ inline void writeappstruct(string filename, appstruct &app)
     out.close();
 }
 
-inline void readmasterstruct(string filename, masterstruct &master)
+inline void readmasterstruct(std::string filename, masterstruct &master)
 {
     // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
+    std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
 
     if (!in) 
         error("Unable to open file " + filename);
@@ -276,10 +276,10 @@ inline void readmasterstruct(string filename, masterstruct &master)
 }
 
 
-inline void writemasterstruct(string filename, masterstruct &master)
+inline void writemasterstruct(std::string filename, masterstruct &master)
 {
     // Open file to write
-    ofstream out(filename.c_str(), ios::out | ios::binary);
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
     
     if (!out) {
         error("Unable to open file " + filename);
@@ -317,10 +317,10 @@ inline void writemasterstruct(string filename, masterstruct &master)
 }
 
 
-inline void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, appstruct &app, masterstruct &master, Int mpirank)
+inline void readmeshstruct(std::string filename, meshstruct &mesh, solstruct &sol, appstruct &app, masterstruct &master, Int mpirank)
 {
     // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
+    std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
 
     if (!in) 
         error("Unable to open file " + filename);
@@ -410,10 +410,10 @@ inline void readmeshstruct(string filename, meshstruct &mesh, solstruct &sol, ap
 }
 
 
-inline void writemeshstruct(string filename, meshstruct &mesh)
+inline void writemeshstruct(std::string filename, meshstruct &mesh)
 {    
     // Open file to write
-    ofstream out(filename.c_str(), ios::out | ios::binary);
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
     
     if (!out) {
         error("Unable to open file " + filename);
@@ -449,10 +449,10 @@ inline void writemeshstruct(string filename, meshstruct &mesh)
     out.close();    
 }
 
-inline void readsolstruct(string filename, solstruct &sol)
+inline void readsolstruct(std::string filename, solstruct &sol)
 {
     // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
+    std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
 
     if (!in) 
         error("Unable to open file " + filename);
@@ -471,10 +471,10 @@ inline void readsolstruct(string filename, solstruct &sol)
     in.close();            
 }
 
-inline void writesolstruct(string filename, solstruct &sol)
+inline void writesolstruct(std::string filename, solstruct &sol)
 {    
     // Open file to write
-    ofstream out(filename.c_str(), ios::out | ios::binary);
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
     
     if (!out) {
         error("Unable to open file " + filename);
@@ -494,10 +494,10 @@ inline void writesolstruct(string filename, solstruct &sol)
     out.close();    
 }
 
-inline void readsolstruct(string filename, solstruct &sol, appstruct &app, masterstruct &master, string filemesh, Int mpirank)
+inline void readsolstruct(std::string filename, solstruct &sol, appstruct &app, masterstruct &master, std::string filemesh, Int mpirank)
 {
     // Open file to read
-    ifstream inmesh(filemesh.c_str(), ios::in | ios::binary);
+    std::ifstream inmesh(filemesh.c_str(), std::ios::in | std::ios::binary);
     if (!inmesh) error("Unable to open file " + filemesh);    
     int *lsize = readiarrayfromdouble(inmesh, 1);
     int *nsize = readiarrayfromdouble(inmesh, lsize[0]);
@@ -509,7 +509,7 @@ inline void readsolstruct(string filename, solstruct &sol, appstruct &app, maste
     inmesh.close();            
     
     // Open file to read
-    ifstream in(filename.c_str(), ios::in | ios::binary);
+    std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
 
     if (!in) 
         error("Unable to open file " + filename);
@@ -619,15 +619,15 @@ inline void readsolstruct(string filename, solstruct &sol, appstruct &app, maste
     in.close();            
 }
 
-inline void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string filein, 
+inline void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, std::string filein, 
         Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {   
     if (mpirank==0) printf("Reading app from binary files \n");  
-    string fileapp = filein + "app.bin";        
+    std::string fileapp = filein + "app.bin";        
     readappstruct(fileapp,app);        
         
     if (mpirank==0) printf("Reading master from binary files \n");    
-    string filemaster = filein + "master.bin";           
+    std::string filemaster = filein + "master.bin";           
     readmasterstruct(filemaster, master);
     
     Int nd = master.ndims[0];    
@@ -643,8 +643,8 @@ inline void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, so
     // read meshsol structure
     if (mpiprocs>1) {     
         Int filenumber = mpirank+1-fileoffset; //file number     
-        string filesol = filein + "sol" + NumberToString(filenumber) + ".bin";                    
-        string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
+        std::string filesol = filein + "sol" + NumberToString(filenumber) + ".bin";                    
+        std::string filemesh = filein + "mesh" + NumberToString(filenumber) + ".bin";                    
         
         if (mpirank==0) printf("Reading initial solution from binary files \n");         
         readsolstruct(filesol, sol, app, master, filemesh, mpirank);    
@@ -653,8 +653,8 @@ inline void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, so
         readmeshstruct(filemesh, mesh, sol, app, master, mpirank);                              
     }
     else {
-        string filesol = filein + "sol.bin";              
-        string filemesh = filein + "mesh.bin";                    
+        std::string filesol = filein + "sol.bin";              
+        std::string filemesh = filein + "mesh.bin";                    
 
         if (mpirank==0) printf("Reading initial solution from binary files \n");                       
         readsolstruct(filesol, sol, app, master, filemesh, mpirank);    
@@ -664,30 +664,30 @@ inline void readInput(appstruct &app, masterstruct &master, meshstruct &mesh, so
     }    
 }
 
-inline void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, string fileout, 
+inline void writeOutput(appstruct &app, masterstruct &master, meshstruct &mesh, solstruct &sol, std::string fileout, 
         Int mpiprocs, Int mpirank, Int fileoffset, Int omprank) 
 {
-    string fileoutapp = fileout + "app.bin";        
+    std::string fileoutapp = fileout + "app.bin";        
     writeappstruct(fileoutapp,app);
     
-    string fileoutmaster = fileout + "master.bin";        
+    std::string fileoutmaster = fileout + "master.bin";        
     writemasterstruct(fileoutmaster,master);
                 
     // read meshsol structure
     if (mpiprocs>1) {     
         Int filenumber = mpirank+1-fileoffset; //file number
         
-        string fileoutmesh = fileout + "mesh" + NumberToString(filenumber) + ".bin";                
+        std::string fileoutmesh = fileout + "mesh" + NumberToString(filenumber) + ".bin";                
         writemeshstruct(fileoutmesh,mesh);    
         
-        string fileoutsol = fileout + "sol" + NumberToString(filenumber) + ".bin";                
+        std::string fileoutsol = fileout + "sol" + NumberToString(filenumber) + ".bin";                
         writesolstruct(fileoutsol,sol);    
     }
     else {
-        string fileoutmesh = fileout + "mesh.bin";                
+        std::string fileoutmesh = fileout + "mesh.bin";                
         writemeshstruct(fileoutmesh,mesh);    
         
-        string fileoutsol = fileout + "sol.bin";                
+        std::string fileoutsol = fileout + "sol.bin";                
         writesolstruct(fileoutsol,sol);    
     }
 }

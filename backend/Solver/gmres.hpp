@@ -198,7 +198,7 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     }
 
     if (disc.common.mpiRank==0)
-        cout<<"Old RHS Norm: "<<nrmb<<",  New RHS Norm: "<<nrmr<<endl; 
+        std::cout<<"Old RHS Norm: "<<nrmb<<",  New RHS Norm: "<<nrmr<<std::endl; 
     
     disc.common.linearSolverTolFactor = nrmb/nrmr;
     tol = std::min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
@@ -376,8 +376,8 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     sn = &sys.tempmem[3*n1];
     H = &sys.tempmem[4*n1];
     
-    auto begin = chrono::high_resolution_clock::now(); 
-    auto end = chrono::high_resolution_clock::now();
+    auto begin = std::chrono::high_resolution_clock::now(); 
+    auto end = std::chrono::high_resolution_clock::now();
     double tm[10];
     for (int i=0; i<10; i++) tm[i]=0.0;
     
@@ -426,10 +426,10 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     }
 
     if (disc.common.mpiRank==0)
-        cout<<"Old RHS Norm: "<<nrmb<<",  New RHS Norm: "<<nrmr<<endl; 
+        std::cout<<"Old RHS Norm: "<<nrmb<<",  New RHS Norm: "<<nrmr<<std::endl; 
     
     disc.common.linearSolverTolFactor = nrmb/nrmr;
-    tol = min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
+    tol = std::min(0.1,disc.common.linearSolverTol*disc.common.linearSolverTolFactor);
             
     // compute r = P*r
     if (disc.common.ppdegree>1) {
@@ -459,7 +459,7 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
         for (i = 0; i < nrest && j < maxit; i++, j++) {
             Int m = i + 1;
             
-            begin = chrono::high_resolution_clock::now();   
+            begin = std::chrono::high_resolution_clock::now();   
 
             // compute v[m] = A*v[i]
             disc.evalMatVec(&sys.v[m*N], &sys.v[i*N], sys.u, sys.b, spatialScheme, backend);                        
@@ -472,10 +472,10 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     hipDeviceSynchronize();
 #endif
             
-            end = chrono::high_resolution_clock::now();   
-            tm[0] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+            end = std::chrono::high_resolution_clock::now();   
+            tm[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
             
-            begin = chrono::high_resolution_clock::now();   
+            begin = std::chrono::high_resolution_clock::now();   
             
             // compute v[m] = P*v[m]
             if (disc.common.ppdegree>1) {
@@ -494,11 +494,11 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     hipDeviceSynchronize();
 #endif
             
-            end = chrono::high_resolution_clock::now();   
-            tm[1] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+            end = std::chrono::high_resolution_clock::now();   
+            tm[1] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
                         
             // orthogonalize Krylov vectors
-            begin = chrono::high_resolution_clock::now();   
+            begin = std::chrono::high_resolution_clock::now();   
             //CGS(disc.common.cublasHandle, sys.v, &H[n1*i], y, N, m, backend);
             if (orthogMethod == 0)
                 MGS(disc.common.cublasHandle, sys.v, &H[n1*i], N, m, disc.common.ndofuhatinterface, backend);
@@ -514,10 +514,10 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     hipDeviceSynchronize();
 #endif
             
-            end = chrono::high_resolution_clock::now();   
-            tm[2] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+            end = std::chrono::high_resolution_clock::now();   
+            tm[2] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
             
-            begin = chrono::high_resolution_clock::now();   
+            begin = std::chrono::high_resolution_clock::now();   
             // Apply Givens rotation to compute s
             cpuApplyGivensRotation(&H[n1*i], s, cs, sn, i);
             
@@ -532,9 +532,9 @@ inline Int GMRES(sysstruct &sys, CDiscretization<M> &disc, CPreconditioner<M>& p
     hipDeviceSynchronize();
 #endif
             
-            //cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<endl;                         
-            end = chrono::high_resolution_clock::now();   
-            tm[3] += chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;                                
+            //std::cout<<i<<"  "<<j<<"  "<<disc.common.linearSolverRelError<<std::endl;                         
+            end = std::chrono::high_resolution_clock::now();   
+            tm[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;                                
                         
             // check convergence and update solution: x = x + v*y
             if (disc.common.linearSolverRelError < tol) {                

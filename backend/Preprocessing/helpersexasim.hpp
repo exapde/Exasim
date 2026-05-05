@@ -14,11 +14,11 @@
     - trim_dir(s): Returns parent directory of a given path.
     - ensure_dir(dir): Ensures a directory exists, creates if needed.
     - make_path(str1, str2): Joins two paths, normalizes result.
-    - trimToSubstringAtFirstOccurence(fullPath, keyword): Trims string at first occurrence of keyword.
-    - trimToSubstringAtLastOccurence(fullPath, keyword): Trims string at last occurrence of keyword.
+    - trimToSubstringAtFirstOccurence(fullPath, keyword): Trims std::string at first occurrence of keyword.
+    - trimToSubstringAtLastOccurence(fullPath, keyword): Trims std::string at last occurrence of keyword.
 
     Array Printing:
-    - print2darray(a, m, n): Prints m x n double array in scientific format.
+    - print2darray(a, m, n): Prints m x n double array in std::scientific format.
     - print2iarray(a, m, n): Prints m x n int array.
 
     Array File I/O:
@@ -41,9 +41,9 @@
     - permute_columns(a, ind, m, k): Permutes columns of array a according to ind.
 
     Notes:
-    - Uses C++ STL (vector, string, filesystem).
+    - Uses C++ STL (vector, std::string, filesystem).
     - Some functions use raw pointers and manual memory management.
-    - Designed for scientific computing and data manipulation tasks.
+    - Designed for std::scientific computing and data manipulation tasks.
 */
 #ifndef __HELPERS
 #define __HELPERS
@@ -93,30 +93,30 @@
 // 
 // void print2darray(const double* a, int m, int n)
 // {
-//     //cout.precision(4);
+//     //std::cout.precision(4);
 //     for (int i=0; i<m; i++) {
 //         for (int j=0; j<n; j++)
-//             cout << scientific << a[j*m+i] << "   ";
-//         cout << endl;
+//             std::cout << std::scientific << a[j*m+i] << "   ";
+//         std::cout << std::endl;
 //     }
-//     cout << endl;
+//     std::cout << std::endl;
 // }
 // 
 // void print2iarray(const int* a, int m, int n)
 // {
 //     for (int i=0; i<m; i++) {
 //         for (int j=0; j<n; j++)
-//             cout << a[j*m+i] << "   ";
-//         cout << endl;
+//             std::cout << a[j*m+i] << "   ";
+//         std::cout << std::endl;
 //     }
-//     cout << endl;
+//     std::cout << std::endl;
 // }
 // 
-// template <typename T> void writearray2file(string filename, T *a, int N)
+// template <typename T> void writearray2file(std::string filename, T *a, int N)
 // {
 //     if (N>0) {
 //         // Open file to read
-//         ofstream out(filename.c_str(), ios::out | ios::binary);
+//         std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
 // 
 //         if (!out) {
 //             error("Unable to open file " + filename);
@@ -129,7 +129,7 @@
 // }
 
 template <typename T> 
-inline void readarray(ifstream &in, vector<T> &a, int N)
+inline void readarray(std::ifstream &in, std::vector<T> &a, int N)
 {    
     if (N>0) {        
         a.resize(N);
@@ -137,7 +137,7 @@ inline void readarray(ifstream &in, vector<T> &a, int N)
     }    
 }
 
-inline void readiarrayfromdouble(ifstream &in, vector<int> &a, int N) {
+inline void readiarrayfromdouble(std::ifstream &in, std::vector<int> &a, int N) {
     if (N > 0) {
         a.resize(N);
         double read;
@@ -193,9 +193,9 @@ inline void readarrayfrombinaryfile(const std::string &filename, std::vector<T> 
     }
 }
 
-inline void readfile(string filename, vector<int> &ndims, vector<int> &data, int m) 
+inline void readfile(std::string filename, std::vector<int> &ndims, std::vector<int> &data, int m) 
 {
-    ifstream in(filename, ios::in | ios::binary);
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (!in) error("Unable to open file " + filename);
     
     int n = 1;
@@ -206,9 +206,9 @@ inline void readfile(string filename, vector<int> &ndims, vector<int> &data, int
     in.close();
 }    
 
-inline void readfile(string filename, vector<int> &ndims, vector<double> &data, int m) 
+inline void readfile(std::string filename, std::vector<int> &ndims, std::vector<double> &data, int m) 
 {
-    ifstream in(filename, ios::in | ios::binary);
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (!in) error("Unable to open file " + filename);
     
     int n = 1;
@@ -220,14 +220,14 @@ inline void readfile(string filename, vector<int> &ndims, vector<double> &data, 
 }    
 
 // template <typename T>
-// void readarray(ifstream &in, T **a, int N) {
+// void readarray(std::ifstream &in, T **a, int N) {
 //     if (N > 0) {
 //         *a = (T*) malloc(sizeof(T) * N);
 //         in.read(reinterpret_cast<char*>(*a), sizeof(T) * N);
 //     }
 // }
 // 
-// int* readiarrayfromdouble(ifstream &in, int N) {
+// int* readiarrayfromdouble(std::ifstream &in, int N) {
 //     int *a = nullptr;
 //     if (N > 0) {
 //         a = (int*) malloc(sizeof(int) * N);

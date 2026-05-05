@@ -10,7 +10,7 @@
 // Boundary predicate: takes the spatial coordinate (`x[0..nd-1]`) and
 // returns true when the point is on the corresponding boundary tag.
 // Used by the programmatic mesh path as a typed alternative to the
-// tinyexpr-parsed string expressions in `boundaryExprs`.
+// tinyexpr-parsed std::string expressions in `boundaryExprs`.
 using BoundaryPred = std::function<bool(const double*)>;
 
 // Curved-boundary level-set function: returns a scalar `f(x)` whose
@@ -20,7 +20,7 @@ using BoundaryPred = std::function<bool(const double*)>;
 //   x ← x - f(x) * ∇f(x) / |∇f(x)|²
 //
 // with `∇f` estimated by finite differences. This is the same scheme
-// the legacy tinyexpr-string path uses; an SDF (|∇f| = 1) is a
+// the legacy tinyexpr-std::string path uses; an SDF (|∇f| = 1) is a
 // special case but is NOT required. NACA-style apps, e.g., supply
 // `f(x,y) = y² - y_t(x)²` — zero on the airfoil surface, not unit
 // gradient.
@@ -252,7 +252,7 @@ struct Mesh {
     std::vector<int> elemGlobalID;
     std::vector<int> nodeGlobalID;  // [np]  global node IDs    
 
-    vector<int> f, bf, f2t, t2t, t2f, t2lf, inte, intl, localfaces;    
+    std::vector<int> f, bf, f2t, t2t, t2f, t2lf, inte, intl, localfaces;    
     std::vector<double> xdg, udg, vdg, wdg, uhat;
     std::vector<int> xdgdims, udgdims, vdgdims, wdgdims, uhatdims, elem2cpu;    
     
@@ -281,10 +281,10 @@ struct Mesh {
 
 struct Master 
 {    
-    vector<double> xpe, gpe, gwe, xpf, gpf, gwf; 
-    vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
-    vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
-    vector<int>  telem, tface, perm, permind; 
+    std::vector<double> xpe, gpe, gwe, xpf, gpf, gwf; 
+    std::vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
+    std::vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
+    std::vector<int>  telem, tface, perm, permind; 
     int nd, npe, npf, nge, ngf, porder, pgauss, nfe, elemtype, nodetype, nve, nvf, np1d, ng1d, npermind;
 };
 

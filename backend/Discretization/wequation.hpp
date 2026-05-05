@@ -36,7 +36,7 @@ static void ReportNanInHdgSourcewonlyOutput(const char* field, const dstype* dat
         for (Int i = 0; i < ng; ++i) {
             dstype value = data[i + ng * comp];
             if (IS_NAN(value)) {
-                cout << "Rank = " << mpiRank
+                std::cout << "Rank = " << mpiRank
                      << ", Iter = " << iter
                      << ", stage = HdgSourcewonly"
                      << ", field = " << field
@@ -45,32 +45,32 @@ static void ReportNanInHdgSourcewonlyOutput(const char* field, const dstype* dat
                      << ", x = (";
                 for (Int d = 0; d < nd; ++d) {
                     if (d > 0)
-                        cout << ", ";
-                    cout << xdg[i + ng * d];
+                        std::cout << ", ";
+                    std::cout << xdg[i + ng * d];
                 }
-                cout << "), w = (";
+                std::cout << "), w = (";
                 for (Int k = 0; k < ncw; ++k) {
                     if (k > 0)
-                        cout << ", ";
-                    cout << wdg[i + ng * k];
+                        std::cout << ", ";
+                    std::cout << wdg[i + ng * k];
                 }
-                cout << "), u = (";
+                std::cout << "), u = (";
                 for (Int k = 0; k < nc; ++k) {
                     if (k > 0)
-                        cout << ", ";
-                    cout << udg[i + ng * k];
+                        std::cout << ", ";
+                    std::cout << udg[i + ng * k];
                 }
-                cout << ")";
+                std::cout << ")";
                 if (nco > 0) {
-                    cout << ", o = (";
+                    std::cout << ", o = (";
                     for (Int k = 0; k < nco; ++k) {
                         if (k > 0)
-                            cout << ", ";
-                        cout << odg[i + ng * k];
+                            std::cout << ", ";
+                        std::cout << odg[i + ng * k];
                     }
-                    cout << ")";
+                    std::cout << ")";
                 }
-                cout << ", value = " << value << endl;
+                std::cout << ", value = " << value << std::endl;
                 //error("NaN detected in HdgSourcewonly");
             }
         }
@@ -128,13 +128,13 @@ inline void wEquation(dstype *wdg, dstype *xdg, dstype *udg, dstype *odg, dstype
           dstype nrm = NORM(common.cublasHandle, ng*ncw, s, backend);
           if (nrm < 1e-6) {
             // if (common.mpiRank==2) {
-            //   cout << std::fixed << std::setprecision(15);
-            //   cout<<common.dae_alpha<<"  "<<common.dae_beta<<"  "<<scalar<<endl;
-            //   cout<<"Iter = "<<iter<<", norm = "<<nrm<<", s[0] = "<<s[0]<<endl;
-            //   cout<<wdg[0];
+            //   std::cout << std::fixed << std::setprecision(15);
+            //   std::cout<<common.dae_alpha<<"  "<<common.dae_beta<<"  "<<scalar<<std::endl;
+            //   std::cout<<"Iter = "<<iter<<", norm = "<<nrm<<", s[0] = "<<s[0]<<std::endl;
+            //   std::cout<<wdg[0];
             //   for (int m=0; m<8; m++)
-            //     cout<<"   "<<udg[ng*m];
-            //   cout<<endl;
+            //     std::cout<<"   "<<udg[ng*m];
+            //   std::cout<<std::endl;
             // }
             break;              
           }

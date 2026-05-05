@@ -210,7 +210,7 @@ inline void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, me
     Int N = npe*ncu*ne;    
         
     Int M = common.gmresRestart+1;    
-    M = max(M, common.RBdim);    
+    M = std::max(M, common.RBdim);    
     
     // fix bug here
     Int ndof = (common.spatialScheme==0) ? N : common.ndofuhat;              
@@ -331,9 +331,9 @@ inline void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, me
     else { // CPU
         sys.tempmem = (dstype *) malloc((5*M + M*M)*sizeof(dstype));
     }
-    sys.ipiv = (Int *) malloc(max(common.ppdegree, M*M)*sizeof(Int));             
+    sys.ipiv = (Int *) malloc(std::max(common.ppdegree, M*M)*sizeof(Int));             
     
-    sys.szipiv = max(common.ppdegree, M*M);
+    sys.szipiv = std::max(common.ppdegree, M*M);
     sys.sztempmem = (5*M + M*M);
                  
     if (common.spatialScheme==0) {
@@ -350,7 +350,7 @@ inline void setsysstruct(sysstruct &sys, commonstruct &common, resstruct res, me
     }    
     
     dstype normr = PNORM(common.cublasHandle, ndof, common.ndofuhatinterface, sys.randvect, backend);    
-    //cout<<"sys.randvect: "<<common.mpiRank<<" "<<normr<<" "<<ndof<<endl;
+    //std::cout<<"sys.randvect: "<<common.mpiRank<<" "<<normr<<" "<<ndof<<std::endl;
     ArrayMultiplyScalar(common.cublasHandle, sys.randvect, 1.0/normr, ndof, backend);              
     sys.szrandvect = ndof;
 

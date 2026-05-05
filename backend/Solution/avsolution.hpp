@@ -1,5 +1,5 @@
 template <class M>
-inline void avdistfunc(CSolution<M>** pdemodel, ofstream* out, Int nummodels, Int backend)
+inline void avdistfunc(CSolution<M>** pdemodel, std::ofstream* out, Int nummodels, Int backend)
 {  
   for (int i=0; i<nummodels; i++) 
     pdemodel[i]->InitSolution(backend); 

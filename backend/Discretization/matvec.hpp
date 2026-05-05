@@ -128,7 +128,7 @@ inline void hdgBlockILU0(dstype *BE, dstype *AE, resstruct &res, meshstruct &mes
   Int ncf = ncu*npf;
   Int N = nse*ncf*ncf;  
   
-//  cout<<"AssembleBlockILU0\n";
+//  std::cout<<"AssembleBlockILU0\n";
   AssembleBlockILU0(BE, AE, mesh.f2e, mesh.elemcon, mesh.face, mesh.row_ptr, mesh.col_ind, npf, nfe, ncu, nfse, nse);
   
 //   writearray2file(common.fileout + "AE.bin", AE, npf*npf*nfe*nfe*ncu*ncu*common.ne1, backend);  

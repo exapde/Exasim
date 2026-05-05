@@ -39,10 +39,10 @@
 
 struct Conn 
 {    
-    vector<double> cgnodes;
-    vector<int> elemcon, facecon, bf, f2t, facepartpts, facepartbnd, eblks, fblks;
-    vector<int> cgelcon, rowent2elem, colent2elem, cgent2dgent;
-    vector<int> rowe2f1, cole2f1, ent2ind1, rowe2f2, cole2f2, ent2ind2;
+    std::vector<double> cgnodes;
+    std::vector<int> elemcon, facecon, bf, f2t, facepartpts, facepartbnd, eblks, fblks;
+    std::vector<int> cgelcon, rowent2elem, colent2elem, cgent2dgent;
+    std::vector<int> rowe2f1, cole2f1, ent2ind1, rowe2f2, cole2f2, ent2ind2;
     int ncgnodes=0, ncgdof=0, nbe=0, nbf=0, neb=0, nfb=0, nf=0;
 };
     
@@ -192,8 +192,8 @@ void build_connectivity(int* elemcon, int* facecon, const int* f2t, const int* f
     CPUFREE(facenode2);
 }
 
-int connectivity(vector<int>& elemcon, vector<int>& facecon, vector<int>& bf, vector<int>& f2t, 
-                 vector<int>& facepartpts, vector<int>& facepartbnd, 
+int connectivity(std::vector<int>& elemcon, std::vector<int>& facecon, std::vector<int>& bf, std::vector<int>& f2t, 
+                 std::vector<int>& facepartpts, std::vector<int>& facepartbnd, 
                  const int* t, const int* f, const int* elempart, const int* localfaces,  
                  const int* perm, const int* permind,  const int* bcm, int dim, int elemtype, 
                  int nve, int nvf, int nfe, int npf, int npe, int ne, int ne1, int nbcm) 
@@ -243,7 +243,7 @@ int connectivity(vector<int>& elemcon, vector<int>& facecon, vector<int>& bf, ve
             
       //print2iarray(ifaces, 1, nifaces);
       //print2iarray(bfaces, 1, nbfaces);
-      //cout<<nifaces<<", "<<nbfaces<<endl;
+      //std::cout<<nifaces<<", "<<nbfaces<<std::endl;
       //int find(int* indices, const int* a, int b, int m, int n, int k, int opts) 
       
       int* bfa = (int*)malloc(nbfaces * sizeof(int));
@@ -516,9 +516,9 @@ int mkelconcg_hashgrid(
 // Converts element-to-node connectivity (cgelcon) to node-to-element connectivity (CRS format)
 // cgelcon: [nrow x ne] column-major, zero-based node indices
 int mkent2elem(
-    vector<int>& rowent2elem, // output [ndof+1], allocated inside
-    vector<int>& colent2elem,  // output [nnz], allocated inside        
-    vector<int>& cgelcon, // [nrow * ne], column-major
+    std::vector<int>& rowent2elem, // output [ndof+1], allocated inside
+    std::vector<int>& colent2elem,  // output [nnz], allocated inside        
+    std::vector<int>& cgelcon, // [nrow * ne], column-major
     int nrow,
     int ne
 ) {
@@ -613,11 +613,11 @@ int xiny(const double* xcg, const double* xdg, int npe, int dim)
 
 // Maps CG node to corresponding DG node via CRS connectivity
 void map_cgent2dgent(
-    vector<int>& cgent2dgent,        // [nnz], output mapping (same shape as colent2elem)
-    const vector<int>& rowent2elem, // [nent+1]
-    const vector<int>& colent2elem, // [nnz]    
-    const vector<double>& cgnodes,  // [nent * dim], row-major
-    const vector<double>& dgnodes,  // [npe * dim * ne], column-major
+    std::vector<int>& cgent2dgent,        // [nnz], output mapping (same shape as colent2elem)
+    const std::vector<int>& rowent2elem, // [nent+1]
+    const std::vector<int>& colent2elem, // [nnz]    
+    const std::vector<double>& cgnodes,  // [nent * dim], row-major
+    const std::vector<double>& dgnodes,  // [npe * dim * ne], column-major
     int npe, int dim, int nent) 
 {    
     cgent2dgent.resize(rowent2elem[nent]);
@@ -643,8 +643,8 @@ void map_cgent2dgent(
 }
 
 // Construct CRS-style mapping from facecon to per-entity degrees of freedom
-int mkdge2dgf(vector<int>& rowdge2dgf, vector<int>& coldge2dgf, vector<int>& ent2ind,
-              const vector<int>& facecon, int ndgf, int entmax) 
+int mkdge2dgf(std::vector<int>& rowdge2dgf, std::vector<int>& coldge2dgf, std::vector<int>& ent2ind,
+              const std::vector<int>& facecon, int ndgf, int entmax) 
 {
     // Step 1: Extract positive entries from facecon
     int* tmp = (int*)malloc(ndgf * sizeof(int));
@@ -742,7 +742,7 @@ int removeBoundaryFaces(std::vector<int>& facecon, const std::vector<int>& fblks
     return new_nf;
 }
 
-int divide_interval(vector<int>& intervals, int n, int m) 
+int divide_interval(std::vector<int>& intervals, int n, int m) 
 {
     if (n <= 0 || m <= 0) return 0;
 
@@ -764,7 +764,7 @@ int divide_interval(vector<int>& intervals, int n, int m)
     return num_intervals;
 }
 
-int mkfaceblocks(vector<int>& nm, const vector<int>& mf, const vector<int>& bcm, int nmf_len, int ns) 
+int mkfaceblocks(std::vector<int>& nm, const std::vector<int>& mf, const std::vector<int>& bcm, int nmf_len, int ns) 
 {
     if (ns <= 0) ns = 2048;  // default value
 
@@ -777,7 +777,7 @@ int mkfaceblocks(vector<int>& nm, const vector<int>& mf, const vector<int>& bcm,
 
     for (int i = 0; i < nmf_len - 1; ++i) {
         int nf = mf[i + 1] - mf[i];
-        vector<int> intervals; 
+        std::vector<int> intervals; 
         int nblocks = divide_interval(intervals, nf, ns);
 
         for (int j = 0; j < nblocks; ++j) {
@@ -809,14 +809,14 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
               master.permind.data(), mesh.boundaryConditions.data(), mesh.dim, mesh.elemtype, mesh.nve, 
               mesh.nvf, mesh.nfe, master.npf, master.npe, ne, ne1, mesh.nbcm);       
     
-    cout << "Finished connectivity" << endl;
+    std::cout << "Finished connectivity" << std::endl;
 
     //writesol(pde, mesh, master, dmd.elempart, conn.facepartpts, 0, pde.datapath + "/sol.bin");        
     //print2iarray(conn.elemcon.data(), master.npf*mesh.nfe, ne);
 
     if (pde.mpiprocs==1) {
       if (pde.coupledinterface>0) {        
-        vector<int> me(3), tm(2); 
+        std::vector<int> me(3), tm(2); 
         me[0] = 0; me[1] = dmd.intepartpts[0]; me[2] = me[1] + dmd.intepartpts[1];
         tm[0] = 0; tm[1] = -1;
         conn.nbe = mkfaceblocks(conn.eblks, me, tm, 3, pde.neb); 
@@ -825,12 +825,12 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
       }
     } else {
       if (pde.coupledinterface>0) {        
-        vector<int> me(5), tm(4); 
+        std::vector<int> me(5), tm(4); 
         me[0] = 0; me[1] = dmd.intepartpts[0]; me[2] = me[1] + dmd.intepartpts[1]; me[3] = me[2] + dmd.intepartpts[2]; me[4] = me[3] + dmd.intepartpts[3];
         tm[0] = 0; tm[1] = -1; tm[2] = 1; tm[3] = 2;
         conn.nbe = mkfaceblocks(conn.eblks, me, tm, 5, pde.neb); 
       } else {
-        vector<int> me(4), tm(3); 
+        std::vector<int> me(4), tm(3); 
         me[0] = 0; me[1] = dmd.elempartpts[0]; me[2] = me[1] + dmd.elempartpts[1]; me[3] = me[2] + dmd.elempartpts[2];
         tm[0] = 0; tm[1] = 1; tm[2] = 2;
         conn.nbe = mkfaceblocks(conn.eblks, me, tm, 4, pde.neb); 
@@ -838,7 +838,7 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
     }
 
     int n = 1 + conn.facepartpts.size();
-    vector<int> mf(n); mf[0] = 0; 
+    std::vector<int> mf(n); mf[0] = 0; 
     for(int i=1; i<n; i++) mf[i] = mf[i-1] + conn.facepartpts[i-1];
     conn.nbf = mkfaceblocks(conn.fblks, mf, conn.facepartbnd, n, pde.nfb); 
     
@@ -860,8 +860,8 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
     //print2iarray(conn.fblks.data(), 3, nbf);
     
     int nfc = conn.facecon.size()/2;
-    vector<int> facecon1(nfc);
-    vector<int> facecon2(nfc);
+    std::vector<int> facecon1(nfc);
+    std::vector<int> facecon2(nfc);
     for (int i=0; i<nfc; i++) {
       facecon1[i] = conn.facecon[0 + 2*i];
       facecon2[i] = conn.facecon[1 + 2*i];
@@ -875,7 +875,7 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
     mkdge2dgf(conn.rowe2f1, conn.cole2f1, conn.ent2ind1, facecon1, facecon1.size(), master.npe*ne); 
     mkdge2dgf(conn.rowe2f2, conn.cole2f2, conn.ent2ind2, facecon2, facecon2.size(), master.npe*ne); 
 
-    cout << "Finished mkdge2dgf" << endl;
+    std::cout << "Finished mkdge2dgf" << std::endl;
 
     conn.cgnodes.resize(master.npe * mesh.dim * ne);
     conn.cgelcon.resize(master.npe * ne);
@@ -885,7 +885,7 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
       conn.ncgdof = mkent2elem(conn.rowent2elem, conn.colent2elem, conn.cgelcon, master.npe, ne);
       map_cgent2dgent(conn.cgent2dgent, conn.rowent2elem, conn.colent2elem, conn.cgnodes, mesh.xdg,  master.npe, mesh.dim, conn.ncgdof);                                      
     } else {
-      vector<double> tm (master.npe*mesh.dim*dmd.elempart.size());
+      std::vector<double> tm (master.npe*mesh.dim*dmd.elempart.size());
       select_columns(tm.data(), mesh.xdg.data(), dmd.elempart.data(), master.npe*mesh.dim, dmd.elempart.size());
       conn.ncgnodes = mkelconcg_hashgrid(conn.cgnodes.data(), conn.cgelcon.data(), tm.data(), master.npe, mesh.dim, ne);
       conn.ncgdof = mkent2elem(conn.rowent2elem, conn.colent2elem, conn.cgelcon, master.npe, ne);
@@ -893,7 +893,7 @@ void buildConn(Conn& conn, const PDE& pde, const Mesh& mesh, const Master& maste
     }    
     conn.cgnodes.resize(mesh.dim * conn.ncgnodes);
 
-    cout << "Finished map_cgent2dgent" << endl;
+    std::cout << "Finished map_cgent2dgent" << std::endl;
 
 //     if (pde.debugmode==1 && pde.mpiprocs==1) {
 //       //mesh.t.data(), mesh.f.data(), dmd.elempart.data(),

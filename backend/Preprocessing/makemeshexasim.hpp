@@ -12,7 +12,7 @@
  *   - Identifying and marking boundary faces (setboundaryfaces)
  *   - Handling periodic boundary conditions and matching periodic faces (setperiodicfaces)
  *   - Extracting interface elements for coupled interfaces (interface_elements)
- *   - Converting vector<string> to char** for boundary expressions (assignVectorToCharArray, freeCharArray)
+ *   - Converting std::vector<std::string> to char** for boundary expressions (assignVectorToCharArray, freeCharArray)
  *   - Computing DG node coordinates from mesh and shape functions (compute_dgnodes)
  *   - Projecting DG nodes onto curved boundaries using distance functions (project_dgnodes_onto_curved_boundaries)
  *   - Initializing mesh structure from input parameters and PDE settings (initializeMesh)
@@ -180,7 +180,7 @@ inline void compute_pf(int* t2lf, double* pf,
     }
 }
 
-// Helper to evaluate expression string at a point x[dim]
+// Helper to evaluate expression std::string at a point x[dim]
 inline bool eval_expr(const char* expr_str, const double* x, int dim) {
     double x0 = x[0], x1 = (dim > 1 ? x[1] : 0), x2 = (dim > 2 ? x[2] : 0);
     te_parser tep;
@@ -845,7 +845,7 @@ inline void setperiodicfaces(int* f, int* t, const double* p, const int* t2fl,
     }
 }
 
-inline void interface_elements(vector<int>& inte, vector<int>& intl, vector<int>& f, int nfe, int ne, int coupledinterface)
+inline void interface_elements(std::vector<int>& inte, std::vector<int>& intl, std::vector<int>& f, int nfe, int ne, int coupledinterface)
 {
     int n=0;
     for (int i=0; i<ne; i++)
@@ -864,7 +864,7 @@ inline void interface_elements(vector<int>& inte, vector<int>& intl, vector<int>
         }    
 }
 
-// Function to convert vector<string> A to char** B
+// Function to convert std::vector<std::string> A to char** B
 inline void assignVectorToCharArray(const std::vector<std::string>& A, char*** B) {
     if (A.empty()) { *B = nullptr; return; }      // HOT.7.6: empty source → null sink
     *B = new char*[A.size()];
@@ -1416,14 +1416,14 @@ inline Mesh initializeMesh(InputParams& params, PDE& pde)
 
     std::cout << "Finished reading mesh file.\n";
 
-//     cout << "Read mesh with:" << endl;
-//     cout << "  nd  = " << mesh.nd << endl;
-//     cout << "  np  = " << mesh.np << endl;    
-//     cout << "  nve = " << mesh.nve << endl;
-//     cout << "  ne  = " << mesh.ne << endl;    
-//     cout << "  nfe = " << mesh.nfe << endl;
-//     cout << "  nvf = " << mesh.nvf << endl;
-//     cout << "  elemtype = " << mesh.elemtype << endl;
+//     std::cout << "Read mesh with:" << std::endl;
+//     std::cout << "  nd  = " << mesh.nd << std::endl;
+//     std::cout << "  np  = " << mesh.np << std::endl;    
+//     std::cout << "  nve = " << mesh.nve << std::endl;
+//     std::cout << "  ne  = " << mesh.ne << std::endl;    
+//     std::cout << "  nfe = " << mesh.nfe << std::endl;
+//     std::cout << "  nvf = " << mesh.nvf << std::endl;
+//     std::cout << "  elemtype = " << mesh.elemtype << std::endl;
 //     
 //     for (size_t i = 0; i < params.boundaryExprs.size(); ++i) {
 //         std::cout << mesh.boundaryExprs[i] << std::endl;

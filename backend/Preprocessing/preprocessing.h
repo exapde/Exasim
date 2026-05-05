@@ -18,7 +18,7 @@ public:
     DMD dmd;
       
     // File-driven constructor: parse pdeapp.txt and pdemodel.txt.
-    CPreprocessing(string filein, int rank=0, int commsize=1);
+    CPreprocessing(std::string filein, int rank=0, int commsize=1);
 
     // Programmatic constructor: skip the file parsing step entirely.
     // The caller has already populated `pde_in` / `params_in` / `spec_in`

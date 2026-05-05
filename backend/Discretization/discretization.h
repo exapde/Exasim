@@ -58,7 +58,7 @@ public:
     // solstruct hsol;
 
     // constructor for both CPU and GPU
-    CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs,
+    CDiscretization(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs,
                     Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID);
 
     // HOT.7.3 — programmatic constructor: take pre-built `Preprocessed`
@@ -66,7 +66,7 @@ public:
     // off disk. Forwarded to the same post-init pipeline as the
     // file-driven constructor.
     template <class P>
-    CDiscretization(P&& preprocessed, string fileout, string exasimpath, Int mpiprocs,
+    CDiscretization(P&& preprocessed, std::string fileout, std::string exasimpath, Int mpiprocs,
                     Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID);
 
     // destructor

@@ -61,7 +61,7 @@ inline void ComputeMinv(solstruct &sol, resstruct &res, appstruct &app, masterst
     else { // curved mesh        
         TemplateMalloc(&res.Mass, npe*npe*ne, backend);
         TemplateMalloc(&res.Minv, npe*npe*ne, backend);
-        TemplateMalloc(&work, max(nge*npe*neb,npe*npe*neb), backend);      
+        TemplateMalloc(&work, std::max(nge*npe*neb,npe*npe*neb), backend);      
         TemplateMalloc(&ipiv, npe+1, backend);      
         res.szMass = npe*npe*ne;
         res.szMinv = npe*npe*ne;

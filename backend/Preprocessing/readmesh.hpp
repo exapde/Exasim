@@ -36,9 +36,9 @@
  * ----------
  *   - std::string getFileExtension(const std::string& filename)
  *       Extracts and normalizes the file extension.
- *   - void readFieldFromBinaryFile(const std::string& filename, vector<double>& xdg, vector<int>& ndims)
+ *   - void readFieldFromBinaryFile(const std::string& filename, std::vector<double>& xdg, std::vector<int>& ndims)
  *       Reads field data from a binary file.
- *   - void readPartitionFromFile(const std::string& filename, vector<int>& elem2cpu, int ne)
+ *   - void readPartitionFromFile(const std::string& filename, std::vector<int>& elem2cpu, int ne)
  *       Reads mesh partition data from binary or text files.
  * 
  * Notes:
@@ -68,7 +68,7 @@
 //     std::vector<int> elemGlobalID;
 //     std::vector<int> nodeGlobalID;  // [np]  global node IDs    
 // 
-//     vector<int> f, f2t, t2t, t2f, t2lf, inte, intl, localfaces;    
+//     std::vector<int> f, f2t, t2t, t2f, t2lf, inte, intl, localfaces;    
 //     std::vector<double> xdg, udg, vdg, wdg, uhat;
 //     std::vector<int> xdgdims, udgdims, vdgdims, wdgdims, uhatdims, elem2cpu;    
 // 
@@ -650,7 +650,7 @@ inline void readMeshFromFile(const std::string& filename, Mesh& mesh)
     mesh.nfe = mesh.nd + (mesh.nd - 1) * mesh.elemtype + 1;                    
 }
 
-inline void readFieldFromBinaryFile(const std::string& filename, vector<double>& xdg, vector<int>& ndims) 
+inline void readFieldFromBinaryFile(const std::string& filename, std::vector<double>& xdg, std::vector<int>& ndims) 
 {
     std::string ext = getFileExtension(filename);
     
@@ -666,7 +666,7 @@ inline void readFieldFromBinaryFile(const std::string& filename, vector<double>&
     }
 }
 
-inline void readPartitionFromFile(const std::string& filename, vector<int>& elem2cpu, int ne) 
+inline void readPartitionFromFile(const std::string& filename, std::vector<int>& elem2cpu, int ne) 
 {
     std::string ext = getFileExtension(filename);
     

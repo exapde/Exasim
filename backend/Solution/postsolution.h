@@ -51,18 +51,18 @@ public:
     CPreconditioner<M> prec;  // precondtioner class
     CSolver<M> solv;          // linear and nonlinear solvers
     CVisualization vis;    // visualization class
-    ofstream outsol;       // storing solutions
-    ofstream outwdg;  
-    ofstream outuhat;  
-    ofstream outbouxdg;  
-    ofstream outboundg;  
-    ofstream outbouudg;  
-    ofstream outbouwdg;  
-    ofstream outbouuhat;    
-    ofstream outqoi;
+    std::ofstream outsol;       // storing solutions
+    std::ofstream outwdg;  
+    std::ofstream outuhat;  
+    std::ofstream outbouxdg;  
+    std::ofstream outboundg;  
+    std::ofstream outbouudg;  
+    std::ofstream outbouwdg;  
+    std::ofstream outbouuhat;    
+    std::ofstream outqoi;
     
     // constructor 
-    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
+    CSolution(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, Int mpirank, 
               Int fileoffset, Int omprank, Int backend, Int builtinmodelID,
               Int nsca, Int nvec, Int nten, Int nsurf, Int nvqoi)   
        : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID, nsca, nvec, nten, nsurf, nvqoi),

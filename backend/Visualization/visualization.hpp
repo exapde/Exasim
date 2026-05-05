@@ -147,7 +147,7 @@ public:
             for (int i = 0; i < 3*npoints*nvec; i++) vecfields[i] = 0.0;
             for (int i = 0; i < ntc*npoints*nten; i++) tenfields[i] = 0.0;
 
-            //cout<<ne<<"  "<<npoints<<endl;
+            //std::cout<<ne<<"  "<<npoints<<std::endl;
             if (disc.common.mpiRank == 0) printf("finish CVisualization constructor... \n");    
         }        
     }
@@ -339,7 +339,7 @@ public:
                 times.push_back(t);
             }
         }
-        //cout<<nt<<",  "<<nm<<",  "<<base<<endl;        
+        //std::cout<<nt<<",  "<<nm<<",  "<<base<<std::endl;        
         pvdwrite(base, files, times);
     }
 

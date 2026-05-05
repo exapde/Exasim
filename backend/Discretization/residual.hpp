@@ -100,7 +100,7 @@ inline void GetQ(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
     Int f1 = common.fblks[3*nbf1]-1;
     Int f2 = common.fblks[3*(nbf2-1)+1];    
 
-    //cout<<res.Rh[common.nf*common.npf*ncq-1]<<endl;
+    //std::cout<<res.Rh[common.nf*common.npf*ncq-1]<<std::endl;
     //print3darray(res.Rh, common.npf, ncq, 5);
     // assemble face residual vector into element residual vector
     // PutFaceNodes(res.Rq, res.Rh, mesh.rowe2f1, mesh.cole2f1, mesh.ent2ind1, mesh.rowe2f2, mesh.cole2f2, 
@@ -194,7 +194,7 @@ inline void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
                     // 1.0/(alpha*dirkd/dt + beta)
                     dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta);
 
-                    //cout<<common.dae_alpha<<" "<<common.dtfactor<<" "<<scalar<<" "<<app.physicsparam[0]<<endl;
+                    //std::cout<<common.dae_alpha<<" "<<common.dtfactor<<" "<<scalar<<" "<<app.physicsparam[0]<<std::endl;
 
                     // calculate w = (1/(alpha*dirkd/dt + beta))*(alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
                     ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wsrc[npe*ncw*e1], tmp.tempn, common.dae_alpha*scalar, scalar, npe*ncw*(e2-e1));                    
@@ -206,7 +206,7 @@ inline void GetW(solstruct &sol, resstruct &res, appstruct &app, masterstruct &m
                     // 1.0/(alpha*dirkd/dt + beta + gamma)
                     dstype scalar = one/(common.dae_alpha*common.dtfactor + common.dae_beta + common.dae_gamma);
 
-                    //cout<<scalar<<endl;
+                    //std::cout<<scalar<<std::endl;
 
                     // calculate w = (1/(alpha*dirkd/dt + beta + gamma))*(gamma*walg + alpha*wsrc + Sourcew(xdg, udg, odg, wdg))  
                     ArrayAXPBY(&sol.wdg[npe*ncw*e1], &sol.wdual[npe*ncw*e1], tmp.tempn, common.dae_gamma*scalar, scalar, npe*ncw*(e2-e1));                                    

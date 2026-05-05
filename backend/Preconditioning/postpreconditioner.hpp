@@ -45,7 +45,7 @@
     - The code supports both CPU and GPU backends.
     - Uses Kokkos for synchronization and parallelism.
     - Handles both sequential and non-sequential block solves for efficiency.
-    - Designed for high-performance scientific computing applications.
+    - Designed for high-performance std::scientific computing applications.
 
 */
 #ifndef __POSTPRECONDITIONER

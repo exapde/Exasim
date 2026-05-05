@@ -584,7 +584,7 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
 //     exit( 1 );    
 // }
 // 
-// static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
+// static void PrintErrorAndExit(std::string errmsg, const char *file, int line ) 
 // {    
 //     printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
 // 

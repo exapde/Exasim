@@ -5,7 +5,7 @@
 
     Functions:
 
-    - setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, string filein, string fileout, Int curvedMesh, Int fileoffset)
+    - setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, std::string filein, std::string fileout, Int curvedMesh, Int fileoffset)
         Initializes the commonstruct with parameters from app, master, and mesh structures, as well as input/output file names and mesh curvature information. Sets up MPI-related fields, problem flags, solver parameters, and allocates memory for time integration coefficients and communication buffers.
 
     - setresstruct(resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
@@ -14,7 +14,7 @@
     - settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master, meshstruct &mesh, Int backend)
         Allocates temporary arrays for intermediate computations, communication buffers for MPI, and sets their sizes in tempstruct. Handles different spatial schemes and backend types.
 
-    - cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, tempstruct &tmp, commonstruct &common, string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+    - cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master, meshstruct &mesh, tempstruct &tmp, commonstruct &common, std::string filein, std::string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
         Reads input data, initializes solution, residual, temporary, and common structures for CPU execution. Allocates memory for solution arrays, mesh permutation arrays, and sets up index arrays for communication. Handles mesh curvature and precomputes shape function products.
 
     - devappstruct(appstruct &dapp, appstruct &app, commonstruct &common)
@@ -43,7 +43,7 @@
 #include "ismeshcurved.hpp"
 
 inline void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &master, meshstruct &mesh, 
-        string filein, string fileout, Int curvedMesh, Int fileoffset)
+        std::string filein, std::string fileout, Int curvedMesh, Int fileoffset)
 {                   
     common.filein = filein;
     common.fileout = fileout;
@@ -351,15 +351,15 @@ inline void setresstruct(resstruct &res, appstruct &app, masterstruct &master, m
    
     TemplateMalloc(&res.Rq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.Ru, npe*ncu*ne, backend);
-    TemplateMalloc(&res.Rh, max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
+    TemplateMalloc(&res.Rh, std::max(npf*std::max(ncu,ncq)*nf, npf*nfe*ncu*ne), backend);
     res.szRq = 2*npe*ncu*nd*ne;
     res.szRu = npe*ncu*ne;
-    res.szRh = max(npf*max(ncu,ncq)*nf, npf*nfe*ncu*ne);
+    res.szRh = std::max(npf*std::max(ncu,ncq)*nf, npf*nfe*ncu*ne);
     
 #ifdef HAVE_ENZYME
     TemplateMalloc(&res.dRq, 2*npe*ncu*nd*ne, backend);   
     TemplateMalloc(&res.dRu, npe*ncu*ne, backend);
-    TemplateMalloc(&res.dRh, npf*max(ncu,ncq)*nf, backend);
+    TemplateMalloc(&res.dRh, npf*std::max(ncu,ncq)*nf, backend);
 #endif
     
     // set pointers    
@@ -397,30 +397,30 @@ inline void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master,
     Int ndofucg = mesh.nsize[12]-1;; //total DOFs for CG field
     Int spatialScheme = app.problem[0];   /* 0: LDG; 1: HDG */
 
-    Int n0 = max(npe*max(nc+ncw,ncx)*neb, npf*(ncu+2*nc+2*ncw)*nfb);                        
-    n0 = 2*max(n0, nco*ne*npe);
-    Int n1 = max(ncx+2*nd*nd+1, ncu*nd+ncu+ncw+max(nc,ncu*(nd+1)));
-    Int n2 = max(ncx+nd+1+nd*(nd-1), ncu+2*ncu*nd+2*nc+2*ncw);    
-    Int n3 = max(nge*n1*neb, ngf*n2*nfb);
-    n3 = 2*max(n3, ndofucg);
+    Int n0 = std::max(npe*std::max(nc+ncw,ncx)*neb, npf*(ncu+2*nc+2*ncw)*nfb);                        
+    n0 = 2*std::max(n0, nco*ne*npe);
+    Int n1 = std::max(ncx+2*nd*nd+1, ncu*nd+ncu+ncw+std::max(nc,ncu*(nd+1)));
+    Int n2 = std::max(ncx+nd+1+nd*(nd-1), ncu+2*ncu*nd+2*nc+2*ncw);    
+    Int n3 = std::max(nge*n1*neb, ngf*n2*nfb);
+    n3 = 2*std::max(n3, ndofucg);
     
     if (spatialScheme > 0) {
       //Int k1 = npe*ncu*npe*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npe*npf*nfe*ncu*ncu*neb + npf*nfe*npf*nfe*ncu*ncu*neb;
-      Int k1 = max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
+      Int k1 = std::max(npe*ncu*npe*ncu*neb, npf*nfe*npf*nfe*ncu*ncu*neb);
       Int k2 = npf*nfe*neb*ncu + npf*npf*nfe*neb*ncu*ncu + npf*npf*nfe*neb*ncu*ncq + npf*npf*nfe*neb*ncu*ncu;
       Int k3 = npf*ncu*npf*ncu*nfb;
-      Int k4 = nge*(nd+1)*ncu*max(ncu,ncq)*neb;       
-      n0 = max(n0, k1);
-      n0 = max(n0, k2);      
-      n0 = max(n0, k3);  
-      n0 = max(n0, k4);  
+      Int k4 = nge*(nd+1)*ncu*std::max(ncu,ncq)*neb;       
+      n0 = std::max(n0, k1);
+      n0 = std::max(n0, k2);      
+      n0 = std::max(n0, k3);  
+      n0 = std::max(n0, k4);  
 
       int nga = nge*neb;
       k1 = nga*ncu*nd + nga*ncu + nga*nc + nga*ncw + nga*ncu*nd*nc + nga*ncu*nd*ncw + nga*ncu*nc + nga*ncu*ncw + nga*ncw*nc; 
       nga = ngf*neb*nfe; 
       k2 = nga*(ncu + nc + nco + ncw + ncw + ncu*nd + ncu*nd*nc + ncu*nd*ncu + ncu*nd*ncw + ncw*nc); 
-      n3 = max(n3, k1);
-      n3 = max(n3, k2);
+      n3 = std::max(n3, k1);
+      n3 = std::max(n3, k2);
     }
         
     TemplateMalloc(&tmp.tempn, n0+n3, backend); 
@@ -430,18 +430,18 @@ inline void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master,
     tmp.sztempg = n3;       
 #ifdef HAVE_MPI     
     if (spatialScheme == 0) {
-      TemplateMalloc(&tmp.buffsend, max(nc,nco)*npe*mesh.nsize[5], backend);
-      TemplateMalloc(&tmp.buffrecv, max(nc,nco)*npe*mesh.nsize[6], backend);
-      tmp.szbuffsend = max(nc,nco)*npe*mesh.nsize[5];
-      tmp.szbuffrecv = max(nc,nco)*npe*mesh.nsize[6];
+      TemplateMalloc(&tmp.buffsend, std::max(nc,nco)*npe*mesh.nsize[5], backend);
+      TemplateMalloc(&tmp.buffrecv, std::max(nc,nco)*npe*mesh.nsize[6], backend);
+      tmp.szbuffsend = std::max(nc,nco)*npe*mesh.nsize[5];
+      tmp.szbuffrecv = std::max(nc,nco)*npe*mesh.nsize[6];
     }
     else if (spatialScheme == 1) {
       int m = ncu*npf*nfe; 
-      int n = max(nc,nco)*npe; // fix bug here
-      TemplateMalloc(&tmp.buffsend, max(m*m + m, n)*mesh.nsize[5], backend);
-      TemplateMalloc(&tmp.buffrecv, max(m*m + m, n)*mesh.nsize[6], backend);
-      tmp.szbuffsend = max(m*m + m, n)*mesh.nsize[5];
-      tmp.szbuffrecv = max(m*m + m, n)*mesh.nsize[6];
+      int n = std::max(nc,nco)*npe; // fix bug here
+      TemplateMalloc(&tmp.buffsend, std::max(m*m + m, n)*mesh.nsize[5], backend);
+      TemplateMalloc(&tmp.buffrecv, std::max(m*m + m, n)*mesh.nsize[6], backend);
+      tmp.szbuffsend = std::max(m*m + m, n)*mesh.nsize[5];
+      tmp.szbuffrecv = std::max(m*m + m, n)*mesh.nsize[6];
       
       TemplateMalloc(&tmp.bufffacesend, app.nsize[14]*npf*mesh.szfacesend, backend);
       TemplateMalloc(&tmp.bufffacerecv, app.nsize[14]*npf*mesh.szfacerecv, backend);
@@ -458,12 +458,12 @@ inline void settempstruct(tempstruct &tmp, appstruct &app, masterstruct &master,
 // converge here.
 inline void cpuInitTail(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
-        string filein, string fileout, Int mpiprocs, Int mpirank,
+        std::string filein, std::string fileout, Int mpiprocs, Int mpirank,
         Int fileoffset, Int omprank);
 
 inline void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
-        string filein, string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
+        std::string filein, std::string fileout, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
 {
     if (mpirank==0)
         printf("Reading data from binary files \n");
@@ -478,7 +478,7 @@ inline void cpuInit(solstruct &sol, resstruct &res, appstruct &app, masterstruct
 
 inline void cpuInitTail(solstruct &sol, resstruct &res, appstruct &app, masterstruct &master,
         meshstruct &mesh, tempstruct &tmp, commonstruct &common,
-        string filein, string fileout, Int mpiprocs, Int mpirank,
+        std::string filein, std::string fileout, Int mpiprocs, Int mpirank,
         Int fileoffset, Int omprank)
 {
     
@@ -759,7 +759,7 @@ inline void cpuInitTail(solstruct &sol, resstruct &res, appstruct &app, masterst
 // legacy readInput would.
 inline void cpuInitFromStructs(solstruct &sol, resstruct &res, appstruct &app,
         masterstruct &master, meshstruct &mesh, tempstruct &tmp,
-        commonstruct &common, std::vector<int>& ti, string fileout,
+        commonstruct &common, std::vector<int>& ti, std::string fileout,
         Int mpiprocs, Int mpirank, Int fileoffset, Int omprank)
 {
     // 1) app.porder + app.comm — done inside readInput today (lines

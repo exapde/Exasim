@@ -23,7 +23,7 @@
  *
  * Dependencies:
  * - Requires CUDA/HIP headers and macros if GPU support is enabled.
- * - Uses standard C++ streams and string manipulation.
+ * - Uses standard C++ streams and std::string manipulation.
  *
  * Note:
  * - Error handling is performed via custom error() function or standard output.
@@ -32,9 +32,9 @@
 #ifndef __IOUTILITIES
 #define __IOUTILITIES
 
-template <typename T> string NumberToString ( T Number )
+template <typename T> std::string NumberToString ( T Number )
 {
-    ostringstream ss;
+    std::ostringstream ss;
     ss << Number;
     return ss.str();
 }
@@ -42,18 +42,18 @@ template <typename T> string NumberToString ( T Number )
 inline void print1iarray(Int* a, Int m)
 {    
     for (Int i=0; i<m; i++)
-        cout << a[i] << "   ";
-    cout << endl;
+        std::cout << a[i] << "   ";
+    std::cout << std::endl;
 }
 
 inline void print2iarray(Int* a, Int m, Int n)
 {
     for (Int i=0; i<m; i++) {
         for (Int j=0; j<n; j++)
-            cout << a[j*m+i] << "   ";
-        cout << endl;
+            std::cout << a[j*m+i] << "   ";
+        std::cout << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 inline void print3iarray(Int* a, Int m, Int n, Int p)
@@ -61,57 +61,57 @@ inline void print3iarray(Int* a, Int m, Int n, Int p)
     for (Int k=0; k<p; k++) {
         for (Int i=0; i<m; i++) {
             for (Int j=0; j<n; j++)
-                cout << a[k*n*m+j*m+i] << "   ";
-            cout << endl;
+                std::cout << a[k*n*m+j*m+i] << "   ";
+            std::cout << std::endl;
         }
-        cout << endl;
+        std::cout << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 
 inline void print1darray(dstype* a, Int m)
 {
-    //cout.precision(4);
+    //std::cout.precision(4);
     for (Int i=0; i<m; i++)
-        cout << scientific << a[i] << "   ";
-    cout << endl;
+        std::cout << std::scientific << a[i] << "   ";
+    std::cout << std::endl;
 }
 
 inline void print2darray(dstype* a, Int m, Int n)
 {
-    //cout.precision(4);
+    //std::cout.precision(4);
     for (Int i=0; i<m; i++) {
         for (Int j=0; j<n; j++)
-            cout << scientific << a[j*m+i] << "   ";
-        cout << endl;
+            std::cout << std::scientific << a[j*m+i] << "   ";
+        std::cout << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 inline void print2darray(dstype* a, Int m, Int n, Int M, Int N)
 {
-    //cout.precision(4);
+    //std::cout.precision(4);
     for (Int i=0; i<m; i++) {
         for (Int j=0; j<n; j++)
-            cout << scientific << a[j*M+i] << "   ";
-        cout << endl;
+            std::cout << std::scientific << a[j*M+i] << "   ";
+        std::cout << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 inline void print3darray(dstype* a, Int m, Int n, Int p)
 {
-    //cout.precision(8);
+    //std::cout.precision(8);
     for (Int k=0; k<p; k++) {
         for (Int i=0; i<m; i++) {
             for (Int j=0; j<n; j++)
-                cout << scientific << a[k*n*m+j*m+i] << "   ";
-            cout << endl;
+                std::cout << std::scientific << a[k*n*m+j*m+i] << "   ";
+            std::cout << std::endl;
         }
-        cout << endl;
+        std::cout << std::endl;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 inline void printArray2D(Int* a, Int m, Int n, Int backend)
@@ -224,7 +224,7 @@ template <typename T> T * copyarray(T *b, Int N)
     return a;
 }
 
-template <typename T> void readarray(ifstream &in, T **a, Int N)
+template <typename T> void readarray(std::ifstream &in, T **a, Int N)
 {
     if (N>0) {        
         *a = (T*) malloc (sizeof (T)*N);
@@ -232,7 +232,7 @@ template <typename T> void readarray(ifstream &in, T **a, Int N)
     }    
 }
 
-template <typename T> T * readarray(ifstream &in, Int N)
+template <typename T> T * readarray(std::ifstream &in, Int N)
 {
     T *a;
     if (N>0) {        
@@ -245,7 +245,7 @@ template <typename T> T * readarray(ifstream &in, Int N)
     return a;
 }
 
-inline Int * readiarrayfromdouble(ifstream &in, Int N)
+inline Int * readiarrayfromdouble(std::ifstream &in, Int N)
 {
     Int *a;
     if (N>0) {      
@@ -277,7 +277,7 @@ template <typename T> T compareArrayCPUandGPU(T* a, T* gpub, Int N)
     return diff;
 }
 
-template <typename T> void readarrayManaged(ifstream &in, T **a, Int N)
+template <typename T> void readarrayManaged(std::ifstream &in, T **a, Int N)
 {
     if (N>0) {        
         cudaTemplateMallocManaged(a, N);
@@ -285,7 +285,7 @@ template <typename T> void readarrayManaged(ifstream &in, T **a, Int N)
     }    
 }
 
-template <typename T> void readarrayZeroCopy(ifstream &in, T **a, Int N)
+template <typename T> void readarrayZeroCopy(std::ifstream &in, T **a, Int N)
 {
     if (N>0) {        
         cudaTemplateHostAlloc(a, N, cudaHostAllocMapped);
@@ -295,13 +295,13 @@ template <typename T> void readarrayZeroCopy(ifstream &in, T **a, Int N)
 
 #endif
 
-template <typename T> void writearray(ofstream &out, T *a, Int N)
+template <typename T> void writearray(std::ofstream &out, T *a, Int N)
 {
     if (N>0)       
         out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );
 }
 
-template <typename T> void writearray(ofstream &out, T *a, Int N, Int backend)
+template <typename T> void writearray(std::ofstream &out, T *a, Int N, Int backend)
 {
     if (N>0) {       
         if (backend==2) { //GPU
@@ -336,7 +336,7 @@ template <typename T> void writearray(ofstream &out, T *a, Int N, Int backend)
     }
 }
 
-inline void writeiarraytodouble(ofstream &out, Int *a, Int N)
+inline void writeiarraytodouble(std::ofstream &out, Int *a, Int N)
 {
     if (N>0) {
         double b;
@@ -347,17 +347,17 @@ inline void writeiarraytodouble(ofstream &out, Int *a, Int N)
     }
 }
 
-inline bool fileexists(string filename) 
+inline bool fileexists(std::string filename) 
 {
-    ifstream ifile(filename.c_str());
+    std::ifstream ifile(filename.c_str());
     return (bool)ifile;
 }
 
-template <typename T> void readarrayfromfile(string filename, T **a, Int N)
+template <typename T> void readarrayfromfile(std::string filename, T **a, Int N)
 {
     if (N>0) {
         // Open file to read
-        ifstream in(filename.c_str(), ios::in | ios::binary);
+        std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
 
         if (!in) {
             error("Unable to open file " + filename);
@@ -372,11 +372,11 @@ template <typename T> void readarrayfromfile(string filename, T **a, Int N)
     }
 }
 
-template <typename T> void readarrayfromfile(string filename, T **a, Int N, Int backend, Int skip=0)
+template <typename T> void readarrayfromfile(std::string filename, T **a, Int N, Int backend, Int skip=0)
 {
     if (N>0) {
         // Open file to read
-        ifstream in(filename.c_str(), ios::in | ios::binary);
+        std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
 
         if (!in) {
             error("Unable to open file " + filename);
@@ -425,11 +425,11 @@ template <typename T> void readarrayfromfile(string filename, T **a, Int N, Int 
     }
 }
 
-template <typename T> void writearray2file(string filename, T *a, Int N)
+template <typename T> void writearray2file(std::string filename, T *a, Int N)
 {
     if (N>0) {
         // Open file to read
-        ofstream out(filename.c_str(), ios::out | ios::binary);
+        std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
 
         if (!out) {
             error("Unable to open file " + filename);
@@ -441,11 +441,11 @@ template <typename T> void writearray2file(string filename, T *a, Int N)
     }
 }
 
-template <typename T> void writearray2file(string filename, T *a, Int N, Int backend)
+template <typename T> void writearray2file(std::string filename, T *a, Int N, Int backend)
 {
     if (N>0) {        
         // Open file to read
-        ofstream out(filename.c_str(), ios::out | ios::binary);
+        std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
 
         if (!out) {
             error("Unable to open file " + filename);
@@ -485,23 +485,23 @@ template <typename T> void writearray2file(string filename, T *a, Int N, Int bac
     }
 }
 
-inline void writeTimeStepSize2File(string filename, Int timeStep, Int DIRKstage, double time, double dt)
+inline void writeTimeStepSize2File(std::string filename, Int timeStep, Int DIRKstage, double time, double dt)
 {
-    ofstream out(filename.c_str(), ios::out | ios::app);
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::app);
     if (!out)
-        cout <<"Unable to open file" << filename << endl;
+        std::cout <<"Unable to open file" << filename << std::endl;
     else
         out << NumberToString(timeStep) + "\t" + NumberToString(DIRKstage) + "\t" + NumberToString(time) + "\t" + NumberToString(dt) + "\n";
     out.close();
 }
 
-inline void writeScalarField2File(string filename, double* field, Int ne, Int* ndims)
+inline void writeScalarField2File(std::string filename, double* field, Int ne, Int* ndims)
 {
     Int npv = ndims[9];
     
-    ofstream out(filename.c_str(), ios::out | ios::binary);
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
     if (!out)
-        cout <<"Unable to open file" << filename << endl;
+        std::cout <<"Unable to open file" << filename << std::endl;
     else if (out) {
         out.write( reinterpret_cast<char*>( &field[0] ), sizeof(double) * npv*ne );
     }

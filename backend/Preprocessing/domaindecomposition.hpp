@@ -77,8 +77,8 @@ inline DMD initializeDMD(const PDE& pde, const Mesh& mesh)
       if (pde.coupledinterface>0) {                
         int n = mesh.inte.size();
 
-        vector<int> tm(ne);
-        vector<int> tn(ne-n);
+        std::vector<int> tm(ne);
+        std::vector<int> tn(ne-n);
         for (int i=0; i<ne; i++) tm[i] = i;
 
         std::set_difference(tm.begin(), tm.end(), mesh.inte.begin(), mesh.inte.end(), std::back_inserter(tn));
@@ -270,7 +270,7 @@ inline void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2
                 
 //         if (pde.debugmode==1) {
 //           int n = dmd[i].elemrecv.size();
-//           vector<int> elemrecv(n);
+//           std::vector<int> elemrecv(n);
 //           for (int j=0; j<n; j++) {
 //             elemrecv[j] = dmd[i].elemrecv[j][1];
 //             //elemrecv[j + n*0] = dmd[i].elemrecv[j][0];
@@ -295,7 +295,7 @@ inline void build_dmdldg(std::vector<DMD>& dmd, const int* e2e, const int* elem2
 //     for (int i = 0; i < nproc; ++i) {
 //         if (pde.debugmode==1) {
 //           int n = dmd[i].elemsend.size();
-//           vector<int> elemsend(n);
+//           std::vector<int> elemsend(n);
 //           for (int j=0; j<n; j++) elemsend[j] = dmd[i].elemsend[j][1];
 //                       
 //           writearray2file(pde.datapath + "/elemsend" + std::to_string(i) + ".bin", elemsend.data(), elemsend.size());
@@ -386,7 +386,7 @@ inline void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2
         
 //         if (pde.debugmode==1) {
 //           int n = dmd[i].elemrecv.size();
-//           vector<int> elemrecv(n);
+//           std::vector<int> elemrecv(n);
 //           for (int j=0; j<n; j++) {
 //             elemrecv[j] = dmd[i].elemrecv[j][1];
 //             //elemrecv[j + n*0] = dmd[i].elemrecv[j][0];
@@ -410,7 +410,7 @@ inline void build_dmdhdg(std::vector<DMD>& dmd, const int* e2e, const int* elem2
 //     for (int i = 0; i < nproc; ++i) {
 //         if (pde.debugmode==1) {
 //           int n = dmd[i].elemsend.size();
-//           vector<int> elemsend(n);
+//           std::vector<int> elemsend(n);
 //           for (int j=0; j<n; j++) elemsend[j] = dmd[i].elemsend[j][1];
 //                       
 //           writearray2file(pde.datapath + "/elemsend" + std::to_string(i) + ".bin", elemsend.data(), elemsend.size());

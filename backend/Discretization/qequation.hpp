@@ -145,7 +145,7 @@ inline void qEquationElem(solstruct &sol, resstruct &res, appstruct &app, master
 
     if (common.debugMode==1) {
 
-      string filename;
+      std::string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
       else
@@ -233,7 +233,7 @@ inline void qEquationFace(solstruct &sol, resstruct &res, appstruct &app, master
         Int f1 = common.fblks[3*j]-1;
         Int f2 = common.fblks[3*j+1];    
         Int ib = common.fblks[3*j+2];    
-        cout<<f1<<" "<<f2<<" "<<ib<<endl;
+        std::cout<<f1<<" "<<f2<<" "<<ib<<std::endl;
         qEquationFaceBlock<M>(sol, res, app, master, mesh, tmp, common, handle, 
                 nd, nfe, npe, npf, ngf, ncx, f1, f2, ib, backend);
     }                       
@@ -343,7 +343,7 @@ inline void qEquationElemFace(solstruct &sol, resstruct &res, appstruct &app, ma
     }    
 
     if (common.debugMode==1) {
-      string filename;
+      std::string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
       else
@@ -465,7 +465,7 @@ inline void hdgGetQ(dstype *udg, dstype *uhat, solstruct &sol, resstruct &res, m
     }    
     
     if (common.debugMode==1) {
-      string filename;
+      std::string filename;
       if (common.mpiProcs==1)
         filename = common.fileout;
       else

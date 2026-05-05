@@ -68,41 +68,41 @@
 
 // struct Master 
 // {    
-//     vector<double> xpe, gpe, gwe, xpf, gpf, gwf; // shapegwdotshapeg, shapfgwdotshapfg;
-//     vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
-//     vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
-//     vector<int>  telem, tface, perm, permind; 
+//     std::vector<double> xpe, gpe, gwe, xpf, gpf, gwf; // shapegwdotshapeg, shapfgwdotshapfg;
+//     std::vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
+//     std::vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
+//     std::vector<int>  telem, tface, perm, permind; 
 //     int nd, npe, npf, nge, ngf, porder, pgauss, nfe, elemtype, nodetype, nve, nvf, np1d, ng1d, npermind;
 // };
 
-// int index4D(int i, int j, int k, int l, const vector<int>& shape) {
+// int index4D(int i, int j, int k, int l, const std::vector<int>& shape) {
 //     // Column-major indexing: idx = i + j*n1 + k*n1*n2 + l*n1*n2*n3
 //     return i + shape[0] * (j + shape[1] * (k + shape[2] * l));
 // }
 
-// void masternodes(vector<double>& pelem, vector<int>& telem,
-//                  vector<double>& pface, vector<int>& tface,
-//                  vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
+// void masternodes(std::vector<double>& pelem, std::vector<int>& telem,
+//                  std::vector<double>& pface, std::vector<int>& tface,
+//                  std::vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
 // {
 // 
-//     ifstream file(filename, ios::binary);
+//     std::ifstream file(filename, std::ios::binary);
 // 
 //     if (!file) error("Error opening file: " + filename);
 // 
 //     // Read the full file into a vector
-//     file.seekg(0, ios::end);
+//     file.seekg(0, std::ios::end);
 //     size_t num_bytes = file.tellg();
-//     file.seekg(0, ios::beg);
+//     file.seekg(0, std::ios::beg);
 //     size_t num_doubles = num_bytes / sizeof(double);
 // 
-//     vector<double> tmp(num_doubles);
+//     std::vector<double> tmp(num_doubles);
 //     file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
 //     file.close();
 // 
 //     // Parse header
 //     int ndims = static_cast<int>(tmp[0]);  
 // 
-//     vector<int> narrays(ndims);
+//     std::vector<int> narrays(ndims);
 //     for (int i = 0; i < ndims; ++i)
 //         narrays[i] = static_cast<int>(tmp[1 + i]);
 // 
@@ -111,18 +111,18 @@
 //     for (int d : narrays)
 //         total_blocks *= d;
 // 
-//     vector<int> sz1(total_blocks), sz2(total_blocks);
+//     std::vector<int> sz1(total_blocks), sz2(total_blocks);
 //     for (int i = 0; i < total_blocks; ++i)
 //         sz1[i] = static_cast<int>(tmp[offset + i]);
 //     for (int i = 0; i < total_blocks; ++i)
 //         sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
 // 
-//     vector<int> sz(total_blocks);
+//     std::vector<int> sz(total_blocks);
 //     for (int i = 0; i < total_blocks; ++i)
 //         sz[i] = sz1[i] * sz2[i];
 // 
 //     // cumulative offsets
-//     vector<int> lz(total_blocks + 1, 0);
+//     std::vector<int> lz(total_blocks + 1, 0);
 //     partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
 // 
 //     // Starting point of real data
@@ -138,7 +138,7 @@
 // //     print2iarray(sz.data(), 1, total_blocks);
 // //     print2iarray(lz.data(), 1, total_blocks+1);
 // 
-//     auto extract_block = [&](int i, vector<double>& out) {
+//     auto extract_block = [&](int i, std::vector<double>& out) {
 //         int e = elemtype + 1;        
 //         int idx = index4D(i, e - 1, porder - 1, dim - 1, narrays);
 //         int start = lz[idx];
@@ -150,7 +150,7 @@
 //              out.begin());
 //     };
 // 
-//     vector<double>  telemd, tfaced, permd;
+//     std::vector<double>  telemd, tfaced, permd;
 // 
 //     extract_block(0, pelem);
 //     extract_block(1, telemd);
@@ -172,24 +172,24 @@
 //     for (int i=0; i<tfaced.size(); i++) tface[i] = (int) tfaced[i]-1;                
 // }
 
-// void gaussnodes(vector<double>& xgauss, vector<double>& wgauss,
+// void gaussnodes(std::vector<double>& xgauss, std::vector<double>& wgauss,
 //                 int pgauss, int dim, int elemtype, const std::string filename) 
 // {
-//     ifstream file(filename, ios::binary);
+//     std::ifstream file(filename, std::ios::binary);
 //     if (!file) error("Error opening file: " + filename);
 // 
 //     // Read the file into a buffer
-//     file.seekg(0, ios::end);
+//     file.seekg(0, std::ios::end);
 //     size_t num_bytes = file.tellg();
-//     file.seekg(0, ios::beg);
+//     file.seekg(0, std::ios::beg);
 //     size_t num_doubles = num_bytes / sizeof(double);
-//     vector<double> tmp(num_doubles);
+//     std::vector<double> tmp(num_doubles);
 //     file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
 //     file.close();
 // 
 //     // Read header
 //     int ndims = static_cast<int>(tmp[0]);
-//     vector<int> narrays(ndims);
+//     std::vector<int> narrays(ndims);
 //     for (int i = 0; i < ndims; ++i)
 //         narrays[i] = static_cast<int>(tmp[1 + i]);
 // 
@@ -198,23 +198,23 @@
 //     for (int d : narrays)
 //         total_blocks *= d;
 // 
-//     vector<int> sz1(total_blocks), sz2(total_blocks);
+//     std::vector<int> sz1(total_blocks), sz2(total_blocks);
 //     for (int i = 0; i < total_blocks; ++i)
 //         sz1[i] = static_cast<int>(tmp[offset + i]);
 //     for (int i = 0; i < total_blocks; ++i)
 //         sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
 // 
-//     vector<int> sz(total_blocks);
+//     std::vector<int> sz(total_blocks);
 //     for (int i = 0; i < total_blocks; ++i)
 //         sz[i] = sz1[i] * sz2[i];
 // 
 //     // Compute cumulative lengths
-//     vector<int> lz(total_blocks + 1, 0);
+//     std::vector<int> lz(total_blocks + 1, 0);
 //     partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
 // 
 //     int data_start = offset + 2 * total_blocks;
 // 
-//     auto extract_block = [&](int i, vector<double>& out) {
+//     auto extract_block = [&](int i, std::vector<double>& out) {
 //         // Corrected zero-based indexing
 //         int e = elemtype + 1;
 //         int idx = index4D(i, e - 1, pgauss - 1, dim - 1, narrays);
@@ -450,7 +450,7 @@
 // 
 //     for (j = 0; j < numPoints; j++) {
 //         xc[0*numPoints+j] = x[0*numPoints+j];
-//         xc[1*numPoints+j] = min( 0.99999999, x[1*numPoints+j]);     // To avoid singularity
+//         xc[1*numPoints+j] = std::min( 0.99999999, x[1*numPoints+j]);     // To avoid singularity
 //     }
 //     // xc: numPoints / nd
 // 
@@ -771,7 +771,7 @@
 //     }
 // }
 // 
-// void mkshape(vector<double> &shap, vector<double> &plocal, vector<double> &pts, int npoints, int elemtype, int porder, int nd, int numNodes)
+// void mkshape(std::vector<double> &shap, std::vector<double> &plocal, std::vector<double> &pts, int npoints, int elemtype, int porder, int nd, int numNodes)
 // {
 //     // porder: Polynomial order
 //     // plocal: Node positions. numNodes / nd
@@ -937,7 +937,7 @@
 //     }
 // }
 // 
-// int permindex(vector<int>& permind, const double* plocfc, int npf, int dim, int elemtype) 
+// int permindex(std::vector<int>& permind, const double* plocfc, int npf, int dim, int elemtype) 
 // {
 //     int ncols_out = 1;
 //     if (dim == 1) {         
@@ -1050,7 +1050,7 @@ inline Master initializeMaster(PDE& pde, Mesh& mesh, int rank=0)
 //     print2iarray(master.perm.data(), master.npf, mesh.nfe);
 //     
 //     print2darray(master.xpe.data(), master.npe, mesh.dim);
-//     print2darray(master.xpf.data(), master.npf, max(mesh.dim-1,1));
+//     print2darray(master.xpf.data(), master.npf, std::max(mesh.dim-1,1));
 //     print2darray(gpe.data(), nge, mesh.dim);
 //     print2darray(gwe.data(), nge, 1);
 //     print2darray(gpf.data(), ngf, mesh.dim-1);
@@ -1104,8 +1104,8 @@ inline Master initializeMaster(PDE& pde, Mesh& mesh, int rank=0)
           master.shapfnt[j + master.npf*k + master.npf*master.npf*i] = master.shapfn[k + master.npf*j + master.npf*master.npf*i];
     
     
-    vector<double> b;
-    vector<int> a, c, d;
+    std::vector<double> b;
+    std::vector<int> a, c, d;
     masternodes(master.xp1d, a, b, c, d, pde.porder, 1, mesh.elemtype, fn1); 
     gaussnodes(master.gp1d, master.gw1d, pde.pgauss, 1, mesh.elemtype, fn2); 
         

@@ -1204,9 +1204,9 @@ inline int permindex(int*& permind, const double* plocfc, int npf, int dim, int 
     return ncols_out;
 }
 
-inline void compare(int a, int b, string s)
+inline void compare(int a, int b, std::string s)
 {
-    cout<<s<<": ("<<a<<", " <<b<<")\n";
+    std::cout<<s<<": ("<<a<<", " <<b<<")\n";
 }
 
 inline void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 
@@ -1258,7 +1258,7 @@ inline void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, co
     int nbe = 0;
     if (mpiprocs==1) {
       if (coupledinterface>0) {        
-        vector<int> me(3), tm(2); 
+        std::vector<int> me(3), tm(2); 
         me[0] = 0; me[1] = intepartpts[0]; me[2] = me[1] + intepartpts[1];
         tm[0] = 0; tm[1] = -1;
         nbe = mkfaceblocks(mesh.eblks, me.data(), tm.data(), 3, nebmax); 
@@ -1267,12 +1267,12 @@ inline void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, co
       }
     } else {
       if (coupledinterface>0) {        
-        vector<int> me(5), tm(4); 
+        std::vector<int> me(5), tm(4); 
         me[0] = 0; me[1] = intepartpts[0]; me[2] = me[1] + intepartpts[1]; me[3] = me[2] + intepartpts[2]; me[4] = me[3] + intepartpts[3];
         tm[0] = 0; tm[1] = -1; tm[2] = 1; tm[3] = 2;
         nbe = mkfaceblocks(mesh.eblks, me.data(), tm.data(), 5, nebmax); 
       } else {
-        vector<int> me(4), tm(3); 
+        std::vector<int> me(4), tm(3); 
         me[0] = 0; me[1] = mesh.elempartpts[0]; me[2] = me[1] + mesh.elempartpts[1]; me[3] = me[2] + mesh.elempartpts[2];
         tm[0] = 0; tm[1] = 1; tm[2] = 2;
         nbe = mkfaceblocks(mesh.eblks, me.data(), tm.data(), 4, nebmax); 
@@ -1281,7 +1281,7 @@ inline void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, co
 
     int nbc = sizes[3];
     int n = 1 + nbc + 1;
-    vector<int> mf(n); mf[0] = 0; 
+    std::vector<int> mf(n); mf[0] = 0; 
     for(int i=1; i<n; i++) mf[i] = mf[i-1] + facepartpts[i-1];
     int nbf = mkfaceblocks(mesh.fblks, mf.data(), facepartbnd, n, nfbmax); 
 
@@ -1296,8 +1296,8 @@ inline void buildConn(meshstruct& mesh, solstruct& sol, const appstruct& app, co
     }
 
     int nfc = npf * nf;
-    vector<int> facecon1(nfc);
-    vector<int> facecon2(nfc);
+    std::vector<int> facecon1(nfc);
+    std::vector<int> facecon2(nfc);
     for (int i=0; i<nfc; i++) {
       facecon1[i] = mesh.facecon[0 + 2*i];
       facecon2[i] = mesh.facecon[1 + 2*i];
@@ -1433,7 +1433,7 @@ inline void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstr
     int nbe = 0;
     if (mpiprocs==1) {
       if (coupledinterface>0) {        
-        vector<int> me(3), tm(2); 
+        std::vector<int> me(3), tm(2); 
         me[0] = 0; me[1] = intepartpts[0]; me[2] = me[1] + intepartpts[1];
         tm[0] = 0; tm[1] = -1;
         nbe = mkfaceblocks(conn.eblks, me.data(), tm.data(), 3, nebmax); 
@@ -1442,12 +1442,12 @@ inline void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstr
       }
     } else {
       if (coupledinterface>0) {        
-        vector<int> me(5), tm(4); 
+        std::vector<int> me(5), tm(4); 
         me[0] = 0; me[1] = intepartpts[0]; me[2] = me[1] + intepartpts[1]; me[3] = me[2] + intepartpts[2]; me[4] = me[3] + intepartpts[3];
         tm[0] = 0; tm[1] = -1; tm[2] = 1; tm[3] = 2;
         nbe = mkfaceblocks(conn.eblks, me.data(), tm.data(), 5, nebmax); 
       } else {
-        vector<int> me(4), tm(3); 
+        std::vector<int> me(4), tm(3); 
         me[0] = 0; me[1] = mesh.elempartpts[0]; me[2] = me[1] + mesh.elempartpts[1]; me[3] = me[2] + mesh.elempartpts[2];
         tm[0] = 0; tm[1] = 1; tm[2] = 2;
         nbe = mkfaceblocks(conn.eblks, me.data(), tm.data(), 4, nebmax); 
@@ -1456,7 +1456,7 @@ inline void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstr
 
     int nbc = sizes[3];
     int n = 1 + nbc + 1;
-    vector<int> mf(n); mf[0] = 0; 
+    std::vector<int> mf(n); mf[0] = 0; 
     for(int i=1; i<n; i++) mf[i] = mf[i-1] + facepartpts[i-1];
     int nbf = mkfaceblocks(conn.fblks, mf.data(), facepartbnd, n, nfbmax); 
 
@@ -1471,8 +1471,8 @@ inline void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstr
     }
 
     int nfc = npf * nf;
-    vector<int> facecon1(nfc);
-    vector<int> facecon2(nfc);
+    std::vector<int> facecon1(nfc);
+    std::vector<int> facecon2(nfc);
     for (int i=0; i<nfc; i++) {
       facecon1[i] = mesh.facecon[0 + 2*i];
       facecon2[i] = mesh.facecon[1 + 2*i];
@@ -1524,24 +1524,24 @@ inline void buildConn(Conn& conn, meshstruct& mesh, solstruct& sol, const appstr
     CPUFREE(facepartbnd);
 }
 
-inline void maxdiff(const dstype *a, const dstype *b, int n, string s)
+inline void maxdiff(const dstype *a, const dstype *b, int n, std::string s)
 {
     dstype e = 0.0;
     for (int i = 0; i < n; i++) {
         dstype d = fabs(a[i] - b[i]);
         e = (e > d) ? e : d;
     }
-    cout<<"Maximum error in "<<s<<" = "<<e<<", length = "<<n<<endl;
+    std::cout<<"Maximum error in "<<s<<" = "<<e<<", length = "<<n<<std::endl;
 }
 
-inline void maxdiff(const int *a, const int *b, int n, string s)
+inline void maxdiff(const int *a, const int *b, int n, std::string s)
 {
     int e = 0;
     for (int i = 0; i < n; i++) {
         int d = abs(a[i] - b[i]);
         e = (e > d) ? e : d;
     }
-    cout<<"Maximum error in "<<s<<" = "<<e<<", length = "<<n<<endl;
+    std::cout<<"Maximum error in "<<s<<" = "<<e<<", length = "<<n<<std::endl;
 }
 
 inline void checkConn(meshstruct& mesh, solstruct& sol, const appstruct& app, const masterstruct& master, 

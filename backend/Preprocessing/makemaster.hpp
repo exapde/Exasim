@@ -286,7 +286,7 @@ inline void koornwinder2d(double *f,double *x, int numPoints, int porder, int de
     
     for (j = 0; j < numPoints; j++) {
         xc[0*numPoints+j] = x[0*numPoints+j];
-        xc[1*numPoints+j] = min( 0.99999999, x[1*numPoints+j]);     // To avoid singularity
+        xc[1*numPoints+j] = std::min( 0.99999999, x[1*numPoints+j]);     // To avoid singularity
     }
     // xc: numPoints / nd
     
@@ -607,7 +607,7 @@ inline void tensorproduct(double *f, double *x, int npoints, int porder, int nd,
     }
 }
 
-inline void mkshape(vector<double> &shap, vector<double> &plocal, vector<double> &pts, int npoints, int elemtype, int porder, int nd, int numNodes)
+inline void mkshape(std::vector<double> &shap, std::vector<double> &plocal, std::vector<double> &pts, int npoints, int elemtype, int porder, int nd, int numNodes)
 {
     // porder: Polynomial order
     // plocal: Node positions. numNodes / nd
@@ -773,7 +773,7 @@ inline void localbasis(double *phielem, double *phiface, const double *plocvl, c
     }
 }
 
-inline int permindex(vector<int>& permind, const double* plocfc, int npf, int dim, int elemtype) 
+inline int permindex(std::vector<int>& permind, const double* plocfc, int npf, int dim, int elemtype) 
 {
     int ncols_out = 1;
     if (dim == 1) {         

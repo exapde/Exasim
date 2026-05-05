@@ -17,7 +17,7 @@
 
 // Both CPU and GPU constructor
 template <class M>
-inline CDiscretization<M>::CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
+inline CDiscretization<M>::CDiscretization(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, Int mpirank, 
         Int fileoffset, Int omprank, Int backend, Int builtinmodelID, Int nsca, Int nvec, Int nten, Int nsurf, Int nvqoi) 
 {
     common.backend = backend;
@@ -113,7 +113,7 @@ inline CDiscretization<M>::CDiscretization(string filein, string fileout, string
       int maxbc = 0; // maximum number of boundary conditions
       for (int i=0; i<nfe*ne; i++) {
         if (mesh.bf[i] > 0) nboufaces++;
-        maxbc = max(maxbc, mesh.bf[i]);
+        maxbc = std::max(maxbc, mesh.bf[i]);
       }
       common.maxnbc = maxbc;      
                                       

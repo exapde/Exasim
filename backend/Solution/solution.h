@@ -123,22 +123,22 @@ public:
     CPreconditioner<M> prec;  // precondtioner class
     CSolver<M> solv;          // linear and nonlinear solvers
     CVisualization vis;    // visualization class
-    ofstream outsol;       // storing solutions
-    ofstream outwdg;  
-    ofstream outuhat;  
-    ofstream outbouxdg;  
-    ofstream outboundg;  
-    ofstream outbouudg;  
-    ofstream outbouwdg;  
-    ofstream outbouuhat;  
-    ofstream outqoi;
+    std::ofstream outsol;       // storing solutions
+    std::ofstream outwdg;  
+    std::ofstream outuhat;  
+    std::ofstream outbouxdg;  
+    std::ofstream outboundg;  
+    std::ofstream outbouudg;  
+    std::ofstream outbouwdg;  
+    std::ofstream outbouuhat;  
+    std::ofstream outqoi;
     
     // HOT.7.3 — programmatic constructor: takes a pre-built
     // `Preprocessed` bundle (see backend/Preprocessing/buildstructs.hpp)
     // and forwards to the matching CDiscretization<M> constructor.
     // No filein, no readInput, no datain/ disk I/O.
     template <class P>
-    CSolution(P&& preprocessed, string fileout, string exasimpath,
+    CSolution(P&& preprocessed, std::string fileout, std::string exasimpath,
               Int mpiprocs, Int mpirank, Int fileoffset, Int omprank,
               Int backend, Int builtinmodelID)
        : disc(std::forward<P>(preprocessed), fileout, exasimpath,
@@ -149,7 +149,7 @@ public:
     }
 
     // constructor
-    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)
+    CSolution(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)
        : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID),
          prec(disc, backend), solv(disc, backend), vis(disc, backend)
     {
@@ -181,16 +181,16 @@ public:
         // for (int k = 0; k<mpiprocs; k++) {
         //   MPI_Barrier(MPI_COMM_WORLD);
         //   if (k==rank) {
-        //     cout<<rank<<endl;
+        //     std::cout<<rank<<std::endl;
         //     printinterfaceinfo(disc);
-        //     cout<<rank<<endl;
+        //     std::cout<<rank<<std::endl;
         //   }
         //   MPI_Barrier(MPI_COMM_WORLD);
         // }                 
 
         // HOT.7.4 — when disc.common.saveOutputs == 0, leave every
-        // output ofstream un-opened. SaveSolutions / SaveQoI then
-        // become silent no-ops (writearray on a closed ofstream
+        // output std::ofstream un-opened. SaveSolutions / SaveQoI then
+        // become silent no-ops (writearray on a closed std::ofstream
         // sets failbit but doesn't crash); the data remains in
         // disc.sol and can be pulled via host_udg / host_uhat /
         // host_qoi accessors below.
@@ -274,16 +274,16 @@ public:
     const dstype* host_wdg()  const { return disc.sol.wdg;  }
     Int           host_wdg_size()  const { return disc.common.ndofw1; }
 
-    void SteadyProblem(ofstream &out, Int backend);
+    void SteadyProblem(std::ofstream &out, Int backend);
 
-    void SteadyProblem_PTC(ofstream &out, Int backend);    
+    void SteadyProblem_PTC(std::ofstream &out, Int backend);    
                                     
-    void DIRK(ofstream &out, Int backend);    
+    void DIRK(std::ofstream &out, Int backend);    
     
     // precompute some quantities
     void InitSolution(Int backend);    
         
-    void SolveProblem(ofstream &out, Int backend);    
+    void SolveProblem(std::ofstream &out, Int backend);    
         
     // save solutions in binary files
     void SaveSolutions(Int backend);    
@@ -309,8 +309,8 @@ public:
     void RestoreState();
     void ClearSavedState();
 
-    Int PTCsolver(ofstream &out, Int backend);
-    Int NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend);       
+    Int PTCsolver(std::ofstream &out, Int backend);
+    Int NewtonSolver(std::ofstream &out, Int N, Int spatialScheme, Int backend);       
 };
 
 #endif        

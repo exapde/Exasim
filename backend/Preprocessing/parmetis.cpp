@@ -630,7 +630,7 @@ void mke2e_fill_first_neighbors(int*       e2e,
 
     // ------------------------------------------------------------------
     // 1. Collect all faces with e2e == -1 (potential boundary or remote)
-    //    Owner rule: owner = min(global_node_ids) % size
+    //    Owner rule: owner = std::min(global_node_ids) % size
     // ------------------------------------------------------------------
     struct LocalFaceRecord {
         std::array<int,4> gnodes; // global node IDs of this face
@@ -2098,7 +2098,7 @@ void buildElemsend(const Mesh& mesh, DMD&  dmd, MPI_Comm comm)
 // 
 //     // ------------------------------------------------------------------
 //     // 1. Collect all faces with e2e == -1 (potential boundary or remote)
-//     //    Owner rule: owner = min(global_node_ids) % size
+//     //    Owner rule: owner = std::min(global_node_ids) % size
 //     // ------------------------------------------------------------------
 //     struct LocalFaceRecord {
 //         std::array<int,4> gnodes; // global node IDs of this face

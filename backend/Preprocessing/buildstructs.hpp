@@ -233,7 +233,7 @@ inline appstruct buildAppStruct(const PDE& pde)
 // buildMasterStruct(master) — mirrors readmasterstruct() / writemaster() pair.
 //
 // `Master` (preprocessing struct) holds 1D/2D/3D shape/quadrature
-// arrays as `vector<double>`. `masterstruct` (runtime) holds the
+// arrays as `std::vector<double>`. `masterstruct` (runtime) holds the
 // same data as `dstype*` arrays for solver consumption. This is a
 // straight copy.
 // ---------------------------------------------------------------
@@ -588,7 +588,7 @@ struct Preprocessed {
 //
 // Differences from the serial buildMeshStruct:
 //   - elemsend / elemrecv come from dmd.localelemsend / .localelemrecv
-//     (already vector<int>) instead of the 3-tuple dmd.elemsend
+//     (already std::vector<int>) instead of the 3-tuple dmd.elemsend
 //     (where serial extracts column [1]).
 //   - The connectivity output (`ti_out`) is `mesh.tg` — global node
 //     IDs *with ghost-element rows already filled* via sendrecvdata.

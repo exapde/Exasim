@@ -3,29 +3,29 @@
 
     This file contains implementations for nonlinear and linear solvers using Pseudo-Time Continuation (PTC) and Newton's method, 
     with support for reduced basis (RB) preconditioning and timing analysis. The solvers are designed for high-performance 
-    scientific computing, potentially leveraging CUDA and MPI for parallelism.
+    std::scientific computing, potentially leveraging CUDA and MPI for parallelism.
 
     Functions:
 
-    - int LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream &out, Int it, Int backend)
+    - int LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream &out, Int it, Int backend)
         Solves the linear system arising in each nonlinear iteration. Evaluates the residual, constructs the preconditioner, 
         applies GMRES, and manages timing and logging. Handles reduced basis updates and checks for convergence.
 
     - void UpdateRB(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, Int backend)
         Updates the reduced basis vectors used for preconditioning if the current solution increment is significant.
 
-    - Int PTCsolver(sysstruct &sys,  CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream &out, Int backend)
+    - Int PTCsolver(sysstruct &sys,  CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream &out, Int backend)
         Implements the Pseudo-Time Continuation (PTC) nonlinear solver. Iteratively solves the nonlinear system R(u) = 0 
         using the linear solver, updates the solution, checks for divergence, logs residual norms, and manages reduced basis updates.
 
     - void UpdateRB(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, Int N, Int backend)
         Alternate version of UpdateRB with explicit dimension argument. Updates the reduced basis vectors for preconditioning.
 
-    - void LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
+    - void LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
         Overloaded LinearSolver supporting different spatial discretization schemes. Assembles the linear system, constructs 
         the preconditioner, applies GMRES, and logs timing information.
 
-    - Int NonlinearSolver(sysstruct &sys,  CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream &out, Int N, Int spatialScheme, Int backend)
+    - Int NonlinearSolver(sysstruct &sys,  CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream &out, Int N, Int spatialScheme, Int backend)
         Implements Newton's method for nonlinear systems. Iteratively solves the linearized system, applies solution updates 
         with damping, computes residuals, manages reduced basis updates, and checks for convergence.
 
@@ -48,11 +48,11 @@
 #define __PTCSOLVER
 
 template <class M>
-inline int LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream &out, Int it, Int backend)
+inline int LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream &out, Int it, Int backend)
 {    
         
 #ifdef TIMING    
-    auto begin = chrono::high_resolution_clock::now();      
+    auto begin = std::chrono::high_resolution_clock::now();      
 #endif
    
 //#ifdef HAVE_CUDA
@@ -108,23 +108,23 @@ inline int LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditione
 //   ArraySetValue(sys.x, zero, disc.common.ndof1, backend);
     
 #ifdef TIMING        
-    auto end = chrono::high_resolution_clock::now();
-    disc.common.timing[4] = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+    auto end = std::chrono::high_resolution_clock::now();
+    disc.common.timing[4] = std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
 #endif
     
     // set Wcurrentdim
     //disc.common.Wcurrentdim = disc.common.RBcurrentdim;
     
 #ifdef TIMING    
-    begin = chrono::high_resolution_clock::now();      
+    begin = std::chrono::high_resolution_clock::now();      
 #endif    
     disc.common.linearSolverIter = GMRES(sys, disc, prec, backend);  
     if (disc.common.mpiRank==0)             
         printf("GMRES converges to the tolerance %g within % d iterations and %d RB dimensions\n",disc.common.linearSolverTol,disc.common.linearSolverIter,disc.common.RBcurrentdim);        
     
 #ifdef TIMING        
-    end = chrono::high_resolution_clock::now();
-    disc.common.timing[5] = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+    end = std::chrono::high_resolution_clock::now();
+    disc.common.timing[5] = std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
         
     if (disc.common.mpiRank==0) {
     printf("--------- Linear Solver Analysis -------\n");    
@@ -256,19 +256,19 @@ inline void UpdateRB(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M
 }
 
 template <class M>
-inline void LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
+inline void LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPreconditioner<M>& prec, std::ofstream &out, Int N, Int spatialScheme, Int it, Int backend)
 {            
     // evaluate the residual R(u) and set it to sys.b
     if (spatialScheme==0) {
       disc.evalResidual(sys.b, sys.u, backend);
     }
     else if (spatialScheme==1) {            
-      auto begin = chrono::high_resolution_clock::now();   
+      auto begin = std::chrono::high_resolution_clock::now();   
             
       disc.hdgAssembleLinearSystem(sys.b, backend);
               
-      auto end = chrono::high_resolution_clock::now();
-      double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;      
+      auto end = std::chrono::high_resolution_clock::now();
+      double t1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;      
 
       if (disc.common.mpiRank==0) printf("hdgAssembleLinearSystem time: %g miliseconds\n", t1);
       
@@ -291,12 +291,12 @@ inline void LinearSolver(sysstruct &sys, CDiscretization<M>& disc, CPrecondition
         ArraySetValue(sys.x, zero, N);     
     }
             
-    auto begin = chrono::high_resolution_clock::now();   
+    auto begin = std::chrono::high_resolution_clock::now();   
         
     disc.common.linearSolverIter = GMRES(sys, disc, prec, N, spatialScheme, backend);  
 
-    auto end = chrono::high_resolution_clock::now();
-    double t1 = chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1e6;        
+    auto end = std::chrono::high_resolution_clock::now();
+    double t1 = std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
     
     if (disc.common.mpiRank==0)  {
         printf("GMRES time: %g miliseconds\n", t1);

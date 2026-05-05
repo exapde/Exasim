@@ -8,13 +8,13 @@
 
     1. InputParams Struct:
         - Holds all parsed input parameters from the PDE application file.
-        - Includes maps for string, double, and integer parameters.
+        - Includes maps for std::string, double, and integer parameters.
         - Contains vectors for boundary conditions, physics parameters, and other simulation-specific data.
 
     2. Helper Functions:
-        - parseList<T>: Parses a list of numbers from a string buffer enclosed in square brackets.
+        - parseList<T>: Parses a list of numbers from a std::string buffer enclosed in square brackets.
         - parseStringList: Parses a list of strings from a buffer, extracting quoted strings.
-        - trim: Removes leading and trailing whitespace from a string.
+        - trim: Removes leading and trailing whitespace from a std::string.
         - tokenizeBraceList: Tokenizes a comma-separated list, respecting parentheses nesting.
         - parseExpression: Parses a list of doubles, supporting "repeat(value, count)" syntax for repeated values.
 
@@ -823,7 +823,7 @@ inline PDE initializePDE(InputParams& params, int mpirank=0)
     
     pde.pdeappfile = params.pdeappfile;    
     if (pde.datapath == "") {      
-      string dp = trim_dir(params.pdeappfile);
+      std::string dp = trim_dir(params.pdeappfile);
       if (dp == "") {
         if (mpirank==0) std::cout<<"datapath is not set in "<< params.pdeappfile <<".\nWe set datapath to the working directory.\n";
         pde.datapath = std::filesystem::current_path();    

@@ -357,7 +357,7 @@ inline void FhatDriver(dstype* fg, const dstype* xg, const dstype* ug1, const ds
     FluxDriver(fg, xg, ug1, og1, wg1, mesh, master, app, sol, tmp, common,
                     ngf, f1, f2, backend);        
     // right flux
-    //auto fg2 = Kokkos::subview(fg, Kokkos::make_pair(N, 2*N));
+    //auto fg2 = Kokkos::subview(fg, Kokkos::std::make_pair(N, 2*N));
     dstype *fg2 = &fg[N];
     FluxDriver(fg2, xg, ug2, og2, wg2, mesh, master, app, sol, tmp, common,
                     ngf, f1, f2, backend);        

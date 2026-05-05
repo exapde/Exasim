@@ -31,7 +31,7 @@
 #endif
 
 // File-driven constructor.
-inline CPreprocessing::CPreprocessing(string filein, int rank, int commsize)
+inline CPreprocessing::CPreprocessing(std::string filein, int rank, int commsize)
 {
   mpirank = rank;
 

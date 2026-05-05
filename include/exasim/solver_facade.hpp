@@ -24,7 +24,7 @@
 // struct automatically.
 //
 // Lifetime: ExasimSolver owns the underlying `CSolution<M>` (held by
-// `unique_ptr`). The accessors (`udg()`, `uhat()`) return non-owning
+// `std::unique_ptr`). The accessors (`udg()`, `uhat()`) return non-owning
 // pointers into `disc.sol.*` and are valid until the ExasimSolver
 // destructs.
 
