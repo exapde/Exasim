@@ -1073,6 +1073,20 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
 endif()
 
 # ======================================================================
+#  Reusable-library tests (PR #73 review B-Test1, B-Test2)
+# ======================================================================
+#
+# Off by default so the standard build is unaffected. Some of these
+# targets are expected to FAIL until the matching review blocker is
+# fixed — the failure is the regression check.
+option(EXASIM_BUILD_TESTS
+       "Build reusable-library smoke tests under tests/ (multi-TU consumer, install consumer)"
+       OFF)
+if(EXASIM_BUILD_TESTS)
+  add_subdirectory(${EXASIM_DIR}/tests ${CMAKE_CURRENT_BINARY_DIR}/tests)
+endif()
+
+# ======================================================================
 #  Summary of EXASIM configuration
 # ======================================================================
 message(STATUS "==================== EXASIM CONFIGURATION ====================")
