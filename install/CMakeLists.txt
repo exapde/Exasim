@@ -764,6 +764,31 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     # within a build dir AND in parallel across build dirs.
     set(_codegen_dir "${EXASIM_DIR}/apps/library_example/${name}_codegen")
 
+    # Tell make that main.cpp.o (and main_facade.cpp.o for this
+    # example) depend on the per-example `my_model.hpp` produced by
+    # `regenerate.sh` during ctest. The compiler-emitted `.d` only
+    # records `backend/Model/my_model.hpp` (the include-path
+    # fallback that exists at initial cmake-build time, before any
+    # regen has run), so without an explicit OBJECT_DEPENDS the
+    # subsequent regen flips a file that make doesn't watch and
+    # `cmake --build --target` is a no-op — the binary keeps
+    # text2code's default ModelD physics regardless of which
+    # example it was supposed to be. RESOURCE_LOCK above
+    # serializes regen vs build; this dep makes the build actually
+    # rebuild.
+    #
+    # `_facade_main` is shared across all examples, so each call
+    # appends its own per-example dep; the resulting list triggers
+    # over-recompilation of facade `.o`s when any example's
+    # `my_model.hpp` changes, but each recompile picks up its own
+    # per-example file via the per-target -I order, so the result
+    # is still correct.
+    set(_per_example_my_model "${_codegen_dir}/my_model.hpp")
+    set_property(SOURCE "${EXASIM_DIR}/apps/library_example/${name}_codegen/main.cpp"
+                 APPEND PROPERTY OBJECT_DEPENDS "${_per_example_my_model}")
+    set_property(SOURCE "${EXASIM_DIR}/apps/library_example/main_facade.cpp"
+                 APPEND PROPERTY OBJECT_DEPENDS "${_per_example_my_model}")
+
     # CPU variant (single-rank, no GPU).
     if(EXASIM_NOMPI AND NOT (EXASIM_CUDA OR EXASIM_HIP))
       add_executable(${name}_codegen "${_main}")
@@ -1017,6 +1042,28 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
     set(_validate_extra_args "--variant" "mpi_gpu" "--np" "2")
   endif()
 
+  # ----- RESOURCE_LOCK: backend_model_files ----------------------------
+  #
+  # text2code's POST_BUILD and regenerate.sh both rewrite shared files
+  # under backend/Model/ — chiefly Symbolic{Functions,ScalarsVectors}
+  # .{cpp,hpp}, libpdemodel.cpp, and my_model.hpp. backend/Model/ is on
+  # the include path of every codegen/facade target's libpdemodel.cpp
+  # compile (via the per-target -I lookup that falls back to
+  # backend/Model when the per-example dir is missing a header).
+  #
+  # Without serialization, parallel ctest gates produce stale .o files:
+  # fixture _regen_X writes Symbolic*.cpp (X physics) while another
+  # target's libpdemodel.cpp.o is mid-compile, baking torn content into
+  # the binary. The HOT.7.14 per-target dataout dirs fixed dataout
+  # contention but didn't cover the source-file race; this lock does.
+  #
+  # Tests that hold the lock: _build_text2code, every _regen_*, every
+  # _build_*_codegen / _build_*_facade, and tutorial:run-all:* (it
+  # invokes text2code + cmake --build itself). The validation gates
+  # (codegen:X:V / facade:X:V) only execute pre-built binaries and
+  # write per-example dataout — they don't need the lock.
+  set(_backend_lock "backend_model_files")
+
   # Setup fixture: build text2code. text2code lives in a separate
   # cmake project (text2code/text2code/) but its binary lands at
   # ${EXASIM_DIR}/build/text2code regardless of where its own build
@@ -1028,19 +1075,21 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
                                     --parallel)
   set_tests_properties(_build_text2code PROPERTIES
       FIXTURES_SETUP text2code
+      RESOURCE_LOCK  ${_backend_lock}
       TIMEOUT        300)
 
   foreach (_ex IN LISTS _codegen_examples)
     # Per-example regenerate fixture — runs ONCE per example to produce
     # libpdemodel*.{so,dylib} + my_model.hpp in the example dir, which
-    # the codegen + facade binaries link against. With per-target
-    # output dirs (HOT.7.14), regens for different examples don't
-    # contend, so this fixture is per-example and parallel-safe.
+    # the codegen + facade binaries link against. The per-target dirs
+    # cover dataout, but text2code still writes shared backend/Model/
+    # source files, so the lock above serializes regens against builds.
     add_test(NAME _regen_${_ex}
              COMMAND bash "${EXASIM_DIR}/apps/library_example/regenerate.sh" "${_ex}")
     set_tests_properties(_regen_${_ex} PROPERTIES
         FIXTURES_SETUP    regen_${_ex}
         FIXTURES_REQUIRED text2code
+        RESOURCE_LOCK     ${_backend_lock}
         TIMEOUT           300)
 
     foreach (_stem codegen facade)
@@ -1056,6 +1105,7 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
       set_tests_properties(_build_${_target} PROPERTIES
           FIXTURES_SETUP    ${_fixture}
           FIXTURES_REQUIRED regen_${_ex}
+          RESOURCE_LOCK     ${_backend_lock}
           TIMEOUT           600)
 
       # Gate: regenerate already ran, binary already linked, just
@@ -1093,8 +1143,12 @@ if(EXASIM_BUILD_LIBRARY_EXAMPLES)
   add_test(NAME "tutorial:run-all:${_variant}"
            COMMAND bash "${EXASIM_DIR}/tutorial/run-all.sh" ${_tut_args}
            WORKING_DIRECTORY "${EXASIM_DIR}")
+  # tutorial/run-all.sh invokes text2code (writing shared backend/Model
+  # files) and `cmake --build` on per-section targets, so it needs the
+  # same lock as _regen_* / _build_*_*.
   set_tests_properties("tutorial:run-all:${_variant}" PROPERTIES
       FIXTURES_REQUIRED "regen_poisson2d;build_poisson2d_codegen${_target_suffix};build_poisson2d_facade${_target_suffix}"
+      RESOURCE_LOCK     ${_backend_lock}
       TIMEOUT           600)
 endif()
 

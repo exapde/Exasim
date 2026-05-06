@@ -82,4 +82,17 @@ if [ -z "$TEXT2CODE" ]; then
 fi
 "$TEXT2CODE" ./pdeapp.txt --out-dir "$CG_DIR" >/dev/null
 
+# Force the codegen / facade targets that link backend/Model/libpdemodel.cpp
+# to rebuild on the next `cmake --build`: that TU `#include`s
+# per-example Kokkos*.cpp / Hdg*.cpp / cpuInit*.cpp via the -I path
+# order (per-example first, backend/Model fallback). The per-example
+# files we just wrote aren't in the compiler-emitted .d (those record
+# the fallback that existed at initial compile time), so without this
+# touch make sees the .o as up-to-date and skips recompilation. The
+# ctest RESOURCE_LOCK on backend_model_files serializes regens vs
+# builds across all 12 examples, so `touch`-ing the shared TU is safe
+# — each subsequent `cmake --build --target X_*` recompiles X's
+# own libpdemodel.cpp.o against X's per-example dir.
+touch "$ROOT/backend/Model/libpdemodel.cpp"
+
 echo "[ OK ] regenerated ${NAME}_codegen (grid.bin, pdemodel.txt, datain/, my_model.hpp, libpdemodel*)"
