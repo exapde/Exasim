@@ -15,24 +15,33 @@ def cmakecompile(pde):
 
     if pde['mpiprocs'] == 1:
         if pde['platform'] == "gpu":
-            comstr = ["cmake", "-D", "EXASIM_NOMPI=ON", "-D", "EXASIM_MPI=OFF", "-D", "EXASIM_CUDA=ON", "../install"]
+            comstr = ["cmake", "-D", "EXASIM_NOMPI=ON", "-D", "EXASIM_MPI=OFF", "-D", "EXASIM_CUDA=ON", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
+            target = "gpuEXASIM"
         elif pde['platform'] == "hip":
-            comstr = ["cmake", "-D", "CMAKE_CXX_COMPILER=hipcc", "-D", "EXASIM_NOMPI=ON", "-D", "EXASIM_HIP=ON", "../install"]
+            comstr = ["cmake", "-D", "CMAKE_CXX_COMPILER=hipcc", "-D", "EXASIM_NOMPI=ON", "-D", "EXASIM_HIP=ON", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
+            target = "gpuEXASIM"
         else:
-            comstr = ["cmake", "-D", "EXASIM_NOMPI=ON", "-D", "EXASIM_MPI=OFF", "-D", "EXASIM_CUDA=OFF", "../install"]
+            comstr = ["cmake", "-D", "EXASIM_NOMPI=ON", "-D", "EXASIM_MPI=OFF", "-D", "EXASIM_CUDA=OFF", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
+            target = "cpuEXASIM"
     else:
         if pde['platform'] == "gpu":
-            comstr = ["cmake", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_CUDA=ON", "../install"]
+            comstr = ["cmake", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_CUDA=ON", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
+            target = "gpumpiEXASIM"
         elif pde['platform'] == "hip":
-            comstr = ["cmake", "-D", "CMAKE_CXX_COMPILER=hipcc", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_HIP=ON", "../install"]
+            comstr = ["cmake", "-D", "CMAKE_CXX_COMPILER=hipcc", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_HIP=ON", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
+            target = "gpumpiEXASIM"
         else:
-            comstr = ["cmake", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_CUDA=OFF", "../install"]
+            comstr = ["cmake", "-D", "EXASIM_NOMPI=OFF", "-D", "EXASIM_MPI=ON", "-D", "EXASIM_CUDA=OFF", "-D", "EXASIM_BUILD_LIBRARY_EXAMPLES=OFF", "../install"]
+            target = "cpumpiEXASIM"
 
-    subprocess.run(comstr)
-    subprocess.run(["cmake", "--build", "."])
+    # check=True so configure / build failures surface here, not as
+    # confusing downstream errors when the runner can't find the
+    # binary or fetchsolution sees missing dataout files.
+    subprocess.run(comstr, check=True)
+    subprocess.run(["cmake", "--build", ".", "--target", target], check=True)
 
     os.chdir(cdir)
-    
+
     return comstr
 
     # print("Run C++ Exasim code ...")

@@ -6,7 +6,7 @@
 #include <numeric>
 #include <filesystem>
 
-// Use C++ header for C string utilities
+// Use C++ header for C std::string utilities
 #include <cstdint>
 #include <cmath>
 #include <cstdlib>
@@ -45,11 +45,11 @@ using namespace std;
 #include "../Common/kokkosimpl.h"    // interface to kokkos functions
 #include "../Common/pblas.h"         // wrappers for blas libaries and MPI     
 
-#include "../Discretization/postdiscretization.cpp" // discretization class
-#include "../Preconditioning/postpreconditioner.cpp" // preconditioner class
-#include "../Solver/postsolver.cpp"                 // solver class
-#include "../Visualization/visualization.cpp"  //  visualization class
-#include "../Solution/postsolution.cpp"             // solution class
+#include "../Discretization/postdiscretization.hpp" // discretization class
+#include "../Preconditioning/postpreconditioner.hpp" // preconditioner class
+#include "../Solver/postsolver.hpp"                 // solver class
+#include "../Visualization/visualization.hpp"  //  visualization class
+#include "../Solution/postsolution.hpp"             // solution class
 
 int main(int argc, char** argv) 
 {   
@@ -80,9 +80,9 @@ int main(int argc, char** argv)
   Kokkos::initialize(argc, argv);
   {        
 
-    string filein[10]; 
-    string fileout[10];
-    string exasimpath = "";  
+    std::string filein[10]; 
+    std::string fileout[10];
+    std::string exasimpath = "";  
     int mpiprocs0 = 0;
     int restart = 0;
     int postmode = 0;
@@ -98,9 +98,9 @@ int main(int argc, char** argv)
       return 1;
     }
     
-    string mystr = string(argv[1]);
+    std::string mystr = std::string(argv[1]);
     try {
-        nummodels = stoi(mystr);  // number of pde models
+        nummodels = std::stoi(mystr);  // number of pde models
     } catch (...) {
         if (mpirank==0) std::cerr << "Invalid nummodels: " << mystr << std::endl;
         return 1;
@@ -118,13 +118,13 @@ int main(int argc, char** argv)
     }
     
     for (int i=0; i<nummodels; i++) {
-        filein[i]  = string(argv[2*i+2]); // input files
-        fileout[i]  = string(argv[2*i+3]); // output files        
+        filein[i]  = std::string(argv[2*i+2]); // input files
+        fileout[i]  = std::string(argv[2*i+3]); // output files        
     }
         
     if (argc >= (2*nummodels + 3)) {
-        mystr = string(argv[2*nummodels+2]);
-        try { restart = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+2]);
+        try { restart = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid timestep value: " << mystr << std::endl;
             return 1;
@@ -132,48 +132,48 @@ int main(int argc, char** argv)
     }
 
     if (argc >= (2*nummodels + 4)) {
-        mystr = string(argv[2*nummodels+3]);
-        try { postmode = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+3]);
+        try { postmode = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid postmode value: " << mystr << std::endl;
             return 1;
         }
     }    
     if (argc >= (2*nummodels + 5)) {
-        mystr = string(argv[2*nummodels+4]);
-        try { nsca = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+4]);
+        try { nsca = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid nsca value: " << mystr << std::endl;
             return 1;
         }
     }
     if (argc >= (2*nummodels + 6)) {
-        mystr = string(argv[2*nummodels+5]);
-        try { nvec = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+5]);
+        try { nvec = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid nvec value: " << mystr << std::endl;
             return 1;
         }
     }
     if (argc >= (2*nummodels + 7)) {
-        mystr = string(argv[2*nummodels+6]);
-        try { nten = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+6]);
+        try { nten = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid nten value: " << mystr << std::endl;
             return 1;
         }
     }
     if (argc >= (2*nummodels + 8)) {
-        mystr = string(argv[2*nummodels+7]);
-        try { nsurf = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+7]);
+        try { nsurf = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid nsurf value: " << mystr << std::endl;
             return 1;
         }
     }
     if (argc >= (2*nummodels + 9)) {
-        mystr = string(argv[2*nummodels+8]);
-        try { nvqoi = stoi(mystr); }
+        mystr = std::string(argv[2*nummodels+8]);
+        try { nvqoi = std::stoi(mystr); }
         catch (...) {
             if (mpirank==0) std::cerr << "Invalid nvqoi value: " << mystr << std::endl;
             return 1;
@@ -205,25 +205,25 @@ int main(int argc, char** argv)
     Int gpuid = 0;            
       
     // initialize PDE models
-    CSolution** pdemodel = new CSolution*[nummodels];     
+    CSolution<>** pdemodel = new CSolution<>*[nummodels];
             
     for (int i=0; i<nummodels; i++) {        
         if (mpiprocs0==0) {
-          pdemodel[i] = new CSolution(filein[i], fileout[i], exasimpath, 
+          pdemodel[i] = new CSolution<>(filein[i], fileout[i], exasimpath, 
                         mpiprocs, mpirank, fileoffset, gpuid, backend, 
                         builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);                 
         }
         else if (mpiprocs0 > 0) {
           if (mpirank < mpiprocs0) { 
-            pdemodel[i] = new CSolution(filein[0], fileout[0], exasimpath, 
+            pdemodel[i] = new CSolution<>(filein[0], fileout[0], exasimpath, 
                               mpiprocs, mpirank, fileoffset, gpuid, backend, 
                               builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);       
           }
           else {
             fileoffset = mpiprocs0;
-            cout<<filein[1]<<endl;
-            cout<<fileout[1]<<endl;
-            pdemodel[i] = new CSolution(filein[1], fileout[1], exasimpath, 
+            std::cout<<filein[1]<<std::endl;
+            std::cout<<fileout[1]<<std::endl;
+            pdemodel[i] = new CSolution<>(filein[1], fileout[1], exasimpath, 
                               mpiprocs, mpirank, fileoffset, gpuid, backend, 
                               builtinmodelID, nsca, nvec, nten, nsurf, nvqoi);       
           }
@@ -249,7 +249,7 @@ int main(int argc, char** argv)
             pdemodel[i]->disc.common.currentstep = -1;
             pdemodel[i]->ReadSolutions(backend);   
             pdemodel[i]->SaveQoI(backend);
-            if (mpirank==0) cout<<"save paraview = "<<pdemodel[i]->vis.savemode<<endl;
+            if (mpirank==0) std::cout<<"save paraview = "<<pdemodel[i]->vis.savemode<<std::endl;
             if (pdemodel[i]->vis.savemode > 0) pdemodel[i]->SaveParaview(backend); 
             pdemodel[i]->SaveOutputCG(backend);            
         }

@@ -3,7 +3,7 @@
 
     This file provides functions for writing mesh and solution data to binary files, 
     as well as mesh partitioning utilities (with METIS support). It is designed for 
-    use in high-performance scientific computing applications involving PDE solvers.
+    use in high-performance std::scientific computing applications involving PDE solvers.
 
     Functions:
 
@@ -47,7 +47,7 @@
 #ifndef __WRITEBINARYFILES
 #define __WRITEBINARYFILES
 
-void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const Conn& conn, const vector<int>& elempart, const vector<int>& facepartpts, const std::string& filename) 
+void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const Conn& conn, const std::vector<int>& elempart, const std::vector<int>& facepartpts, const std::string& filename) 
 {
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) error("Error opening file: " + filename);
@@ -103,7 +103,7 @@ void writesol(const PDE& pde, const Mesh& mesh, const Master& master, const Conn
     writeDoubleVector(nsize);
     writeDoubleVector(ndims);
 
-    vector<double> tm;
+    std::vector<double> tm;
     if (!mesh.xdg.empty()) {
         tm.resize(master.npe*mesh.dim*elempart.size());
         select_columns(tm.data(), mesh.xdg.data(), elempart.data(), master.npe*mesh.dim, elempart.size());
@@ -140,7 +140,7 @@ inline void writeDouble(std::ofstream& out, double v) {
     out.write(reinterpret_cast<const char*>(&v), sizeof(double));
 }
 
-void writeVectorAsDoubles(std::ofstream& out, const vector<int>& a) {
+void writeVectorAsDoubles(std::ofstream& out, const std::vector<int>& a) {
     for (size_t i = 0; i < a.size(); ++i) {
         double v = static_cast<double>(a[i]);
         out.write(reinterpret_cast<const char*>(&v), sizeof(double));
@@ -221,8 +221,8 @@ void writemesh(const PDE& pde,
     if (pde.mpiprocs>1) {      
       int n1 = dmd.elemsend.size();
       int n2 = dmd.elemrecv.size();
-      vector<int> elemsend(n1); 
-      vector<int> elemrecv(n2);
+      std::vector<int> elemsend(n1); 
+      std::vector<int> elemrecv(n2);
       for (int i=0; i<n1; i++) elemsend[i] = dmd.elemsend[i][1];
       for (int i=0; i<n2; i++) elemrecv[i] = dmd.elemrecv[i][1];
       writeVectorAsDoubles(out, dmd.nbsd);
@@ -253,7 +253,7 @@ void writemesh(const PDE& pde,
         writeVectorAsDoubles(out, mesh.cartGridPart);
     }
 
-    vector<int> ti(nve*ne); 
+    std::vector<int> ti(nve*ne); 
     select_columns(ti.data(), mesh.t.data(), dmd.elempart.data(), nve, ne); 
     writeVectorAsDoubles(out, ti);
     writeVectorAsDoubles(out, mesh.boundaryConditions);
@@ -330,7 +330,7 @@ void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSp
         
             if ((pde.partitionfile == "") || (mesh.elem2cpu.size() == 0)) {
 #ifdef HAVE_METIS          
-                vector<int> node2cpu;
+                std::vector<int> node2cpu;
                 partitionMesh(mesh.elem2cpu, node2cpu, mesh.t, mesh.ne, mesh.np, mesh.nve, mesh.nvf, pde.mpiprocs);
                 node2cpu.resize(0);
                 for (int i=0; i<mesh.ne; i++) mesh.elem2cpu[i] += 1;        
@@ -348,8 +348,8 @@ void writeBinaryFiles(PDE& pde, Mesh& mesh, const Master& master, const ParsedSp
         //         writearray2file(pde.datapath + "/elem2cpu.bin", mesh.elem2cpu.data(), mesh.elem2cpu.size());
         //       }
             
-            //cout<<mesh.nf<<", "<<pde.coupledinterface<<": here 1"<<endl;
-            vector<DMD> dmd(pde.mpiprocs);            
+            //std::cout<<mesh.nf<<", "<<pde.coupledinterface<<": here 1"<<std::endl;
+            std::vector<DMD> dmd(pde.mpiprocs);            
             if (pde.hybrid==1)         
                 build_dmdhdg(dmd, mesh.t2t.data(), mesh.elem2cpu.data(), mesh.inte.data(), mesh.nfe, mesh.ne, pde);
             else build_dmdldg(dmd, mesh.t2t.data(), mesh.elem2cpu.data(), mesh.nfe, mesh.ne, pde);                

@@ -60,20 +60,18 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
 
     exasim = true;
 
-    outputfunctions.assign(10, false);
+    outputfunctions.assign(7, false);
     outputfunctions[0] = true;
     outputfunctions[1] = true;
     outputfunctions[2] = true;
     outputfunctions[3] = true;
     outputfunctions[4] = true;
+    outputfunctions[5] = true;
     outputfunctions[6] = true;
-    outputfunctions[7] = true;
-    outputfunctions[8] = true;
-    outputfunctions[9] = true;
 
     batch = {"x", "uq", "v", "w", "uhat", "n"};
 
-    funcnames = {"Flux", "Source", "Tdfunc", "Fbou", "Ubou", "CustomFlux", "FbouHdg", "Initu", "VisScalars", "VisVectors"};
+    funcnames = {"Flux", "Source", "Tdfunc", "Fbou", "Ubou", "FbouHdg", "Initu"};
 
     funcargs = {
         {"x", "uq", "v", "w", "eta", "mu", "t"},
@@ -81,11 +79,8 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {"x", "uq", "v", "w", "eta", "mu", "t"},
         {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
         {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
-        {"x", "uhat", "uq", "v", "w", "eta", "mu", "t"},
         {"x", "uq", "v", "w", "uhat", "n", "tau", "eta", "mu", "t"},
-        {"x", "eta", "mu"},
-        {"x", "uq", "v", "w", "eta", "mu", "t"},
-        {"x", "uq", "v", "w", "eta", "mu", "t"}
+        {"x", "eta", "mu"}
     };
 
     funcargssizes = {
@@ -94,11 +89,8 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {"szx", "szuq", "szv", "szw", "szeta", "szmu", "szt"},
         {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
         {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
-        {"szx", "szuhat", "szuq", "szv", "szw", "szeta", "szmu", "szt"},
         {"szx", "szuq", "szv", "szw", "szuhat", "szn", "sztau", "szeta", "szmu", "szt"},
-        {"szx", "szeta", "szmu"},
-        {"szx", "szuq", "szv", "szw", "szeta", "szmu", "szt"},
-        {"szx", "szuq", "szv", "szw", "szeta", "szmu", "szt"}
+        {"szx", "szeta", "szmu"}
     };
 
     funcdecls = {
@@ -107,11 +99,8 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
        "void Tdfunc(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
        "void Fbou(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
        "void Ubou(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "void CustomFlux(dstype* f, const dstype* x, const dstype* uhat, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuhat, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
        "void FbouHdg(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "void Initu(dstype* f, const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)", 
-       "void VisScalars(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "void VisVectors(dstype* f, const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)"
+       "void Initu(dstype* f, const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)"
     };
 
     funcjacdecls = {
@@ -120,11 +109,8 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uhat, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuhat, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
        "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* uhat, const dstype* n, const dstype* tau, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szuhat, const int szn, const int sztau, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)", 
-       "const dstype* x, const dstype* uq, const dstype* v, const dstype* w, const dstype* eta, const dstype* mu, const dstype t, const int modelnumber, const int N, const int szx, const int szuq, const int szv, const int szw, const int szeta, const int szmu)"
+       "const dstype* x, const dstype* eta, const dstype* mu, const int modelnumber, const int N, const int szx, const int szeta, const int szmu)"
     };
 
     inputvectors = {
@@ -133,11 +119,8 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}},
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uhat", uhat}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}},
         {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"uhat", uhat}, {"n", n}, {"tau", tau}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}},
-        {{"x", x}, {"uq", uq}, {"v", v}, {"w", w}, {"eta", eta}, {"mu", mu}}
+        {{"x", x}, {"eta", eta}, {"mu", mu}}
     };
 
     inputscalars = {
@@ -147,10 +130,7 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {{"t", t}},
         {{"t", t}},
         {{"t", t}},
-        {{"t", t}},
-        {},
-        {{"t", t}},
-        {{"t", t}}
+        {}
     };
 
     jacobianInputs = {
@@ -159,17 +139,11 @@ SymbolicScalarsVectors::SymbolicScalarsVectors() {
         {uq, w},
         {uq, w, uhat},
         {uq, w, uhat},
-        {uhat, uq, w},
         {uq, w, uhat},
-        {},
-        {uq, w},
-        {uq, w}
+        {}
     };
 
     hessianInputs = {
-        {},
-        {},
-        {},
         {},
         {},
         {},
@@ -202,19 +176,10 @@ std::vector<Expression> SymbolicScalarsVectors::evaluateSymbolicFunctions(int ca
       f = Ubou(x, uq, v, w, uhat, n, tau, eta, mu, t);
       break;
     case 5:
-      f = CustomFlux(x, uhat, uq, v, w, eta, mu, t);
-      break;
-    case 6:
       f = FbouHdg(x, uq, v, w, uhat, n, tau, eta, mu, t);
       break;
-    case 7:
+    case 6:
       f = Initu(x, eta, mu);
-      break;
-    case 8:
-      f = VisScalars(x, uq, v, w, eta, mu, t);
-      break;
-    case 9:
-      f = VisVectors(x, uq, v, w, eta, mu, t);
       break;
     default:
       throw std::runtime_error("Invalid function call in evaluateSymbolicFunctions");
@@ -723,3 +688,291 @@ void SymbolicScalarsVectors::appendFext(const std::string& filename, const std::
     cppfile << tmp.str();
     cppfile.close();
 }
+void SymbolicScalarsVectors::emit_pointwise_value(
+    std::ostream& os, const std::string& method_name,
+    const std::string& cpp_signature,
+    const std::vector<Expression>& f, int functionid)
+{
+    os << "    KOKKOS_INLINE_FUNCTION static\n";
+    os << "    void " << method_name << "(" << cpp_signature << ") {\n";
+
+    if (f.size() == 0) {
+        os << "        // empty body — defaulted via ModelDefaults\n";
+        os << "    }\n\n";
+        return;
+    }
+
+    vec_pair replacements;
+    vec_basic reduced_exprs;
+    func2cse(replacements, reduced_exprs, f);
+
+    std::unordered_set<RCP<const Basic>, SymEngine::RCPBasicHash, SymEngine::RCPBasicKeyEq> used;
+    for (const auto& expr : f) {
+        auto symbols = free_symbols(*expr.get_basic());
+        used.insert(symbols.begin(), symbols.end());
+    }
+    auto depends_on = [&](const Expression& sym) {
+        return used.count(sym.get_basic()) > 0;
+    };
+
+    auto rename_input = [](const std::string& name) -> std::string {
+        if (name == "eta")  return "uinf";
+        if (name == "uhat") return "uh";
+        return name;
+    };
+
+    std::vector<std::pair<std::string, std::vector<Expression>>> inputs = inputvectors[functionid];
+    C99CodePrinter cpp;
+
+    auto kokkosify = [](std::string s) -> std::string {
+        static const std::regex math_re(
+            R"((\b(?:pow|sqrt|exp|log|sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|fabs|atan2)\b)(?=\s*\())");
+        return std::regex_replace(s, math_re, "Kokkos::$1");
+    };
+
+    for (const auto& [name, vec] : inputs) {
+        for (size_t j = 0; j < vec.size(); ++j) {
+            if (depends_on(vec[j])) {
+                os << "        const double " << name << j
+                   << " = " << rename_input(name) << "[" << j << "];\n";
+            }
+        }
+    }
+
+    if (!replacements.empty()) os << "\n";
+    for (size_t n = 0; n < replacements.size(); ++n) {
+        std::string var_name = cpp.apply(*replacements[n].first);
+        std::string rhs      = kokkosify(cpp.apply(*replacements[n].second));
+        os << "        const double " << var_name << " = " << rhs << ";\n";
+    }
+    os << "\n";
+
+    for (size_t n = 0; n < f.size(); ++n) {
+        os << "        f[" << n << "] = " << kokkosify(cpp.apply(*reduced_exprs[n])) << ";\n";
+    }
+
+    os << "    }\n\n";
+}
+
+void SymbolicScalarsVectors::emit_pointwise_value_per_ib(
+    std::ostream& os, const std::string& method_name,
+    const std::string& cpp_signature,
+    const std::vector<Expression>& f, int functionid, int szuhat)
+{
+    os << "    KOKKOS_INLINE_FUNCTION static\n";
+    os << "    void " << method_name << "(" << cpp_signature << ") {\n";
+
+    int nbc = (szuhat > 0) ? (int)f.size() / szuhat : 0;
+    if (nbc == 0) {
+        os << "    }\n\n";
+        return;
+    }
+
+    auto rename_input = [](const std::string& name) -> std::string {
+        if (name == "eta")  return "uinf";
+        if (name == "uhat") return "uh";
+        return name;
+    };
+
+    C99CodePrinter cpp;
+
+    auto kokkosify = [](std::string s) -> std::string {
+        static const std::regex math_re(
+            R"((\b(?:pow|sqrt|exp|log|sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|fabs|atan2)\b)(?=\s*\())");
+        return std::regex_replace(s, math_re, "Kokkos::$1");
+    };
+
+    for (int n = 0; n < nbc; ++n) {
+        std::vector<Expression> g(szuhat);
+        for (int m = 0; m < szuhat; ++m) g[m] = f[m + n * szuhat];
+
+        os << "        " << ((n == 0) ? "if" : "else if")
+           << " (ib == " << (n + 1) << ") {\n";
+
+        vec_pair replacements;
+        vec_basic reduced_exprs;
+        func2cse(replacements, reduced_exprs, g);
+
+        std::unordered_set<RCP<const Basic>, SymEngine::RCPBasicHash, SymEngine::RCPBasicKeyEq> used;
+        for (const auto& expr : g) {
+            auto symbols = free_symbols(*expr.get_basic());
+            used.insert(symbols.begin(), symbols.end());
+        }
+        auto depends_on = [&](const Expression& sym) {
+            return used.count(sym.get_basic()) > 0;
+        };
+
+        std::vector<std::pair<std::string, std::vector<Expression>>> inputs = inputvectors[functionid];
+        for (const auto& [name, vec] : inputs) {
+            for (size_t j = 0; j < vec.size(); ++j) {
+                if (depends_on(vec[j])) {
+                    os << "            const double " << name << j
+                       << " = " << rename_input(name) << "[" << j << "];\n";
+                }
+            }
+        }
+        if (!replacements.empty()) os << "\n";
+        for (size_t k = 0; k < replacements.size(); ++k) {
+            std::string var_name = cpp.apply(*replacements[k].first);
+            std::string rhs      = kokkosify(cpp.apply(*replacements[k].second));
+            os << "            const double " << var_name << " = " << rhs << ";\n";
+        }
+        os << "\n";
+        for (size_t k = 0; k < g.size(); ++k) {
+            os << "            f[" << k << "] = " << kokkosify(cpp.apply(*reduced_exprs[k])) << ";\n";
+        }
+        os << "        }\n";
+    }
+
+    os << "    }\n\n";
+}
+
+void SymbolicScalarsVectors::generateModelHeader(const std::string& filename) {
+    std::ofstream hfile(filename, std::ios::out | std::ios::trunc);
+
+    hfile << "// Auto-generated by text2code. Do not edit by hand.\n";
+    hfile << "// Regenerate with `text2code <pdeapp.txt>`.\n";
+    hfile << "//\n";
+    hfile << "// This header is consumed by `<exasim/model.hpp>`'s templated FEM\n";
+    hfile << "// internals. The struct below satisfies the Model contract; the\n";
+    hfile << "// inherited `ModelDefaults<GeneratedModel>` supplies zero-fill\n";
+    hfile << "// defaults for any optional method this PDE doesn't define.\n";
+    hfile << "#pragma once\n\n";
+    hfile << "#include <Kokkos_Core.hpp>\n";
+    hfile << "#include <exasim/model.hpp>\n\n";
+    hfile << "struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {\n";
+    hfile << "    static constexpr int nd     = 2;\n";
+    hfile << "    static constexpr int ncu    = 4;\n";
+    hfile << "    static constexpr int ncw    = 0;\n";
+    hfile << "    static constexpr int nco    = 0;\n";
+    hfile << "    static constexpr int nparam = 8;\n";
+    hfile << "    static constexpr auto disc  = exasim::Discretization::HDG;\n";
+    hfile << "    static constexpr int Nq = ncu * (1 + nd);\n\n";
+    // ----- Volume value methods -----
+    static const std::vector<std::tuple<std::string, std::string, std::string>>
+        volume_methods = {
+        {"Flux",       "flux",        "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"Source",     "source",      "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"Tdfunc",     "tdfunc",      "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"VisScalars", "vis_scalars", "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"VisVectors", "vis_vectors", "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+        {"QoIvolume",  "qoi_volume",  "double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t"},
+    };
+    for (const auto& [funcname, method_name, sig] : volume_methods) {
+        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);
+        if (it == funcnames.end()) continue;
+        int idx = it - funcnames.begin();
+        if (!outputfunctions[idx]) continue;
+        std::vector<Expression> f = evaluateSymbolicFunctions(idx);
+        emit_pointwise_value(hfile, method_name, sig, f, idx);
+    }
+
+    // ----- Initial condition: initu(double ui[], const double x[], const double uinf[], const double mu[]) -----
+    {
+        auto it = std::find(funcnames.begin(), funcnames.end(), std::string("Initu"));
+        if (it != funcnames.end()) {
+            int idx = it - funcnames.begin();
+            if (outputfunctions[idx]) {
+                std::vector<Expression> f = evaluateSymbolicFunctions(idx);
+                emit_pointwise_value(hfile, "initu",
+                    "double f[], const double x[], const double uinf[], const double mu[]",
+                    f, idx);
+            }
+        }
+    }
+
+    // ----- Boundary methods (per-ib dispatch) -----
+    static const std::vector<std::tuple<std::string, std::string>>
+        boundary_methods = {
+        {"Fbou",        "fbou"},
+        {"Ubou",        "ubou"},
+        {"FbouHdg",     "fbou_hdg"},
+        {"QoIboundary", "qoi_boundary"},
+    };
+    const std::string boundary_sig =
+        "double f[], int ib, const double x[], const double uq[], const double v[],"
+        " const double w[], const double uh[], const double n[], const double tau[],"
+        " const double mu[], const double uinf[], double t";
+    for (const auto& [funcname, method_name] : boundary_methods) {
+        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);
+        if (it == funcnames.end()) continue;
+        int idx = it - funcnames.begin();
+        if (!outputfunctions[idx]) continue;
+        std::vector<Expression> f = evaluateSymbolicFunctions(idx);
+        emit_pointwise_value_per_ib(hfile, method_name, boundary_sig, f, idx, szuhat);
+    }
+
+    // ----- HDG Jacobians (column-major: j outer, i inner) -----
+    auto diff_to_exprs = [&](const std::vector<Expression>& f,
+                             const std::vector<Expression>& input)
+        -> std::vector<Expression> {
+        std::vector<Expression> result;
+        result.reserve(f.size() * input.size());
+        for (size_t j = 0; j < input.size(); ++j) {
+            for (size_t i = 0; i < f.size(); ++i) {
+                result.emplace_back(f[i].diff(input[j]).get_basic());
+            }
+        }
+        return result;
+    };
+
+    static const std::vector<std::tuple<std::string, std::string, std::vector<std::string>>>
+        volume_jac_methods = {
+        {"Flux",   "flux",   {"flux_jac_uq",   "flux_jac_w"}},
+        {"Source", "source", {"source_jac_uq", "source_jac_w"}},
+    };
+    const std::string volume_sig =
+        "double f[], const double x[], const double uq[], const double v[], const double w[],"
+        " const double mu[], const double uinf[], double t";
+    for (const auto& [funcname, value_name, jac_names] : volume_jac_methods) {
+        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);
+        if (it == funcnames.end()) continue;
+        int idx = it - funcnames.begin();
+        if (!outputfunctions[idx]) continue;
+        std::vector<Expression> f = evaluateSymbolicFunctions(idx);
+        // Skip Jacobians whose input vector is empty (e.g., w when ncw=0).
+        const auto& jac_inputs = jacobianInputs[idx];
+        for (size_t k = 0; k < jac_inputs.size() && k < jac_names.size(); ++k) {
+            if (jac_inputs[k].empty()) continue;
+            std::vector<Expression> jac = diff_to_exprs(f, jac_inputs[k]);
+            emit_pointwise_value(hfile, jac_names[k], volume_sig, jac, idx);
+        }
+    }
+
+    // FbouHdg Jacobians: per-ib dispatch, three Jacs (uq, w, uh).
+    {
+        auto it = std::find(funcnames.begin(), funcnames.end(), std::string("FbouHdg"));
+        if (it != funcnames.end()) {
+            int idx = it - funcnames.begin();
+            if (outputfunctions[idx]) {
+                std::vector<Expression> f = evaluateSymbolicFunctions(idx);
+                int nbc = (szuhat > 0) ? (int)f.size() / szuhat : 0;
+                const auto& jac_inputs = jacobianInputs[idx];
+                static const std::vector<std::string> fbou_jac_names = {
+                    "fbou_hdg_jac_uq", "fbou_hdg_jac_w", "fbou_hdg_jac_uh"};
+                for (size_t k = 0; k < jac_inputs.size() && k < fbou_jac_names.size(); ++k) {
+                    if (jac_inputs[k].empty()) continue;
+                    // Build Jacobian per ib, concat into one vector with the
+                    // same szuhat*njac slicing convention so the per-ib emitter
+                    // can split it back out. Here we widen szuhat to the Jacobian
+                    // block size for that input.
+                    int jblock = szuhat * (int)jac_inputs[k].size();
+                    std::vector<Expression> jac_all;
+                    jac_all.reserve(jblock * nbc);
+                    for (int n = 0; n < nbc; ++n) {
+                        std::vector<Expression> g(szuhat);
+                        for (int m = 0; m < szuhat; ++m) g[m] = f[m + n * szuhat];
+                        std::vector<Expression> j_n = diff_to_exprs(g, jac_inputs[k]);
+                        for (auto& e : j_n) jac_all.push_back(e);
+                    }
+                    emit_pointwise_value_per_ib(hfile, fbou_jac_names[k],
+                        boundary_sig, jac_all, idx, jblock);
+                }
+            }
+        }
+    }
+
+    hfile << "};\n";
+    hfile.close();
+}
+

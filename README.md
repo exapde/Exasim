@@ -1,5 +1,5 @@
 <p align="center">
-<img src="doc/exasimlogosmall.png">
+<img src="docs/exasimlogosmall.png">
 </p>
 
 # Generating Discontinuous Galerkin Codes For Extreme Scalable Simulations
@@ -18,6 +18,49 @@ Exasim is an open-source software for generating high-order discontinuous Galerk
 After downloading the source code, please make sure that the name of the folder is `Exasim`. If it has a different name, please rename it to `Exasim`. Please make sure that the directory containing the folder Exasim does not have any white space, because Kokkos libraries can not be compiled properly in such case. See [the documentation](https://github.com/exapde/Exasim/blob/master/doc/Exasim.pdf) for more details. 
 
 To deploy, compile, and run Exasim on **HPC systems**, please follow the intructions in [the hpc manual](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
+
+## Header-only template-library authoring path (new)
+
+In addition to the existing `pdemodel.txt` + `text2code` codegen
+workflow, Exasim now supports a **header-only template-library** path
+where you write the PDE math directly as a C++ struct with
+`KOKKOS_INLINE_FUNCTION static` pointwise methods, and instantiate
+the FEM internals on it as `exasim::CSolution<MyModel>`. No DSL, no
+codegen, no autodiff — plain pointwise math + hand-written Jacobians.
+
+Minimum consumer (after `cmake --install build --prefix /opt/exasim`):
+
+```cmake
+find_package(Exasim REQUIRED)
+add_executable(my_solver main.cpp)
+target_link_libraries(my_solver PRIVATE
+    Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
+```
+
+```cpp
+#include <exasim/run.hpp>
+#include "my_model.hpp"
+
+int main(int argc, char** argv) {
+    return exasim::run<MyModel>(argc, argv);
+}
+```
+
+Documentation lives under [`docs/`](docs/) — start at
+[`docs/README.md`](docs/README.md) for the table of contents.
+
+Quick pointers:
+
+- [`tutorial/`](tutorial/) — solve Poisson 2D through every supported path; the worked walkthrough for picking among the PDE × Solver × Mesh combinations
+- [`docs/00-introduction.md`](docs/00-introduction.md) — what Exasim is and how the pieces fit together
+- [`docs/01-installation.md`](docs/01-installation.md) — per-platform install (macOS, Linux CPU, Linux + NVIDIA, Linux + AMD)
+- [`docs/02-model-contract.md`](docs/02-model-contract.md) — full reference for the `Model` C++ struct that the templated FEM internals consume
+- [`docs/03-internals/`](docs/03-internals/) — test harness, baseline format, architecture
+
+The legacy `pdemodel.txt` + `text2code` + `cput2cEXASIM` workflow stays
+fully supported. text2code now also emits a `my_model.hpp` for the
+templated path; both authoring paths produce the same struct shape and
+share one runtime body via `exasim::run<M>(argc, argv)`.
 
 ## Installation 
 

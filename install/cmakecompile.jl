@@ -40,24 +40,33 @@ end
 
 if pde.mpiprocs==1 
   if pde.platform == "gpu"
-    comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON ../install";  
+    comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=ON -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF ../install";
+    target = "gpuEXASIM"
   elseif pde.platform == "hip"
-    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON ../install";  
+    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=ON -D EXASIM_HIP=ON -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF ../install";
+    target = "gpuEXASIM"
   else
-    comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF ../install";
+    comstr = "cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=OFF -D EXASIM_CUDA=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF ../install";
+    target = "cpuEXASIM"
   end
 else
   if pde.platform == "gpu"
-    comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON ../install";  
+    comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=ON -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF ../install";
+    target = "gpumpiEXASIM"
   elseif pde.platform == "hip"
-    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON ../install";  
+    comstr = "cmake -D CMAKE_CXX_COMPILER=hipcc -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_HIP=ON -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF ../install";
+    target = "gpumpiEXASIM"
   else
-    comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF ../install";
+    comstr = "cmake -D EXASIM_NOMPI=OFF -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_BUILD_LIBRARY_EXAMPLES=OFF ../install";
+    target = "cpumpiEXASIM"
   end  
 end
 
+# Julia's `run` on a Cmd throws ProcessFailedException on nonzero
+# exit, so configure / build failures already propagate up — no
+# explicit status check needed (PR #73 review NB3).
 run(stringcommand(comstr));
-run(stringcommand("cmake --build ."));
+run(stringcommand("cmake --build . --target " * target));
 
 cd(cdir);
 return comstr;
@@ -111,4 +120,3 @@ end
 # cd(cdir);
 
 # return str;
-

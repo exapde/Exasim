@@ -1,0 +1,303 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{verbatim}
+\geometry{margin=1in}
+
+\title{Implementation Strategy for \texttt{library-port}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. Summary}
+
+Yes. A better C++ implementation strategy than the current \texttt{library-port} is:
+
+\begin{itemize}[leftmargin=*]
+\item template only the model-dependent kernels
+\item keep the solver/runtime classes non-templated
+\item compile the backend into a static core library
+\item generate or instantiate a small model-specific adapter TU
+\item isolate the legacy ABI path into a compatibility layer, not the main architecture
+\end{itemize}
+
+The core problem with current \texttt{library-port} is not the idea of templated models. It is that the template boundary is too wide: \texttt{M} propagates through too much of the backend.
+
+So the better strategy is:
+
+\begin{itemize}[leftmargin=*]
+\item narrow template boundary
+\item compiled core
+\item thin model bridge
+\item explicit instantiation where possible
+\end{itemize}
+
+\section*{2. Assumptions}
+
+\begin{itemize}[leftmargin=*]
+\item You are asking strictly about C++ implementation architecture, not whether the library workflow is useful.
+\item The current \texttt{library-port} strategy is the one where many backend classes are templated on \texttt{M}, including wrappers like \texttt{CDiscretization<M>}, and the external package is exposed through \texttt{Exasim::headers}.
+\item Exasim still needs:
+\begin{itemize}[leftmargin=*]
+\item compile-time access to model hooks inside Kokkos device code
+\item CPU/MPI/GPU support
+\item generated and handwritten models
+\end{itemize}
+\item Inner-loop virtual dispatch is undesirable for performance and for device code.
+\end{itemize}
+
+\section*{3. Design reasoning}
+
+The current \texttt{library-port} implementation strategy does one important thing right:
+
+\begin{itemize}[leftmargin=*]
+\item it makes model-specific pointwise math compile-time visible to Kokkos kernels
+\end{itemize}
+
+That part is sound.
+
+What is weak is how far that decision spreads. Right now, the model type \texttt{M} influences a large portion of the backend object graph:
+
+\begin{itemize}[leftmargin=*]
+\item discretization
+\item solution
+\item solver
+\item preconditioner
+\item point locator
+\item preprocessing-facing wrappers
+\item public include surface
+\end{itemize}
+
+That creates three maintainability problems.
+
+\subsection*{A. Template contagion}
+
+Once \texttt{CDiscretization<M>} and \texttt{CSolution<M>} become the main organizing types, every helper touching them tends to become templated too. This causes:
+
+\begin{itemize}[leftmargin=*]
+\item more headers
+\item more compile dependencies
+\item larger public surface
+\item more difficult refactors
+\item more confusing ownership boundaries
+\end{itemize}
+
+\subsection*{B. Too much backend becomes header code}
+
+The current strategy makes large backend subsystems effectively part of the user's compilation unit. That is not ideal for a large HPC solver. It raises:
+
+\begin{itemize}[leftmargin=*]
+\item ODR risk
+\item build time
+\item compiler sensitivity
+\item packaging complexity
+\item transitive include fragility
+\end{itemize}
+
+\subsection*{C. The migration bridge leaks into the main design}
+
+\texttt{AbiAdapter} is a useful compatibility device, but it should be quarantined. In the current strategy, the legacy ABI story is still visible in the main dispatch architecture. That is acceptable during migration, but it is not the cleanest long-term implementation.
+
+\section*{4. Proposed implementation}
+
+A better C++ strategy would be this.
+
+\subsection*{A. Make the solver/runtime classes non-templated}
+
+Keep these non-templated or as close to non-templated as possible:
+
+\begin{itemize}[leftmargin=*]
+\item solver/session orchestration
+\item mesh/preprocessing structures
+\item point locator
+\item time stepping
+\item I/O and postprocessing plumbing
+\item runtime ownership and memory management
+\end{itemize}
+
+In Exasim terms, most of:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/}
+\item \texttt{backend/Solution/}
+\item \texttt{backend/Solver/}
+\item \texttt{backend/Preprocessing/}
+\item \texttt{backend/PointLocator/}
+\end{itemize}
+
+should not need to be templated all the way through.
+
+Instead, these components should operate on runtime structs and call into model-dependent kernels through a narrow interface.
+
+\subsection*{B. Template only the pointwise/kernel layer}
+
+Keep templates where they are actually justified:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/model.hpp}
+\item \texttt{include/exasim/kernels/flux.hpp}
+\item \texttt{include/exasim/kernels/source.hpp}
+\item \texttt{include/exasim/kernels/boundary.hpp}
+\item \texttt{include/exasim/kernels/init.hpp}
+\item maybe QoI/output/vis kernels if they stay model-specific
+\end{itemize}
+
+This is the correct place for templates because:
+
+\begin{itemize}[leftmargin=*]
+\item they need \texttt{M::flux}, \texttt{M::source}, etc.
+\item they need compile-time sizes like \texttt{M::nd}, \texttt{M::ncu}, \texttt{M::ncw}
+\item they run in Kokkos device code
+\end{itemize}
+
+\subsection*{C. Use a model adapter, not a templated solver hierarchy}
+
+Instead of templating the whole backend on \texttt{M}, create a small model-specific adapter layer, for example conceptually:
+
+\begin{verbatim}
+struct ModelOps {
+    void (*flux)(...);
+    void (*hdg_flux)(...);
+    void (*source)(...);
+    void (*hdg_source)(...);
+    void (*fbou)(...);
+    void (*fbou_hdg)(...);
+    void (*initu)(...);
+    ...
+};
+\end{verbatim}
+
+For a concrete model \texttt{MyModel}, generate or instantiate one adapter TU:
+
+\begin{verbatim}
+template <class M>
+ModelOps make_model_ops();
+\end{verbatim}
+
+That TU can call templated kernels internally, but the rest of the backend consumes only a runtime \texttt{ModelOps} or \texttt{ModelContext}.
+
+This gives you:
+
+\begin{itemize}[leftmargin=*]
+\item compile-time specialization where needed
+\item non-templated runtime orchestration everywhere else
+\end{itemize}
+
+\subsection*{D. Prefer explicit instantiation over transitive header expansion}
+
+For handwritten or generated models, a better strategy is:
+
+\begin{itemize}[leftmargin=*]
+\item compile \texttt{my\_model.hpp} into one dedicated \texttt{.cpp}
+\item explicitly instantiate the needed wrappers there
+\item link against \texttt{libexasim\_core.a}
+\end{itemize}
+
+For example, conceptually:
+
+\begin{verbatim}
+#include "my_model.hpp"
+#include <exasim/model_adapter.hpp>
+
+template class exasim::ModelAdapter<MyModel>;
+\end{verbatim}
+
+or:
+
+\begin{verbatim}
+extern template class exasim::FluxKernel<MyModel>;
+\end{verbatim}
+
+depending on how fine-grained you want instantiation.
+
+This keeps the user model compile-time visible where needed without turning the whole backend into header-only infrastructure.
+
+\subsection*{E. Use composition, not template inheritance cascades}
+
+Right now the branch tends toward ``everything becomes \texttt{Thing<M>}''.
+
+A better style is:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{CSolver} owns runtime state
+\item \texttt{CDiscretization} owns discretization state
+\item \texttt{ModelContext} supplies model-dependent operations
+\item \texttt{RunSession} manages MPI/Kokkos lifecycle
+\item \texttt{ExasimSolver} composes those pieces
+\end{itemize}
+
+That is easier to reason about than a deep template cascade of large classes.
+
+\subsection*{F. Keep the ABI shim separate}
+
+The legacy ABI path should become one isolated adapter module, not part of the primary mental model.
+
+That means:
+
+\begin{itemize}[leftmargin=*]
+\item keep something like \texttt{AbiAdapter} only for old workflows
+\item do not let it dictate public API structure
+\item avoid \texttt{if constexpr} ABI-vs-template branching in large portions of the backend if you can centralize it earlier
+\end{itemize}
+
+\section*{5. Risks or numerical concerns}
+
+There are two important caveats.
+
+\begin{itemize}[leftmargin=*]
+\item Do not move model-dependent HDG assembly behind virtual calls in the inner loop. That would hurt performance and complicate device execution. The better strategy is not runtime polymorphism inside kernels; it is runtime orchestration plus compile-time kernel specialization.
+\item Do not over-separate the model from the kernels. Functions like \texttt{flux}, \texttt{source}, \texttt{fbou\_hdg}, and their Jacobians need to stay tightly coupled to the kernel code that gathers/scatters SoA data. If you move that boundary too far outward, you recreate the older ABI awkwardness.
+\end{itemize}
+
+So the best strategy is not:
+
+\begin{itemize}[leftmargin=*]
+\item ``object-oriented virtual solver everywhere''
+\end{itemize}
+
+It is:
+
+\begin{itemize}[leftmargin=*]
+\item ``compiled runtime core''
+\item ``templated kernel edge''
+\item ``small model adapter bridge''
+\end{itemize}
+
+\section*{6. Verification plan}
+
+If you wanted to test whether this strategy is actually better, I would prototype it with one case:
+
+\begin{enumerate}[leftmargin=*]
+\item Build \texttt{libexasim\_core.a} from the non-model-specific backend.
+\item Keep only flux/source/boundary/init kernels templated.
+\item Create one model adapter TU for \texttt{poisson2d}.
+\item Link a small handwritten consumer against:
+\begin{itemize}[leftmargin=*]
+\item \texttt{libexasim\_core.a}
+\item the model adapter object
+\end{itemize}
+\item Compare against current \texttt{library-port} on:
+\begin{itemize}[leftmargin=*]
+\item compile time
+\item include graph complexity
+\item install/package simplicity
+\item CPU/MPI/GPU behavior
+\item numerical equivalence
+\end{itemize}
+\end{enumerate}
+
+So the short answer is:
+
+\begin{itemize}[leftmargin=*]
+\item the better strategy is not ``remove templates''
+\item it is not ``keep templating the whole backend''
+\item it is template only the kernels, compile the rest, and bridge them with a small model-specific adapter
+\end{itemize}
+
+\end{document}

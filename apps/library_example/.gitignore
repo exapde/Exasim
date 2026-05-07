@@ -1,0 +1,31 @@
+# Codegen example apps regenerate `grid.bin`, `pdemodel.txt`, `datain/`,
+# `dataout/`, and companion bins (xdg/udg/vdg/wdg/partition) via
+# `bash regenerate.sh`. Don't commit them — some are megabytes (cone's
+# grid.bin alone is ~4 MB).
+*_codegen/grid.bin
+*_codegen/datain/
+*_codegen/dataout/
+*_codegen/dataout_*/
+*_codegen/pdemodel.txt
+*_codegen/xdg.bin
+*_codegen/udg.bin
+*_codegen/vdg.bin
+*_codegen/wdg.bin
+*_codegen/partition.bin
+
+# HOT.7.14 — text2code per-target output + harness intermediate files
+*_codegen/my_model.hpp
+*_codegen/libpdemodel*.so
+*_codegen/libpdemodel*.dylib
+*_codegen/libpdemodel*.dll
+*_codegen/libpdemodel*.cpp
+*_codegen/libpdemodel*.hpp
+*_codegen/Code2Cpp.cpp
+*_codegen/code2cpp
+*_codegen/Symbolic*.hpp
+*_codegen/Symbolic*.cpp
+*_codegen/CudaHip.hpp
+*_codegen/Hdg*.cpp
+*_codegen/Kokkos*.cpp
+*_codegen/cpu*.cpp
+*_codegen/pdeapp_run*.txt

@@ -74,7 +74,7 @@ if (WITH_METIS)
     add_executable(text2code text2code.cpp)
     add_o2(text2code)
 
-    target_compile_definitions(text2code PRIVATE HAVE_METIS)
+    target_compile_definitions(text2code PRIVATE HAVE_METIS USE_CMAKE)
 
     target_include_directories(text2code PRIVATE
       "${METIS_INCLUDE_DIR}"
@@ -103,6 +103,10 @@ if (WITH_METIS)
         COMMENT "Running text2code on ${MODEL_FILE}"
       )
     endif()
+
+    # Ship text2code as an installed binary so external apps can do
+    # `text2code pdeapp.txt` without referencing the Exasim source tree.
+    install(TARGETS text2code RUNTIME DESTINATION bin)
 
     # -------- t2cusecmake (HAVE_METIS + USE_CMAKE) --------
     add_executable(t2cusecmake text2code.cpp)

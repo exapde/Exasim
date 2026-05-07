@@ -1,0 +1,494 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{verbatim}
+\geometry{margin=1in}
+
+\title{Detailed Implementation Plan for a Hybrid Exasim Architecture}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. Summary}
+
+Yes. The maintainable implementation strategy is to \textbf{shrink the template boundary to the model/kernel edge} and move everything else into a compiled core.
+
+A concrete plan for Exasim is:
+
+\begin{itemize}[leftmargin=*]
+\item keep \texttt{MyModel} and the model-dependent Kokkos kernels templated
+\item replace \texttt{CDiscretization<M>}, \texttt{CSolution<M>}, \texttt{CSolver<M>}, \texttt{CPreconditioner<M>} with non-templated core classes
+\item introduce a small host-side \texttt{ModelOps} / \texttt{ModelContext} adapter that launches model-specialized kernels
+\item keep \texttt{ModelContext} as a simple struct, not a heavy class
+\item pass \texttt{ModelContext} into the \texttt{CSolution(...)} and \texttt{CDiscretization(...)} constructors so constructor-time initialization can use model-dependent init operations
+\item compile the backend into \texttt{libexasim\_core.a}
+\item keep \texttt{run<M>} and \texttt{ExasimSolver<M>} as thin templated frontends over the non-templated core
+\item isolate the old ABI path behind one compatibility adapter instead of keeping \texttt{AbiAdapter} in the main architecture
+\end{itemize}
+
+\section*{2. Assumptions}
+
+\begin{itemize}[leftmargin=*]
+\item The current template spread is the one visible in:
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/discretization.h}
+\item \texttt{backend/Solution/solution.h}
+\item \texttt{backend/Solver/solver.h}
+\item \texttt{backend/Preconditioning/preconditioner.h}
+\end{itemize}
+\item The current public package is the header-only \texttt{Exasim::headers} target in \texttt{install/CMakeLists.txt}.
+\item Model-dependent launches already have a natural boundary in:
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/drivers.hpp}
+\item \texttt{include/exasim/kernels/}
+\end{itemize}
+\item \texttt{readsolstruct} in \texttt{backend/Discretization/readbinaryfiles.hpp} computes initial fields through \texttt{cpuInit*Driver} calls, so if \texttt{cpuInit*} is moved into \texttt{ModelOps}, \texttt{ModelContext} must be available during construction.
+\item Host-side dispatch through function pointers is acceptable if it happens at driver-launch granularity, not inside inner device loops.
+\end{itemize}
+
+\section*{3. Design reasoning}
+
+The current \texttt{library-port} over-templates the backend.
+
+The symptom is that \texttt{M} leaks into:
+
+\begin{itemize}[leftmargin=*]
+\item discretization
+\item solution
+\item solver
+\item preconditioner
+\item point locator
+\item output/QoI paths
+\item install/public headers
+\end{itemize}
+
+That causes:
+
+\begin{itemize}[leftmargin=*]
+\item template contagion
+\item backend \texttt{.hpp} growth
+\item \texttt{.cpp} files being included into headers
+\item \texttt{inline}/ODR workarounds like \texttt{backend/Model/KokkosDrivers.cpp}
+\item a very large public transitive include graph
+\end{itemize}
+
+The preferred lifecycle is also important:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{ModelContext} is created at the templated API boundary
+\item \texttt{CSolution(...)} receives \texttt{ModelContext} at construction time
+\item \texttt{CSolution(...)} passes \texttt{ModelContext} into \texttt{CDiscretization(...)} at construction time
+\item constructor-time paths such as \texttt{readsolstruct} can immediately use \texttt{getModelContext()}
+\item \texttt{bindModelContext(...)} is no longer the primary initialization path; at most it is a secondary/rebind mechanism
+\end{itemize}
+
+The better boundary is:
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{templated:} only code that truly needs \texttt{M::flux}, \texttt{M::source}, \texttt{M::fbou\_hdg}, Jacobians, and compile-time sizes
+\item \textbf{non-templated:} orchestration, ownership, file I/O, solver flow, mesh/preprocessing, point location, output plumbing
+\end{itemize}
+
+That means the current \texttt{EXASIM\_DRIVER\_CALL(...)} model should be replaced by a runtime \texttt{ModelOps} object whose function pointers point to \textbf{host-side wrappers} specialized on \texttt{M}. Those wrappers then launch the templated kernels.
+
+\section*{4. Proposed implementation}
+
+\subsection*{Phase 0: Freeze invariants and scope}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{docs/library\_port\_implementation\_strategy.tex}
+\item add a new architecture note under \texttt{docs/} or \texttt{docs/03-internals/}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Define the non-negotiable numerical and API invariants before refactoring.
+\item Lock down that HDG assembly structure must remain unchanged.
+\item Write a one-page boundary note: ``templated kernel edge / compiled runtime core.''
+\item Identify which public entry points must remain source-compatible:
+\begin{itemize}[leftmargin=*]
+\item \texttt{exasim::run<M>(...)}
+\item \texttt{ExasimSolver<M>}
+\item legacy \texttt{backend/Main/main.cpp}
+\end{itemize}
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item design note with exact boundary and migration rules
+\end{itemize}
+
+\subsection*{Phase 1: Introduce a runtime model interface}
+
+\textbf{New files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/model\_ops.hpp}
+\item \texttt{include/exasim/model\_context.hpp}
+\item \texttt{include/exasim/model\_adapter.hpp}
+\item \texttt{backend/Model/model\_ops.cpp} only if shared non-template helpers are needed
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Define a \texttt{ModelOps} struct of host-callable function pointers for each driver family currently reached through \texttt{EXASIM\_DRIVER\_CALL(...)}.
+\item Split the ops by category:
+\begin{itemize}[leftmargin=*]
+\item volume: \texttt{flux}, \texttt{source}, \texttt{sourcew}, \texttt{eos}, \texttt{tdfunc}
+\item boundary/interface: \texttt{fbou}, \texttt{fhat}, \texttt{fint}, \texttt{fext}, \texttt{ubou}
+\item init: \texttt{initu}, \texttt{initudg}, \texttt{initwdg}, \texttt{initodg}
+\item output/QoI/vis: \texttt{output}, \texttt{monitor}, \texttt{qoi\_volume}, \texttt{qoi\_boundary}, \texttt{vis\_scalars}, \texttt{vis\_vectors}, \texttt{vis\_tensors}
+\end{itemize}
+\item Define \texttt{ModelContext} as:
+\begin{itemize}[leftmargin=*]
+\item \texttt{const ModelOps* ops}
+\item model metadata: \texttt{nd}, \texttt{ncu}, \texttt{ncw}, \texttt{nco}, \texttt{disc}, maybe feature flags
+\item optional opaque pointer for model-owned state, if ever needed later
+\end{itemize}
+\item Keep \texttt{ModelContext} as a plain struct used only to carry dispatch pointers and model metadata. Do not make it a heavy class unless it later needs ownership or invariant logic.
+\item Build \texttt{ModelContext} at the templated boundary only, then pass it into \texttt{CSolution(...)} and \texttt{CDiscretization(...)} as part of normal construction.
+\item \texttt{cpuInitu}, \texttt{cpuInitudg}, \texttt{cpuInitwdg}, and \texttt{cpuInitodg} must be represented in \texttt{ModelOps}, because initialization is model-dependent and may run during \texttt{readsolstruct}.
+\end{itemize}
+
+\textbf{Important implementation detail:}
+\begin{itemize}[leftmargin=*]
+\item These function pointers must point to host functions that launch Kokkos kernels specialized on \texttt{M}.
+\item Do not use runtime polymorphism inside device code.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item a runtime model interface that can replace the macro-based dual dispatch
+\end{itemize}
+
+\subsection*{Phase 2: Build templated model adapters}
+
+\textbf{New files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/model\_adapter\_impl.hpp}
+\item \texttt{backend/ModelAdapters/abi\_adapter.cpp}
+\item generated or handwritten adapter TUs, for example:
+\begin{itemize}[leftmargin=*]
+\item \texttt{apps/library\_example/poisson2d/model\_adapter.cpp}
+\item generated codegen output \texttt{.../my\_model\_adapter.cpp}
+\end{itemize}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Implement \texttt{template <class M> ModelOps make\_model\_ops();}
+\item Each function in \texttt{ModelOps} forwards to one current templated driver in \texttt{include/exasim/drivers.hpp}.
+\item Example pattern:
+\begin{itemize}[leftmargin=*]
+\item \texttt{ops.flux = \&flux\_driver\_adapter<M>;}
+\item where \texttt{flux\_driver\_adapter<M>(...)} calls \texttt{exasim::FluxDriver<M>(...)}
+\end{itemize}
+\item This is the key move that narrows the template boundary without losing specialization.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item one model adapter TU per model family or executable
+\item no need for large backend classes to depend on \texttt{M}
+\end{itemize}
+
+\subsection*{Phase 3: Replace templated backend classes with core classes}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/discretization.h}
+\item \texttt{backend/Discretization/discretization.hpp}
+\item \texttt{backend/Solution/solution.h}
+\item \texttt{backend/Solution/solution.hpp}
+\item \texttt{backend/Solver/solver.h}
+\item \texttt{backend/Solver/solver.hpp}
+\item \texttt{backend/Preconditioning/preconditioner.h}
+\item \texttt{backend/Preconditioning/preconditioner.hpp}
+\item \texttt{backend/PointLocator/pointlocator.h}
+\item \texttt{backend/PointLocator/pointlocator.hpp}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Introduce non-templated replacements:
+\begin{itemize}[leftmargin=*]
+\item \texttt{CDiscretization}
+\item \texttt{CSolution}
+\item \texttt{CSolver}
+\item \texttt{CPreconditioner}
+\end{itemize}
+\item Replace \texttt{CDiscretization<M>\&} references with \texttt{CDiscretization\&}.
+\item Store \texttt{const ModelContext*} or \texttt{const ModelOps*} inside \texttt{CDiscretization}, and initialize it during construction.
+\item Update constructors so \texttt{ModelContext} is part of the construction dependency graph:
+\begin{itemize}[leftmargin=*]
+\item \texttt{CDiscretization(const ModelContext\&, ...)}
+\item \texttt{CSolution(const ModelContext\&, ...)}
+\item \texttt{CSolver(...)} and \texttt{CPreconditioner(...)} receive it directly only if they need constructor-time model access
+\end{itemize}
+\item Keep optional bind methods only as secondary/rebind hooks:
+\begin{itemize}[leftmargin=*]
+\item \texttt{CDiscretization::bindModelContext(const ModelContext\&)}
+\item \texttt{CSolver::bindModelContext(const ModelContext\&)} if solver-side access is needed
+\item \texttt{CPreconditioner::bindModelContext(const ModelContext\&)} if preconditioner-side access is needed
+\item \texttt{CSolution::bindModelContext(const ModelContext\&)} as the top-level coordinator for rare rebind flows
+\end{itemize}
+\item Keep the constructor flow centered on \texttt{CSolution(...)}. The constructor now receives \texttt{ModelContext} and propagates it to \texttt{disc} immediately so constructor-time paths such as \texttt{readsolstruct} can use model-dependent init operations.
+\item If retained, \texttt{CSolution::bindModelContext(...)} is not the main public initialization path. It is only for controlled rebind or reconstruction scenarios.
+\item Add accessor functions instead of exposing raw members:
+\begin{itemize}[leftmargin=*]
+\item \texttt{CDiscretization::getModelContext()}
+\item \texttt{CSolution::getModelContext()} if the solution object needs to expose the bound context
+\end{itemize}
+\item Use \texttt{getModelContext()} as the checked accessor name rather than \texttt{model\_context()} or \texttt{ModelContext()} to avoid confusion with the \texttt{ModelContext} type itself.
+\item Add an internal validity check on bind:
+\begin{itemize}[leftmargin=*]
+\item \texttt{disc.common.nd == model.nd}
+\item \texttt{disc.common.ncu == model.ncu}
+\item \texttt{disc.common.ncw == model.ncw}
+\item discretization kind is compatible with \texttt{model.disc}
+\end{itemize}
+\item Convert all current template-heavy helper signatures in backend \texttt{.hpp} files to operate on the core types plus \texttt{ModelContext}.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item non-templated backend class graph
+\item template parameter removed from the core ownership and orchestration classes
+\item constructor-time \texttt{ModelContext} availability for all initialization paths that need model-dependent operations
+\item checked access through \texttt{getModelContext()} rather than raw direct access
+\end{itemize}
+
+\subsection*{Phase 4: Eliminate \texttt{EXASIM\_DRIVER\_CALL(...)} from the main backend}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/detail/driver\_dispatch.hpp}
+\item all backend call sites using \texttt{EXASIM\_DRIVER\_CALL}, especially:
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/residual.hpp}
+\item \texttt{backend/Discretization/uequation.hpp}
+\item \texttt{backend/Discretization/uresidual.hpp}
+\item \texttt{backend/Discretization/qoicalculation.hpp}
+\item \texttt{backend/Discretization/getuhat.hpp}
+\item \texttt{backend/Discretization/discretization.hpp}
+\item \texttt{backend/Discretization/postdiscretization.hpp}
+\end{itemize}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Replace macro dispatch with explicit runtime calls:
+\begin{itemize}[leftmargin=*]
+\item \texttt{disc.getModelContext().ops->flux(...)}
+\item \texttt{disc.getModelContext().ops->source(...)}
+\item etc.
+\end{itemize}
+\item Keep the old macro only inside the compatibility layer during migration.
+\item Make backend residual/assembly code ordinary non-template code unless the algorithm truly depends on compile-time dimensions.
+\item Route constructor-time initialization through the same runtime dispatch system, for example \texttt{getModelContext().ops->initu(...)} and related init operations instead of direct legacy-only \texttt{cpuInit*Driver} calls.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item macro removed from the main backend path
+\item much smaller template footprint in \texttt{backend/Discretization/*.hpp}
+\end{itemize}
+
+\subsection*{Phase 5: Remove \texttt{.cpp} inclusion from headers and build a static core}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/discretization.hpp}
+\item \texttt{backend/Discretization/postdiscretization.hpp}
+\item \texttt{backend/Model/KokkosDrivers.cpp}
+\item \texttt{backend/Model/ModelDrivers.cpp}
+\item \texttt{install/CMakeLists.txt}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Stop \texttt{\#include}-ing \texttt{backend/Model/KokkosDrivers.cpp} and similar \texttt{.cpp} files from backend headers.
+\item Build a real static target, for example:
+\begin{itemize}[leftmargin=*]
+\item \texttt{add\_library(exasim\_core STATIC ...)}
+\item export as \texttt{Exasim::core}
+\end{itemize}
+\item Move non-template implementations into normal \texttt{.cpp} translation units.
+\item At this point, \texttt{inline} on those free functions should no longer be necessary.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{libexasim\_core.a}
+\item no more ``included \texttt{.cpp} as implementation header'' pattern in the core
+\end{itemize}
+
+\subsection*{Phase 6: Refactor public API into thin templated wrappers}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/run.hpp}
+\item \texttt{include/exasim/solver\_facade.hpp}
+\item public wrappers under \texttt{include/exasim/}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Keep \texttt{run<M>} templated, but make it thin:
+\begin{itemize}[leftmargin=*]
+\item build \texttt{ModelContext ctx = make\_model\_context<M>();}
+\item construct \texttt{CSolution(ctx, ...)} through the usual file/runtime path
+\item then call non-templated \texttt{run\_impl(...);}
+\end{itemize}
+\item Keep \texttt{ExasimSolver<M>} templated only at construction/binding points:
+\begin{itemize}[leftmargin=*]
+\item \texttt{ExasimSolver<M>} owns \texttt{std::unique\_ptr<CSolution>}
+\item it constructs the solution object with a ready \texttt{ModelContext}
+\end{itemize}
+\item Remove backend-heavy includes from public headers where possible.
+\item Make public headers depend on stable declarations, not large backend internals.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item same user-facing syntax
+\item much thinner template layer
+\end{itemize}
+
+\subsection*{Phase 7: Isolate the legacy ABI path}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{include/exasim/detail/abi\_adapter.hpp}
+\item \texttt{backend/Main/main.cpp}
+\item \texttt{backend/Model/libpdemodel.hpp}
+\item \texttt{backend/Model/libpdemodel.cpp}
+\item legacy \texttt{ModelDrivers.cpp} / \texttt{KokkosDrivers.cpp}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Replace ``ABI is one branch of the main architecture'' with ``ABI is one adapter implementation of \texttt{ModelOps}.''
+\item Create \texttt{make\_model\_ops\_abi()} that binds the old driver symbols.
+\item Keep \texttt{backend/Main/main.cpp} using that adapter.
+\item Remove ABI branching from the main template/runtime design.
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item ABI path survives
+\item but no longer shapes the public or core architecture
+\end{itemize}
+
+\subsection*{Phase 8: Packaging and install model}
+
+\textbf{Affected files:}
+\begin{itemize}[leftmargin=*]
+\item \texttt{install/CMakeLists.txt}
+\item \texttt{tests/install\_consumer/CMakeLists.txt}
+\item \texttt{tests/multi\_tu\_consumer/}
+\end{itemize}
+
+\textbf{Plan:}
+\begin{itemize}[leftmargin=*]
+\item Replace header-only export with:
+\begin{itemize}[leftmargin=*]
+\item \texttt{Exasim::core} static library
+\item optional small \texttt{Exasim::model\_api} interface target if needed
+\end{itemize}
+\item Install only the public API headers and genuinely templated kernel headers.
+\item Stop installing large parts of \texttt{backend/} as public transitive implementation detail.
+\item Keep consumer tests:
+\begin{itemize}[leftmargin=*]
+\item out-of-tree install test
+\item multi-TU consumer test
+\item one handwritten model consumer
+\item one generated model consumer
+\end{itemize}
+\end{itemize}
+
+\textbf{Deliverable:}
+\begin{itemize}[leftmargin=*]
+\item cleaner install tree
+\item smaller public header surface
+\item simpler consumer story
+\end{itemize}
+
+\subsection*{Phase 9: Controlled migration sequence}
+
+\textbf{Order of execution:}
+\begin{enumerate}[leftmargin=*]
+\item add \texttt{ModelOps} and \texttt{ModelContext}
+\item add templated adapters for current kernels
+\item introduce core classes in parallel with current templated classes
+\item migrate one path end-to-end:
+\begin{itemize}[leftmargin=*]
+\item suggested pilot: handwritten \texttt{poisson2d}
+\end{itemize}
+\item build \texttt{Exasim::core}
+\item convert \texttt{run<M>} and \texttt{ExasimSolver<M>}
+\item migrate ABI path behind adapter
+\item delete old wide-template path after equivalence is proven
+\end{enumerate}
+
+This sequencing matters. Do not flip the whole repo at once.
+
+\section*{5. Risks}
+
+\begin{itemize}[leftmargin=*]
+\item The biggest technical risk is placing too much behind runtime dispatch and losing compile-time specialization where HDG kernels need it.
+\item The second risk is trying to make the core non-templated too quickly; some helper layers in \texttt{backend/Discretization/} and \texttt{backend/Solver/} may still carry hidden compile-time assumptions.
+\item The migration can temporarily increase complexity if old and new paths coexist for too long.
+\item Constructor-time \texttt{ModelContext} means the core constructors depend on the model-dispatch setup earlier than before; this is correct for Exasim if initialization uses \texttt{cpuInit*} through \texttt{ModelOps}, but it raises the bar for constructor correctness.
+\item GPU builds are the most sensitive phase because kernel launch wrappers, device compilation, and linkage all change at once.
+\item The current branch also has local worktree changes, so any implementation should start from a clean branch.
+\end{itemize}
+
+\section*{6. Verification plan}
+
+For each phase, require these checks.
+
+\textbf{Numerical equivalence}
+\begin{itemize}[leftmargin=*]
+\item same residual/Jacobian behavior for one HDG scalar case
+\item same QoI and output for one steady case
+\item same time-dependent behavior for one DIRK case
+\end{itemize}
+
+\textbf{Build/link correctness}
+\begin{itemize}[leftmargin=*]
+\item single-TU consumer
+\item multi-TU consumer
+\item install-tree \texttt{find\_package(Exasim)} consumer
+\item no \texttt{.cpp} implementation includes in public/core headers after Phase 5
+\item verify that constructor-time \texttt{readsolstruct} can compute initial fields through \texttt{ModelOps} init functions
+\end{itemize}
+
+\textbf{Backend coverage}
+\begin{itemize}[leftmargin=*]
+\item CPU single-rank
+\item CPU MPI
+\item NVIDIA GPU
+\item one ABI-legacy executable still working through the compatibility adapter
+\end{itemize}
+
+\textbf{Architecture acceptance criteria}
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Main/main.cpp} no longer determines the main design
+\item \texttt{AbiAdapter} no longer appears in core class templates
+\item \texttt{KokkosDrivers.cpp} is compiled, not included
+\item \texttt{run<M>} and \texttt{ExasimSolver<M>} are thin wrappers, not owners of the backend architecture
+\item \texttt{install/CMakeLists.txt} exports \texttt{Exasim::core}, not only \texttt{Exasim::headers}
+\item \texttt{CSolution(...)} and \texttt{CDiscretization(...)} receive \texttt{ModelContext} at construction time
+\item \texttt{getModelContext()} is the standard checked accessor for bound model dispatch
+\end{itemize}
+
+If you want, I can turn this into a \textbf{work-package plan with estimated effort, file ownership, and merge order}, or into a \textbf{refactor RFC document} under \texttt{docs/}.
+
+\end{document}

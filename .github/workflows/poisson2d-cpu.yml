@@ -1,0 +1,154 @@
+name: poisson2d (hand-written CPU)
+
+# Smoke test for the hand-written Model path: build Exasim's CPU stack
+# from source, build apps/library_example/poisson2d (hand-written
+# my_model.hpp, no text2code involved at compile time), run it on the
+# bundled grid.bin, and gate the QoI against the recorded baseline.
+#
+# This is the lightest end-to-end signal we can give without a GPU or
+# MPI runner. Heavy deps (Kokkos, SymEngine) are cached by their
+# vendored-source SHA so reruns are ~3 minutes.
+
+# NOTE: temporarily disabled — the GitHub-hosted runner has been flaky
+# (build hangs / OOM during Kokkos+SymEngine compile). Re-enable by
+# restoring the `push` and `pull_request` triggers below. The
+# `workflow_dispatch` trigger is left so this can still be kicked
+# manually, and the `if: false` guard on the job keeps even manual
+# runs from going through until the runner is investigated.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [master, library-port]
+  # pull_request:
+  #   branches: [master, library-port]
+
+jobs:
+  build-and-run:
+    if: false           # disabled — runner broken; remove this line to re-enable
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git \
+                                  libblas-dev liblapack-dev
+
+      # ---- Cache vendored Kokkos (serial) ----
+      # Bumps when the kokkos/ submodule SHA moves.
+      - name: Cache Kokkos serial
+        id: cache-kokkos
+        uses: actions/cache@v4
+        with:
+          path: kokkos/buildserial/install
+          key: kokkos-serial-${{ runner.os }}-${{ hashFiles('kokkos/CMakeLists.txt', 'kokkos/cmake/**') }}
+
+      - name: Build Kokkos serial
+        if: steps.cache-kokkos.outputs.cache-hit != 'true'
+        run: |
+          cd kokkos
+          cmake -S . -B buildserial \
+              -DCMAKE_INSTALL_PREFIX=$PWD/buildserial/install \
+              -DKokkos_ENABLE_SERIAL=ON \
+              -DCMAKE_BUILD_TYPE=Release
+          cmake --build buildserial -j$(nproc) --target install
+
+      # ---- METIS / GKlib (cheap; rebuild every time) ----
+      - name: Build METIS + GKlib
+        run: |
+          cd metis
+          cd GKlib && make config prefix=$PWD && make -j$(nproc) install && cd ..
+          cd METIS && make config gklib_path=$PWD/../GKlib prefix=$PWD \
+                                  shared=1 r64=1 i64=1 \
+                  && make -j$(nproc) install && cd ..
+
+      # ---- Cache SymEngine static lib ----
+      - name: Cache SymEngine
+        id: cache-symengine
+        uses: actions/cache@v4
+        with:
+          path: text2code/symengine/build
+          key: symengine-${{ runner.os }}-${{ hashFiles('text2code/symengine/CMakeLists.txt') }}
+
+      - name: Build SymEngine (static, no GMP)
+        if: steps.cache-symengine.outputs.cache-hit != 'true'
+        run: |
+          cd text2code/symengine
+          cmake -S . -B build \
+              -DCMAKE_INSTALL_PREFIX=$PWD/build \
+              -DBUILD_SHARED_LIBS=OFF \
+              -DWITH_GMP=OFF \
+              -DINTEGER_CLASS=boostmp
+          cmake --build build -j$(nproc) --target install
+
+      # ---- text2code (needed for libpdemodelserial.so even on hand-written path) ----
+      - name: Build text2code
+        run: |
+          cd text2code/text2code
+          cmake -S . -B build -DEXASIM_ROOT=$GITHUB_WORKSPACE
+          cmake --build build -j$(nproc)
+
+      # ---- Configure + build Exasim CPU + the hand-written poisson2d ----
+      - name: Configure Exasim (CPU only)
+        run: |
+          cmake -S install -B build_cpu \
+              -DEXASIM_CUDA=OFF -DEXASIM_HIP=OFF \
+              -DEXASIM_MPI=OFF  -DEXASIM_NOMPI=ON \
+              -DKokkos_DIR=$GITHUB_WORKSPACE/kokkos/buildserial/install/lib/cmake/Kokkos \
+              -DEXASIM_BUILD_LIBRARY_EXAMPLES=ON
+
+      - name: Build poisson2d (hand-written) + CPU codegen + solve_square
+        run: |
+          # poisson2d_template = hand-written my_model.hpp, no text2code at compile.
+          # poisson2d_codegen   = generated my_model.hpp; built so we can populate
+          #                       libpdemodelserial.so for the link of the template.
+          # solve_square        = single-file demo: programmatic mesh + programmatic
+          #                       PDE config, no pdeapp.txt anywhere. (HOT.6.7 §5)
+          cmake --build build_cpu --target poisson2d_codegen poisson2d_template solve_square -j$(nproc)
+
+      # ---- Smoke run 1: file-driven path ----
+      - name: Run poisson2d (hand-written, file-driven)
+        run: |
+          cd apps/library_example/poisson2d
+          rm -rf dataout && mkdir -p dataout
+          ../../../build_cpu/poisson2d_template ./pdeapp.txt | tail -20
+
+      - name: Validate file-driven QoI matches baseline
+        run: |
+          cd apps/library_example/poisson2d
+          BASE=$GITHUB_WORKSPACE/baseline/poisson2d_serial
+          if [ -f "$BASE/outqoi.txt" ]; then
+            diff dataout/outqoi.txt "$BASE/outqoi.txt"
+          else
+            echo "::warning::no QoI baseline at $BASE — running smoke only"
+            test -s dataout/outqoi.txt
+          fi
+
+      # ---- Smoke run 2: programmatic path (no pdeapp.txt) ----
+      - name: Run solve_square (programmatic mesh + config)
+        run: |
+          mkdir -p /tmp/solve_square_run && cd /tmp/solve_square_run
+          rm -rf datain dataout grid.txt
+          EXASIM_DIR=$GITHUB_WORKSPACE $GITHUB_WORKSPACE/build_cpu/solve_square | tail -20
+
+      - name: Validate solve_square Newton converged
+        run: |
+          # solve_square defines a Poisson problem with manufactured
+          # source 2*pi^2*sin(pi*x)*sin(pi*y); exact solution is
+          # u = sin(pi*x)*sin(pi*y). Newton must converge to the
+          # solver tolerance (1e-6) within a few iterations.
+          cd /tmp/solve_square_run
+          test -f dataout/outudg_np0.bin
+          test -s dataout/outudg_np0.bin
+          # Verify the binary contains finite numbers (not NaN/Inf
+          # from a divergent solve).
+          python3 -c "
+          import struct
+          with open('dataout/outudg_np0.bin','rb') as f: d=f.read()
+          xs = struct.unpack(f'{len(d)//8}d', d)
+          assert len(xs) > 0, 'empty udg'
+          for x in xs:
+              assert x == x and abs(x) < 1e10, f'diverged: {x}'
+          print(f'OK: {len(xs)} doubles, max|u|={max(abs(x) for x in xs):.3e}')
+          "

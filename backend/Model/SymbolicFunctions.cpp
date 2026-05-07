@@ -96,67 +96,11 @@ std::vector<Expression> Ubou(const std::vector<Expression>& x, const std::vector
     return ub;
 }
 
-std::vector<Expression> CustomFlux(const std::vector<Expression>& x, const std::vector<Expression>& uhat, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
-    std::vector<Expression> f;
-    f.resize(8);
-
-    Expression gam = mu[0];
-    Expression gam1 = gam - 1.0;
-    Expression Re = mu[1];
-    Expression Pr = mu[2];
-    Expression Minf = mu[3];
-    Expression Re1 = 1/Re;
-    Expression M2 = Minf * Minf;
-    Expression c23 = 2.0/3.0;
-    Expression fc = 1/(gam1*M2*Re*Pr);
-    Expression r = uhat[0];
-    Expression ru = uhat[1];
-    Expression rv = uhat[2];
-    Expression rE = uhat[3];
-    Expression rx = uq[4];
-    Expression rux = uq[5];
-    Expression rvx = uq[6];
-    Expression rEx = uq[7];
-    Expression ry = uq[8];
-    Expression ruy = uq[9];
-    Expression rvy = uq[10];
-    Expression rEy = uq[11];
-    Expression r1 = 1/r;
-    Expression uv = ru * r1;
-    Expression vv = rv * r1;
-    Expression E = rE * r1;
-    Expression ke = 0.5*(uv*uv+vv*vv);
-    Expression p = gam1*(rE-r*ke);
-    Expression h = E+p*r1;
-    Expression ux = (rux - rx*uv)*r1;
-    Expression vx = (rvx - rx*vv)*r1;
-    Expression kex = uv*ux + vv*vx;
-    Expression px = gam1*(rEx - rx*ke - r*kex);
-    Expression Tx = gam*M2*(px*r - p*rx)*r1*r1;
-    Expression uy = (ruy - ry*uv)*r1;
-    Expression vy = (rvy - ry*vv)*r1;
-    Expression key = uv*uy + vv*vy;
-    Expression py = gam1*(rEy - ry*ke - r*key);
-    Expression Ty = gam*M2*(py*r - p*ry)*r1*r1;
-    Expression txx = Re1*c23*(2*ux - vy);
-    Expression txy = Re1*(uy + vx);
-    Expression tyy = Re1*c23*(2*vy - ux);
-    f[0]  =  ru;
-    f[1]  =  ru*uv+p + txx;
-    f[2]  =  rv*uv + txy;
-    f[3]  =  ru*h + uv*txx + vv*txy + fc*Tx;
-    f[4]  =  rv;
-    f[5]  =  ru*vv + txy;
-    f[6]  =  rv*vv+p + tyy;
-    f[7]  =  rv*h + uv*txy + vv*tyy + fc*Ty;
-    return f;
-}
-
 std::vector<Expression> FbouHdg(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& uhat, const std::vector<Expression>& n, const std::vector<Expression>& tau, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
     std::vector<Expression> fb;
     fb.resize(8);
 
-    auto f = CustomFlux(x, uhat, uq, v, w, eta, mu, t);
+    auto f = Flux(x, uq, v, w, eta, mu, t);
     fb[0]  =  uq[0] - uhat[0];
     fb[1]  =  0.0  - uhat[1];
     fb[2]  =  0.0  - uhat[2];
@@ -269,25 +213,5 @@ std::vector<Expression> Initu(const std::vector<Expression>& x, const std::vecto
     ui[2]  =  mu[6];
     ui[3]  =  mu[7];
     return ui;
-}
-
-std::vector<Expression> VisScalars(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
-    std::vector<Expression> s;
-    s.resize(4);
-
-    s[0]  =  uq[0];
-    s[1]  =  uq[1]/uq[0];
-    s[2]  =  uq[2]/uq[0];
-    s[3]  =  0.4*(uq[3] - 0.5*(uq[1]*s[1] + uq[2]*s[2]));
-    return s;
-}
-
-std::vector<Expression> VisVectors(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
-    std::vector<Expression> s;
-    s.resize(2);
-
-    s[0]  =  uq[1];
-    s[1]  =  uq[2];
-    return s;
 }
 

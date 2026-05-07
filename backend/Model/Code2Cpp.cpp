@@ -1,9 +1,10 @@
 #include "SymbolicFunctions.cpp"
 #include "SymbolicScalarsVectors.cpp"
 
-int main() 
+int main(int argc, char* argv[])
 {
   SymbolicScalarsVectors ssv;
+  if (argc > 1) ssv.modelpath = argv[1];
 
   for (int i=0; i<ssv.outputfunctions.size(); i++) {
     std::string funcname = ssv.funcnames[i];
@@ -114,4 +115,6 @@ int main()
       }
     }
   }
+
+  ssv.generateModelHeader(ssv.modelpath + "my_model.hpp");
 }

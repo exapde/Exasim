@@ -1,10 +1,30 @@
 #ifndef __STRUCTS_HPP__
 #define __STRUCTS_HPP__
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+// Boundary predicate: takes the spatial coordinate (`x[0..nd-1]`) and
+// returns true when the point is on the corresponding boundary tag.
+// Used by the programmatic mesh path as a typed alternative to the
+// tinyexpr-parsed std::string expressions in `boundaryExprs`.
+using BoundaryPred = std::function<bool(const double*)>;
+
+// Curved-boundary level-set function: returns a scalar `f(x)` whose
+// zero set is the curved surface (`f == 0` on the boundary, non-zero
+// off it). The projector does one Newton step toward `f == 0`:
+//
+//   x ← x - f(x) * ∇f(x) / |∇f(x)|²
+//
+// with `∇f` estimated by finite differences. This is the same scheme
+// the legacy tinyexpr-std::string path uses; an SDF (|∇f| = 1) is a
+// special case but is NOT required. NACA-style apps, e.g., supply
+// `f(x,y) = y² - y_t(x)²` — zero on the airfoil surface, not unit
+// gradient.
+using BoundaryLevelSet = std::function<double(const double*)>;
 
 struct FunctionDef {
     std::string name;
@@ -66,11 +86,24 @@ struct InputParams {
     std::vector<double> stgdata;
     std::vector<double> stgparam;
     
-    std::vector<std::string> boundaryExprs;    
-    std::vector<std::string> curvedBoundaryExprs;    
-    std::vector<std::string> periodicExprs1;    
-    std::vector<std::string> periodicExprs2;        
-    
+    std::vector<std::string> boundaryExprs;
+    std::vector<std::string> curvedBoundaryExprs;
+    std::vector<std::string> periodicExprs1;
+    std::vector<std::string> periodicExprs2;
+
+    // Optional typed boundary predicates. When non-empty, the
+    // preprocessor classifies boundary faces using these predicates
+    // instead of evaluating `boundaryExprs` through tinyexpr. Size
+    // must equal `boundaryConditions.size()` if used.
+    std::vector<BoundaryPred> boundaryPreds;
+
+    // Optional typed curved-boundary level-set functions. When
+    // non-empty, the DG-node projector uses these (one per boundary
+    // tag) instead of evaluating `curvedBoundaryExprs` through
+    // tinyexpr. Tags whose `curvedBoundaries[k] == 0` are skipped
+    // regardless. Size must equal `curvedBoundaries.size()` if used.
+    std::vector<BoundaryLevelSet> curvedBoundaryLevelSets;
+
     std::unordered_set<std::string> foundKeys;
 };
 
@@ -154,6 +187,13 @@ struct PDE {
     int saveResNorm = 0;
     int dae_steps = 0;
 
+    // HOT.7.4 — when 0, CSolution skips opening output bin files.
+    // The data still lives in `disc.sol` after the solve and can be
+    // pulled via `CSolution<M>::host_udg()` / `host_uhat()` etc.
+    // Default 1 preserves legacy behavior (every existing app writes
+    // outudg_np<r>.bin etc. through the open ofstreams).
+    int saveOutputs = 1;
+
     int coupledinterface = 0; 
     int coupledcondition = 0;
     int coupledboundarycondition = 0;    
@@ -188,19 +228,23 @@ struct PDE {
 struct Mesh {
     std::vector<double> p; // flattened nd × np array, column-major
     std::vector<int> t, tg;// flattened nve × ne array, column-major
-    int nd, dim;           // number of spatial dimensions
-    int np;                // number of points
-    int nve;               // number of vertices per element
-    int nvf;               // number of vertices per face
-    int nfe;               // number of faces per element
-    int ne;                // number of elements    
-    int nf;                // number of faces    
-    int elemtype;          // elemtype        
-    int npe, npf;    
-    int nbndexpr, nbcm, nprdexpr, nprdcom;        
-    int np_global=0;
-    int ne_global=0;
-    int nf_global=0;
+    // Zero-initialized so that callers can probe `mesh.np == 0` to
+    // detect a default-constructed (un-populated) Mesh — used by the
+    // CPreprocessing programmatic path to decide whether to read
+    // mesh from disk or use a caller-supplied one.
+    int nd = 0, dim = 0;   // number of spatial dimensions
+    int np = 0;            // number of points
+    int nve = 0;           // number of vertices per element
+    int nvf = 0;           // number of vertices per face
+    int nfe = 0;           // number of faces per element
+    int ne = 0;            // number of elements
+    int nf = 0;            // number of faces
+    int elemtype = 0;      // elemtype
+    int npe = 0, npf = 0;
+    int nbndexpr = 0, nbcm = 0, nprdexpr = 0, nprdcom = 0;
+    int np_global = 0;
+    int ne_global = 0;
+    int nf_global = 0;
     
     std::vector<idx_t>  epart_local, elmdist;    
 
@@ -208,7 +252,7 @@ struct Mesh {
     std::vector<int> elemGlobalID;
     std::vector<int> nodeGlobalID;  // [np]  global node IDs    
 
-    vector<int> f, bf, f2t, t2t, t2f, t2lf, inte, intl, localfaces;    
+    std::vector<int> f, bf, f2t, t2t, t2f, t2lf, inte, intl, localfaces;    
     std::vector<double> xdg, udg, vdg, wdg, uhat;
     std::vector<int> xdgdims, udgdims, vdgdims, wdgdims, uhatdims, elem2cpu;    
     
@@ -222,15 +266,25 @@ struct Mesh {
     char** boundaryExprs = nullptr;
     char** curvedBoundaryExprs = nullptr;
     char** periodicExprs1 = nullptr;
-    char** periodicExprs2 = nullptr;        
+    char** periodicExprs2 = nullptr;
+
+    // Typed boundary predicates (mirrors InputParams::boundaryPreds).
+    // When non-empty, takes precedence over `boundaryExprs` during
+    // boundary-face classification. Size must equal `nbcm`.
+    std::vector<BoundaryPred> boundaryPreds;
+
+    // Typed curved-boundary level-set functions (mirrors
+    // InputParams::curvedBoundaryLevelSets). When non-empty, takes
+    // precedence over `curvedBoundaryExprs` during DG-node projection.
+    std::vector<BoundaryLevelSet> curvedBoundaryLevelSets;
 };
 
 struct Master 
 {    
-    vector<double> xpe, gpe, gwe, xpf, gpf, gwf; 
-    vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
-    vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
-    vector<int>  telem, tface, perm, permind; 
+    std::vector<double> xpe, gpe, gwe, xpf, gpf, gwf; 
+    std::vector<double> shapeg, shapegt, shapfg, shapfgt, shapent, shapfnt, shapegw, shapfgw, shapen, shapfn;
+    std::vector<double> xp1d, gp1d, gw1d, shap1dg, shap1dgt, shap1dn, shap1dnt, shap1dgw, phielem, phiface;
+    std::vector<int>  telem, tface, perm, permind; 
     int nd, npe, npf, nge, ngf, porder, pgauss, nfe, elemtype, nodetype, nve, nvf, np1d, ng1d, npermind;
 };
 

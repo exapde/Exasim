@@ -41,6 +41,9 @@
 #ifndef __DISCRETIZATION_H__
 #define __DISCRETIZATION_H__
 
+#include <exasim/detail/abi_adapter.hpp>
+
+template <class M = exasim::detail::AbiAdapter>
 class CDiscretization {
 private:
 public:
@@ -55,11 +58,25 @@ public:
     // solstruct hsol;
 
     // constructor for both CPU and GPU
-    CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, 
-                    Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID); 
-    
-    // destructor        
-    ~CDiscretization(); 
+    CDiscretization(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs,
+                    Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID);
+
+    // HOT.7.3 — programmatic constructor: take pre-built `Preprocessed`
+    // bundle (app/master/mesh/sol + ti) instead of reading binaries
+    // off disk. Forwarded to the same post-init pipeline as the
+    // file-driven constructor.
+    template <class P>
+    CDiscretization(P&& preprocessed, std::string fileout, std::string exasimpath, Int mpiprocs,
+                    Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID);
+
+    // destructor
+    ~CDiscretization();
+
+private:
+    // Shared body of both constructors — runs after sol/app/master/mesh
+    // are populated and cpuInit-equivalent has finished.
+    void postInit(Int backend);
+public:
         
     // compute the geometry
     void compGeometry(Int backend);    

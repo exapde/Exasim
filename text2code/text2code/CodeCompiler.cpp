@@ -248,21 +248,28 @@ int executeCppCode(ParsedSpec& spec)
     // Construct compile command using text2code_path
     std::stringstream cmd;
     
-    if (tc.kind == CompilerKind::MSVC) {    
+    // SymEngineFunctionWrappers.hpp lives at backend/Model/ and isn't
+    // regenerated per-target — include it from the static location
+    // (HOT.7.14 added per-target spec.modelpath; without this the
+    // generated SymbolicFunctions.hpp can't find the wrapper header).
+    std::string backend_model = make_path(spec.exasimpath, "backend/Model");
+    if (tc.kind == CompilerKind::MSVC) {
       std::string symengine_lib = make_path(spec.symenginepath, "lib/symengine.lib");
       cmd << tc.cxx << " /std:c++17 /EHsc /W0 "
           << "/I" << quote(spec.symenginepath) << " "
           << "/I" << quote(symengine_include) << " "
+          << "/I" << quote(backend_model) << " "
           << quote(sourcefile) << " "
           << quote(symengine_lib) << " "
           << "/Fe:" << quote(exefile);
     } else {
       std::string symengine_lib = make_path(spec.symenginepath, "lib/libsymengine.a");
-      cmd << tc.cxx << " -std=c++17 -w "          
+      cmd << tc.cxx << " -std=c++17 -w "
           << "-I" << quote(spec.symenginepath) << " "
-          << "-I" << quote(symengine_include) << " "       
-          << quote(sourcefile) << " "        
-          << quote(symengine_lib) << " -o "    
+          << "-I" << quote(symengine_include) << " "
+          << "-I" << quote(backend_model) << " "
+          << quote(sourcefile) << " "
+          << quote(symengine_lib) << " -o "
           << quote(exefile);
     }
                            
@@ -275,8 +282,11 @@ int executeCppCode(ParsedSpec& spec)
         std::cout<<"Compiling " + sourcefile + " successfully.\n";
                                   
     std::cout << "Running " << exefile << " ...\n";
+    // Pass spec.modelpath as argv[1]; the generated Code2Cpp uses it
+    // to seed ssv.modelpath instead of relying on a baked-in default.
     std::string run = with_exe_if_windows(exefile);
-    status = std::system(quote(run).c_str());
+    std::string run_cmd = quote(run) + " " + quote(spec.modelpath);
+    status = std::system(run_cmd.c_str());
     if (status != 0) 
         error("code2cpp execution failed! Please compile text2code with -DUSE_CMAKE=ON and use cmake to run text2code.");            
     else
@@ -340,7 +350,9 @@ int buildDynamicLibraries(ParsedSpec& spec)
             const std::string lib_simd = make_path(kokkos_serial_path, "lib/kokkossimd.lib");
           
             cmd << tc.cxx << " " << shlib_flags
-                << inc(spec.modelpath) << " " << inc(inc_dir) << " "
+                << inc(spec.modelpath) << " "
+            << inc(make_path(spec.exasimpath, "backend/Model")) << " "
+            << inc(inc_dir) << " "
                 << quote(src) << " "
                 << "/Fe:" << quote(out) << " "
                 << "/link " << quote(lib_core) << " " << quote(lib_cont) << " " << quote(lib_simd);
@@ -350,7 +362,9 @@ int buildDynamicLibraries(ParsedSpec& spec)
             const std::string lib_simd = make_path(kokkos_serial_path, "lib/libkokkossimd.a");
           
             cmd << tc.cxx << " " << shlib_flags
-                << inc(spec.modelpath) << " " << inc(inc_dir) << " "  // includes BEFORE source
+                << inc(spec.modelpath) << " "
+            << inc(make_path(spec.exasimpath, "backend/Model")) << " "
+            << inc(inc_dir) << " "  // includes BEFORE source
                 << quote(src) << " "
                 << quote(lib_core) << " " << quote(lib_cont) << " " << quote(lib_simd) << " "
                 << "-o " << quote(out);
@@ -379,7 +393,9 @@ int buildDynamicLibraries(ParsedSpec& spec)
         std::cout << "Compiling libpdemodelcuda\n";
         std::stringstream cmd;
         cmd << quote(cuda_cxx) << " -shared -std=c++17 -Xcompiler -fPIC --expt-extended-lambda --expt-relaxed-constexpr "
-            << inc(spec.modelpath) << " " << inc(inc_dir) << " "
+            << inc(spec.modelpath) << " "
+            << inc(make_path(spec.exasimpath, "backend/Model")) << " "
+            << inc(inc_dir) << " "
             << quote(src) << " -L" << quote(lib_dir) << " -lkokkoscore -lkokkoscontainers -Wl,-rpath,"
             << quote(lib_dir) << " " << "-o " << quote(out);
 
@@ -408,7 +424,9 @@ int buildDynamicLibraries(ParsedSpec& spec)
         std::cout << "Compiling libpdemodelhip\n";
         std::stringstream cmd;
         cmd << quote(hip_cxx) << " -shared -std=c++17 -fPIC "
-            << inc(spec.modelpath) << " " << inc(inc_dir) << " "
+            << inc(spec.modelpath) << " "
+            << inc(make_path(spec.exasimpath, "backend/Model")) << " "
+            << inc(inc_dir) << " "
             << quote(src) << " "
             << quote(lib_core) << " " << quote(lib_cont) << " "
             << "-o " << quote(out);

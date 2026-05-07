@@ -1,0 +1,16 @@
+# text2code-generated artifacts left behind if a developer runs
+# text2code in this directory. Not part of the test sources.
+Code2Cpp.cpp
+code2cpp
+SymbolicFunctions.cpp
+SymbolicFunctions.hpp
+SymbolicScalarsVectors.cpp
+SymbolicScalarsVectors.hpp
+libpdemodel.cpp
+libpdemodel.hpp
+libpdemodelserial.*
+cpuInit*.cpp
+Hdg*.cpp
+Kokkos*.cpp
+datain/
+dataout/

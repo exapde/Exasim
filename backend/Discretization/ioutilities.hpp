@@ -1,0 +1,624 @@
+/**
+ * @file ioutilities.cpp
+ * @brief Utility functions for input/output operations, array printing, copying, reading, and writing.
+ *
+ * This file provides a collection of utility functions and templates for handling arrays of various types and dimensions,
+ * including printing, copying, reading from files/streams, and writing to files/streams. It also includes support for
+ * GPU backends (CUDA/HIP) for transferring data between host and device memory.
+ *
+ * Main functionalities:
+ * - Printing 1D, 2D, and 3D arrays of integer and floating-point types.
+ * - Copying arrays.
+ * - Reading arrays from streams and files, with support for GPU memory.
+ * - Writing arrays to streams and files, with support for GPU memory.
+ * - Checking file existence.
+ * - Converting numbers to strings.
+ * - Writing time step and scalar field data to files.
+ *
+ * GPU support:
+ * Functions with backend parameter support CUDA (backend==2) and HIP (backend==3) for device-host memory transfers.
+ *
+ * Template parameters:
+ * - T: Array element type (e.g., Int, double, dstype).
+ *
+ * Dependencies:
+ * - Requires CUDA/HIP headers and macros if GPU support is enabled.
+ * - Uses standard C++ streams and std::string manipulation.
+ *
+ * Note:
+ * - Error handling is performed via custom error() function or standard output.
+ * - Some functions assume specific array memory layouts (column-major or row-major).
+ */
+#ifndef __IOUTILITIES
+#define __IOUTILITIES
+
+template <typename T> std::string NumberToString ( T Number )
+{
+    std::ostringstream ss;
+    ss << Number;
+    return ss.str();
+}
+
+inline void print1iarray(Int* a, Int m)
+{    
+    for (Int i=0; i<m; i++)
+        std::cout << a[i] << "   ";
+    std::cout << std::endl;
+}
+
+inline void print2iarray(Int* a, Int m, Int n)
+{
+    for (Int i=0; i<m; i++) {
+        for (Int j=0; j<n; j++)
+            std::cout << a[j*m+i] << "   ";
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+inline void print3iarray(Int* a, Int m, Int n, Int p)
+{    
+    for (Int k=0; k<p; k++) {
+        for (Int i=0; i<m; i++) {
+            for (Int j=0; j<n; j++)
+                std::cout << a[k*n*m+j*m+i] << "   ";
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+
+inline void print1darray(dstype* a, Int m)
+{
+    //std::cout.precision(4);
+    for (Int i=0; i<m; i++)
+        std::cout << std::scientific << a[i] << "   ";
+    std::cout << std::endl;
+}
+
+inline void print2darray(dstype* a, Int m, Int n)
+{
+    //std::cout.precision(4);
+    for (Int i=0; i<m; i++) {
+        for (Int j=0; j<n; j++)
+            std::cout << std::scientific << a[j*m+i] << "   ";
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+inline void print2darray(dstype* a, Int m, Int n, Int M, Int N)
+{
+    //std::cout.precision(4);
+    for (Int i=0; i<m; i++) {
+        for (Int j=0; j<n; j++)
+            std::cout << std::scientific << a[j*M+i] << "   ";
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+inline void print3darray(dstype* a, Int m, Int n, Int p)
+{
+    //std::cout.precision(8);
+    for (Int k=0; k<p; k++) {
+        for (Int i=0; i<m; i++) {
+            for (Int j=0; j<n; j++)
+                std::cout << std::scientific << a[k*n*m+j*m+i] << "   ";
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+inline void printArray2D(Int* a, Int m, Int n, Int backend)
+{
+    if (backend==2) {
+#ifdef HAVE_CUDA
+        Int N = m*n;
+        Int *b = (Int*) malloc (sizeof (Int)*N);
+        cudaMemcpy(b, a, N*sizeof(Int), cudaMemcpyDeviceToHost);
+        print2iarray(b, m, n);
+        free(b);
+#endif
+    }
+    else if (backend==3) {
+#ifdef HAVE_HIP
+        Int N = m*n;
+        Int *b = (Int*) malloc (sizeof (Int)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(Int), hipMemcpyDeviceToHost));
+        print2iarray(b, m, n);
+        free(b);
+#endif
+    }    
+    else
+        print2iarray(a, m, n);
+}
+
+inline void printArray3D(Int* a, Int m, Int n, Int p, Int backend)
+{
+    if (backend==2) {
+#ifdef HAVE_CUDA
+        Int N = m*n*p;
+        Int *b = (Int*) malloc (sizeof (Int)*N);
+        cudaMemcpy(b, a, N*sizeof(Int), cudaMemcpyDeviceToHost);
+        print3iarray(b, m, n, p);
+        free(b);
+#endif
+    }
+    else if (backend==3) {
+#ifdef HAVE_HIP
+        Int N = m*n*p;
+        Int *b = (Int*) malloc (sizeof (Int)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(Int), hipMemcpyDeviceToHost));
+        print3iarray(b, m, n, p);
+        free(b);
+#endif
+    }    
+    else
+        print3iarray(a, m, n, p);
+}
+
+inline void printArray2D(dstype* a, Int m, Int n, Int backend)
+{
+    if (backend==2) {
+#ifdef  HAVE_CUDA        
+        Int N = m*n;
+        dstype *b = (dstype*) malloc (sizeof (dstype)*N);
+        cudaMemcpy(b, a, N*sizeof(dstype), cudaMemcpyDeviceToHost);    
+        print2darray(b, m, n);
+        free(b);
+#endif        
+    }
+    else if (backend==3) {
+#ifdef  HAVE_HIP        
+        Int N = m*n;
+        dstype *b = (dstype*) malloc (sizeof (dstype)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(dstype), hipMemcpyDeviceToHost));    
+        print2darray(b, m, n);
+        free(b);
+#endif        
+    }    
+    else
+        print2darray(a, m, n);
+}
+
+inline void printArray3D(dstype* a, Int m, Int n, Int p, Int backend)
+{
+    if (backend==2) {
+#ifdef  HAVE_CUDA        
+        Int N = m*n*p;
+        dstype *b = (dstype*) malloc (sizeof (dstype)*N);
+        cudaMemcpy(b, a, N*sizeof(dstype), cudaMemcpyDeviceToHost);    
+        print3darray(b, m, n, p);
+        free(b);
+#endif        
+    }
+    else if (backend==3) {
+#ifdef  HAVE_HIP        
+        Int N = m*n*p;
+        dstype *b = (dstype*) malloc (sizeof (dstype)*N);
+        CHECK(hipMemcpy(b, a, N*sizeof(dstype), hipMemcpyDeviceToHost));    
+        print3darray(b, m, n, p);
+        free(b);
+#endif        
+    }    
+    else
+        print3darray(a, m, n, p);
+}
+
+template <typename T> T * copyarray(T *b, Int N)
+{
+    T *a;
+    if (N>0) {        
+        a = (T*) malloc (sizeof (T)*N);
+        for (Int i=0; i<N; i++)
+            a[i] = b[i];
+    }    
+    else {
+        a = nullptr;
+    }
+    return a;
+}
+
+template <typename T> void readarray(std::ifstream &in, T **a, Int N)
+{
+    if (N>0) {        
+        *a = (T*) malloc (sizeof (T)*N);
+        in.read( reinterpret_cast<char*>( *a ), sizeof(T)*N );        
+    }    
+}
+
+template <typename T> T * readarray(std::ifstream &in, Int N)
+{
+    T *a;
+    if (N>0) {        
+        a = (T*) malloc (sizeof (T)*N);
+        in.read( reinterpret_cast<char*>( a ), sizeof(T)*N );        
+    }    
+    else {
+        a = nullptr;
+    }
+    return a;
+}
+
+inline Int * readiarrayfromdouble(std::ifstream &in, Int N)
+{
+    Int *a;
+    if (N>0) {      
+        a = (Int*) malloc (sizeof (Int)*N);
+        double read;
+        for (unsigned i = 0; i < N; i++) {
+            in.read( reinterpret_cast<char*>( &read ), sizeof read );
+            a[i] = (Int) round(read);
+        }        
+    }
+    else {
+        a = nullptr;
+    }
+    return a;
+}
+
+#ifdef  HAVE_CUDA
+
+template <typename T> T compareArrayCPUandGPU(T* a, T* gpub, Int N)
+{
+    T diff = 0;
+    T *b;
+    b = (T*) malloc (sizeof (T)*N);
+    cudaMemcpy(b, gpub, N*sizeof(T), cudaMemcpyDeviceToHost);    
+    for (Int i=0; i<N; i++)
+        if (fabs(a[i]-b[i])>diff)
+            diff = fabs(a[i]-b[i]);        
+    free(b);
+    return diff;
+}
+
+template <typename T> void readarrayManaged(std::ifstream &in, T **a, Int N)
+{
+    if (N>0) {        
+        cudaTemplateMallocManaged(a, N);
+        in.read( reinterpret_cast<char*>( *a ), sizeof(T)*N );        
+    }    
+}
+
+template <typename T> void readarrayZeroCopy(std::ifstream &in, T **a, Int N)
+{
+    if (N>0) {        
+        cudaTemplateHostAlloc(a, N, cudaHostAllocMapped);
+        in.read( reinterpret_cast<char*>( *a ), sizeof(T)*N );        
+    }    
+}
+
+#endif
+
+template <typename T> void writearray(std::ofstream &out, T *a, Int N)
+{
+    if (N>0)       
+        out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );
+}
+
+template <typename T> void writearray(std::ofstream &out, T *a, Int N, Int backend)
+{
+    if (N>0) {       
+        if (backend==2) { //GPU
+#ifdef  HAVE_CUDA                        
+            T *a_host;            
+            a_host = (T*) malloc (sizeof (T)*N);            
+            
+            // transfer data from GPU to CPU to save in a file
+            cudaMemcpy(a_host, a, N*sizeof(T), cudaMemcpyDeviceToHost);    
+            
+            out.write( reinterpret_cast<char*>( &a_host[0] ), sizeof(T) * N );
+            
+            free(a_host);
+#endif            
+        }
+      else if (backend == 3) { // HIP GPU
+#ifdef HAVE_HIP
+            T *a_host;
+            a_host = (T *)malloc(sizeof(T) * N);
+
+            // Transfer data from GPU to CPU to save in a file
+            hipMemcpy(a_host, a, N * sizeof(T), hipMemcpyDeviceToHost);
+
+            // Write to file
+            out.write(reinterpret_cast<char *>(&a_host[0]), sizeof(T) * N);
+
+            free(a_host);
+#endif
+        }        
+        else 
+            out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );                            
+    }
+}
+
+inline void writeiarraytodouble(std::ofstream &out, Int *a, Int N)
+{
+    if (N>0) {
+        double b;
+        for (unsigned i = 0; i < N; i++) {
+            b = (double) a[i];
+            out.write( reinterpret_cast<char*>( &b ), sizeof(double) );
+        }
+    }
+}
+
+inline bool fileexists(std::string filename) 
+{
+    std::ifstream ifile(filename.c_str());
+    return (bool)ifile;
+}
+
+template <typename T> void readarrayfromfile(std::string filename, T **a, Int N)
+{
+    if (N>0) {
+        // Open file to read
+        std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
+
+        if (!in) {
+            error("Unable to open file " + filename);
+        }
+
+        if (in) {
+            *a = (T*) malloc (sizeof (T)*N);
+            in.read( reinterpret_cast<char*>( *a ), sizeof(T)*N );        
+        }
+
+        in.close();
+    }
+}
+
+template <typename T> void readarrayfromfile(std::string filename, T **a, Int N, Int backend, Int skip=0)
+{
+    if (N>0) {
+        // Open file to read
+        std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
+
+        if (!in) {
+            error("Unable to open file " + filename);
+        }
+        
+        const std::streamoff skip_bytes = static_cast<std::streamoff>(sizeof(T)) * static_cast<std::streamoff>(skip);
+        if (skip_bytes > 0) {
+            in.seekg(skip_bytes, std::ios::beg);
+            if (!in) error("readarrayfromfile: seekg failed for " + filename);
+        }
+
+        if (backend==2) { //GPU
+#ifdef  HAVE_CUDA                        
+            T *a_host;            
+            a_host = (T*) malloc (sizeof (T)*N);            
+            
+            // read data from file
+            in.read( reinterpret_cast<char*>(a_host ), sizeof(T)*N );        
+
+            // transfer data from CPU to GPU 
+            cudaMemcpy(*a, &a_host[0], N*sizeof(T), cudaMemcpyHostToDevice);    
+                        
+            free(a_host);
+#endif            
+        }
+        else if (backend==3) { //GPU
+#ifdef  HAVE_HIP                        
+            T *a_host;            
+            a_host = (T*) malloc (sizeof (T)*N);            
+            
+            // read data from file
+            in.read( reinterpret_cast<char*>(a_host ), sizeof(T)*N );        
+
+            // transfer data from CPU to GPU 
+            CHECK(hipMemcpy(*a, &a_host[0], N*sizeof(T), hipMemcpyHostToDevice));    
+                        
+            free(a_host);
+#endif            
+        }        
+        else {
+            //*a = (T*) malloc (sizeof (T)*N);
+            in.read( reinterpret_cast<char*>( *a ), sizeof(T)*N );        
+        }
+        
+        in.close();
+    }
+}
+
+template <typename T> void writearray2file(std::string filename, T *a, Int N)
+{
+    if (N>0) {
+        // Open file to read
+        std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
+
+        if (!out) {
+            error("Unable to open file " + filename);
+        }
+
+        out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );
+
+        out.close();
+    }
+}
+
+template <typename T> void writearray2file(std::string filename, T *a, Int N, Int backend)
+{
+    if (N>0) {        
+        // Open file to read
+        std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
+
+        if (!out) {
+            error("Unable to open file " + filename);
+        }
+
+        if (backend==2) { //GPU
+#ifdef  HAVE_CUDA                        
+            T *a_host;            
+            a_host = (T*) malloc (sizeof (T)*N);            
+            
+            // transfer data from GPU to CPU to save in a file
+            cudaMemcpy(&a_host[0], &a[0], N*sizeof(T), cudaMemcpyDeviceToHost);    
+            
+            out.write( reinterpret_cast<char*>( &a_host[0] ), sizeof(T) * N );
+            
+            free(a_host);
+#endif            
+        }
+      else if (backend == 3) { // HIP GPU
+#ifdef HAVE_HIP
+            T *a_host;
+            a_host = (T *)malloc(sizeof(T) * N);
+
+            // Transfer data from GPU to CPU to save in a file
+            hipMemcpy(a_host, a, N * sizeof(T), hipMemcpyDeviceToHost);
+
+            // Write to file
+            out.write(reinterpret_cast<char *>(&a_host[0]), sizeof(T) * N);
+
+            free(a_host);
+#endif
+        }        
+        else 
+            out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );                    
+        
+        out.close();
+    }
+}
+
+inline void writeTimeStepSize2File(std::string filename, Int timeStep, Int DIRKstage, double time, double dt)
+{
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::app);
+    if (!out)
+        std::cout <<"Unable to open file" << filename << std::endl;
+    else
+        out << NumberToString(timeStep) + "\t" + NumberToString(DIRKstage) + "\t" + NumberToString(time) + "\t" + NumberToString(dt) + "\n";
+    out.close();
+}
+
+inline void writeScalarField2File(std::string filename, double* field, Int ne, Int* ndims)
+{
+    Int npv = ndims[9];
+    
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::binary);
+    if (!out)
+        std::cout <<"Unable to open file" << filename << std::endl;
+    else if (out) {
+        out.write( reinterpret_cast<char*>( &field[0] ), sizeof(double) * npv*ne );
+    }
+    out.close();
+}
+
+#ifdef  HAVE_MPI    
+inline void print2iarray(const int* a,
+                  int m, int n,
+                  const std::string& msg,
+                  MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+
+        if (rank == r) {
+            std::cout << "----------------------------------------\n";
+            std::cout << "Rank " << rank << ": " << msg << "\n";
+            std::cout << "Dimensions: (" << m << " x " << n << ")\n";
+
+            for (int i = 0; i < m; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    // column-major access
+                    std::cout << std::setw(12)
+                              << a[i + j * m] << " ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::flush;
+        }
+    }
+
+    MPI_Barrier(comm);
+}
+
+inline void print2darray(const double* a,
+                  int m, int n,
+                  const std::string& msg,
+                  MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+
+        if (rank == r) {
+            std::cout << "----------------------------------------\n";
+            std::cout << "Rank " << rank << ": " << msg << "\n";
+            std::cout << "Dimensions: (" << m << " x " << n << ")\n";
+
+            for (int i = 0; i < m; ++i) {
+                for (int j = 0; j < n; ++j) {
+                    // column-major access
+                    std::cout << std::setw(12)
+                              << std::setprecision(6)
+                              << std::scientific
+                              << a[i + j * m] << " ";
+                }
+                std::cout << "\n";
+            }
+            std::cout << std::flush;
+        }
+    }
+
+    MPI_Barrier(comm);
+}
+
+inline void print3darray(const double* a,
+                  int m, int n, int p,
+                  const std::string& msg,
+                  MPI_Comm comm)
+{
+    int rank, size;
+    MPI_Comm_rank(comm, &rank);
+    MPI_Comm_size(comm, &size);
+
+    auto idx = [m, n](int i, int j, int k) -> std::size_t {
+        // column-major for 3D: i + j*m + k*m*n
+        return static_cast<std::size_t>(i)
+             + static_cast<std::size_t>(j) * static_cast<std::size_t>(m)
+             + static_cast<std::size_t>(k) * static_cast<std::size_t>(m) * static_cast<std::size_t>(n);
+    };
+
+    for (int r = 0; r < size; ++r) {
+        MPI_Barrier(comm);
+
+        if (rank == r) {
+            std::cout << "----------------------------------------\n";
+            std::cout << "Rank " << rank << ": " << msg << "\n";
+            std::cout << "Dimensions: (" << m << " x " << n << " x " << p << ")\n";
+
+            for (int k = 0; k < p; ++k) {
+                std::cout << "---- slice k = " << k << " ----\n";
+                for (int i = 0; i < m; ++i) {
+                    for (int j = 0; j < n; ++j) {
+                        std::cout << std::setw(12)
+                                  << std::setprecision(6)
+                                  << std::scientific
+                                  << a[idx(i, j, k)] << " ";
+                    }
+                    std::cout << "\n";
+                }
+            }
+
+            std::cout << std::flush;
+        }
+    }
+
+    MPI_Barrier(comm);
+}
+
+#endif
+
+#endif

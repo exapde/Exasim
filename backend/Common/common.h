@@ -41,10 +41,79 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-// #include <cstdint>
-// #include <cstring>
-// #include <chrono>
-// #include <cmath>
+// Standard-library prerequisites. Historically this header relied on the
+// includer (main.cpp) having pre-included these; with Phase 1.2 of the
+// library port, common.h is consumed by multiple translation units in
+// exasim_core, so it must be self-contained.
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
+#include <chrono>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <filesystem>
+
+#include <Kokkos_Core.hpp>
+
+// Translate the CMake target compile definitions (-D_MPI, -D_CUDA, -D_HIP,
+// -D_TEXT2CODE, -D_BUILTINMODEL, -D_ENZYME, -D_MUTATIONPP) into the HAVE_*
+// macros the runtime sources test against. Historically main.cpp held this
+// translation, which meant only main.cpp saw the HAVE_* names; any other
+// TU compiled into exasim_core would silently miss the guards. With
+// multi-TU compilation (Phase 1.2c) the translation lives here so every
+// TU that includes common.h sees the same gate set.
+//
+// Idempotent guards (#ifndef … #define … #endif) so this header coexists
+// with main.cpp's pre-existing identical translation block without
+// triggering "macro redefined" warnings during the transition.
+#if defined(_OPENMP) && !defined(HAVE_OPENMP)
+#  define HAVE_OPENMP
+#endif
+#if !defined(_OPENMP) && !defined(HAVE_OPENMP) && !defined(HAVE_ONETHREAD)
+#  define HAVE_ONETHREAD
+#endif
+
+#if defined(_CUDA) && !defined(HAVE_CUDA)
+#  define HAVE_GPU
+#  define HAVE_CUDA
+#endif
+
+#if defined(_HIP) && !defined(HAVE_HIP)
+#  define HAVE_GPU
+#  define HAVE_HIP
+#endif
+
+#if defined(_TEXT2CODE) && !defined(HAVE_TEXT2CODE)
+#  define HAVE_TEXT2CODE
+#endif
+
+#if (defined(HAVE_TEXT2CODE) || defined(HAVE_BUILTINMODEL)) && !defined(HAVE_SHARED_MODEL_LIB)
+#  define HAVE_SHARED_MODEL_LIB
+#endif
+
+#if defined(_ENZYME) && !defined(HAVE_ENZYME)
+#  define HAVE_ENZYME
+#endif
+
+#if defined(_MUTATIONPP) && !defined(HAVE_MPP)
+#  define HAVE_MPP
+#endif
+
+#if defined(_MPI) && !defined(HAVE_MPI)
+#  define HAVE_MPI
+#endif
+
+#ifdef HAVE_MPI
+#  include <mpi.h>
+// C++17 `inline` variables: definitions in a header, ODR-safe across
+// multiple TUs. Replaces the previous extern + common.cpp definition
+// pair so Exasim can ship as a header-only library (HOT.1).
+inline MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
+inline MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
+#endif
 
 #define SCOPY scopy_
 #define SSCAL sscal_
@@ -152,7 +221,7 @@ template <typename T>
 bool is_nan_bitwise(T x);
 
 // Specialization for double
-template <> bool is_nan_bitwise<double>(double x) {
+template <> inline bool is_nan_bitwise<double>(double x) {
     uint64_t bits;
     std::memcpy(&bits, &x, sizeof(bits));
     return ((bits & 0x7ff0000000000000ULL) == 0x7ff0000000000000ULL) &&  // exponent all 1s
@@ -160,7 +229,7 @@ template <> bool is_nan_bitwise<double>(double x) {
 }
 
 // Specialization for float
-template <> bool is_nan_bitwise<float>(float x) {
+template <> inline bool is_nan_bitwise<float>(float x) {
     uint32_t bits;
     std::memcpy(&bits, &x, sizeof(bits));
     return ((bits & 0x7f800000U) == 0x7f800000U) &&                       // exponent all 1s
@@ -174,25 +243,23 @@ template <> bool is_nan_bitwise<float>(float x) {
 #define M_PI 3.14159265358979323846
 #endif
 
-// global variables for BLAS  
-dstype one = 1.0;
-dstype minusone = -1.0;
-dstype zero = 0.0;
-char chn = 'N';
-char cht = 'T';
-char chl = 'L';
-char chu = 'U';
-char chr = 'R';
-char chv = 'V';
-Int inc1 = 1;
-
-// global variables for CUBLAS  
-// dstype *cublasOne;
-// dstype *cublasMinusone;
-// dstype *cublasZero;
-dstype cublasOne[1] = {one};
-dstype cublasMinusone[1] = {minusone};
-dstype cublasZero[1] = {zero};
+// Global sentinel values for BLAS / CUBLAS / HIPBLAS calls.
+// C++17 `inline` variables: defined here in the header, ODR-safe
+// across multiple TUs. Replaces the previous extern + common.cpp
+// definition pair so Exasim can ship as a header-only library (HOT.1).
+inline dstype one      =  1.0;
+inline dstype minusone = -1.0;
+inline dstype zero     =  0.0;
+inline char   chn      = 'N';
+inline char   cht      = 'T';
+inline char   chl      = 'L';
+inline char   chu      = 'U';
+inline char   chr      = 'R';
+inline char   chv      = 'V';
+inline Int    inc1     =  1;
+inline dstype cublasOne     [1] = { 1.0};
+inline dstype cublasMinusone[1] = {-1.0};
+inline dstype cublasZero    [1] = { 0.0};
 
 #ifdef HAVE_CUDA       
    #define CUDA_SYNC cudaDeviceSynchronize();  
@@ -517,7 +584,7 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
 //     exit( 1 );    
 // }
 // 
-// static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
+// static void PrintErrorAndExit(std::string errmsg, const char *file, int line ) 
 // {    
 //     printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
 // 
@@ -565,60 +632,60 @@ static inline void PrintErrorAndExit(const std::string& errmsg, const char* file
 // -----------------------------------------------------------------------------
 #define error(msg)  PrintErrorAndExit((msg), __FILE__, __LINE__)
 
-std::string trim_dir(const std::string& s) {
+inline std::string trim_dir(const std::string& s) {
     return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes
 }
 
-bool ensure_dir(const std::string& dir) {
+inline bool ensure_dir(const std::string& dir) {
     std::filesystem::path p(dir);
     if (std::filesystem::exists(p)) return std::filesystem::is_directory(p);  // false if it's a file
     return std::filesystem::create_directories(p);               // creates parents as needed
 }
 
-std::string make_path(const std::string& str1, const std::string& str2) {
+inline std::string make_path(const std::string& str1, const std::string& str2) {
     std::filesystem::path base = str1;
     std::filesystem::path tail = str2;
 
-    // If tail is absolute, strip its root so it becomes relative    
+    // If tail is absolute, strip its root so it becomes relative
     tail = tail.relative_path();
 
     std::filesystem::path full = base / tail;
     return full.lexically_normal().string();
 }
 
-std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
+inline std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.find(keyword);  // Use find to get the first occurrence
     if (pos != std::string::npos) {
         return fullPath.substr(0, pos + keyword.length());
     }
-    else {      
+    else {
       return "";
     }
 }
 
-std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
+inline std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
     const std::string s = fullPath.generic_string();
     std::size_t pos = s.find(keyword);  // Use find to get the first occurrence
     if (pos != std::string::npos) {
         return s.substr(0, pos + keyword.length());
     }
-    else {      
+    else {
       return "";
     }
 }
 
-std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
+inline std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
     if (pos != std::string::npos) {
         return fullPath.substr(0, pos + keyword.length());
     }
-    else {      
+    else {
       return "";
     }
 }
 
-std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
-                                           const std::string& keyword)
+inline std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                                  const std::string& keyword)
 {
     // generic_string uses forward slashes on all platforms (nice for substring ops)
     const std::string s = fullPath.generic_string();
@@ -717,10 +784,10 @@ struct appstruct {
     {
         TemplateFree(lsize, backend);
         TemplateFree(nsize, backend);
-        TemplateFree(ndims, backend);   
-        TemplateFree(comm, backend);   
-        TemplateFree(porder, backend);               
-        TemplateFree(flag, backend);    
+        TemplateFree(ndims, backend);
+        TemplateFree(comm, backend);
+        TemplateFree(porder, backend);
+        TemplateFree(flag, backend);
         TemplateFree(problem, backend);
         TemplateFree(stgib, backend);
         TemplateFree(vindx, backend);
@@ -1505,18 +1572,21 @@ struct sysstruct {
         TemplateFree(q, backend); 
         TemplateFree(p, backend); 
         TemplateFree(randvect, backend);
-        if (backend <= 1)
-          TemplateFree(tempmem, backend);    
-        else if (backend==2) {
-#ifdef HAVE_CUDA                
-          cudaFreeHost(tempmem);      
-#endif                         
-        }        
-        else if (backend == 3) {
-#ifdef HAVE_HIP
-            CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
+        if (tempmem != nullptr) {
+            if (backend <= 1)
+              TemplateFree(tempmem, backend);
+            else if (backend==2) {
+#ifdef HAVE_CUDA
+              cudaFreeHost(tempmem);
 #endif
-        }        
+            }
+            else if (backend == 3) {
+#ifdef HAVE_HIP
+                CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
+#endif
+            }
+            tempmem = nullptr;
+        }
         TemplateFree(utmp, backend);            
         TemplateFree(wtmp, backend);             
         TemplateFree(udgprev, backend);  
@@ -1562,10 +1632,10 @@ struct precondstruct {
     }            
 };
 
-struct commonstruct {     
-    string exasimpath = "";  
-    string filein;       // Name of binary file with input data
-    string fileout;      // Name of binary file to write the solution            
+struct commonstruct {
+    std::string exasimpath = "";
+    std::string filein;       // Name of binary file with input data
+    std::string fileout;      // Name of binary file to write the solution
     
     Int backend;   // 0: Serial; 1: OpenMP; 2: CUDA  
     Int maxnbc;    // maximum number of boundary conditions
@@ -1683,7 +1753,8 @@ struct commonstruct {
     Int saveSolBouFreq=0; // number of time steps to save the solution on the boundary
     Int compudgavg=1;     // compute time-averaged solution udg
     Int readudgavg=0;     // flag to read time-averaged solution udg from file
-    Int saveResNorm=0;   
+    Int saveResNorm=0;
+    Int saveOutputs=1;   // HOT.7.4 — skip opening output bins when 0
     Int matrixformat=0;
     
     Int spatialScheme;   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */

@@ -41,6 +41,9 @@
 #ifndef __POSTDISCRETIZATION_H__
 #define __POSTDISCRETIZATION_H__
 
+#include <exasim/detail/abi_adapter.hpp>
+
+template <class M = exasim::detail::AbiAdapter>
 class CDiscretization {
 private:
 public:
@@ -55,7 +58,7 @@ public:
     // solstruct hsol;
 
     // constructor for both CPU and GPU
-    CDiscretization(string filein, string fileout, string exasimpath, Int mpiprocs, 
+    CDiscretization(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, 
                     Int mpirank, Int ompthreads, Int omprank, Int backend, Int builtinmodelID,
                     Int nsca, Int nvec, Int nten, Int nsurf, Int nvqoi); 
     

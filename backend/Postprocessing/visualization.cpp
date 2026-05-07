@@ -33,34 +33,34 @@ std::string make_path(const std::string& str1, const std::string& str2) {
     return full.lexically_normal().string();
 }
 
-int index4D(int i, int j, int k, int l, const vector<int>& shape) {
+int index4D(int i, int j, int k, int l, const std::vector<int>& shape) {
     // Column-major indexing: idx = i + j*n1 + k*n1*n2 + l*n1*n2*n3
     return i + shape[0] * (j + shape[1] * (k + shape[2] * l));
 }
 
-void masternodes(vector<dstype>& pelem, vector<int>& telem,
-                 vector<dstype>& pface, vector<int>& tface,
-                 vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
+void masternodes(std::vector<dstype>& pelem, std::vector<int>& telem,
+                 std::vector<dstype>& pface, std::vector<int>& tface,
+                 std::vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
 {
     
-    ifstream file(filename, ios::binary);
+    std::ifstream file(filename, std::ios::binary);
     
     if (!file) error("Error opening file: " + filename);
 
     // Read the full file into a vector
-    file.seekg(0, ios::end);
+    file.seekg(0, std::ios::end);
     size_t num_bytes = file.tellg();
-    file.seekg(0, ios::beg);
+    file.seekg(0, std::ios::beg);
     size_t num_doubles = num_bytes / sizeof(dstype);
 
-    vector<dstype> tmp(num_doubles);
+    std::vector<dstype> tmp(num_doubles);
     file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
     file.close();
 
     // Parse header
     int ndims = static_cast<int>(tmp[0]);  
     
-    vector<int> narrays(ndims);
+    std::vector<int> narrays(ndims);
     for (int i = 0; i < ndims; ++i)
         narrays[i] = static_cast<int>(tmp[1 + i]);
     
@@ -69,24 +69,24 @@ void masternodes(vector<dstype>& pelem, vector<int>& telem,
     for (int d : narrays)
         total_blocks *= d;
 
-    vector<int> sz1(total_blocks), sz2(total_blocks);
+    std::vector<int> sz1(total_blocks), sz2(total_blocks);
     for (int i = 0; i < total_blocks; ++i)
         sz1[i] = static_cast<int>(tmp[offset + i]);
     for (int i = 0; i < total_blocks; ++i)
         sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
 
-    vector<int> sz(total_blocks);
+    std::vector<int> sz(total_blocks);
     for (int i = 0; i < total_blocks; ++i)
         sz[i] = sz1[i] * sz2[i];
     
     // cumulative offsets
-    vector<int> lz(total_blocks + 1, 0);
+    std::vector<int> lz(total_blocks + 1, 0);
     partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
     
     // Starting point of real data
     int data_start = offset + 2 * total_blocks;
     
-    auto extract_block = [&](int i, vector<dstype>& out) {
+    auto extract_block = [&](int i, std::vector<dstype>& out) {
         int e = elemtype + 1;        
         int idx = index4D(i, e - 1, porder - 1, dim - 1, narrays);
         int start = lz[idx];
@@ -98,7 +98,7 @@ void masternodes(vector<dstype>& pelem, vector<int>& telem,
              out.begin());
     };
 
-    vector<dstype>  telemd, tfaced, permd;
+    std::vector<dstype>  telemd, tfaced, permd;
     
     extract_block(0, pelem);
     extract_block(1, telemd);
@@ -455,9 +455,9 @@ void VisDG2CG(float* ucg, const dstype* udg, const int* cgent2dgent, const int* 
     // common.ng1d = master.ndims[10]; // number of gauss poInts on 1D element          
 
 struct appsolstruct {     
-    string exasimpath = "";  
-    string filein = "";       // Name of binary file with input data
-    string fileout = "";      // Name of binary file to write the solution                
+    std::string exasimpath = "";  
+    std::string filein = "";       // Name of binary file with input data
+    std::string fileout = "";      // Name of binary file to write the solution                
     int modelnumber;
     int mpiRank = 0;
     int mpiProcs = 0;
@@ -593,7 +593,7 @@ public:
                                                 
 
             int dim = nd_in;
-            int ncf = max(max(nsca, 3*nvec), dim*dim*nten);          
+            int ncf = std::max(std::max(nsca, 3*nvec), dim*dim*nten);          
             TemplateMalloc(&xdg, npe*ne*dim);
             TemplateMalloc(&udg, npe*ne*appsol.nc);
             TemplateMalloc(&vdg, npe*ne*appsol.nco);
@@ -624,7 +624,7 @@ public:
             TemplateFree(xcg);
             TemplateFree(cgelcon);
 
-            //cout<<ne<<"  "<<npoints<<endl;
+            //std::cout<<ne<<"  "<<npoints<<std::endl;
             if (appsol.mpiRank == 0) printf("finish CVisualization constructor... \n");    
         }        
     }
@@ -795,7 +795,7 @@ public:
                 times.push_back(t);
             }
         }
-        cout<<nt<<",  "<<nm<<",  "<<base<<endl;        
+        std::cout<<nt<<",  "<<nm<<",  "<<base<<std::endl;        
         pvdwrite(base, files, times);
     }
 
@@ -996,7 +996,7 @@ void WriteParaview(CVisualization& vis, appsolstruct& appsol)
     
     if (appsol.tdep == 1) {
        if (appsol.currentstep==0 && appsol.mpiRank==0) {
-          string ext = (appsol.mpiProcs==1) ? "vtu" : "pvtu";                                  
+          std::string ext = (appsol.mpiProcs==1) ? "vtu" : "pvtu";                                  
           vis.pvdwrite_series(appsol.fileout + "vis", appsol.dt, appsol.tsteps, appsol.saveSolFreq, ext);                          
        }
         
@@ -1043,7 +1043,7 @@ void WriteParaview(CVisualization& vis, appsolstruct& appsol)
             VisDG2CG(vis.tenfields, vis.fdg, vis.cgent2dgent, vis.colent2elem, vis.rowent2elem, ne, ncg, ndg, vis.ntc, vis.ntc, nvec);
        }
 
-       string baseName = appsol.fileout + "vis";
+       std::string baseName = appsol.fileout + "vis";
        if (appsol.tdep == 1) {
            std::ostringstream ss; 
            ss << std::setw(6) << std::setfill('0') << appsol.currentstep+appsol.timestepOffset+1; 
