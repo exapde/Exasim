@@ -132,17 +132,23 @@ for name in "${EXAMPLES[@]}"; do
 
     # Build the per-gate pdeapp_run file:
     #   - drop any existing dataoutpath line
-    #   - drop gendatain=1 for MPI variants (binary needs to call
-    #     ParallelPreprocessing at runtime; port_codegen.sh defaults
-    #     gendatain=1 for serial-fast path)
+    #   - for MPI variants: drop any existing gendatain line entirely,
+    #     then append `gendatain = 0;` below. The struct default is 1,
+    #     so a sed-replace alone misses pdeapp.txt files that omit the
+    #     line entirely (the binary then skips ParallelPreprocessing
+    #     and dies on missing meshN.bin). Drop+append is robust to
+    #     either spelling.
     #   - append our per-gate dataoutpath
     pdeapp_run="$cg_dir/pdeapp_run_${STEM}${SUFFIX}.txt"
     sed_script='/^dataoutpath *=/d'
     if [ "$VARIANT" = "mpi" ] || [ "$VARIANT" = "mpi_gpu" ]; then
         sed_script="$sed_script
-s/^gendatain *= *1 *;/gendatain = 0;/"
+/^gendatain *=/d"
     fi
     sed "$sed_script" "$cg_dir/pdeapp.txt" > "$pdeapp_run"
+    if [ "$VARIANT" = "mpi" ] || [ "$VARIANT" = "mpi_gpu" ]; then
+        echo "gendatain = 0;" >> "$pdeapp_run"
+    fi
     echo "dataoutpath = \"$out_subdir\";" >> "$pdeapp_run"
     pdeapp_in="./$(basename "$pdeapp_run")"
 

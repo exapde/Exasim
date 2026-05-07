@@ -5,6 +5,7 @@ discretization = "hdg";
 platform = "cpu";
 
 mpiprocs = 1;
+gendatain = 1;
 debugmode = 0;
 runmode = 0;
 modelnumber = 0;
