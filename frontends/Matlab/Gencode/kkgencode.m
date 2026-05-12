@@ -11,7 +11,7 @@ end
 %kkdir = app.buildpath + "/model";
 %kkdir = app.exasimpath + "/build/model";
 
-kkdir = app.backendpath + "/Model";
+kkdir = app.backendpath + "/Model/FrontendGenerated";
 text = fileread(char(app.backendpath + "/Discretization/KokkosDrivers.cpp"));
 fid = fopen(kkdir + "/" + "KokkosDrivers.cpp", 'w');
 fprintf(fid, text);

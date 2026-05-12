@@ -143,16 +143,9 @@
 #include <Kokkos_Core.hpp>
 
 #include "common.h"   // dstype + Int
+#include "discretization.hpp"
 
 namespace exasim {
-
-// Discretization tag — published as `Self::disc` by the user model so
-// kernels can `if constexpr` on it. Defaults to LDG (Local DG) since
-// it requires no Jacobians.
-enum class Discretization {
-    LDG,   // Local DG: only flux/source/initu values needed.
-    HDG    // Hybridized DG: requires hand-written pointwise Jacobians.
-};
 
 // CRTP base supplying zero-fill no-op defaults for every optional
 // method on the Model contract. Users inherit and override only what
@@ -352,8 +345,20 @@ struct ModelDefaults {
     }
 
     KOKKOS_INLINE_FUNCTION static
+    void cpuinitq(double q[], const double x[], const double uinf[],
+                  const double mu[]) {
+        Self::initq(q, x, uinf, mu);
+    }
+
+    KOKKOS_INLINE_FUNCTION static
     void initwdg(double w[], const double[], const double[], const double[]) {
         if constexpr (Self::ncw > 0) zero_fill_<Self::ncw>(w);
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void cpuinitwdg(double w[], const double x[], const double uinf[],
+                    const double mu[]) {
+        Self::initwdg(w, x, uinf, mu);
     }
 
     KOKKOS_INLINE_FUNCTION static
@@ -363,10 +368,28 @@ struct ModelDefaults {
     }
 
     KOKKOS_INLINE_FUNCTION static
+    void cpuinitudg(double udg[], const double x[], const double uinf[],
+                    const double mu[]) {
+        Self::initudg(udg, x, uinf, mu);
+    }
+
+    KOKKOS_INLINE_FUNCTION static
     void initodg(double odg[], const double[], const double[], const double[]) {
         // No default; `nco` is determined by the discretization, not by Self.
         // Concrete kernels pass the correct count in.
         (void)odg;
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void cpuinitodg(double odg[], const double x[], const double uinf[],
+                    const double mu[]) {
+        Self::initodg(odg, x, uinf, mu);
+    }
+
+    KOKKOS_INLINE_FUNCTION static
+    void cpuinitu(double u[], const double x[], const double uinf[],
+                  const double mu[]) {
+        Self::initu(u, x, uinf, mu);
     }
 
     // ---- Visualization, QoI, monitor/output (default: empty / zero) ----

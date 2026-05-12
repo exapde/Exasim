@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/run_dynamic.dir/apps/run_dynamic.cpp.o -o run_dynamic  -Wl,-rpath,/Users/cuongnguyen/Documents/GitHub/Exasim/.codex_staticlibraryabi/build libcore.a libdynamic_provider.dylib

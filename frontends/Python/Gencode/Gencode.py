@@ -44,7 +44,7 @@ def gencode(app):
         return
 
     # foldername = os.path.join(app['exasimpath'], "build", "model")
-    foldername = os.path.join(app['backendpath'], "Model")
+    foldername = os.path.join(app['backendpath'], "Model/FrontendGenerated")
 
     # Ensure the target directory exists
     os.makedirs(foldername, exist_ok=True)

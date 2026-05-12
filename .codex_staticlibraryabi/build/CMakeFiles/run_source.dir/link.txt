@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/run_source.dir/apps/run_source.cpp.o CMakeFiles/run_source.dir/providers/source/source_provider.cpp.o -o run_source  libcore.a

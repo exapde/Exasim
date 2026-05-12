@@ -6,11 +6,11 @@ if nargin<2, elemtype=1; end
 if nargin<3, gridNum=1;  end
 
 if gridNum==-6  % p=4, very coarse mesh, 10c
-   n1=24*porder+1; n2=16*porder+1; n3=20*porder+1; 
+   n1=28*porder+1; n2=24*porder+1; n3=60*porder+1; 
    TEC = 6;
    [x,y] = cmeshparam6(n1, n2, n2-8, n2-8, n2, n3, ...
                         [TEC, 1, 1, 1, 1, TEC, 1, 1, 1, 1, TEC], ...
-                        [10, 10, 10, 10, 10, 10, 10]*30); 
+                        [10, 10, 10, 10, 10, 10, 10]*5); 
 elseif gridNum==-5  % p=4, Fine mesh, 50c
    n1=52*porder+1; n2=24*porder+1; n3=34*porder+1; 
    TEC = 14;
@@ -105,10 +105,10 @@ mesh.periodicexpr = {};
 mesh.f = facenumbering(mesh.p,mesh.t,mesh.elemtype, mesh.boundaryexpr,mesh.periodicexpr);
 
 % figure(1); clf;
-% bf1 = boundaryplot(mesh,1);
+% boundaryplot(mesh,1);
 % hold on;
-% bf2 = boundaryplot(mesh,2);
-% 
+% boundaryplot(mesh,2);
+ 
 % figure(2); clf;
 % hold on; 
 % for i = 1:size(bf1,1)

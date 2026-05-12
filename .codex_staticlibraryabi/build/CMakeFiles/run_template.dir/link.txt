@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/run_template.dir/apps/run_template.cpp.o CMakeFiles/run_template.dir/providers/template/template_provider.cpp.o -o run_template  libcore.a

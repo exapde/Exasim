@@ -61,11 +61,11 @@
 #include "../PointLocator/pointlocator.h"
 
 #ifdef HAVE_TEXT2CODE
-#include "../Model/ModelDrivers.cpp"
+#include "../Model/Text2codeGenerated/ModelDrivers.cpp"
 #elif defined(HAVE_BUILTINMODEL)
 #include "../Model/BuiltIn/BuiltinModelDrivers.cpp"
 #else
-#include "../Model/KokkosDrivers.cpp"
+#include "../Model/FrontendGenerated/KokkosDrivers.cpp"
 #endif
 
 #include "connectivity.hpp"
