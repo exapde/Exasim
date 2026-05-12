@@ -11,7 +11,8 @@ end
 fields = fieldnames(s);
 requiredKeys = ["exasimpath", "datapath", "model", "modelfile", "meshfile", "discretization",...
         "platform", "mpiprocs", "porder", "pgauss", "physicsparam",...
-        "tau", "boundaryconditions", "boundaryexpressions"];
+        "tau", "boundaryconditions", "wmModelIDs", "wmBoundaries", "wmDistances",...
+        "boundaryexpressions"];
 
 for i = 1:length(fields)
     key = fields{i};

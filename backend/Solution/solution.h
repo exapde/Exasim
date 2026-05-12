@@ -42,7 +42,7 @@
 #define __SOLUTION_H__
 
 // Common helper: open file and write 3-element header [a0, a1, a2]
-inline void open_and_write(std::ofstream& ofs,
+void open_and_write(std::ofstream& ofs,
                     const std::string& prefix,
                     int rank, int offset,
                     int a0, int a1, int a2,
@@ -57,8 +57,7 @@ inline void open_and_write(std::ofstream& ofs,
     writearray(ofs, a, 3);
 }
 
-template <class M>
-inline void printinterfaceinfo(CDiscretization<M> &disc)
+void printinterfaceinfo(CDiscretization &disc)
 {
     disc.common.printinfo();
     
@@ -106,7 +105,6 @@ inline void printinterfaceinfo(CDiscretization<M> &disc)
     // print2darray(disc.sol.udg, disc.common.npe, disc.common.ne*disc.common.nc);                      
 }
 
-template <class M = exasim::detail::AbiAdapter>
 class CSolution {
 private:
     struct PDEStateSnapshot {
@@ -119,60 +117,39 @@ private:
 
     PDEStateSnapshot snapshot;
 public:
-    CDiscretization<M> disc;  // spatial discretization class
-    CPreconditioner<M> prec;  // precondtioner class
-    CSolver<M> solv;          // linear and nonlinear solvers
+    CDiscretization disc;  // spatial discretization class
+    CPreconditioner prec;  // precondtioner class 
+    CSolver solv;          // linear and nonlinear solvers
     CVisualization vis;    // visualization class
-    std::ofstream outsol;       // storing solutions
-    std::ofstream outwdg;  
-    std::ofstream outuhat;  
-    std::ofstream outbouxdg;  
-    std::ofstream outboundg;  
-    std::ofstream outbouudg;  
-    std::ofstream outbouwdg;  
-    std::ofstream outbouuhat;  
-    std::ofstream outqoi;
+    ofstream outsol;       // storing solutions
+    ofstream outwdg;  
+    ofstream outuhat;  
+    ofstream outbouxdg;  
+    ofstream outboundg;  
+    ofstream outbouudg;  
+    ofstream outbouwdg;  
+    ofstream outbouuhat;  
+    ofstream outqoi;
     
-    // HOT.7.3 — programmatic constructor: takes a pre-built
-    // `Preprocessed` bundle (see backend/Preprocessing/buildstructs.hpp)
-    // and forwards to the matching CDiscretization<M> constructor.
-    // No filein, no readInput, no datain/ disk I/O.
-    template <class P>
-    CSolution(P&& preprocessed, std::string fileout, std::string exasimpath,
-              Int mpiprocs, Int mpirank, Int fileoffset, Int omprank,
-              Int backend, Int builtinmodelID)
-       : disc(std::forward<P>(preprocessed), fileout, exasimpath,
-              mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID),
-         prec(disc, backend), solv(disc, backend), vis(disc, backend)
-    {
-        cs_finalize_init(backend);
-    }
-
-    // constructor
-    CSolution(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, Int mpirank, Int fileoffset, Int omprank, Int backend, Int builtinmodelID)
-       : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID),
-         prec(disc, backend), solv(disc, backend), vis(disc, backend)
-    {
-        cs_finalize_init(backend);
-    }
-
-    // Body of both constructors after `disc/prec/solv/vis` are built.
-    // Opens output streams and sets a few derived counters. Extracted
-    // at HOT.7.3 so the new programmatic constructor can share it.
-    void cs_finalize_init(Int backend)
-    {
-        int ncx = disc.common.ncx;
-        int nd = disc.common.nd;
-        int ncu = disc.common.ncu;
-        int nc = (disc.common.saveSolOpt==0) ? disc.common.ncu : disc.common.nc;
+    // constructor 
+    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs,
+              Int mpirank, Int fileoffset, Int omprank, Int backend,
+              Int builtinmodelID, const ExasimDriverABI& abi)   
+       : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset,
+              omprank, backend, builtinmodelID, abi),
+         prec(disc, backend), solv(disc, backend), vis(disc, backend) 
+    {   
+        int ncx = disc.common.ncx;                            
+        int nd = disc.common.nd;     
+        int ncu = disc.common.ncu;     
+        int nc = (disc.common.saveSolOpt==0) ? disc.common.ncu : disc.common.nc;        
         int ncw = disc.common.ncw;
         int npe = disc.common.npe;
         int npf = disc.common.npf;
-        int ne = disc.common.ne1;
-        int nf = disc.common.nf;
+        int ne = disc.common.ne1;     
+        int nf = disc.common.nf;     
         int rank = disc.common.mpiRank;
         int offset = disc.common.fileoffset;
-        Int mpirank = disc.common.mpiRank;
         std::string base = disc.common.fileout;
 
         if ((disc.common.nintfaces > 0) && (disc.common.coupledcondition>0)) disc.common.ne0 = disc.common.intepartpts[0];
@@ -181,42 +158,36 @@ public:
         // for (int k = 0; k<mpiprocs; k++) {
         //   MPI_Barrier(MPI_COMM_WORLD);
         //   if (k==rank) {
-        //     std::cout<<rank<<std::endl;
+        //     cout<<rank<<endl;
         //     printinterfaceinfo(disc);
-        //     std::cout<<rank<<std::endl;
+        //     cout<<rank<<endl;
         //   }
         //   MPI_Barrier(MPI_COMM_WORLD);
         // }                 
 
-        // HOT.7.4 — when disc.common.saveOutputs == 0, leave every
-        // output std::ofstream un-opened. SaveSolutions / SaveQoI then
-        // become silent no-ops (writearray on a closed std::ofstream
-        // sets failbit but doesn't crash); the data remains in
-        // disc.sol and can be pulled via host_udg / host_uhat /
-        // host_qoi accessors below.
-        const bool save_outs = (disc.common.saveOutputs != 0);
-
-        if (save_outs && mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
-            outqoi.open(base + "qoi.txt", std::ios::out);
+        if (mpirank==0 && (disc.common.nvqoi > 0 || disc.common.nsurf > 0)) {
+            outqoi.open(base + "qoi.txt", std::ios::out);                         
             outqoi << std::setw(16) << std::left << "Time";
-            for (size_t i = 0; i < disc.common.nvqoi; ++i) {
+            for (size_t i = 0; i < disc.common.nvqoi; ++i) {                
                 outqoi << std::setw(16) << std::left << "Domain_QoI" + std::to_string(i + 1);
             }
-            for (size_t i = 0; i < disc.common.nsurf; ++i) {
+            for (size_t i = 0; i < disc.common.nsurf; ++i) {                
                 outqoi << std::setw(16) << std::left << "Boundary_QoI" + std::to_string(i + 1);
             }
             outqoi << "\n";
         }
 
-        if (save_outs) {
-            open_and_write(outsol, "udg_np", rank, offset, npe, nc, ne, base);
-            if (ncw > 0)
-                open_and_write(outwdg, "wdg_np", rank, offset, npe, ncw, ne, base);
-            if (disc.common.spatialScheme==1)
-                open_and_write(outuhat, "uhat_np", rank, offset, ncu, npf, nf, base);
+        open_and_write(outsol, "udg_np", rank, offset, npe, nc, ne, base);
+
+        if (ncw > 0) {     
+            open_and_write(outwdg, "wdg_np", rank, offset, npe, ncw, ne, base);
         }
 
-        if ( save_outs && disc.common.saveSolBouFreq>0 ) {
+        if (disc.common.spatialScheme==1) {         
+            open_and_write(outuhat, "uhat_np", rank, offset, ncu, npf, nf, base);
+        }
+
+        if ( disc.common.saveSolBouFreq>0 ) {
             Int nfbou = 0;
             for (Int j=0; j<disc.common.nbf; j++) {
                 Int f1 = disc.common.fblks[3*j]-1;
@@ -262,28 +233,16 @@ public:
         if (outqoi.is_open()) { outqoi.close(); }
     }; 
     
-    // HOT.7.4 — host-side accessors to the converged solution.
-    // The runtime stores `udg`, `uh`, `wdg` in `disc.sol.*` after
-    // SolveProblem returns. For CPU backends these pointers are
-    // already host-side; for GPU backends a future slice will copy
-    // them down on demand.
-    const dstype* host_udg()  const { return disc.sol.udg;  }
-    Int           host_udg_size()  const { return disc.common.ndofudg1; }
-    const dstype* host_uhat() const { return disc.sol.uh;   }
-    Int           host_uhat_size() const { return disc.common.ndofuhat; }
-    const dstype* host_wdg()  const { return disc.sol.wdg;  }
-    Int           host_wdg_size()  const { return disc.common.ndofw1; }
+    void SteadyProblem(ofstream &out, Int backend);    
 
-    void SteadyProblem(std::ofstream &out, Int backend);
-
-    void SteadyProblem_PTC(std::ofstream &out, Int backend);    
+    void SteadyProblem_PTC(ofstream &out, Int backend);    
                                     
-    void DIRK(std::ofstream &out, Int backend);    
+    void DIRK(ofstream &out, Int backend);    
     
     // precompute some quantities
     void InitSolution(Int backend);    
         
-    void SolveProblem(std::ofstream &out, Int backend);    
+    void SolveProblem(ofstream &out, Int backend);    
         
     // save solutions in binary files
     void SaveSolutions(Int backend);    
@@ -309,8 +268,8 @@ public:
     void RestoreState();
     void ClearSavedState();
 
-    Int PTCsolver(std::ofstream &out, Int backend);
-    Int NewtonSolver(std::ofstream &out, Int N, Int spatialScheme, Int backend);       
+    Int PTCsolver(ofstream &out, Int backend);
+    Int NewtonSolver(ofstream &out, Int N, Int spatialScheme, Int backend);       
 };
 
 #endif        

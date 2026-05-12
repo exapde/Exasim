@@ -70,23 +70,23 @@ using namespace std;
 #include "CodeGenerator.cpp"
 #include "CodeCompiler.cpp"
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[]) 
 {
     if (argc < 2) {
         std::cerr << "Usage: ./text2code <pdeapp.txt> [--out-dir <path>]\n"
-                     "  --out-dir overrides where my_model.hpp + libpdemodel*.{so,dylib}\n"
-                     "    are written. Default: <exasimpath>/backend/Model/\n"
-                     "    Per-target dirs let multiple text2code runs avoid clobbering\n"
-                     "    each other (HOT.7.14 — drops the test-matrix RESOURCE_LOCK).\n";
+            "  --out-dir overrides where my_model.hpp + libpdemodel*.{so,dylib}\n"
+            "    are written. Default: <exasimpath>/backend/Model/Text2codeGenerated/\n"
+            "    Per-target dirs let multiple text2code runs avoid clobbering\n"
+            "    each other (HOT.7.14 — drops the test-matrix RESOURCE_LOCK).\n";
         return 1;
-    }
+    }    
 
     if (std::filesystem::exists(argv[1])) {
         std::cout << "Generating Exasim's input files for this text file ("<< argv[1] << ") ... \n\n";
     } else {
-        error("Error: Input file does not exist.\n");
-    }
-
+        error("Error: Input file does not exist.\n");        
+    }          
+           
     // Optional --out-dir override (HOT.7.14).
     std::string out_dir_override;
     for (int i = 2; i + 1 < argc; ++i) {
@@ -96,15 +96,16 @@ int main(int argc, char* argv[])
         }
     }
 
-    InputParams params = parseInputFile(argv[1]);
-    PDE pde = initializePDE(params);
-
-    ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));
+    InputParams params = parseInputFile(argv[1]);                           
+    PDE pde = initializePDE(params);    
+     
+    ParsedSpec spec = TextParser::parseFile(make_path(pde.datapath, pde.modelfile));        
     spec.exasimpath = pde.exasimpath;
+    //spec.modelpath = make_path(pde.exasimpath, "/backend/Model/Text2codeGenerated/");
     spec.modelpath = out_dir_override.empty()
-        ? make_path(pde.exasimpath, "/backend/Model/")
+        ? make_path(pde.exasimpath, "/backend/Model/Text2codeGenerated/")
         : (out_dir_override.back() == '/' ? out_dir_override : out_dir_override + "/");
-    if (!out_dir_override.empty()) std::filesystem::create_directories(spec.modelpath);
+    if (!out_dir_override.empty()) std::filesystem::create_directories(spec.modelpath);    
     spec.symenginepath = make_path(pde.exasimpath, "/text2code/symengine");
     
     if (pde.gendatain == 1) {

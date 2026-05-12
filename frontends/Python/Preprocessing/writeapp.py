@@ -1,6 +1,10 @@
 from numpy import *
 
 def writeapp(app,filename):
+    def flat(key):
+        if key not in app:
+            app[key] = array([]);
+        return array(app[key]).flatten(order='F')
 
     app['flag'] = array(app['flag']);
     app['problem'] = array(app['problem']);
@@ -46,7 +50,9 @@ def writeapp(app,filename):
     #if app['nco'] != app['vindx'].shape[0]:  #size(app.vindx,1):
     #    error("app.nco mus be equal to size(app.vindx,1)");
 
-    nsize = zeros((20,1));
+    avparam = concatenate([flat('avparam1'), flat('avparam2')])
+
+    nsize = zeros((30,1));
     nsize[1-1] = size(ndims);
     nsize[2-1] = size(app['flag']);  # size of flag
     nsize[3-1] = size(app['problem']); # size of physics
@@ -61,6 +67,11 @@ def writeapp(app,filename):
     nsize[12-1] = size(app['stgib']);
     nsize[13-1] = size(app['vindx']);
     nsize[14-1] = size(app['dae_dt']); # number of dual time steps
+    nsize[15-1] = size(flat('interfacefluxmap'));
+    nsize[16-1] = size(avparam);
+    nsize[17-1] = size(flat('wmModelIDs'));
+    nsize[18-1] = size(flat('wmBoundaries'));
+    nsize[19-1] = size(flat('wmDistances'));
 
     print("Writing app into file...");
     fileID = open(filename, 'wb');
@@ -107,6 +118,20 @@ def writeapp(app,filename):
     if nsize[14-1] > 0:
         app['dae_dt'] = array(app['dae_dt']).flatten(order = 'F');
         app['dae_dt'].astype('float64').tofile(fileID);
+    if nsize[15-1] > 0:
+        app['interfacefluxmap'] = flat('interfacefluxmap') - 1;
+        app['interfacefluxmap'].astype('float64').tofile(fileID);
+    if nsize[16-1] > 0:
+        avparam.astype('float64').tofile(fileID);
+    if nsize[17-1] > 0:
+        app['wmModelIDs'] = flat('wmModelIDs');
+        app['wmModelIDs'].astype('float64').tofile(fileID);
+    if nsize[18-1] > 0:
+        app['wmBoundaries'] = flat('wmBoundaries');
+        app['wmBoundaries'].astype('float64').tofile(fileID);
+    if nsize[19-1] > 0:
+        app['wmDistances'] = flat('wmDistances');
+        app['wmDistances'].astype('float64').tofile(fileID);
 
     if app['mutationflag']:
         app['mutationopts']['MixtureName'] = array((app['mutationopts']['MixtureName'] +'X').encode())

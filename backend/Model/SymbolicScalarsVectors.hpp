@@ -1,19 +1,13 @@
 #pragma once
 
 #include "SymbolicFunctions.hpp"
-#include <algorithm>
-#include <tuple>
-#include <regex>
 
 class SymbolicScalarsVectors {
 
 public:
 
-    // path to model folder; Code2Cpp's main() sets this
-    // from argv[1]. Default left empty (writes relative
-    // to cwd) so generated headers don't bake an absolute
-    // path tied to the developer who ran codegen.
-    std::string modelpath = "";
+    // path to model folder 
+    std::string modelpath = "/Users/cuongnguyen/Documents/GitHub/hexascale/Exasim/backend/Model/";
 
     // input symbolic scalars
     Expression t;
@@ -28,7 +22,6 @@ public:
     std::vector<Expression> eta;
     std::vector<Expression> w;
     std::vector<Expression> tau;
-    std::vector<Expression> uext;
 
     // vector sizes
     int szx;
@@ -40,7 +33,6 @@ public:
     int szeta;
     int szw;
     int sztau;
-    int szuext;
     bool exasim;
 
     std::vector<bool> outputfunctions;
@@ -79,19 +71,4 @@ public:
     void appendFbouHdg(const std::string& filename, const std::string& funcname, int nbc);
     void appendFextonly(const std::string& filename, const std::string& funcname, int nbc);
     void appendFext(const std::string& filename, const std::string& funcname, int nbc);
-
-    // Emit a single header-only `my_model.hpp` consumable by
-    // `<exasim/model.hpp>`'s templated FEM internals (HOT.4).
-    void emit_pointwise_value(std::ostream& os, const std::string& method_name,
-                              const std::string& cpp_signature,
-                              const std::vector<Expression>& f, int functionid);
-    void emit_pointwise_value_per_ib(std::ostream& os, const std::string& method_name,
-                                     const std::string& cpp_signature,
-                                     const std::vector<Expression>& f, int functionid, int szuhat);
-    void emit_pointwise_value_and_jac(std::ostream& os, const std::string& value_method_name,
-                                     const std::vector<std::string>& jac_method_names,
-                                     const std::string& cpp_signature_value,
-                                     const std::vector<std::string>& cpp_signatures_jac,
-                                     const std::vector<Expression>& f, int functionid);
-    void generateModelHeader(const std::string& filename);
 };

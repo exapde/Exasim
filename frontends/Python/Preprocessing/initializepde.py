@@ -114,9 +114,14 @@ def initializepde(version):
     pde['flag'] = [0, 0];
     pde['problem'] = [0, 0];
     pde['boundaryconditions'] = [0, 0];
+    pde['wmModelIDs'] = numpy.array([]);
+    pde['wmBoundaries'] = numpy.array([]);
+    pde['wmDistances'] = numpy.array([]);
     pde['stgib'] = [0, 0];
     pde['vindx'] = numpy.array([]);
     pde['interfacefluxmap'] = numpy.array([]);
+    pde['avparam1'] = numpy.array([]);
+    pde['avparam2'] = numpy.array([]);
 
     pde['tau'] = 1.0; # stabilization parameters
     pde['uinf'] = numpy.array([0.0, 0.0]); # freestream values

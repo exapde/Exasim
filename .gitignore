@@ -318,3 +318,9 @@ examples/ReactingFlows/reactingcylinder/AssessmentofCFDcapabilityforpredictionof
 /examples/Poisson/test
 /examples/ShallowWater/wetdry1dweir
 /doc
+lib/libbuiltinmodelserial.dylib
+lib/libcpuEXASIM.a
+lib/libcpukkEXASIM.a
+lib/libcpumpiEXASIM.a
+lib/libcpumpikkEXASIM.a
+lib/libt2cmodelserial.dylib

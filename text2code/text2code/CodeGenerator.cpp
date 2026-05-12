@@ -57,7 +57,7 @@ void CodeGenerator::generateCode2Cpp(const std::string& filename) const {
 
     os << "#include \"SymbolicFunctions.cpp\"\n";
     os << "#include \"SymbolicScalarsVectors.cpp\"\n\n";
-
+                
     os << "int main(int argc, char* argv[]) \n";
     os << "{\n";
     os << "  SymbolicScalarsVectors ssv;\n";
@@ -591,12 +591,12 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
 
     os << "class SymbolicScalarsVectors {\n\n";
     os << "public:\n\n";
-    
+
     os << "    // path to model folder; Code2Cpp's main() sets this\n";
     os << "    // from argv[1]. Default left empty (writes relative\n";
     os << "    // to cwd) so generated headers don't bake an absolute\n";
     os << "    // path tied to the developer who ran codegen.\n";
-    os << "    std::string modelpath = \"\";\n\n";
+    os << "    std::string modelpath = \"" << spec.modelpath << "\";\n\n";
     
     // Scalars
     os << "    // input symbolic scalars\n";
@@ -687,8 +687,8 @@ void CodeGenerator::generateSymbolicScalarsVectorsHpp(const std::string& filenam
     os << "    void generateModelHeader(const std::string& filename);\n";
 
     os << "};\n";
-
-    os.close();
+    
+    os.close();  
 }
 
 void emitSymbolicScalarsVectors(std::ostream& os, const ParsedSpec& spec) {
@@ -1677,8 +1677,8 @@ void emitFext(std::ostream& os) {
     os << "    }\n\n";
     
     os << "    tmp << \"}\\n\";\n\n";
-
-    os << "    std::ofstream cppfile(filename + \".cpp\", std::ios::out | std::ios::app);\n";
+    
+    os << "    std::ofstream cppfile(filename + \".cpp\", std::ios::out | std::ios::app);\n";    
     os << "    cppfile << tmp.str();\n";
     os << "    cppfile.close();\n";
     os << "}\n";
@@ -1752,7 +1752,7 @@ void emitEmitPointwiseValue(std::ostream& os) {
     os << "    for (const auto& [name, vec] : inputs) {\n";
     os << "        for (size_t j = 0; j < vec.size(); ++j) {\n";
     os << "            if (depends_on(vec[j])) {\n";
-    os << "                os << \"        const double \" << name << j\n";
+    os << "                os << \"        const dstype \" << name << j\n";
     os << "                   << \" = \" << rename_input(name) << \"[\" << j << \"];\\n\";\n";
     os << "            }\n";
     os << "        }\n";
@@ -1762,7 +1762,7 @@ void emitEmitPointwiseValue(std::ostream& os) {
     os << "    for (size_t n = 0; n < replacements.size(); ++n) {\n";
     os << "        std::string var_name = cpp.apply(*replacements[n].first);\n";
     os << "        std::string rhs      = kokkosify(cpp.apply(*replacements[n].second));\n";
-    os << "        os << \"        const double \" << var_name << \" = \" << rhs << \";\\n\";\n";
+    os << "        os << \"        const dstype \" << var_name << \" = \" << rhs << \";\\n\";\n";
     os << "    }\n";
     os << "    os << \"\\n\";\n\n";
 
@@ -1832,7 +1832,7 @@ void emitEmitPointwiseValuePerIb(std::ostream& os) {
     os << "        for (const auto& [name, vec] : inputs) {\n";
     os << "            for (size_t j = 0; j < vec.size(); ++j) {\n";
     os << "                if (depends_on(vec[j])) {\n";
-    os << "                    os << \"            const double \" << name << j\n";
+    os << "                    os << \"            const dstype \" << name << j\n";
     os << "                       << \" = \" << rename_input(name) << \"[\" << j << \"];\\n\";\n";
     os << "                }\n";
     os << "            }\n";
@@ -1841,7 +1841,7 @@ void emitEmitPointwiseValuePerIb(std::ostream& os) {
     os << "        for (size_t k = 0; k < replacements.size(); ++k) {\n";
     os << "            std::string var_name = cpp.apply(*replacements[k].first);\n";
     os << "            std::string rhs      = kokkosify(cpp.apply(*replacements[k].second));\n";
-    os << "            os << \"            const double \" << var_name << \" = \" << rhs << \";\\n\";\n";
+    os << "            os << \"            const dstype \" << var_name << \" = \" << rhs << \";\\n\";\n";
     os << "        }\n";
     os << "        os << \"\\n\";\n";
     os << "        for (size_t k = 0; k < g.size(); ++k) {\n";
@@ -1868,9 +1868,9 @@ void emitEmitPointwiseValuePerIb(std::ostream& os) {
 //
 // Conventions enforced by the emitted code:
 //   - Method signatures match `<exasim/model.hpp>`'s contract:
-//       flux(double f[], const double x[], const double uq[],
-//            const double w[], const double mu[],
-//            const double uinf[], double t)
+//       flux(dstype f[], const dstype x[], const dstype uq[],
+//            const dstype w[], const dstype mu[],
+//            const dstype uinf[], dstype t)
 //     — pointwise (no `[k*N+i]`), no `Kokkos::parallel_for`.
 //   - Name remap: pdemodel.txt's `eta` → `uinf`, `uhat` → `uh`. All
 //     other names (`x`, `uq`, `w`, `mu`, `n`, `tau`, `t`) match the
@@ -1909,15 +1909,13 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "    hfile << \"// defaults for any optional method this PDE doesn't define.\\n\";\n";
     os << "    hfile << \"#pragma once\\n\\n\";\n";
     os << "    hfile << \"#include <Kokkos_Core.hpp>\\n\";\n";
-    os << "    hfile << \"#include <exasim/model.hpp>\\n\\n\";\n";
 
-    os << "    hfile << \"struct GeneratedModel : exasim::ModelDefaults<GeneratedModel> {\\n\";\n";
+    os << "    hfile << \"struct PdeModel : ModelDefaults<PdeModel> {\\n\";\n";
     os << "    hfile << \"    static constexpr int nd     = " << nd     << ";\\n\";\n";
     os << "    hfile << \"    static constexpr int ncu    = " << ncu    << ";\\n\";\n";
     os << "    hfile << \"    static constexpr int ncw    = " << ncw    << ";\\n\";\n";
     os << "    hfile << \"    static constexpr int nco    = " << nco    << ";\\n\";\n";
     os << "    hfile << \"    static constexpr int nparam = " << nparam << ";\\n\";\n";
-    os << "    hfile << \"    static constexpr auto disc  = exasim::Discretization::HDG;\\n\";\n";
     os << "    hfile << \"    static constexpr int Nq = ncu * (1 + nd);\\n\\n\";\n";
 
     // Volume value-only methods. Iterate over `outputfunctions` and
@@ -1932,12 +1930,12 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "    // ----- Volume value methods -----\n";
     os << "    static const std::vector<std::tuple<std::string, std::string, std::string>>\n";
     os << "        volume_methods = {\n";
-    os << "        {\"Flux\",       \"flux\",        \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"Source\",     \"source\",      \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"Tdfunc\",     \"tdfunc\",      \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"VisScalars\", \"vis_scalars\", \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"VisVectors\", \"vis_vectors\", \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
-    os << "        {\"QoIvolume\",  \"qoi_volume\",  \"double f[], const double x[], const double uq[], const double v[], const double w[], const double mu[], const double uinf[], double t\"},\n";
+    os << "        {\"Flux\",       \"flux\",        \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[], const dstype mu[], const dstype uinf[], dstype t\"},\n";
+    os << "        {\"Source\",     \"source\",      \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[], const dstype mu[], const dstype uinf[], dstype t\"},\n";
+    os << "        {\"Tdfunc\",     \"tdfunc\",      \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[], const dstype mu[], const dstype uinf[], dstype t\"},\n";
+    os << "        {\"VisScalars\", \"vis_scalars\", \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[], const dstype mu[], const dstype uinf[], dstype t\"},\n";
+    os << "        {\"VisVectors\", \"vis_vectors\", \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[], const dstype mu[], const dstype uinf[], dstype t\"},\n";
+    os << "        {\"QoIvolume\",  \"qoi_volume\",  \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[], const dstype mu[], const dstype uinf[], dstype t\"},\n";
     os << "    };\n";
     os << "    for (const auto& [funcname, method_name, sig] : volume_methods) {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
@@ -1949,7 +1947,7 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "    }\n\n";
 
     // Initial-condition method (different signature: no uq/w, no t).
-    os << "    // ----- Initial condition: initu(double ui[], const double x[], const double uinf[], const double mu[]) -----\n";
+    os << "    // ----- Initial condition: initu(dstype ui[], const dstype x[], const dstype uinf[], const dstype mu[]) -----\n";
     os << "    {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), std::string(\"Initu\"));\n";
     os << "        if (it != funcnames.end()) {\n";
@@ -1957,17 +1955,17 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "            if (outputfunctions[idx]) {\n";
     os << "                std::vector<Expression> f = evaluateSymbolicFunctions(idx);\n";
     os << "                emit_pointwise_value(hfile, \"initu\",\n";
-    os << "                    \"double f[], const double x[], const double uinf[], const double mu[]\",\n";
+    os << "                    \"dstype f[], const dstype x[], const dstype uinf[], const dstype mu[]\",\n";
     os << "                    f, idx);\n";
     os << "            }\n";
     os << "        }\n";
     os << "    }\n\n";
 
     // Boundary methods (per-ib dispatch) — fbou, ubou, fbou_hdg, qoi_boundary.
-    // These all share the same signature shape: (double f[], int ib,
-    // const double x[], const double uq[], const double w[],
-    // const double uh[], const double n[], const double tau[],
-    // const double mu[], const double uinf[], double t).
+    // These all share the same signature shape: (dstype f[], int ib,
+    // const dstype x[], const dstype uq[], const dstype w[],
+    // const dstype uh[], const dstype n[], const dstype tau[],
+    // const dstype mu[], const dstype uinf[], dstype t).
     os << "    // ----- Boundary methods (per-ib dispatch) -----\n";
     os << "    static const std::vector<std::tuple<std::string, std::string>>\n";
     os << "        boundary_methods = {\n";
@@ -1977,9 +1975,9 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "        {\"QoIboundary\", \"qoi_boundary\"},\n";
     os << "    };\n";
     os << "    const std::string boundary_sig =\n";
-    os << "        \"double f[], int ib, const double x[], const double uq[], const double v[],\"\n";
-    os << "        \" const double w[], const double uh[], const double n[], const double tau[],\"\n";
-    os << "        \" const double mu[], const double uinf[], double t\";\n";
+    os << "        \"dstype f[], int ib, const dstype x[], const dstype uq[], const dstype v[],\"\n";
+    os << "        \" const dstype w[], const dstype uh[], const dstype n[], const dstype tau[],\"\n";
+    os << "        \" const dstype mu[], const dstype uinf[], dstype t\";\n";
     os << "    for (const auto& [funcname, method_name] : boundary_methods) {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
     os << "        if (it == funcnames.end()) continue;\n";
@@ -2020,8 +2018,8 @@ void emitGenerateModelHeader(std::ostream& os, const ParsedSpec& spec) {
     os << "        {\"Source\", \"source\", {\"source_jac_uq\", \"source_jac_w\"}},\n";
     os << "    };\n";
     os << "    const std::string volume_sig =\n";
-    os << "        \"double f[], const double x[], const double uq[], const double v[], const double w[],\"\n";
-    os << "        \" const double mu[], const double uinf[], double t\";\n";
+    os << "        \"dstype f[], const dstype x[], const dstype uq[], const dstype v[], const dstype w[],\"\n";
+    os << "        \" const dstype mu[], const dstype uinf[], dstype t\";\n";
     os << "    for (const auto& [funcname, value_name, jac_names] : volume_jac_methods) {\n";
     os << "        auto it = std::find(funcnames.begin(), funcnames.end(), funcname);\n";
     os << "        if (it == funcnames.end()) continue;\n";
@@ -2104,15 +2102,15 @@ void CodeGenerator::generateSymbolicScalarsVectorsCpp(const std::string& filenam
     emitFbouHdg(os);
 
     emitFextonly(os);
-
+    
     emitFext(os);
-
+    
     // HOT.4: emit the `my_model.hpp` writer alongside the legacy emitters.
     emitEmitPointwiseValue(os);
     emitEmitPointwiseValuePerIb(os);
     emitGenerateModelHeader(os, spec);
 
-    os.close();
+    os.close();  
 }
 
 void CodeGenerator::generateEmptySourcewCpp(std::string modelpath) const {  
@@ -2312,7 +2310,7 @@ void CodeGenerator::generateEmptyFextCpp(std::string modelpath) const {
 
 void CodeGenerator::generateEmptyFhatCpp(std::string modelpath) const {  
     std::ofstream os(make_path(modelpath,  "KokkosFhat.cpp"));
-    os << "void KokkosFhat(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "void KokkosFhat(dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
@@ -2320,7 +2318,7 @@ void CodeGenerator::generateEmptyFhatCpp(std::string modelpath) const {
 
 void CodeGenerator::generateEmptyUhatCpp(std::string modelpath) const {  
     std::ofstream os(make_path(modelpath,  "KokkosUhat.cpp"));
-    os << "void KokkosUhat(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "void KokkosUhat(dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
@@ -2328,7 +2326,7 @@ void CodeGenerator::generateEmptyUhatCpp(std::string modelpath) const {
 
 void CodeGenerator::generateEmptyStabCpp(std::string modelpath) const {  
     std::ofstream os(make_path(modelpath,  "KokkosStab.cpp"));
-    os << "void KokkosStab(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
+    os << "void KokkosStab(dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw)\n";
     os << "{\n";
     os << "}\n";
     os.close();        
@@ -2442,7 +2440,7 @@ void CodeGenerator::generateLibPDEModelHpp(std::string modelpath) const {
     os << "void KokkosEoSdu(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne);\n";
     os << "void KokkosEoSdw(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne);\n";
     os << "void KokkosFbou(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
-    os << "void KokkosFhat(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosFhat(dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void KokkosInitodg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne);\n";
     os << "void KokkosInitq(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne);\n";
     os << "void KokkosInitu(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne);\n";
@@ -2452,10 +2450,10 @@ void CodeGenerator::generateLibPDEModelHpp(std::string modelpath) const {
     os << "void KokkosOutput(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne);\n";
     os << "void KokkosSource(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void KokkosSourcew(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne);\n";
-    os << "void KokkosStab(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosStab(dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void KokkosTdfunc(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
     os << "void KokkosUbou(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ib, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
-    os << "void KokkosUhat(const dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
+    os << "void KokkosUhat(dstype* f, const dstype* xdg, const dstype* udg1, const dstype* udg2,  const dstype* odg1, const dstype* odg2,  const dstype* wdg1, const dstype* wdg2,  const dstype* uhg, const dstype* nlg, const dstype* tau, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw);\n";
 
     // CPU initialization routines
     os << "void cpuInitodg(dstype* f, const dstype* xdg, const dstype* uinf, const dstype* param, const int modelnumber, const int ng, const int ncx, const int nce, const int npe, const int ne);\n";

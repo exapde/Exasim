@@ -77,7 +77,7 @@
 #include "cpuInitudg.cpp"
 #include "cpuInitodg.cpp"
   
-inline void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -94,7 +94,7 @@ inline void FluxDriver(dstype* f, const dstype* xg, const dstype* udg, const dst
                 common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
 }
 
-inline void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -111,7 +111,7 @@ inline void SourceDriver(dstype* f, const dstype* xg, const dstype* udg, const d
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void QoIvolumeDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void QoIvolumeDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -128,7 +128,7 @@ inline void QoIvolumeDriver(dstype* f, const dstype* xg, const dstype* udg, cons
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void VisScalarsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void VisScalarsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -145,7 +145,7 @@ inline void VisScalarsDriver(dstype* f, const dstype* xg, const dstype* udg, con
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void VisVectorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void VisVectorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -163,7 +163,7 @@ inline void VisVectorsDriver(dstype* f, const dstype* xg, const dstype* udg, con
 }
 
 
-inline void VisTensorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void VisTensorsDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -180,7 +180,7 @@ inline void VisTensorsDriver(dstype* f, const dstype* xg, const dstype* udg, con
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void SourcewDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourcewDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int npe, Int e1, Int e2, Int backend)
 { 
@@ -198,7 +198,7 @@ inline void SourcewDriver(dstype* f, const dstype* xg, const dstype* udg, const 
               numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                
 }
 
-inline void OutputDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void OutputDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int backend)
 { 
@@ -219,7 +219,7 @@ inline void OutputDriver(dstype* f, const dstype* xg, const dstype* udg, const d
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw, nce, npe, ne);                
 }
 
-inline void MonitorDriver(dstype* f, Int nc_sol, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void MonitorDriver(dstype* f, Int nc_sol, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
   masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
   commonstruct &common, Int backend)
 { 
@@ -240,7 +240,7 @@ inline void MonitorDriver(dstype* f, Int nc_sol, const dstype* xg, const dstype*
           common.modelnumber, numPoints, nc_sol, ncu, nd, ncx, nco, ncw, ncm, npe, ne);                
 }
 
-inline void AvfieldDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void AvfieldDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int backend)
 { 
@@ -261,7 +261,7 @@ inline void AvfieldDriver(dstype* f, const dstype* xg, const dstype* udg, const 
               numPoints, nc, ncu, nd, ncx, nco, ncw, common.ncAV, npe, ne);                
 }
 
-inline void EosDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void EosDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int npe, Int e1, Int e2, Int backend)
 { 
@@ -279,7 +279,7 @@ inline void EosDriver(dstype* f, const dstype* xg, const dstype* udg, const dsty
               numPoints, nc, ncu, nd, ncx, nco, ncw, ncw, npe, ne);                                          
 }
 
-inline void EosduDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void EosduDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int npe, Int e1, Int e2, Int backend)
 { 
@@ -297,7 +297,7 @@ inline void EosduDriver(dstype* f, const dstype* xg, const dstype* udg, const ds
               numPoints, nc, ncu, nd, ncx, nco, ncw, ncw*ncu, npe, ne);                  
 }
 
-inline void EosdwDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void EosdwDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int npe, Int e1, Int e2, Int backend)
 { 
@@ -315,7 +315,7 @@ inline void EosdwDriver(dstype* f, const dstype* xg, const dstype* udg, const ds
               numPoints, nc, ncu, nd, ncx, nco, ncw, ncw*ncw, npe, ne);                        
 }
 
-inline void TdfuncDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void TdfuncDriver(dstype* f, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -332,7 +332,7 @@ inline void TdfuncDriver(dstype* f, const dstype* xg, const dstype* udg, const d
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                
 }
 
-inline void FhatDriver(dstype* fg, const dstype* xg, const dstype* ug1, const dstype* ug2, const dstype*  og1, const dstype*  og2, 
+void FhatDriver(dstype* fg, const dstype* xg, const dstype* ug1, const dstype* ug2, const dstype*  og1, const dstype*  og2, 
     const dstype* wg1, const dstype* wg2, const dstype* uh, const dstype* nl, meshstruct &mesh, masterstruct &master, appstruct &app, 
     solstruct &sol, tempstruct &tmp, commonstruct &common, Int ngf, Int f1, Int f2, Int backend)
 {
@@ -357,7 +357,7 @@ inline void FhatDriver(dstype* fg, const dstype* xg, const dstype* ug1, const ds
     FluxDriver(fg, xg, ug1, og1, wg1, mesh, master, app, sol, tmp, common,
                     ngf, f1, f2, backend);        
     // right flux
-    //auto fg2 = Kokkos::subview(fg, Kokkos::std::make_pair(N, 2*N));
+    //auto fg2 = Kokkos::subview(fg, Kokkos::make_pair(N, 2*N));
     dstype *fg2 = &fg[N];
     FluxDriver(fg2, xg, ug2, og2, wg2, mesh, master, app, sol, tmp, common,
                     ngf, f1, f2, backend);        
@@ -390,7 +390,7 @@ inline void FhatDriver(dstype* fg, const dstype* xg, const dstype* ug1, const ds
   }
 }
 
-inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
+void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
 {
@@ -407,7 +407,7 @@ inline void FbouDriver(dstype* fb, const dstype* xg, const dstype* udg, const ds
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
-inline void QoIboundaryDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
+void QoIboundaryDriver(dstype* fb, const dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg, const dstype* nl, 
         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
 {
@@ -424,7 +424,7 @@ inline void QoIboundaryDriver(dstype* fb, const dstype* xg, const dstype* udg, c
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
-inline void UhatDriver(dstype* fg, dstype* xg, dstype* ug1, dstype* ug2, const dstype*  og1, 
+void UhatDriver(dstype* fg, dstype* xg, dstype* ug1, dstype* ug2, const dstype*  og1, 
      const dstype*  og2, const dstype* wg1, const dstype* wg2, const dstype* uh, const dstype* nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, 
      tempstruct &tmp, commonstruct &common, Int ngf, Int f1, Int f2, Int backend)
 {        
@@ -447,7 +447,7 @@ inline void UhatDriver(dstype* fg, dstype* xg, dstype* ug1, dstype* ug2, const d
     }
 }
 
-inline void UbouDriver(dstype* ub, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nl, 
+void UbouDriver(dstype* ub, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uhg, const dstype* nl, 
         meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int ngf, Int f1, Int f2, Int ib, Int backend)
 {
@@ -464,7 +464,7 @@ inline void UbouDriver(dstype* ub, const dstype* xg, const dstype* udg, const ds
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
-inline void InitodgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nco, Int npe, Int ne, Int backend)
+void InitodgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nco, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -472,7 +472,7 @@ inline void InitodgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, 
   KokkosInitodg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nco, npe, ne);                
 }
 
-inline void InitqDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
+void InitqDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;     
   Int modelnumber = app.flag[12];
@@ -481,7 +481,7 @@ inline void InitqDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, In
     
 }
 
-inline void InitudgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
+void InitudgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -489,7 +489,7 @@ inline void InitudgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, 
   KokkosInitudg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);                
 }
 
-inline void InituDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
+void InituDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -497,7 +497,7 @@ inline void InituDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, In
   KokkosInitu(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);                
 }
 
-inline void InitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int ncw, Int npe, Int ne, Int backend)
+void InitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int ncw, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -505,7 +505,7 @@ inline void InitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, 
   KokkosInitwdg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, ncw, npe, ne);                
 }
 
-inline void cpuInitodgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nco, Int npe, Int ne, Int backend)
+void cpuInitodgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nco, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -513,7 +513,7 @@ inline void cpuInitodgDriver(dstype* f, const dstype* xg, appstruct &app, Int nc
   cpuInitodg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nco, npe, ne);                
 }
 
-inline void cpuInitqDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
+void cpuInitqDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;     
   Int modelnumber = app.flag[12];
@@ -522,7 +522,7 @@ inline void cpuInitqDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx,
     
 }
 
-inline void cpuInitudgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
+void cpuInitudgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -530,7 +530,7 @@ inline void cpuInitudgDriver(dstype* f, const dstype* xg, appstruct &app, Int nc
   cpuInitudg(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);                
 }
 
-inline void cpuInituDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
+void cpuInituDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int nc, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -538,7 +538,7 @@ inline void cpuInituDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx,
   cpuInitu(f, xg, app.uinf, app.physicsparam, modelnumber, numPoints, ncx, nc, npe, ne);                
 }
 
-inline void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int ncw, Int npe, Int ne, Int backend)
+void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int ncx, Int ncw, Int npe, Int ne, Int backend)
 {     
   Int numPoints = npe*ne;              
   Int modelnumber = app.flag[12];
@@ -557,7 +557,7 @@ inline void cpuInitwdgDriver(dstype* f, const dstype* xg, appstruct &app, Int nc
 #include "HdgSourcewonly.cpp"
 #include "HdgEoS.cpp"
 
-inline void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,  dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -574,7 +574,7 @@ inline void FluxDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg
                 common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);         
 }
 
-inline void SourceDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourceDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -591,7 +591,7 @@ inline void SourceDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* 
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void SourcewDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourcewDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -608,7 +608,7 @@ inline void SourcewDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype*
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void SourcewDriver(dstype* f, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void SourcewDriver(dstype* f, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -625,7 +625,7 @@ inline void SourcewDriver(dstype* f, dstype* f_wdg, const dstype* xg, const dsty
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                       
 }
 
-inline void EosDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
+void EosDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg, const dstype* udg, const dstype* odg, const dstype* wdg, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nge, Int e1, Int e2, Int backend)
 { 
@@ -642,7 +642,7 @@ inline void EosDriver(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xg,
               common.modelnumber, numPoints, nc, ncu, nd, ncx, nco, ncw);                           
 }
 
-inline void FbouDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
+void FbouDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
         const dstype*  odg, const dstype*  wdg, dstype* uhg, const dstype* nl, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
 {
@@ -661,7 +661,7 @@ inline void FbouDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, 
 }
 
 
-inline void FbouDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
+void FbouDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
         const dstype* nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nga, Int ib, Int backend)
 {
@@ -678,7 +678,7 @@ inline void FbouDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
-inline void FintDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
+void FintDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
         const dstype*  odg, const dstype*  wdg, dstype* uhg, const dstype* nl, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
 {
@@ -696,7 +696,7 @@ inline void FintDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, 
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
-inline void FintDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
+void FintDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
         const dstype* nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nga, Int ib, Int backend)
 {
@@ -713,7 +713,7 @@ inline void FintDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  
                       common.modelnumber, ib, numPoints, nc, ncu, nd, ncx, nco, ncw);
 }
 
-inline void FextDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
+void FextDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, dstype* xg, const dstype* udg, 
         const dstype*  odg, const dstype*  wdg, dstype* uhg, const dstype* nl, const dstype* uext, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
 {
@@ -721,7 +721,7 @@ inline void FextDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, 
     //           common.modelnumber, ib, nga, common.nc, common.ncu, common.nd, common.ncx, common.nco, common.ncw);
 }
 
-inline void FextDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
+void FextDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  odg, const dstype*  wdg, dstype* uhg, 
         const dstype* nl, const dstype* uext, meshstruct &mesh, masterstruct &master, appstruct &app, 
         solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int ib, Int backend)
 {
@@ -729,7 +729,7 @@ inline void FextDriver(dstype* f, dstype* xg, const dstype* udg, const dstype*  
     //           common.modelnumber, ib, nga, common.nc, common.ncu, common.nd, common.ncx, common.nco, common.ncw);
 }
 
-inline void FhatDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xg, dstype* udg, 
+void FhatDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, const dstype* xg, dstype* udg, 
         const dstype*  odg, const dstype*  wdg, const dstype* uhg,  dstype* nl, meshstruct &mesh, 
         masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, commonstruct &common, Int nga, Int backend)
 {
@@ -785,7 +785,7 @@ inline void FhatDriver(dstype* f,  dstype* f_udg, dstype* f_wdg, dstype* f_uhg, 
     AddStabilization1(f, f_udg, f_uhg, udg, uhg, app.tau, M, numPoints);  
 }
 
-inline void FhatDriver(dstype* f, dstype* u, const dstype* xg, dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg,  
+void FhatDriver(dstype* f, dstype* u, const dstype* xg, dstype* udg, const dstype*  odg, const dstype*  wdg, const dstype* uhg,  
         dstype* nl, meshstruct &mesh, masterstruct &master, appstruct &app, solstruct &sol, tempstruct &temp, 
         commonstruct &common, Int nga, Int backend)
 {

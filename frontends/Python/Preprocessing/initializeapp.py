@@ -1,3 +1,5 @@
+import numpy
+
 def initializeapp(version):
 
     app = {'codename' : [], 'version' : []};
@@ -90,7 +92,14 @@ def initializeapp(version):
     app['flag'] = [0, 0];
     app['problem'] = [0, 0];
     app['boundaryconditions'] = [0, 0];
+    app['wmModelIDs'] = numpy.array([]);
+    app['wmBoundaries'] = numpy.array([]);
+    app['wmDistances'] = numpy.array([]);
     app['stgib'] = [0, 0];
+    app['vindx'] = numpy.array([]);
+    app['interfacefluxmap'] = numpy.array([]);
+    app['avparam1'] = numpy.array([]);
+    app['avparam2'] = numpy.array([]);
 
     app['tau'] = 1.0; # stabilization parameters
     app['uinf'] = [0.0, 0.0]; # freestream values

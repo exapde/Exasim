@@ -162,7 +162,7 @@ using std::ios;
 using std::string;
 using std::vector;
 
-int * readiarrayfromdouble(std::ifstream &in, int N)
+int * readiarrayfromdouble(ifstream &in, int N)
 {
     int *a;
     if (N>0) {      
@@ -187,9 +187,9 @@ static inline void skip_iarrayfromdouble(std::ifstream& in, int n)
     free(tmp);
 }
 
-void readelempart(const std::string& filename, std::vector<int>& elempart, std::vector<int>& elempartpts)
+void readelempart(const string& filename, vector<int>& elempart, vector<int>& elempartpts)
 {
-    std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
+    ifstream in(filename.c_str(), ios::in | ios::binary);
     if (!in) error("Unable to open file " + filename);
 
     int* lsize = nullptr;
@@ -245,8 +245,8 @@ void readelempart(const std::string& filename, std::vector<int>& elempart, std::
 }
 
 void readelempart(const std::string& base,
-                  std::vector<std::vector<int>>& elempart,
-                  std::vector<std::vector<int>>& elempartpts,
+                  vector<vector<int>>& elempart,
+                  vector<vector<int>>& elempartpts,
                   int nprocs)
 {
     if (nprocs <= 0)

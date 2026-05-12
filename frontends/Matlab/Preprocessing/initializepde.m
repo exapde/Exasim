@@ -11,7 +11,7 @@ pde.usecmake = 1;
 pde.mpirun = "mpirun";
 pde.metis = "mpmetis";
 pde.gmsh = "gmsh";
-pde.paraview = "paraview";
+pde.paraview = "/Applications/ParaView-6.1.0.app/Contents/MacOS/paraview";
 pde.enzyme = [];
 pde.codegenerator = "";
 
@@ -112,6 +112,9 @@ pde.matvectol = 1e-3;
 pde.flag = [];
 pde.problem = [];
 pde.boundaryconditions = [0 0];
+pde.wmModelIDs = [];
+pde.wmBoundaries = [];
+pde.wmDistances = [];
 pde.stgib = [];
 pde.vindx = [];
 pde.interfacefluxmap = [];
@@ -148,7 +151,6 @@ pde.fbou = "fbou";
 pde.fhat = "fhat";
 pde.source = "source";
 pde.arg = {};
-
 
 
 

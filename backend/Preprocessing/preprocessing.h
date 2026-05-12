@@ -5,8 +5,8 @@
 #include "buildstructs.hpp"
 
 class CPreprocessing {
-private:
-public:
+    private:
+    public:
     int mpirank = 0;
 
     ParsedSpec spec;
@@ -16,7 +16,7 @@ public:
     Master master;
     ElementClassification elemclass;
     DMD dmd;
-      
+
     // File-driven constructor: parse pdeapp.txt and pdemodel.txt.
     CPreprocessing(std::string filein, int rank=0, int commsize=1);
 
@@ -36,9 +36,9 @@ public:
 
     void SerialPreprocessing();
 
-#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
+    #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
     void ParallelPreprocessing(MPI_Comm comm);
-#endif
+    #endif
 
     // HOT.7.3 — Run preprocessing into in-memory `Preprocessed`
     // bundle (no app.bin/master.bin/mesh.bin/sol.bin written). The
@@ -46,14 +46,14 @@ public:
     // Serial path (mpiprocs == 1).
     exasim::Preprocessed take();
 
-#if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
+    #if defined(HAVE_PARMETIS) && defined(HAVE_MPI)
     // HOT.7.8 — Parallel counterpart of take(). Each rank must have
     // pre-populated `this->mesh` via meshFromArraysDistributed before
     // calling. The pipeline runs initializeMaster, buildMesh,
     // callParMetis (ParMETIS repartition), initializeDMD, then
     // builds the per-rank app/master/mesh/sol structs.
     exasim::Preprocessed takeParallel(MPI_Comm comm);
-#endif
+    #endif
 };
 
 #endif        

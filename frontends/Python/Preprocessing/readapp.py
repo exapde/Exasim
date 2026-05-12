@@ -4,7 +4,7 @@ def readapp(fileapp):
 
     app = {'nsize' : []};
 
-    tm = numpy.fromfile(open(fileapp, "r"), dtype=numpy.float64);
+    tm = numpy.fromfile(open(fileapp, "rb"), dtype=numpy.float64);
 
     sz = numpy.int_(tm[0]);
     k1 = 1;
@@ -58,5 +58,42 @@ def readapp(fileapp):
     k1 = k2;
     k2 = k1+app['nsize'][11];
     app['stgib'] = tm[k1:k2];
+
+    app['vindx'] = numpy.array([]);
+    app['dae_dt'] = numpy.array([]);
+    app['interfacefluxmap'] = numpy.array([]);
+    app['avparam'] = numpy.array([]);
+    app['wmModelIDs'] = numpy.array([]);
+    app['wmBoundaries'] = numpy.array([]);
+    app['wmDistances'] = numpy.array([]);
+
+    if len(app['nsize']) >= 13:
+        k1 = k2;
+        k2 = k1+app['nsize'][12];
+        app['vindx'] = tm[k1:k2];
+    if len(app['nsize']) >= 14:
+        k1 = k2;
+        k2 = k1+app['nsize'][13];
+        app['dae_dt'] = tm[k1:k2];
+    if len(app['nsize']) >= 15:
+        k1 = k2;
+        k2 = k1+app['nsize'][14];
+        app['interfacefluxmap'] = tm[k1:k2];
+    if len(app['nsize']) >= 16:
+        k1 = k2;
+        k2 = k1+app['nsize'][15];
+        app['avparam'] = tm[k1:k2];
+    if len(app['nsize']) >= 19:
+        k1 = k2;
+        k2 = k1+app['nsize'][16];
+        app['wmModelIDs'] = tm[k1:k2];
+
+        k1 = k2;
+        k2 = k1+app['nsize'][17];
+        app['wmBoundaries'] = tm[k1:k2];
+
+        k1 = k2;
+        k2 = k1+app['nsize'][18];
+        app['wmDistances'] = tm[k1:k2];
 
     return app

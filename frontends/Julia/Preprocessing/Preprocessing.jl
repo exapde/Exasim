@@ -102,6 +102,30 @@ master = Master.mkmaster(app.nd,app.porder,app.pgauss,app.elemtype,app.nodetype)
 writemaster(master,filemaster);
 
 app.boundaryconditions = mesh.boundarycondition;
+app.wmModelIDs = app.wmModelIDs[:];
+app.wmBoundaries = app.wmBoundaries[:];
+app.wmDistances = app.wmDistances[:];
+nwm = length(app.wmModelIDs);
+if length(app.wmBoundaries) != nwm || length(app.wmDistances) != nwm
+    error("app.wmModelIDs, app.wmBoundaries, and app.wmDistances must have the same length.");
+end
+if nwm > 0
+    if any(app.wmModelIDs .!= round.(app.wmModelIDs))
+        error("app.wmModelIDs must contain integer wall-model identifiers.");
+    end
+    if any(app.wmBoundaries .!= round.(app.wmBoundaries)) || any(app.wmBoundaries .<= 0)
+        error("app.wmBoundaries must contain positive integer boundary-condition markers.");
+    end
+    if any(app.wmDistances .<= 0)
+        error("app.wmDistances must contain positive off-wall distances.");
+    end
+    boundaryconditions = app.boundaryconditions[:];
+    if !isempty(boundaryconditions) && any(boundaryconditions .!= 0)
+        if any(x -> !(x in boundaryconditions), app.wmBoundaries)
+            error("app.wmBoundaries must be present in mesh.boundarycondition.");
+        end
+    end
+end
 app.uinf = app.externalparam;
 nuinf = length(app.uinf);
 nparam = length(app.physicsparam);

@@ -41,6 +41,9 @@ ndims(19) = app.nvqoi;
 
 avparam = [app.avparam1(:) app.avparam2(:)]';
 avparam = avparam(:);
+if isfield(app, 'wmModelIDs') == 0, app.wmModelIDs = []; end
+if isfield(app, 'wmBoundaries') == 0, app.wmBoundaries = []; end
+if isfield(app, 'wmDistances') == 0, app.wmDistances = []; end
 
 nsize = zeros(30,1);
 nsize(1) = length(ndims(:));
@@ -59,6 +62,9 @@ nsize(13) = length(app.vindx(:));
 nsize(14) = length(app.dae_dt(:));
 nsize(15) = length(app.interfacefluxmap(:));
 nsize(16) = length(avparam(:));
+nsize(17) = length(app.wmModelIDs(:));
+nsize(18) = length(app.wmBoundaries(:));
+nsize(19) = length(app.wmDistances(:));
 
 app.nsize = nsize;
 app.ndims = ndims;
@@ -87,6 +93,15 @@ if (~isempty(app.interfacefluxmap(:)))
 end
 if (~isempty(avparam(:)))    
   fwrite(fileID,avparam(:),'double',endian);
+end
+if (~isempty(app.wmModelIDs(:)))
+  fwrite(fileID,app.wmModelIDs(:),'double',endian);
+end
+if (~isempty(app.wmBoundaries(:)))
+  fwrite(fileID,app.wmBoundaries(:),'double',endian);
+end
+if (~isempty(app.wmDistances(:)))
+  fwrite(fileID,app.wmDistances(:),'double',endian);
 end
 fclose(fileID);
 

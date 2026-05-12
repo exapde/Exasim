@@ -4,6 +4,7 @@ meshfile = "grid.bin";
 discretization = "hdg";
 platform = "cpu";
 
+gendatain = 0;
 mpiprocs = 8;
 debugmode = 0;
 runmode = 0;

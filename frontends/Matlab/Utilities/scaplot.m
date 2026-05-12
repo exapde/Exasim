@@ -74,7 +74,7 @@ if nargin>=5 && ~isempty(pltmesh) && pltmesh
   end
 end
 
-set(gcf,'rend','z');
+%set(gcf,'rend','z');
 axis equal; drawnow
 if nargin>=6 && ~isempty(surf)
    cameramenu;

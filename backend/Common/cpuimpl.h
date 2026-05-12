@@ -40,13 +40,13 @@
 #ifndef __CPUIMPL_H__
 #define __CPUIMPL_H__
 
-inline void cpuArraySetValue(dstype *udg, dstype a, int N)
+void cpuArraySetValue(dstype *udg, dstype a, int N)
 {
   for (int i=0; i<N; i++)
     udg[i] = a;
 }
 
-inline void cpuArrayInsert(dstype* u, const dstype* un, const int I, const int J, const int K, 
+void cpuArrayInsert(dstype* u, const dstype* un, const int I, const int J, const int K, 
         const int i1, const int i2, const int j1, const int j2, const int k1, const int k2)
 {        
     int ni = i2-i1;
@@ -65,7 +65,7 @@ inline void cpuArrayInsert(dstype* u, const dstype* un, const int I, const int J
 }
 
 
-inline dstype cpuArrayMin(dstype *a, int n)
+dstype cpuArrayMin(dstype *a, int n)
 {
     dstype b = a[0];
     for (int i=1; i<n; i++)
@@ -74,7 +74,7 @@ inline dstype cpuArrayMin(dstype *a, int n)
     return b;
 }
 
-inline dstype cpuArrayMax(dstype *a, int n)
+dstype cpuArrayMax(dstype *a, int n)
 {
     dstype b = a[0];
     for (int i=1; i<n; i++)
@@ -83,7 +83,7 @@ inline dstype cpuArrayMax(dstype *a, int n)
     return b;
 }
 
-inline void cpuElemGeom(dstype *Xx, dstype *jac, dstype *Jg, int ne, int ng, int nd)
+void cpuElemGeom(dstype *Xx, dstype *jac, dstype *Jg, int ne, int ng, int nd)
 {        
     dstype *Jg11, *Jg12, *Jg13, *Jg21, *Jg22, *Jg23, *Jg31, *Jg32, *Jg33;
     dstype *Xx11, *Xx12, *Xx13, *Xx21, *Xx22, *Xx23, *Xx31, *Xx32, *Xx33;
@@ -148,7 +148,7 @@ inline void cpuElemGeom(dstype *Xx, dstype *jac, dstype *Jg, int ne, int ng, int
     }
 }
 
-inline void cpuGetElemNodes(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
+void cpuGetElemNodes(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
 {
     int nn = np * (e2 - e1);
     int ncu = nc2 - nc1;
@@ -164,7 +164,7 @@ inline void cpuGetElemNodes(dstype* unView, const dstype* uView, const int np, c
     }
 }
 
-inline void cpuApplyGivensRotation(dstype *H, dstype *s, dstype *cs, dstype *sn,  int i)
+void cpuApplyGivensRotation(dstype *H, dstype *s, dstype *cs, dstype *sn,  int i)
 {        
     dstype temp;    
     for (int k=0; k<i; k++) {
@@ -195,7 +195,7 @@ inline void cpuApplyGivensRotation(dstype *H, dstype *s, dstype *cs, dstype *sn,
     H[i+1] = 0.0;
 }
 
-inline void cpuBackSolve(dstype *y, dstype *H, dstype *s, int i, int n)
+void cpuBackSolve(dstype *y, dstype *H, dstype *s, int i, int n)
 {
     for (int j=i; j>=0; j--)
         y[j] = s[j];    
@@ -207,7 +207,7 @@ inline void cpuBackSolve(dstype *y, dstype *H, dstype *s, int i, int n)
     }
 }
 
-inline int find(const int* a, int b, int n, int opts) 
+int find(const int* a, int b, int n, int opts) 
 {
     int count = 0;
     if (opts==0) {
@@ -228,7 +228,7 @@ inline int find(const int* a, int b, int n, int opts)
     return count;
 }
 
-inline int find(int* indices, const int* a, int b, int n, int opts) 
+int find(int* indices, const int* a, int b, int n, int opts) 
 {
     int count = 0;
     if (opts==0) {
@@ -256,7 +256,7 @@ inline int find(int* indices, const int* a, int b, int n, int opts)
     return count;
 }
 
-inline bool equal_face_nodes(const int* a, const int* b, int nnf) {
+bool equal_face_nodes(const int* a, const int* b, int nnf) {
     for (int i = 0; i < nnf; i++) {
         if (a[i] != b[i]) return false;
     }
@@ -264,7 +264,7 @@ inline bool equal_face_nodes(const int* a, const int* b, int nnf) {
 }
 
 // Sort small arrays (nnf elements) using bubble sort
-inline void sort_face_nodes(int* face, int nnf) {
+void sort_face_nodes(int* face, int nnf) {
     for (int i = 0; i < nnf - 1; ++i) {
         for (int j = 0; j < nnf - i - 1; ++j) {
             if (face[j] > face[j + 1]) {
@@ -276,7 +276,7 @@ inline void sort_face_nodes(int* face, int nnf) {
     }
 }
 
-inline int mkf2e(int* f2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
+int mkf2e(int* f2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
 {
     int max_faces = ne * nfe;
     int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces); // stores sorted face nodes
@@ -323,7 +323,7 @@ inline int mkf2e(int* f2e, const int* e2n, const int* local_faces, int ne, int n
     return count;    
 }
 
-inline int mke2e(int* e2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
+int mke2e(int* e2e, const int* e2n, const int* local_faces, int ne, int nne, int nnf, int nfe) 
 {
     int max_faces = ne * nfe;
     int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces);
@@ -376,7 +376,7 @@ inline int mke2e(int* e2e, const int* e2n, const int* local_faces, int ne, int n
     return face_count;
 }
 
-inline int mke2f(int* e2f, const int* e2n, const int* local_faces, int ne, int M, int nnf, int nfe) 
+int mke2f(int* e2f, const int* e2n, const int* local_faces, int ne, int M, int nnf, int nfe) 
 {
     int max_faces = ne * nfe;
     int* face_nodes = (int*)malloc(sizeof(int) * nnf * max_faces); // stores sorted face nodes
@@ -418,7 +418,7 @@ inline int mke2f(int* e2f, const int* e2n, const int* local_faces, int ne, int M
     return count;
 }
 
-inline void mke2e(int* e2e, const int* f2e, int nf, int ne, int nfe) {
+void mke2e(int* e2e, const int* f2e, int nf, int ne, int nfe) {
     // Initialize e2e to -1
     for (int i = 0; i < ne * nfe; ++i)
         e2e[i] = -1;
@@ -437,7 +437,7 @@ inline void mke2e(int* e2e, const int* f2e, int nf, int ne, int nfe) {
     }
 }
 
-inline void mke2f(int* e2f, const int* f2e, int nf, int nfe, int ne) 
+void mke2f(int* e2f, const int* f2e, int nf, int nfe, int ne) 
 {
     for (int i = 0; i < nfe * ne; ++i) {
         e2f[i] = -1;
@@ -457,7 +457,7 @@ inline void mke2f(int* e2f, const int* f2e, int nf, int nfe, int ne)
     }
 }
 
-inline void mkf2f(int* f2f, int* f2l, const int* f2e, const int* e2f, int nf, int nfe, int ne) 
+void mkf2f(int* f2f, int* f2l, const int* f2e, const int* e2f, int nf, int nfe, int ne) 
 {
     int nbf = 2 * (nfe - 1);  // number of neighboring faces per face
 
@@ -499,7 +499,7 @@ inline void mkf2f(int* f2f, int* f2l, const int* f2e, const int* e2f, int nf, in
     }
 }
 
-inline void mke2e(int* e2e, const int* f2e, const int* e2f, int nfe, int ne) {
+void mke2e(int* e2e, const int* f2e, const int* e2f, int nfe, int ne) {
     // f2e: 4 x nf, column-major, 0-based
     // e2f: nfe x ne, 0-based, index into columns of f2e (or -1 for boundary)
     // e2e: nfe x ne, output, 0-based, neighbor element index (or -1 for boundary)
@@ -526,7 +526,7 @@ inline void mke2e(int* e2e, const int* f2e, const int* e2f, int nfe, int ne) {
     }
 }
 
-inline int mkfelem(int* felem, const int* e2f, const int* elem, int nfe, int ne) 
+int mkfelem(int* felem, const int* e2f, const int* elem, int nfe, int ne) 
 {
     // e2f: nfe x total_elements, 0-based, column-major
     // elem: indices of elements of interest, length ne
@@ -559,7 +559,7 @@ inline int mkfelem(int* felem, const int* e2f, const int* elem, int nfe, int ne)
 // n: number of faces of interest
 // ne: number of elements of interest
 // Output: f2eelem: 4 x n, column-major, indices remapped to [0,ne-1] if present in elem, otherwise set to 0
-inline void mkf2eelem(int* f2eelem, const int* f2e, const int* felem, const int* elem, int n, int ne) 
+void mkf2eelem(int* f2eelem, const int* f2e, const int* felem, const int* elem, int n, int ne) 
 {
     // Step 1: Gather relevant columns from f2e into f2eelem
     for (int i = 0; i < n; ++i) {
@@ -597,7 +597,7 @@ inline void mkf2eelem(int* f2eelem, const int* f2e, const int* felem, const int*
     }
 }
 
-inline void faceindex(int *in1, int *in2, int *facecon, int npf, int ncu, int npe, int nc, int f1, int f2)
+void faceindex(int *in1, int *in2, int *facecon, int npf, int ncu, int npe, int nc, int f1, int f2)
 {    
     int nf = f2-f1;
     int ndf = npf*nf;
@@ -618,7 +618,7 @@ inline void faceindex(int *in1, int *in2, int *facecon, int npf, int ncu, int np
     }                            
 }
 
-inline void faceperm(int *ind1, int *ind2, int *indpts, int *facecon, int *fblks, int npf, int ncu, int npe, int nc, int nbf)
+void faceperm(int *ind1, int *ind2, int *indpts, int *facecon, int *fblks, int npf, int ncu, int npe, int nc, int nbf)
 {
     int N = 0;
     for (int j=0; j<nbf; j++) {
@@ -633,7 +633,7 @@ inline void faceperm(int *ind1, int *ind2, int *indpts, int *facecon, int *fblks
     indpts[nbf] = N;
 }
 
-inline void faceindex1(int *in1, int *facecon, int npf, int ncu, int npe, int nc, int f1, int f2)
+void faceindex1(int *in1, int *facecon, int npf, int ncu, int npe, int nc, int f1, int f2)
 {    
     int nf = f2-f1;
     int ndf = npf*nf;
@@ -650,7 +650,7 @@ inline void faceindex1(int *in1, int *facecon, int npf, int ncu, int npe, int nc
     }                            
 }
 
-inline void faceperm1(int *ind1, int *indpts, int *facecon, int *fblks, int npf, int ncu, int npe, int nc, int nbf)
+void faceperm1(int *ind1, int *indpts, int *facecon, int *fblks, int npf, int ncu, int npe, int nc, int nbf)
 {
     int N = 0;
     for (int j=0; j<nbf; j++) {
@@ -665,7 +665,7 @@ inline void faceperm1(int *ind1, int *indpts, int *facecon, int *fblks, int npf,
     indpts[nbf] = N;
 }
 
-inline void elemindex(int *ind, int npe, int nc, int ncu, int e1, int e2)
+void elemindex(int *ind, int npe, int nc, int ncu, int e1, int e2)
 {        
     int nn = npe*(e2-e1);
     int N = nn*ncu;
@@ -679,7 +679,7 @@ inline void elemindex(int *ind, int npe, int nc, int ncu, int e1, int e2)
     }        
 }
 
-inline void elemperm(int *ind, int *indpts, int *eblks, int npe, int nc, int ncu, int nbe)
+void elemperm(int *ind, int *indpts, int *eblks, int npe, int nc, int ncu, int nbe)
 {
     int N=0;
     for (int j=0; j<nbe; j++) {
@@ -693,7 +693,7 @@ inline void elemperm(int *ind, int *indpts, int *eblks, int npe, int nc, int ncu
     indpts[nbe] = N;
 }
 
-inline int getinterfacefaces(int *bf, int *eblks, int nbe, int nfe, int ibinterface)
+int getinterfacefaces(int *bf, int *eblks, int nbe, int nfe, int ibinterface)
 { 
     int nintfaces = 0;
     for (int j=0; j<nbe; j++) { // loop over each chunk
@@ -711,7 +711,7 @@ inline int getinterfacefaces(int *bf, int *eblks, int nbe, int nfe, int ibinterf
     return nintfaces;
 }
 
-inline void getinterfacefaces(int *intfaces, int *bf, int *eblks, int nbe, int nfe, int ibinterface, int nintfaces)
+void getinterfacefaces(int *intfaces, int *bf, int *eblks, int nbe, int nfe, int ibinterface, int nintfaces)
 { 
     for (int i=0; i<nintfaces; i++) intfaces[i] = 0;
 
@@ -730,7 +730,7 @@ inline void getinterfacefaces(int *intfaces, int *bf, int *eblks, int nbe, int n
     }                     
 }
 
-inline int getinterfacefaces(int *bf, int nfe, int ne, int ibinterface)
+int getinterfacefaces(int *bf, int nfe, int ne, int ibinterface)
 { 
     int nintfaces = 0;
     for (int e=0; e<ne; e++) 
@@ -740,7 +740,7 @@ inline int getinterfacefaces(int *bf, int nfe, int ne, int ibinterface)
     return nintfaces;
 }
 
-inline void getinterfacefaces(int *intfaces, int *bf, int nfe, int ne, int ibinterface, int nintfaces)
+void getinterfacefaces(int *intfaces, int *bf, int nfe, int ne, int ibinterface, int nintfaces)
 { 
     for (int i=0; i<nintfaces; i++) intfaces[i] = 0;
   
@@ -753,7 +753,7 @@ inline void getinterfacefaces(int *intfaces, int *bf, int nfe, int ne, int ibint
           }    
 }
 
-inline void getboundaryfaces(int *numbf, int *boufaces, int *bf, int *eblks, int nbe, int nfe, int maxbc, int nboufaces)
+void getboundaryfaces(int *numbf, int *boufaces, int *bf, int *eblks, int nbe, int nfe, int maxbc, int nboufaces)
 {
     for (int i=0; i<1+maxbc*nbe; i++) numbf[i] = 0;
     for (int i=0; i<nboufaces; i++) boufaces[i] = 0;
@@ -800,7 +800,7 @@ inline void getboundaryfaces(int *numbf, int *boufaces, int *bf, int *eblks, int
     }      
 }
 
-inline int getsubdomaininterfaces(const int* f2e, int ne1, int nf)
+int getsubdomaininterfaces(const int* f2e, int ne1, int nf)
 {
     int n = 0; 
     for (int j=0; j<nf; j++) { // loop over each face
@@ -813,7 +813,7 @@ inline int getsubdomaininterfaces(const int* f2e, int ne1, int nf)
     return n;
 }
 
-inline int getsubdomaininterfaces(int *interface, const int* f2e, int ne1, int nf)
+int getsubdomaininterfaces(int *interface, const int* f2e, int ne1, int nf)
 {
     int n = 0; 
     for (int j=0; j<nf; j++) { // loop over each face
@@ -827,7 +827,7 @@ inline int getsubdomaininterfaces(int *interface, const int* f2e, int ne1, int n
     return n;
 }
 
-inline void pathreorder(const int* epath, int nep, const int* e2f, int nfe,
+void pathreorder(const int* epath, int nep, const int* e2f, int nfe,
                  int* fpath, int* lpath, int* fintf, int* lintf) {
     for (int i = 0; i < nep - 1; i++) {
         int e1 = epath[i];
@@ -898,7 +898,7 @@ inline void pathreorder(const int* epath, int nep, const int* e2f, int nfe,
     }
 }
 
-inline void pathreordering(int* fpath, int* lpath, int* fintf, int* lintf, const int* epath, const int* e2f, int nfe, int npaths, int nep) 
+void pathreordering(int* fpath, int* lpath, int* fintf, int* lintf, const int* epath, const int* e2f, int nfe, int npaths, int nep) 
 {
     int* tmp_epath = (int*)malloc(nep * sizeof(int));
     int* tmp_fpath = (int*)malloc(2 * nep * sizeof(int));
@@ -931,7 +931,7 @@ inline void pathreordering(int* fpath, int* lpath, int* fintf, int* lintf, const
 }
 
 
-inline void simple_bubble_sort(int* b, int* ind, const int* a, int n) 
+void simple_bubble_sort(int* b, int* ind, const int* a, int n) 
 {
     // Initialize b and ind
     for (int i = 0; i < n; ++i) {
@@ -955,17 +955,17 @@ inline void simple_bubble_sort(int* b, int* ind, const int* a, int n)
     }
 }
 
-inline void printintarray(Int* a, Int m, Int n)
+void printintarray(Int* a, Int m, Int n)
 {
     for (Int i=0; i<m; i++) {
         for (Int j=0; j<n; j++)
-            std::cout << a[j*m+i] << "   ";
-        std::cout << std::endl;
+            cout << a[j*m+i] << "   ";
+        cout << endl;
     }
-    std::cout << std::endl;
+    cout << endl;
 }
 
-inline void sortinteriorfaces(int* f2e, int nfe, int ne, int nf, int nf0) 
+void sortinteriorfaces(int* f2e, int nfe, int ne, int nf, int nf0) 
 {
     int nfsorted = nf0;
     int* e2f = (int*)malloc(nfe * ne * sizeof(int));
@@ -1043,7 +1043,7 @@ inline void sortinteriorfaces(int* f2e, int nfe, int ne, int nf, int nf0)
 }
 
 // Sorts array by recurrence, returns b (sorted array), e (indices mapping b to a)
-inline void sortrecurrence(int* b, int* e, const int* a, int n) 
+void sortrecurrence(int* b, int* e, const int* a, int n) 
 {
     int* recurrence = (int*)malloc(n * sizeof(int));
 
@@ -1115,7 +1115,7 @@ inline void sortrecurrence(int* b, int* e, const int* a, int n)
 }
 
 // Helper to find indices where the last row of f2e is -1 (boundary faces)
-inline int find_boundary_faces(int* ind0, const int* f2e, int nf) {
+int find_boundary_faces(int* ind0, const int* f2e, int nf) {
     int count = 0;
     for (int i = 0; i < nf; ++i) {
         if (f2e[3 + 4*i] == -1) { // Last row, 0-based
@@ -1126,7 +1126,7 @@ inline int find_boundary_faces(int* ind0, const int* f2e, int nf) {
 }
 
 // Helper to compute setdiff between 0..nf-1 and ind0[0..nind0-1]
-inline int setdiff(int* ind1, const int* ind0, int nind0, int nf) {
+int setdiff(int* ind1, const int* ind0, int nind0, int nf) {
     int count = 0;
     for (int i = 0; i < nf; ++i) {
         int found = 0;
@@ -1137,7 +1137,7 @@ inline int setdiff(int* ind1, const int* ind0, int nind0, int nf) {
     return count; // number of interior faces
 }
 
-inline void facereorder(int* f2e, int nf) 
+void facereorder(int* f2e, int nf) 
 {
     // Step 1: find boundary face indices (last row == 0)
     int* ind0 = (int*)malloc(nf * sizeof(int));
@@ -1209,7 +1209,7 @@ inline void facereorder(int* f2e, int nf)
     free(ii);
 }
 
-inline void bubble_sort(int* a, int n) {
+void bubble_sort(int* a, int n) {
     for (int i = 0; i < n-1; ++i)
         for (int j = 0; j < n-i-1; ++j)
             if (a[j] > a[j+1]) {
@@ -1217,7 +1217,7 @@ inline void bubble_sort(int* a, int n) {
             }
 }
 
-inline void crs_array(int** row_ptr_out, int** col_ind_out, const int* f2e, int nfe, int ne, int nf) 
+void crs_array(int** row_ptr_out, int** col_ind_out, const int* f2e, int nfe, int ne, int nf) 
 {
     // Step 1: Compute e2f and f2f
     int* e2f = (int*)malloc(nfe * ne * sizeof(int));
@@ -1273,7 +1273,7 @@ inline void crs_array(int** row_ptr_out, int** col_ind_out, const int* f2e, int 
     free(f2l);
 }
 
-inline void mkface(int* face, const int* e2f, const int* elem, const int* f2eelem, int nb, int nf, int nfe) 
+void mkface(int* face, const int* e2f, const int* elem, const int* f2eelem, int nb, int nf, int nfe) 
 {
     for (int n = 0; n < nb; ++n) {
         for (int i = 0; i < nf; ++i) {
@@ -1285,7 +1285,7 @@ inline void mkface(int* face, const int* e2f, const int* elem, const int* f2eele
     }
 }
 
-inline int crs_faceordering(
+int crs_faceordering(
     int** row_ptr_out,
     int** col_ind_out,
     int** face_out,
@@ -1351,7 +1351,7 @@ inline int crs_faceordering(
     return nfelem;
 }
 
-inline int gridpartition2d(int **elemblocks_out, int Nx, int Ny, int Mx, int My, int opt)
+int gridpartition2d(int **elemblocks_out, int Nx, int Ny, int Mx, int My, int opt)
 {
     // Check input
     if (Nx % Mx != 0 || Ny % My != 0)
@@ -1435,7 +1435,7 @@ inline int gridpartition2d(int **elemblocks_out, int Nx, int Ny, int Mx, int My,
     return nblocks;    
 }
 
-inline int gridpartition3d(int** elemblocks_out, int Nx, int Ny, int Nz, int Mx, int My, int Mz, int opt) 
+int gridpartition3d(int** elemblocks_out, int Nx, int Ny, int Nz, int Mx, int My, int Mz, int opt) 
 {
     // Check divisibility
     if (Nx % Mx != 0 || Ny % My != 0 || Nz % Mz != 0) {
@@ -1517,7 +1517,7 @@ inline int gridpartition3d(int** elemblocks_out, int Nx, int Ny, int Nz, int Mx,
     return nblocks;    
 }
 
-inline void crs_indexingilu0(
+void crs_indexingilu0(
     // Output arrays (all must be pre-allocated by the caller)
     int* ind_ii,        // [N]
     int* ind_ji,        // [M*N], M = 2*(nfe-1)
@@ -1646,34 +1646,34 @@ inline void crs_indexingilu0(
     }
 }
 
-inline int index4D(int i, int j, int k, int l, const std::vector<int>& shape) {
+int index4D(int i, int j, int k, int l, const vector<int>& shape) {
     // Column-major indexing: idx = i + j*n1 + k*n1*n2 + l*n1*n2*n3
     return i + shape[0] * (j + shape[1] * (k + shape[2] * l));
 }
 
-inline void masternodes(std::vector<dstype>& pelem, std::vector<int>& telem,
-                 std::vector<dstype>& pface, std::vector<int>& tface,
-                 std::vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
+void masternodes(vector<dstype>& pelem, vector<int>& telem,
+                 vector<dstype>& pface, vector<int>& tface,
+                 vector<int>& perm, int porder, int dim, int elemtype, const std::string filename) 
 {
     
-    std::ifstream file(filename, std::ios::binary);
+    ifstream file(filename, ios::binary);
     
     if (!file) error("Error opening file: " + filename);
 
     // Read the full file into a vector
-    file.seekg(0, std::ios::end);
+    file.seekg(0, ios::end);
     size_t num_bytes = file.tellg();
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, ios::beg);
     size_t num_doubles = num_bytes / sizeof(dstype);
 
-    std::vector<dstype> tmp(num_doubles);
+    vector<dstype> tmp(num_doubles);
     file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
     file.close();
 
     // Parse header
     int ndims = static_cast<int>(tmp[0]);  
     
-    std::vector<int> narrays(ndims);
+    vector<int> narrays(ndims);
     for (int i = 0; i < ndims; ++i)
         narrays[i] = static_cast<int>(tmp[1 + i]);
     
@@ -1682,24 +1682,24 @@ inline void masternodes(std::vector<dstype>& pelem, std::vector<int>& telem,
     for (int d : narrays)
         total_blocks *= d;
 
-    std::vector<int> sz1(total_blocks), sz2(total_blocks);
+    vector<int> sz1(total_blocks), sz2(total_blocks);
     for (int i = 0; i < total_blocks; ++i)
         sz1[i] = static_cast<int>(tmp[offset + i]);
     for (int i = 0; i < total_blocks; ++i)
         sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
 
-    std::vector<int> sz(total_blocks);
+    vector<int> sz(total_blocks);
     for (int i = 0; i < total_blocks; ++i)
         sz[i] = sz1[i] * sz2[i];
     
     // cumulative offsets
-    std::vector<int> lz(total_blocks + 1, 0);
+    vector<int> lz(total_blocks + 1, 0);
     partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
     
     // Starting point of real data
     int data_start = offset + 2 * total_blocks;
     
-    auto extract_block = [&](int i, std::vector<dstype>& out) {
+    auto extract_block = [&](int i, vector<dstype>& out) {
         int e = elemtype + 1;        
         int idx = index4D(i, e - 1, porder - 1, dim - 1, narrays);
         int start = lz[idx];
@@ -1711,7 +1711,7 @@ inline void masternodes(std::vector<dstype>& pelem, std::vector<int>& telem,
              out.begin());
     };
 
-    std::vector<dstype>  telemd, tfaced, permd;
+    vector<dstype>  telemd, tfaced, permd;
     
     extract_block(0, pelem);
     extract_block(1, telemd);
@@ -1733,24 +1733,24 @@ inline void masternodes(std::vector<dstype>& pelem, std::vector<int>& telem,
     for (int i=0; i<tfaced.size(); i++) tface[i] = (int) tfaced[i]-1;                
 }
 
-inline void gaussnodes(std::vector<dstype>& xgauss, std::vector<dstype>& wgauss,
+void gaussnodes(vector<dstype>& xgauss, vector<dstype>& wgauss,
                 int pgauss, int dim, int elemtype, const std::string filename) 
 {
-    std::ifstream file(filename, std::ios::binary);
+    ifstream file(filename, ios::binary);
     if (!file) error("Error opening file: " + filename);
 
     // Read the file into a buffer
-    file.seekg(0, std::ios::end);
+    file.seekg(0, ios::end);
     size_t num_bytes = file.tellg();
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, ios::beg);
     size_t num_doubles = num_bytes / sizeof(dstype);
-    std::vector<dstype> tmp(num_doubles);
+    vector<dstype> tmp(num_doubles);
     file.read(reinterpret_cast<char*>(tmp.data()), num_bytes);
     file.close();
 
     // Read header
     int ndims = static_cast<int>(tmp[0]);
-    std::vector<int> narrays(ndims);
+    vector<int> narrays(ndims);
     for (int i = 0; i < ndims; ++i)
         narrays[i] = static_cast<int>(tmp[1 + i]);
 
@@ -1759,23 +1759,23 @@ inline void gaussnodes(std::vector<dstype>& xgauss, std::vector<dstype>& wgauss,
     for (int d : narrays)
         total_blocks *= d;
 
-    std::vector<int> sz1(total_blocks), sz2(total_blocks);
+    vector<int> sz1(total_blocks), sz2(total_blocks);
     for (int i = 0; i < total_blocks; ++i)
         sz1[i] = static_cast<int>(tmp[offset + i]);
     for (int i = 0; i < total_blocks; ++i)
         sz2[i] = static_cast<int>(tmp[offset + total_blocks + i]);
 
-    std::vector<int> sz(total_blocks);
+    vector<int> sz(total_blocks);
     for (int i = 0; i < total_blocks; ++i)
         sz[i] = sz1[i] * sz2[i];
 
     // Compute cumulative lengths
-    std::vector<int> lz(total_blocks + 1, 0);
+    vector<int> lz(total_blocks + 1, 0);
     partial_sum(sz.begin(), sz.end(), lz.begin() + 1);
 
     int data_start = offset + 2 * total_blocks;
 
-    auto extract_block = [&](int i, std::vector<dstype>& out) {
+    auto extract_block = [&](int i, vector<dstype>& out) {
         // Corrected zero-based indexing
         int e = elemtype + 1;
         int idx = index4D(i, e - 1, pgauss - 1, dim - 1, narrays);

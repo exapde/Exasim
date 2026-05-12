@@ -41,28 +41,25 @@
 #ifndef __POSTSOLUTION_H__
 #define __POSTSOLUTION_H__
 
-#include <exasim/detail/abi_adapter.hpp>
-
-template <class M = exasim::detail::AbiAdapter>
 class CSolution {
 private:
 public:
-    CDiscretization<M> disc;  // spatial discretization class
-    CPreconditioner<M> prec;  // precondtioner class
-    CSolver<M> solv;          // linear and nonlinear solvers
+    CDiscretization disc;  // spatial discretization class
+    CPreconditioner prec;  // precondtioner class 
+    CSolver solv;          // linear and nonlinear solvers
     CVisualization vis;    // visualization class
-    std::ofstream outsol;       // storing solutions
-    std::ofstream outwdg;  
-    std::ofstream outuhat;  
-    std::ofstream outbouxdg;  
-    std::ofstream outboundg;  
-    std::ofstream outbouudg;  
-    std::ofstream outbouwdg;  
-    std::ofstream outbouuhat;    
-    std::ofstream outqoi;
+    ofstream outsol;       // storing solutions
+    ofstream outwdg;  
+    ofstream outuhat;  
+    ofstream outbouxdg;  
+    ofstream outboundg;  
+    ofstream outbouudg;  
+    ofstream outbouwdg;  
+    ofstream outbouuhat;    
+    ofstream outqoi;
     
     // constructor 
-    CSolution(std::string filein, std::string fileout, std::string exasimpath, Int mpiprocs, Int mpirank, 
+    CSolution(string filein, string fileout, string exasimpath, Int mpiprocs, Int mpirank, 
               Int fileoffset, Int omprank, Int backend, Int builtinmodelID,
               Int nsca, Int nvec, Int nten, Int nsurf, Int nvqoi)   
        : disc(filein, fileout, exasimpath, mpiprocs, mpirank, fileoffset, omprank, backend, builtinmodelID, nsca, nvec, nten, nsurf, nvqoi),

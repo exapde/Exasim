@@ -215,3 +215,23 @@ std::vector<Expression> Initu(const std::vector<Expression>& x, const std::vecto
     return ui;
 }
 
+std::vector<Expression> VisScalars(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
+    std::vector<Expression> s;
+    s.resize(4);
+
+    s[0]  =  uq[0];
+    s[1]  =  uq[1]/uq[0];
+    s[2]  =  uq[2]/uq[0];
+    s[3]  =  0.4*(uq[3] - 0.5*(uq[1]*s[1] + uq[2]*s[2]));
+    return s;
+}
+
+std::vector<Expression> VisVectors(const std::vector<Expression>& x, const std::vector<Expression>& uq, const std::vector<Expression>& v, const std::vector<Expression>& w, const std::vector<Expression>& eta, const std::vector<Expression>& mu, const Expression& t) {
+    std::vector<Expression> s;
+    s.resize(2);
+
+    s[0]  =  uq[1];
+    s[1]  =  uq[2];
+    return s;
+}
+

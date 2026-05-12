@@ -102,9 +102,14 @@ mutable struct PDEStruct
     flag::Array{IntP,2};   # flag parameters
     problem::Array{IntP,2};# problem parameters
     boundaryconditions::Array{IntP,2};# a list of boundary condition numbers
+    wmModelIDs;
+    wmBoundaries;
+    wmDistances;
     stgib::Array{IntP,2};  # synthetic turbulence
     vindx;  
     interfacefluxmap;
+    avparam1;
+    avparam2;
 
     dt::Array{FloatP,1};      # time steps
     tau::Array{FloatP,1}; # stabilization parameters
@@ -255,9 +260,14 @@ function initializepde(version)
     pde.flag = [0 0];
     pde.problem = [0 0];
     pde.boundaryconditions = [0 0];
+    pde.wmModelIDs = [];
+    pde.wmBoundaries = [];
+    pde.wmDistances = [];
     pde.stgib = [0 0];
     pde.vindx = [];
     pde.interfacefluxmap = [];
+    pde.avparam1 = [];
+    pde.avparam2 = [];
 
     pde.tau = [1.0]; # stabilization parameters
     pde.dt = [0.0];  # time steps
@@ -289,4 +299,3 @@ function initializepde(version)
 
     return pde;
 end
-

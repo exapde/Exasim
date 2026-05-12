@@ -29,6 +29,15 @@ function app = readappbin(filename)
     app.dae_dt = fread(fileID, nsize(14), 'double', endian);
     app.interfacefluxmap = fread(fileID, nsize(15), 'double', endian);
     app.avparam = fread(fileID, nsize(16), 'double', endian);
+    if length(nsize) >= 19
+        app.wmModelIDs = fread(fileID, nsize(17), 'double', endian);
+        app.wmBoundaries = fread(fileID, nsize(18), 'double', endian);
+        app.wmDistances = fread(fileID, nsize(19), 'double', endian);
+    else
+        app.wmModelIDs = [];
+        app.wmBoundaries = [];
+        app.wmDistances = [];
+    end
     
     fclose(fileID);
 end

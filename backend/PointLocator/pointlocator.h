@@ -4,10 +4,7 @@
 #include "../Common/common.h"
 #include <vector>
 
-// Forward declaration: CDiscretization is a class template (HOT.2).
-// Several CPointLocator methods take a CDiscretization<M>& but only by
-// reference, so a forward decl is sufficient here.
-template <class M> class CDiscretization;
+class CDiscretization;
 
 struct WallModelSamplingData {
     Int ibc = -1;
@@ -80,9 +77,8 @@ public:
         dstype newtonTol,
         dstype insideTol);
 
-    template <class M>
     bool BuildWallModelSamplingData(
-        CDiscretization<M>& disc,
+        CDiscretization& disc,
         Int ibc,
         dstype y1);
 

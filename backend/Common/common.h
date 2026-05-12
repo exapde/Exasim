@@ -41,79 +41,10 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-// Standard-library prerequisites. Historically this header relied on the
-// includer (main.cpp) having pre-included these; with Phase 1.2 of the
-// library port, common.h is consumed by multiple translation units in
-// exasim_core, so it must be self-contained.
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <chrono>
-#include <cmath>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <filesystem>
-
-#include <Kokkos_Core.hpp>
-
-// Translate the CMake target compile definitions (-D_MPI, -D_CUDA, -D_HIP,
-// -D_TEXT2CODE, -D_BUILTINMODEL, -D_ENZYME, -D_MUTATIONPP) into the HAVE_*
-// macros the runtime sources test against. Historically main.cpp held this
-// translation, which meant only main.cpp saw the HAVE_* names; any other
-// TU compiled into exasim_core would silently miss the guards. With
-// multi-TU compilation (Phase 1.2c) the translation lives here so every
-// TU that includes common.h sees the same gate set.
-//
-// Idempotent guards (#ifndef … #define … #endif) so this header coexists
-// with main.cpp's pre-existing identical translation block without
-// triggering "macro redefined" warnings during the transition.
-#if defined(_OPENMP) && !defined(HAVE_OPENMP)
-#  define HAVE_OPENMP
-#endif
-#if !defined(_OPENMP) && !defined(HAVE_OPENMP) && !defined(HAVE_ONETHREAD)
-#  define HAVE_ONETHREAD
-#endif
-
-#if defined(_CUDA) && !defined(HAVE_CUDA)
-#  define HAVE_GPU
-#  define HAVE_CUDA
-#endif
-
-#if defined(_HIP) && !defined(HAVE_HIP)
-#  define HAVE_GPU
-#  define HAVE_HIP
-#endif
-
-#if defined(_TEXT2CODE) && !defined(HAVE_TEXT2CODE)
-#  define HAVE_TEXT2CODE
-#endif
-
-#if (defined(HAVE_TEXT2CODE) || defined(HAVE_BUILTINMODEL)) && !defined(HAVE_SHARED_MODEL_LIB)
-#  define HAVE_SHARED_MODEL_LIB
-#endif
-
-#if defined(_ENZYME) && !defined(HAVE_ENZYME)
-#  define HAVE_ENZYME
-#endif
-
-#if defined(_MUTATIONPP) && !defined(HAVE_MPP)
-#  define HAVE_MPP
-#endif
-
-#if defined(_MPI) && !defined(HAVE_MPI)
-#  define HAVE_MPI
-#endif
-
-#ifdef HAVE_MPI
-#  include <mpi.h>
-// C++17 `inline` variables: definitions in a header, ODR-safe across
-// multiple TUs. Replaces the previous extern + common.cpp definition
-// pair so Exasim can ship as a header-only library (HOT.1).
-inline MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
-inline MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
-#endif
+// #include <cstdint>
+// #include <cstring>
+// #include <chrono>
+// #include <cmath>
 
 #define SCOPY scopy_
 #define SSCAL sscal_
@@ -173,6 +104,8 @@ typedef Kokkos::View<dstype*> view_1d;
 #include <mutation++.h>
 #endif
 
+#include "../Model/ModelDispatch/driver_abi.h"
+
 #define MKL_INT int
 
 #define CPUFREE(x)                                                           \
@@ -221,7 +154,7 @@ template <typename T>
 bool is_nan_bitwise(T x);
 
 // Specialization for double
-template <> inline bool is_nan_bitwise<double>(double x) {
+template <> bool is_nan_bitwise<double>(double x) {
     uint64_t bits;
     std::memcpy(&bits, &x, sizeof(bits));
     return ((bits & 0x7ff0000000000000ULL) == 0x7ff0000000000000ULL) &&  // exponent all 1s
@@ -229,7 +162,7 @@ template <> inline bool is_nan_bitwise<double>(double x) {
 }
 
 // Specialization for float
-template <> inline bool is_nan_bitwise<float>(float x) {
+template <> bool is_nan_bitwise<float>(float x) {
     uint32_t bits;
     std::memcpy(&bits, &x, sizeof(bits));
     return ((bits & 0x7f800000U) == 0x7f800000U) &&                       // exponent all 1s
@@ -243,23 +176,25 @@ template <> inline bool is_nan_bitwise<float>(float x) {
 #define M_PI 3.14159265358979323846
 #endif
 
-// Global sentinel values for BLAS / CUBLAS / HIPBLAS calls.
-// C++17 `inline` variables: defined here in the header, ODR-safe
-// across multiple TUs. Replaces the previous extern + common.cpp
-// definition pair so Exasim can ship as a header-only library (HOT.1).
-inline dstype one      =  1.0;
-inline dstype minusone = -1.0;
-inline dstype zero     =  0.0;
-inline char   chn      = 'N';
-inline char   cht      = 'T';
-inline char   chl      = 'L';
-inline char   chu      = 'U';
-inline char   chr      = 'R';
-inline char   chv      = 'V';
-inline Int    inc1     =  1;
-inline dstype cublasOne     [1] = { 1.0};
-inline dstype cublasMinusone[1] = {-1.0};
-inline dstype cublasZero    [1] = { 0.0};
+// global variables for BLAS  
+dstype one = 1.0;
+dstype minusone = -1.0;
+dstype zero = 0.0;
+char chn = 'N';
+char cht = 'T';
+char chl = 'L';
+char chu = 'U';
+char chr = 'R';
+char chv = 'V';
+Int inc1 = 1;
+
+// global variables for CUBLAS  
+// dstype *cublasOne;
+// dstype *cublasMinusone;
+// dstype *cublasZero;
+dstype cublasOne[1] = {one};
+dstype cublasMinusone[1] = {minusone};
+dstype cublasZero[1] = {zero};
 
 #ifdef HAVE_CUDA       
    #define CUDA_SYNC cudaDeviceSynchronize();  
@@ -584,7 +519,7 @@ template <typename T> static void TemplateCopytoHost(T *h_data, T *d_data, Int n
 //     exit( 1 );    
 // }
 // 
-// static void PrintErrorAndExit(std::string errmsg, const char *file, int line ) 
+// static void PrintErrorAndExit(string errmsg, const char *file, int line ) 
 // {    
 //     printf( "%s in %s at line %d\n", errmsg.c_str(), file, line );
 // 
@@ -632,60 +567,60 @@ static inline void PrintErrorAndExit(const std::string& errmsg, const char* file
 // -----------------------------------------------------------------------------
 #define error(msg)  PrintErrorAndExit((msg), __FILE__, __LINE__)
 
-inline std::string trim_dir(const std::string& s) {
+std::string trim_dir(const std::string& s) {
     return std::filesystem::path{s}.parent_path().string();   // use .native() if you want OS-preferred slashes
 }
 
-inline bool ensure_dir(const std::string& dir) {
+bool ensure_dir(const std::string& dir) {
     std::filesystem::path p(dir);
     if (std::filesystem::exists(p)) return std::filesystem::is_directory(p);  // false if it's a file
     return std::filesystem::create_directories(p);               // creates parents as needed
 }
 
-inline std::string make_path(const std::string& str1, const std::string& str2) {
+std::string make_path(const std::string& str1, const std::string& str2) {
     std::filesystem::path base = str1;
     std::filesystem::path tail = str2;
 
-    // If tail is absolute, strip its root so it becomes relative
+    // If tail is absolute, strip its root so it becomes relative    
     tail = tail.relative_path();
 
     std::filesystem::path full = base / tail;
     return full.lexically_normal().string();
 }
 
-inline std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
+std::string trimToSubstringAtFirstOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.find(keyword);  // Use find to get the first occurrence
     if (pos != std::string::npos) {
         return fullPath.substr(0, pos + keyword.length());
     }
-    else {
+    else {      
       return "";
     }
 }
 
-inline std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
+std::string trimToSubstringAtFirstOccurence(const std::filesystem::path& fullPath, const std::string& keyword) {
     const std::string s = fullPath.generic_string();
     std::size_t pos = s.find(keyword);  // Use find to get the first occurrence
     if (pos != std::string::npos) {
         return s.substr(0, pos + keyword.length());
     }
-    else {
+    else {      
       return "";
     }
 }
 
-inline std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
+std::string trimToSubstringAtLastOccurence(const std::string& fullPath, const std::string& keyword) {
     std::size_t pos = fullPath.rfind(keyword);  // Use rfind to get the last occurrence
     if (pos != std::string::npos) {
         return fullPath.substr(0, pos + keyword.length());
     }
-    else {
+    else {      
       return "";
     }
 }
 
-inline std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
-                                                  const std::string& keyword)
+std::string trimToSubstringAtLastOccurence(const std::filesystem::path& fullPath,
+                                           const std::string& keyword)
 {
     // generic_string uses forward slashes on all platforms (nice for substring ops)
     const std::string s = fullPath.generic_string();
@@ -706,6 +641,8 @@ struct appstruct {
     Int *stgib=nullptr;
     Int *vindx=nullptr;
     Int *interfacefluxmap=nullptr;
+    Int *wmModelIDs=nullptr;
+    Int *wmBoundaries=nullptr;
     
     dstype *uinf=nullptr;    // boundary data
     dstype *dt=nullptr;      // time steps       
@@ -717,6 +654,7 @@ struct appstruct {
     dstype *stgdata=nullptr; 
     dstype *stgparam=nullptr;
     dstype *avparam=nullptr;
+    dstype *wmDistances=nullptr;
     
     //dstype time=nullptr;     /* current time */
     dstype *fc_u=nullptr;    /* factor when discretizing the time derivative of the U equation. Allow scalar field for local time stepping in steady problems? */
@@ -728,20 +666,23 @@ struct appstruct {
     dstype *dtcoef_w=nullptr;    /* factor when discretizing the time derivative of the P equation. Allow scalar field for local time stepping in steady problems? */    
     
     Int szflag=0, szproblem=0, szcomm=0, szporder=0, szstgib=0, szvindx=0, szinterfacefluxmap=0;
+    Int szwmModelIDs=0, szwmBoundaries=0;
     Int szuinf=0, szdt=0, szdae_dt=0, szfactor=0, szphysicsparam=0, szsolversparam=0;
     Int sztau=0, szstgdata=0, szstgparam=0, szfc_u=0, szfc_q=0, szfc_w=0;
-    Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0, szavparam=0;
+    Int szdtcoef_u=0, szdtcoef_q=0, szdtcoef_w=0, szavparam=0, szwmDistances=0;
     Int read_uh = 0;
+    Int modelnumber = 0;
     Int builtinmodelID = 0;
 
     int sizeofint() {
-      int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx + szinterfacefluxmap;
+      int sz = szflag + szproblem + szcomm + szporder + szstgib + szvindx + szinterfacefluxmap
+             + szwmModelIDs + szwmBoundaries;
       return sz;
     }
     int sizeoffloat() {
       int sz = szuinf+szdt+szdae_dt+szfactor+szphysicsparam+szsolversparam+
                sztau+szstgdata+szstgparam+szfc_u+szfc_q+szfc_w+szdtcoef_u+
-               szdtcoef_q+szdtcoef_w+szavparam;
+               szdtcoef_q+szdtcoef_w+szavparam+szwmDistances;
       return sz;        
     }
 
@@ -755,6 +696,8 @@ struct appstruct {
       printf("size of stgib: %d\n", szstgib);
       printf("size of vindx: %d\n", szvindx);
       printf("size of interfacefluxmap: %d\n", szinterfacefluxmap);
+      printf("size of wmModelIDs: %d\n", szwmModelIDs);
+      printf("size of wmBoundaries: %d\n", szwmBoundaries);
       printf("size of uinf: %d\n", szuinf);
       printf("size of dt: %d\n", szdt);
       printf("size of dae_dt: %d\n", szdae_dt);
@@ -765,6 +708,7 @@ struct appstruct {
       printf("size of stgdata: %d\n", szstgdata);
       printf("size of stgparam: %d\n", szstgparam);
       printf("size of avparam: %d\n", szavparam);
+      printf("size of wmDistances: %d\n", szwmDistances);
       printf("size of fc_u: %d\n", szfc_u);
       printf("size of fc_q: %d\n", szfc_q);
       printf("size of fc_w: %d\n", szfc_w);
@@ -784,14 +728,16 @@ struct appstruct {
     {
         TemplateFree(lsize, backend);
         TemplateFree(nsize, backend);
-        TemplateFree(ndims, backend);
-        TemplateFree(comm, backend);
-        TemplateFree(porder, backend);
-        TemplateFree(flag, backend);
+        TemplateFree(ndims, backend);   
+        TemplateFree(comm, backend);   
+        TemplateFree(porder, backend);               
+        TemplateFree(flag, backend);    
         TemplateFree(problem, backend);
         TemplateFree(stgib, backend);
         TemplateFree(vindx, backend);
         TemplateFree(interfacefluxmap, backend);
+        TemplateFree(wmModelIDs, backend);
+        TemplateFree(wmBoundaries, backend);
         TemplateFree(uinf, backend);
         TemplateFree(dt, backend);
         TemplateFree(dae_dt, backend);
@@ -802,6 +748,7 @@ struct appstruct {
         TemplateFree(stgdata, backend);
         TemplateFree(stgparam, backend);
         TemplateFree(avparam, backend);
+        TemplateFree(wmDistances, backend);
         TemplateFree(fc_u, backend);
         TemplateFree(fc_q, backend);
         TemplateFree(fc_w, backend);
@@ -824,6 +771,8 @@ struct wallmodelstruct {
     Int nfaces = 0;
     Int npoints = 0;
     Int nbe1 = 0;
+    Int bfwmDepth = 4;
+    Int bfwmWidth = 15;
     dstype y1 = 0.0;
 
     Int* faces = nullptr;
@@ -835,6 +784,8 @@ struct wallmodelstruct {
     dstype* x1 = nullptr;
     dstype* xi1 = nullptr;
     dstype* shap1 = nullptr;
+    dstype* bfwmTauwCoeffs = nullptr;
+    dstype* bfwmQwCoeffs = nullptr;
 
     Int szfaces = 0;
     Int sznextfaces = 0;
@@ -845,6 +796,8 @@ struct wallmodelstruct {
     Int szx1 = 0;
     Int szxi1 = 0;
     Int szshap1 = 0;
+    Int szbfwmTauwCoeffs = 0;
+    Int szbfwmQwCoeffs = 0;
 
     int sizeofint()
     {
@@ -853,7 +806,7 @@ struct wallmodelstruct {
 
     int sizeoffloat()
     {
-        return szxw + sznw + szx1 + szxi1 + szshap1;
+        return szxw + sznw + szx1 + szxi1 + szshap1 + szbfwmTauwCoeffs + szbfwmQwCoeffs;
     }
 
     void freememory(Int backend)
@@ -867,6 +820,8 @@ struct wallmodelstruct {
         TemplateFree(x1, backend);
         TemplateFree(xi1, backend);
         TemplateFree(shap1, backend);
+        TemplateFree(bfwmTauwCoeffs, backend);
+        TemplateFree(bfwmQwCoeffs, backend);
 
         initialized = 0;
         ibc = -1;
@@ -879,6 +834,8 @@ struct wallmodelstruct {
         nfaces = 0;
         npoints = 0;
         nbe1 = 0;
+        bfwmDepth = 4;
+        bfwmWidth = 15;
         y1 = 0.0;
 
         szfaces = 0;
@@ -890,6 +847,8 @@ struct wallmodelstruct {
         szx1 = 0;
         szxi1 = 0;
         szshap1 = 0;
+        szbfwmTauwCoeffs = 0;
+        szbfwmQwCoeffs = 0;
     }
 };
 
@@ -1572,21 +1531,18 @@ struct sysstruct {
         TemplateFree(q, backend); 
         TemplateFree(p, backend); 
         TemplateFree(randvect, backend);
-        if (tempmem != nullptr) {
-            if (backend <= 1)
-              TemplateFree(tempmem, backend);
-            else if (backend==2) {
-#ifdef HAVE_CUDA
-              cudaFreeHost(tempmem);
-#endif
-            }
-            else if (backend == 3) {
+        if (backend <= 1)
+          TemplateFree(tempmem, backend);    
+        else if (backend==2) {
+#ifdef HAVE_CUDA                
+          cudaFreeHost(tempmem);      
+#endif                         
+        }        
+        else if (backend == 3) {
 #ifdef HAVE_HIP
-                CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
+            CHECK(hipHostFree(tempmem)); // Free pinned host memory with HIP
 #endif
-            }
-            tempmem = nullptr;
-        }
+        }        
         TemplateFree(utmp, backend);            
         TemplateFree(wtmp, backend);             
         TemplateFree(udgprev, backend);  
@@ -1632,10 +1588,10 @@ struct precondstruct {
     }            
 };
 
-struct commonstruct {
-    std::string exasimpath = "";
-    std::string filein;       // Name of binary file with input data
-    std::string fileout;      // Name of binary file to write the solution
+struct commonstruct {         
+    string exasimpath = "";  
+    string filein;       // Name of binary file with input data
+    string fileout;      // Name of binary file to write the solution            
     
     Int backend;   // 0: Serial; 1: OpenMP; 2: CUDA  
     Int maxnbc;    // maximum number of boundary conditions
@@ -1753,8 +1709,7 @@ struct commonstruct {
     Int saveSolBouFreq=0; // number of time steps to save the solution on the boundary
     Int compudgavg=1;     // compute time-averaged solution udg
     Int readudgavg=0;     // flag to read time-averaged solution udg from file
-    Int saveResNorm=0;
-    Int saveOutputs=1;   // HOT.7.4 — skip opening output bins when 0
+    Int saveResNorm=0;   
     Int matrixformat=0;
     
     Int spatialScheme;   /* 0: HDG; 1: EDG; 2: IEDG, HEDG */
@@ -1826,6 +1781,10 @@ struct commonstruct {
     Int nelemrecv;
     Int nvindx;
     Int szinterfacefluxmap;
+    Int nwm=0;
+    Int szwmModelIDs=0;
+    Int szwmBoundaries=0;
+    Int szwmDistances=0;
     Int szcartgridpart;
     Int* nbsd=nullptr; // neighboring subdomains
     Int* elemsend=nullptr;
@@ -1835,6 +1794,8 @@ struct commonstruct {
     Int* stgib=nullptr;
     Int *vindx=nullptr;
     Int *interfacefluxmap=nullptr;
+    Int *wmModelIDs=nullptr;
+    Int *wmBoundaries=nullptr;
     Int *cartgridpart=nullptr;
     Int *boundaryConditions=nullptr;
     Int *intepartpts=nullptr;
@@ -1862,6 +1823,7 @@ struct commonstruct {
     dstype  timing[128];
     dstype* dt=nullptr;
     dstype* dae_dt=nullptr;
+    dstype* wmDistances=nullptr;
     dstype* DIRKcoeff_c=nullptr;
     dstype* DIRKcoeff_d=nullptr;
     dstype* DIRKcoeff_t=nullptr;
@@ -1991,6 +1953,7 @@ struct commonstruct {
       printf("DAE epsilon parameter: %f\n", dae_epsilon);
       
       printf("number of boundary conditions: %d\n", maxnbc);
+      printf("number of wall-model configurations: %d\n", nwm);
       printf("number of neighboring subdomains: %d\n", nnbsd);      
       printf("number of elements to send: %d\n", nelemsend);
       printf("number of elements to receive: %d\n", nelemrecv);
@@ -2060,11 +2023,14 @@ struct commonstruct {
         if (nstgib > 0) CPUFREE(stgib); 
         CPUFREE(vindx); 
         CPUFREE(interfacefluxmap); 
+        CPUFREE(wmModelIDs);
+        CPUFREE(wmBoundaries);
         CPUFREE(cartgridpart); 
         CPUFREE(boundaryConditions); 
         CPUFREE(intepartpts);         
         CPUFREE(dt); 
         CPUFREE(dae_dt); 
+        CPUFREE(wmDistances);
         CPUFREE(DIRKcoeff_c); 
         CPUFREE(DIRKcoeff_d); 
         CPUFREE(DIRKcoeff_t); 

@@ -501,7 +501,7 @@ int mkelconcg_hashgrid(
                 for (int d = 0; d < dim; ++d) cgnodes[ncg * dim + d] = p[d];
                 cgelcon[aidx] = ncg;
 
-                // insert into its cell’s list
+                // insert into its cell's list
                 auto& vec = grid[ck];
                 vec.push_back(ncg);
 

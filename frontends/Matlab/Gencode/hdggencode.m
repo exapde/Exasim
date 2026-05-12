@@ -2,7 +2,7 @@ function hdggencode(app)
 
 %kkdir = app.buildpath + "/model";
 %kkdir = app.exasimpath + "/build/model";
-kkdir = app.backendpath + "/Model";
+kkdir = app.backendpath + "/Model/FrontendGenerated";
 
 [xdg, udg, ~, ~, wdg, ~, ~, odg, ~, ~, uhg, nlg, tau, uinf, param, time] = syminit(app);
 pdemodel = str2func(app.modelfile);

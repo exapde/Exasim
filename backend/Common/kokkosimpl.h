@@ -65,14 +65,175 @@
 #ifndef __KOKKOSIMPL_H__
 #define __KOKKOSIMPL_H__
 
-inline void AverageFlux(dstype* fg, const int N)
+static constexpr int BFWM_MAX_WIDTH = 15;
+
+KOKKOS_INLINE_FUNCTION
+void bfwm_first_layer(dstype* out, const dstype* W1, const dstype* b1, const dstype x, const int width)
+{
+    const dstype xm = x - 1.0;
+    for (int row = 0; row < width; row++)
+        out[row] = tanh(W1[row] * xm + b1[row]);
+}
+
+KOKKOS_INLINE_FUNCTION
+void bfwm_dense_tanh(dstype* out, const dstype* W, const dstype* b, const dstype* in, const int width)
+{
+    for (int row = 0; row < width; row++) {
+        dstype z = b[row];
+        for (int col = 0; col < width; col++)
+            z += W[row + width*col] * in[col];
+        out[row] = tanh(z);
+    }
+}
+
+KOKKOS_INLINE_FUNCTION
+dstype bfwm_output_layer(const dstype* W5, const dstype* b5, const dstype* in, const int width)
+{
+    dstype y = b5[0];
+    for (int col = 0; col < width; col++)
+        y += W5[col] * in[col];
+    return y;
+}
+
+KOKKOS_INLINE_FUNCTION
+dstype bfwm_eval_network(const dstype x, const dstype* coeffs, const int width, dstype* a, dstype* b)
+{
+    const dstype* W1 = coeffs; coeffs += width;
+    const dstype* b1 = coeffs; coeffs += width;
+    const dstype* W2 = coeffs; coeffs += width * width;
+    const dstype* b2 = coeffs; coeffs += width;
+    const dstype* W3 = coeffs; coeffs += width * width;
+    const dstype* b3 = coeffs; coeffs += width;
+    const dstype* W4 = coeffs; coeffs += width * width;
+    const dstype* b4 = coeffs; coeffs += width;
+    const dstype* W5 = coeffs; coeffs += width;
+    const dstype* b5 = coeffs;
+
+    bfwm_first_layer(a, W1, b1, x, width);
+    bfwm_dense_tanh(b, W2, b2, a, width);
+    bfwm_dense_tanh(a, W3, b3, b, width);
+    bfwm_dense_tanh(b, W4, b4, a, width);
+
+    return bfwm_output_layer(W5, b5, b, width);
+}
+
+KOKKOS_INLINE_FUNCTION
+dstype bfwm_tauw_coeff(const dstype xwm, const dstype* coeffs, const int width, dstype* a, dstype* b)
+{
+    const dstype x = (xwm - 2.50448284551451) * 0.00115614271744045;
+    const dstype y = bfwm_eval_network(x, coeffs, width, a, b);
+    return ((y - 0.27162919345476555) + 1.0) / 0.215239962076297
+           + 0.857229907609472;
+}
+
+KOKKOS_INLINE_FUNCTION
+dstype bfwm_qw_coeff(const dstype xwm, const dstype* coeffs, const int width, dstype* a, dstype* b)
+{
+    const dstype x = (xwm - 2.50448284551451) * 0.00115614271744045;
+    const dstype y = bfwm_eval_network(x, coeffs, width, a, b);
+    return ((y - 0.10043784176980131) + 1.0) / 0.123172557848166
+           + 1.02308352666465;
+}
+
+void BFWMxwm(dstype* xwm, const dstype* udg, const Int* elemsx1,
+             const dstype* shap1, const dstype* nw, const dstype y1,
+             const dstype* param, const Int npe, const Int nc,
+             const Int nd, const Int npoints)
+{
+    const dstype gam = param[0];
+    const dstype Re = param[1];
+    const dstype Pr = param[2];
+    const dstype Tinf = param[8];
+    const dstype Tref = param[9];
+    const dstype gam1 = gam - 1.0;
+    const dstype muRef = 1.0 / Re;
+    const dstype Ts = 110.4;
+
+    Kokkos::parallel_for("BFWMxwm", npoints, KOKKOS_LAMBDA(const size_t ip) {
+        const Int elem = elemsx1[ip];
+        if (elem < 0 || nd <= 0 || nd > 3 || nc <= nd + 1 || y1 <= 0.0 ||
+            gam1 <= 0.0 || Re <= 0.0 || Pr <= 0.0 || Tinf <= 0.0 ||
+            Tref <= 0.0) {
+            xwm[ip] = 0.0;
+            return;
+        }
+
+        const Int eoff = npe * nc * elem;
+        const Int soff = npe * ip;
+        dstype rho = 0.0;
+        dstype rhoE = 0.0;
+        dstype mom[3] = {0.0, 0.0, 0.0};
+
+        for (Int a = 0; a < npe; a++) {
+            const dstype Na = shap1[soff + a];
+            rho += Na * udg[eoff + a];
+            rhoE += Na * udg[eoff + a + npe * (nd + 1)];
+            for (Int d = 0; d < nd; d++)
+                mom[d] += Na * udg[eoff + a + npe * (1 + d)];
+        }
+
+        if (rho <= 0.0) {
+            xwm[ip] = 0.0;
+            return;
+        }
+
+        dstype vel[3] = {0.0, 0.0, 0.0};
+        dstype ke = 0.0;
+        dstype un = 0.0;
+        for (Int d = 0; d < nd; d++) {
+            vel[d] = mom[d] / rho;
+            ke += vel[d] * vel[d];
+            un += vel[d] * nw[d + nd * ip];
+        }
+        ke *= 0.5;
+
+        dstype utmag2 = 0.0;
+        for (Int d = 0; d < nd; d++) {
+            const dstype ut = vel[d] - un * nw[d + nd * ip];
+            utmag2 += ut * ut;
+        }
+
+        const dstype pressure = gam1 * (rhoE - rho * ke);
+        const dstype T = pressure / (gam1 * rho);
+        const dstype Tdim = Tref * T / Tinf;
+        if (pressure <= 0.0 || T <= 0.0 || Tdim <= 0.0 || Tdim + Ts <= 0.0) {
+            xwm[ip] = 0.0;
+            return;
+        }
+
+        const dstype Tratio = Tdim / Tref;
+        const dstype mu = muRef * pow(Tratio, 1.5) * (Tref + Ts) / (Tdim + Ts);
+        if (mu <= 0.0) {
+            xwm[ip] = 0.0;
+            return;
+        }
+
+        const dstype utmag = sqrt(utmag2 > 0.0 ? utmag2 : 0.0);
+        xwm[ip] = y1 * utmag * rho * Pr * Pr / mu;
+    });
+}
+
+void BFWMcoefficients(dstype* ctau, dstype* cq, const dstype* xwm,
+                      const dstype* tauwCoeffs, const dstype* qwCoeffs,
+                      const int width, const int n)
+{
+    Kokkos::parallel_for("BFWMcoefficients", n, KOKKOS_LAMBDA(const size_t i) {
+        dstype a[BFWM_MAX_WIDTH];
+        dstype b[BFWM_MAX_WIDTH];
+
+        ctau[i] = bfwm_tauw_coeff(xwm[i], tauwCoeffs, width, a, b);
+        cq[i] = bfwm_qw_coeff(xwm[i], qwCoeffs, width, a, b);
+    });
+}
+
+void AverageFlux(dstype* fg, const int N)
 {	
     Kokkos::parallel_for("AverageFlux", N, KOKKOS_LAMBDA(const size_t tid) {
         fg[tid+N] = 0.5*(fg[tid] + fg[tid+N]);            
     });
 }
 
-inline void AverageFluxDotNormal(dstype* fg, const dstype* nl, const int N, const int M, const int numPoints, const int nd)
+void AverageFluxDotNormal(dstype* fg, const dstype* nl, const int N, const int M, const int numPoints, const int nd)
 {	
     Kokkos::parallel_for("AverageFluxDotNormal", M, KOKKOS_LAMBDA(const size_t tid) {
         int i = tid%numPoints;                
@@ -83,7 +244,7 @@ inline void AverageFluxDotNormal(dstype* fg, const dstype* nl, const int N, cons
     });
 }
 
-inline void FluxDotNormal(dstype* fh, dstype* fg, const dstype* nl, const int M, const int numPoints, const int nd)
+void FluxDotNormal(dstype* fh, dstype* fg, const dstype* nl, const int M, const int numPoints, const int nd)
 {	
     Kokkos::parallel_for("FluxDotNormal", M, KOKKOS_LAMBDA(const size_t tid) {
         int i = tid%numPoints;                
@@ -107,14 +268,14 @@ inline void FluxDotNormal(dstype* fh, dstype* fg, const dstype* nl, const int M,
 //     });
 // }
 
-inline void AddStabilization1(dstype* fg, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M)
+void AddStabilization1(dstype* fg, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M)
 {	
     Kokkos::parallel_for("AddStabilization1", M, KOKKOS_LAMBDA(const size_t tid) {
         fg[tid] += tau[0] * (ug1[tid] - ug2[tid]);        
     });
 }
 
-inline void AddStabilization1(dstype* fg, dstype* fg1, dstype* fg2, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M, const int numPoints)
+void AddStabilization1(dstype* fg, dstype* fg1, dstype* fg2, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M, const int numPoints)
 {	
     Kokkos::parallel_for("AddStabilization1", M, KOKKOS_LAMBDA(const size_t tid) {
         int i = tid%numPoints;
@@ -125,7 +286,7 @@ inline void AddStabilization1(dstype* fg, dstype* fg1, dstype* fg2, const dstype
     });
 }
 
-inline void AddStabilization2(dstype* fg, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M, const int numPoints)
+void AddStabilization2(dstype* fg, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M, const int numPoints)
 {	
     Kokkos::parallel_for("AddStabilization2", M, KOKKOS_LAMBDA(const size_t tid) {
         int i = tid%numPoints;   
@@ -134,7 +295,7 @@ inline void AddStabilization2(dstype* fg, const dstype* ug1, const dstype* ug2, 
     });
 }
 
-inline void AddStabilization3(dstype* fg, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M, const int numPoints, const int ncu)
+void AddStabilization3(dstype* fg, const dstype* ug1, const dstype* ug2, const dstype* tau, const int M, const int numPoints, const int ncu)
 {	
     Kokkos::parallel_for("AddStabilization3", M, KOKKOS_LAMBDA(const size_t tid) {
         int i = tid%numPoints;   
@@ -147,35 +308,35 @@ inline void AddStabilization3(dstype* fg, const dstype* ug1, const dstype* ug2, 
     });
 }
 
-inline void GetArrayAtIndex(dstype* y, const dstype* x, const int* ind, const int n)
+void GetArrayAtIndex(dstype* y, const dstype* x, const int* ind, const int n)
 {    
     Kokkos::parallel_for("GetArrayAtIndex", n, KOKKOS_LAMBDA(const size_t i) {
         y[i] = x[ind[i]];
     });
 }
 
-inline void PutArrayAtIndex(dstype* y, const dstype* x, const int* ind, const int n)
+void PutArrayAtIndex(dstype* y, const dstype* x, const int* ind, const int n)
 {    
     Kokkos::parallel_for("PutArrayAtIndex", n, KOKKOS_LAMBDA(const size_t i) {
         y[ind[i]] = x[i];
     });
 }
 
-inline void AddColumns(dstype* y, const dstype* x, const int m, const int n)
+void AddColumns(dstype* y, const dstype* x, const int m, const int n)
 {    
     Kokkos::parallel_for("GetCollumnAtIndex", m, KOKKOS_LAMBDA(const size_t idx) {        
       for (int j=0; j<n; j++) y[idx] += x[idx + m*j];
     });
 }
 
-inline void SubtractColumns(dstype* y, const dstype* x, const int m, const int n)
+void SubtractColumns(dstype* y, const dstype* x, const int m, const int n)
 {    
     Kokkos::parallel_for("GetCollumnAtIndex", m, KOKKOS_LAMBDA(const size_t idx) {        
       for (int j=0; j<n; j++) y[idx] -= x[idx + m*j];
     });
 }
 
-inline void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int m, const int n)
+void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int m, const int n)
 {    
     int N = m*n;
     Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -185,7 +346,7 @@ inline void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const 
     });
 }
 
-inline void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int m, const int n)
+void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int m, const int n)
 {    
     int N = m*n;
     Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -195,7 +356,7 @@ inline void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const 
     });
 }
 
-inline void PutCollumnAtIndexAtomicAdd(dstype* y, const dstype* x, const int* ind, const int m, const int n)
+void PutCollumnAtIndexAtomicAdd(dstype* y, const dstype* x, const int* ind, const int m, const int n)
 {    
     int N = m*n;
     Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -206,7 +367,7 @@ inline void PutCollumnAtIndexAtomicAdd(dstype* y, const dstype* x, const int* in
     });
 }
 
-inline void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int i0, const int k, const int m, const int n)
+void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int i0, const int k, const int m, const int n)
 {    
     int N = m*n;
     Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -216,7 +377,7 @@ inline void GetCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const 
     });
 }
 
-inline void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int i0, const int k, const int m, const int n)
+void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const int i0, const int k, const int m, const int n)
 {    
     int N = m*n;
     Kokkos::parallel_for("GetCollumnAtIndex", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -226,63 +387,63 @@ inline void PutCollumnAtIndex(dstype* y, const dstype* x, const int* ind, const 
     });
 }
 
-inline void ArrayCopy(dstype* y, const dstype* x, const int n)
+void ArrayCopy(dstype* y, const dstype* x, const int n)
 {    
     Kokkos::parallel_for("ArrayCopy", n, KOKKOS_LAMBDA(const size_t i) {
         y[i] = x[i];
     });
 }
 
-inline void ArraySetValue(dstype* y, const dstype a, const int n)
+void ArraySetValue(dstype* y, const dstype a, const int n)
 {    
     Kokkos::parallel_for("ArraySetValue", n, KOKKOS_LAMBDA(const size_t i) {
         y[i] = a;
     });
 }
 
-inline void ArrayAddScalar(dstype* y, const dstype a, const int n)
+void ArrayAddScalar(dstype* y, const dstype a, const int n)
 {    
     Kokkos::parallel_for("ArraySetValue", n, KOKKOS_LAMBDA(const size_t i) {
         y[i] += a;
     });
 }
 
-inline void ArrayMultiplyScalar(dstype* y, const dstype a, const int n)
+void ArrayMultiplyScalar(dstype* y, const dstype a, const int n)
 {    
     Kokkos::parallel_for("ArrayMultiplyScalar", n, KOKKOS_LAMBDA(const size_t i) {
         y[i] = a*y[i];
     });
 }
 
-inline void ArrayAXPB(dstype* y, dstype* x, const dstype a, const dstype b, const int N) 
+void ArrayAXPB(dstype* y, dstype* x, const dstype a, const dstype b, const int N) 
 {
     Kokkos::parallel_for("ArrayAXPBY", N, KOKKOS_LAMBDA(const size_t idx) {
         y[idx] = a * x[idx] + b;
     });
 }
 
-inline void ArrayAXPBY(dstype* y, dstype* x, const dstype* z, const dstype a, const dstype b, const int N) 
+void ArrayAXPBY(dstype* y, dstype* x, const dstype* z, const dstype a, const dstype b, const int N) 
 {
     Kokkos::parallel_for("ArrayAXPBY", N, KOKKOS_LAMBDA(const size_t idx) {
         y[idx] = a * x[idx] + b * z[idx];
     });
 }
 
-inline void ArrayAXY(dstype* y, dstype* x, const dstype* z, const dstype a, const int N) 
+void ArrayAXY(dstype* y, dstype* x, const dstype* z, const dstype a, const int N) 
 {
     Kokkos::parallel_for("ArrayAXY", N, KOKKOS_LAMBDA(const size_t idx) {
         y[idx] = a * x[idx] * z[idx];
     });
 }
 
-inline void ArrayAdd3Vectors(dstype* s, dstype* x, dstype* y, dstype* z, dstype a, dstype b, dstype c, int N)
+void ArrayAdd3Vectors(dstype* s, dstype* x, dstype* y, dstype* z, dstype a, dstype b, dstype c, int N)
 {    
     Kokkos::parallel_for("ArrayAXY", N, KOKKOS_LAMBDA(const size_t idx) {
         s[idx] = a*x[idx] + b*y[idx] + c*z[idx];   
     });
 }
 
-inline void ArrayExtract(dstype* un, const dstype* u, const int I, const int J, const int K, 
+void ArrayExtract(dstype* un, const dstype* u, const int I, const int J, const int K, 
         const int i1, const int i2, const int j1, const int j2, const int k1, const int k2)
 {        
     int ni = i2-i1;
@@ -300,7 +461,7 @@ inline void ArrayExtract(dstype* un, const dstype* u, const int I, const int J, 
     });
 }
 
-inline void ArrayInsert(dstype* u, const dstype* un, const int I, const int J, const int K, 
+void ArrayInsert(dstype* u, const dstype* un, const int I, const int J, const int K, 
         const int i1, const int i2, const int j1, const int j2, const int k1, const int k2)
 {        
     int ni = i2-i1;
@@ -319,7 +480,7 @@ inline void ArrayInsert(dstype* u, const dstype* un, const int I, const int J, c
 }
 
 
-inline void UpdateUDG(dstype* u, const dstype* un, const dstype alpha, const int I, const int J, const int K, 
+void UpdateUDG(dstype* u, const dstype* un, const dstype alpha, const int I, const int J, const int K, 
         const int i1, const int i2, const int j1, const int j2, const int k1, const int k2)
 {        
     int ni = i2-i1;
@@ -337,7 +498,7 @@ inline void UpdateUDG(dstype* u, const dstype* un, const dstype alpha, const int
     });
 }
 
-inline void columnwiseMultiply(dstype* C, const dstype* A, const dstype* b, const int N, const int M)
+void columnwiseMultiply(dstype* C, const dstype* A, const dstype* b, const int N, const int M)
 {    
     int K = N*M;
     Kokkos::parallel_for("columnwiseMultiply", K, KOKKOS_LAMBDA(const size_t idx) {
@@ -346,7 +507,7 @@ inline void columnwiseMultiply(dstype* C, const dstype* A, const dstype* b, cons
     });    
 }
 
-inline void ArrayGemmBatch(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K, const int S)
+void ArrayGemmBatch(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K, const int S)
 {        
     // C[I*J*S] = A[I*K*S] x B[K*J*S]
     int M = I*J;
@@ -363,7 +524,7 @@ inline void ArrayGemmBatch(dstype* C, const dstype* A, const dstype* B, const in
     });
 }
 
-inline void ArrayGemmBatch1(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K, const int S)
+void ArrayGemmBatch1(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K, const int S)
 {        
     // C[I*J*S] = A[I*K*S] x B[K*J*S] + C[I*J*S]
     int M = I*J;
@@ -382,7 +543,7 @@ inline void ArrayGemmBatch1(dstype* C, const dstype* A, const dstype* B, const i
     });
 }
 
-inline void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype alpha, const int I, const int J, const int K, const int S)
+void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype alpha, const int I, const int J, const int K, const int S)
 {        
     // C[S*I*J] = A[S*I*K] x B[S*K*J] + C[S*I*J]
     int M = I*J;
@@ -401,7 +562,7 @@ inline void ArrayGemmBatch2(dstype* C, const dstype* A, const dstype* B, dstype 
     });
 }
 
-inline void VisDG2CG(float* ucg, const dstype* udg, const int* cgent2dgent, const int* colent2elem, const int* rowent2elem, int ne1, const int ncg, int ndg, int na, int nb, int nc)
+void VisDG2CG(float* ucg, const dstype* udg, const int* cgent2dgent, const int* colent2elem, const int* rowent2elem, int ne1, const int ncg, int ndg, int na, int nb, int nc)
 {        
     int N = nb * ncg * nc;
     Kokkos::parallel_for("VisDG2CG", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -425,7 +586,7 @@ inline void VisDG2CG(float* ucg, const dstype* udg, const int* cgent2dgent, cons
     });
 }
 
-inline void ArrayDG2CG(dstype* ucg, const dstype* udg, const int* cgent2dgent, const int* rowent2elem, const int nent)
+void ArrayDG2CG(dstype* ucg, const dstype* udg, const int* cgent2dgent, const int* rowent2elem, const int nent)
 {        
     Kokkos::parallel_for("ArrayDG2CG", nent, KOKKOS_LAMBDA(const size_t i) {
         dstype sum = 0.0;
@@ -437,7 +598,7 @@ inline void ArrayDG2CG(dstype* ucg, const dstype* udg, const int* cgent2dgent, c
     });
 }
 
-inline void ArrayDG2CG2(dstype* ucg, const dstype* udg, const int* colent2elem, const int* rowent2elem, const int nent, const int npe)
+void ArrayDG2CG2(dstype* ucg, const dstype* udg, const int* colent2elem, const int* rowent2elem, const int nent, const int npe)
 {        
     Kokkos::parallel_for("ArrayDG2CG2", nent, KOKKOS_LAMBDA(const size_t i) {        
         int nelem = rowent2elem[i+1]-rowent2elem[i];
@@ -452,7 +613,7 @@ inline void ArrayDG2CG2(dstype* ucg, const dstype* udg, const int* colent2elem, 
     });
 }
 
-inline void computeQTv(dstype* p, const dstype* Q, const dstype* v, const int M, const int N)
+void computeQTv(dstype* p, const dstype* Q, const dstype* v, const int M, const int N)
 {
     // Compute p = Q^T v
     Kokkos::parallel_for("ComputeQTv", Kokkos::TeamPolicy<>(N, Kokkos::AUTO),
@@ -472,7 +633,7 @@ inline void computeQTv(dstype* p, const dstype* Q, const dstype* v, const int M,
     });
 }
 
-inline void ArrayMatrixMultiplication(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K)
+void ArrayMatrixMultiplication(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K)
 {        
     // C[I*J] = A[I*K] x B[K*J]
     int N = I*J;    
@@ -486,7 +647,7 @@ inline void ArrayMatrixMultiplication(dstype* C, const dstype* A, const dstype* 
     });
 }
 
-inline void ArrayMatrixMultiplication1(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K)
+void ArrayMatrixMultiplication1(dstype* C, const dstype* A, const dstype* B, const int I, const int J, const int K)
 {        
     // C[I*J] += A[I*K] x B[K*J]
     int N = I*J;    
@@ -500,7 +661,7 @@ inline void ArrayMatrixMultiplication1(dstype* C, const dstype* A, const dstype*
     });
 }
 
-inline void ArrayEosInverseMatrix11(dstype* A, const int npe, const int ncw, const int ne)
+void ArrayEosInverseMatrix11(dstype* A, const int npe, const int ncw, const int ne)
 {            
     int N = npe*ne;
     Kokkos::parallel_for("ArrayEosInverseMatrix11", N, KOKKOS_LAMBDA(const size_t i) {
@@ -518,7 +679,7 @@ inline void ArrayEosInverseMatrix11(dstype* A, const int npe, const int ncw, con
 //     });
 // }
 
-inline void ArrayEosInverseMatrix22(dstype* A, const int npe, const int ncw, const int ne)
+void ArrayEosInverseMatrix22(dstype* A, const int npe, const int ncw, const int ne)
 {        
     int N = npe*ne;
     int M = npe*ncw*ncw;
@@ -538,7 +699,7 @@ inline void ArrayEosInverseMatrix22(dstype* A, const int npe, const int ncw, con
     });
 }
 
-inline void ArrayEosInverseMatrix33(dstype* A, const int npe, const int ncw, const int ne)
+void ArrayEosInverseMatrix33(dstype* A, const int npe, const int ncw, const int ne)
 {            
     int N = npe*ne;
     int M = npe*ncw*ncw;
@@ -569,7 +730,7 @@ inline void ArrayEosInverseMatrix33(dstype* A, const int npe, const int ncw, con
     });
 }
 
-inline void ArrayEosMatrixMultiplication(dstype* C, const dstype* A, const dstype* B, const int npe, const int ncw, const int ne, const int ncu)
+void ArrayEosMatrixMultiplication(dstype* C, const dstype* A, const dstype* B, const int npe, const int ncw, const int ne, const int ncu)
 {        
     // C[npe*ncw*ncu*ne] = A[npe*ncw*ncw*ne] x B[npe*ncw*ncu*ne]
     int N = npe*ne;
@@ -589,7 +750,7 @@ inline void ArrayEosMatrixMultiplication(dstype* C, const dstype* A, const dstyp
     });
 }
 
-inline void SmallMatrixSolve11(dstype *b, dstype* A, const int N, const int nrhs)
+void SmallMatrixSolve11(dstype *b, dstype* A, const int N, const int nrhs)
 {                
     Kokkos::parallel_for("SmallMatrixSolve11", N, KOKKOS_LAMBDA(const size_t i) {        
         dstype c1 = 1.0/A[i];
@@ -599,7 +760,7 @@ inline void SmallMatrixSolve11(dstype *b, dstype* A, const int N, const int nrhs
 }
 
 
-inline void SmallMatrixSolve22(dstype *b, dstype* A, const int N, const int nrhs)
+void SmallMatrixSolve22(dstype *b, dstype* A, const int N, const int nrhs)
 {                
     Kokkos::parallel_for("SmallMatrixSolve22", N, KOKKOS_LAMBDA(const size_t i) {        
         dstype a11 = A[i + N*0];
@@ -620,7 +781,7 @@ inline void SmallMatrixSolve22(dstype *b, dstype* A, const int N, const int nrhs
     });
 }
 
-inline void SmallMatrixSolve33(dstype *b, dstype* A, const int N, const int nrhs)
+void SmallMatrixSolve33(dstype *b, dstype* A, const int N, const int nrhs)
 {                
     Kokkos::parallel_for("SmallMatrixSolve22", N, KOKKOS_LAMBDA(const size_t i) {      
 
@@ -667,7 +828,7 @@ inline void SmallMatrixSolve33(dstype *b, dstype* A, const int N, const int nrhs
     });
 }
 
-inline void SmallMatrixSolve44(dstype *b, dstype* A, const int N, const int nrhs)
+void SmallMatrixSolve44(dstype *b, dstype* A, const int N, const int nrhs)
 {                
   Kokkos::parallel_for("SmallMatrixSolve44", N, KOKKOS_LAMBDA(const size_t i) {      
 
@@ -735,7 +896,7 @@ inline void SmallMatrixSolve44(dstype *b, dstype* A, const int N, const int nrhs
   });
 }
 
-inline void SmallMatrixSolve55(dstype *b, dstype* A, const int N, const int nrhs)
+void SmallMatrixSolve55(dstype *b, dstype* A, const int N, const int nrhs)
 {                
   Kokkos::parallel_for("SmallMatrixSolve55", N, KOKKOS_LAMBDA(const size_t i) {      
 
@@ -841,7 +1002,7 @@ inline void SmallMatrixSolve55(dstype *b, dstype* A, const int N, const int nrhs
   });
 }
 
-inline void GetElemNodes(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
+void GetElemNodes(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
 {
     int nn = np * (e2 - e1);
     int ncu = nc2 - nc1;
@@ -857,7 +1018,7 @@ inline void GetElemNodes(dstype* unView, const dstype* uView, const int np, cons
     });
 }
 
-inline void GetFaceNodesHDG(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
+void GetFaceNodesHDG(dstype* unView, const dstype* uView, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
 {
     int nn = np * (e2 - e1);
     int ncu = nc2 - nc1;
@@ -873,7 +1034,7 @@ inline void GetFaceNodesHDG(dstype* unView, const dstype* uView, const int np, c
     });
 }
 
-inline void PutElemNodes(dstype* u, const dstype* un, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
+void PutElemNodes(dstype* u, const dstype* un, const int np, const int nc, const int nc1, const int nc2, const int e1, const int e2) 
 {
     int nn = np * (e2 - e1);
     int ncu = nc2 - nc1;
@@ -888,7 +1049,7 @@ inline void PutElemNodes(dstype* u, const dstype* un, const int np, const int nc
     });
 }
 
-inline void GetFaceNodes(dstype* uh, const dstype* udg, const int* facecon, const int npf, const int ncu, const int npe, const int nc, const int f1, const int f2, const int opts) 
+void GetFaceNodes(dstype* uh, const dstype* udg, const int* facecon, const int npf, const int ncu, const int npe, const int nc, const int f1, const int f2, const int opts) 
 {
     int nf = f2-f1;
     int ndf = npf*nf;
@@ -914,7 +1075,7 @@ inline void GetFaceNodes(dstype* uh, const dstype* udg, const int* facecon, cons
     });
 }
 
-inline void GetFaceNodes(dstype* uh, const dstype* udg, const int* f2e, const int* perm, const int npf, const int ncu, const int npe, const int nc, const int nf) 
+void GetFaceNodes(dstype* uh, const dstype* udg, const int* f2e, const int* perm, const int npf, const int ncu, const int npe, const int nc, const int nf) 
 {
     int N = npf*nf*ncu;
     int M = npe*nc;
@@ -930,7 +1091,7 @@ inline void GetFaceNodes(dstype* uh, const dstype* udg, const int* f2e, const in
     });
 }
 
-inline void GetBoudaryNodes(dstype* ub, const dstype* uh, const int* boufaces, const int* elemcon, const int nfe, const int npf, const int ncu, const int nf) 
+void GetBoudaryNodes(dstype* ub, const dstype* uh, const int* boufaces, const int* elemcon, const int nfe, const int npf, const int ncu, const int nf) 
 {
     int K = npf*nf;
     int N = K*ncu;
@@ -946,7 +1107,7 @@ inline void GetBoudaryNodes(dstype* ub, const dstype* uh, const int* boufaces, c
     });
 }
 
-inline void GetBoudaryNodes(dstype* ub, const dstype* udg, const int* boufaces, const int* perm, const int nfe, const int npf, const int npe, const int ncu, const int nc, const int nf) 
+void GetBoudaryNodes(dstype* ub, const dstype* udg, const int* boufaces, const int* perm, const int nfe, const int npf, const int npe, const int ncu, const int nc, const int nf) 
 {
     int K = npf*nf;
     int N = K*ncu;
@@ -963,7 +1124,7 @@ inline void GetBoudaryNodes(dstype* ub, const dstype* udg, const int* boufaces, 
     });
 }
 
-inline void PutBoudaryNodes(dstype* udg, const dstype* ub, const int* boufaces, const int* perm, const int nfe, const int npf, const int npe, const int ncu, const int nc, const int nf) 
+void PutBoudaryNodes(dstype* udg, const dstype* ub, const int* boufaces, const int* perm, const int nfe, const int npf, const int npe, const int ncu, const int nc, const int nf) 
 {
     int K = npf*nf;
     int N = K*ncu;
@@ -980,7 +1141,7 @@ inline void PutBoudaryNodes(dstype* udg, const dstype* ub, const int* boufaces, 
     });
 }
 
-inline void PutBoudaryNodes(dstype* uh, const dstype* ub, const int* boufaces, const int* faceperm, const int* comperm, const int nfe, const int npf, const int ncu, const int nc, const int nf) 
+void PutBoudaryNodes(dstype* uh, const dstype* ub, const int* boufaces, const int* faceperm, const int* comperm, const int nfe, const int npf, const int ncu, const int nc, const int nf) 
 {
     int K = npf*nf;
     int N = K*ncu;
@@ -997,7 +1158,7 @@ inline void PutBoudaryNodes(dstype* uh, const dstype* ub, const int* boufaces, c
     });
 }
 
-inline void GetElementFaceNodes(dstype* uh, const dstype* udg, const int* perm, const int ndf, const int ncu, const int npe, const int nc, const int e1, const int e2) 
+void GetElementFaceNodes(dstype* uh, const dstype* udg, const int* perm, const int ndf, const int ncu, const int npe, const int nc, const int e1, const int e2) 
 {
     int ne = e2-e1;
     int N = ndf*ne*ncu;
@@ -1012,7 +1173,7 @@ inline void GetElementFaceNodes(dstype* uh, const dstype* udg, const int* perm, 
     });
 }
 
-inline void GetElementFaceNodes(dstype* uhe, const dstype* uhf, const int* elemcon, const int ndf, const int ncu, const int e1, const int e2, const int opt) 
+void GetElementFaceNodes(dstype* uhe, const dstype* uhf, const int* elemcon, const int ndf, const int ncu, const int e1, const int e2, const int opt) 
 {
     int ne = e2-e1;
     int N = ndf*ne*ncu;
@@ -1045,7 +1206,7 @@ inline void GetElementFaceNodes(dstype* uhe, const dstype* uhf, const int* elemc
     }
 }
 
-inline void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, const int npf, const int nfe, const int ncu, const int nf) 
+void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int L = ncu*npf;
     int M = ncu*npf*nfe;
@@ -1061,7 +1222,7 @@ inline void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, 
     });
 }
 
-inline void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int L = ncu*npf;
     int M = ncu*npf*nfe;
@@ -1080,7 +1241,7 @@ inline void PutElementFaceNodes(dstype* uhf, const dstype* uhe, const int* f2e, 
     });
 }
 
-inline void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int npf, const int nfe, const int ncu, const int nf) 
+void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int ncf = ncu*npf;
     int M = ncf*nfe;
@@ -1098,7 +1259,7 @@ inline void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int 
     });
 }
 
-inline void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int ncf = ncu*npf;
     int M = ncf*nfe;
@@ -1126,7 +1287,7 @@ inline void BlockJacobi(dstype* BE, const dstype* AE, const int* f2e, const int*
     });
 }
 
-inline void ElementalAdditiveSchwarz(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+void ElementalAdditiveSchwarz(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int ncf = ncu*npf;
     int M = ncf*nfe;
@@ -1158,7 +1319,7 @@ inline void ElementalAdditiveSchwarz(dstype* BE, const dstype* AE, const int* f2
     });
 }
 
-inline void PathAdditiveSchwarz(dstype* A, dstype* B1, dstype* C1, dstype* B2, dstype* C2, dstype* D1, dstype* D2,
+void PathAdditiveSchwarz(dstype* A, dstype* B1, dstype* C1, dstype* B2, dstype* C2, dstype* D1, dstype* D2,
         dstype* DL, dstype* DU, const dstype* AE, const int* f2e, const int* elcon, const int* epath, 
         const int* fpath, const int* lpath, const int* fintf, const int* lintf, const int npf, 
         const int nfe, const int ncu, const int ne) 
@@ -1277,7 +1438,7 @@ inline void PathAdditiveSchwarz(dstype* A, dstype* B1, dstype* C1, dstype* B2, d
     });
 }
 
-inline void AssembleBlockILU0(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int* face, const int* row_ptr, const int* col_ind, const int npf, const int nfe, const int ncu, const int nf, const int nb) 
+void AssembleBlockILU0(dstype* BE, const dstype* AE, const int* f2e, const int* elcon, const int* face, const int* row_ptr, const int* col_ind, const int npf, const int nfe, const int ncu, const int nf, const int nb) 
 {
     int ncf = ncu*npf;
     int ndf = npf*nfe;
@@ -1417,7 +1578,7 @@ inline void AssembleBlockILU0(dstype* BE, const dstype* AE, const int* f2e, cons
 //     });
 // }
 
-inline void AssembleJacobianMatrix(dstype* BE, const dstype* AE, const int* f2e, const int* f2f, const int* f2l, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
+void AssembleJacobianMatrix(dstype* BE, const dstype* AE, const int* f2e, const int* f2f, const int* f2l, const int* elcon, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int nfe2 = 2*(nfe-1);
     int ncf = ncu*npf;
@@ -1527,7 +1688,7 @@ inline void AssembleJacobianMatrix(dstype* BE, const dstype* AE, const int* f2e,
 //     });
 // }
 
-inline void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const int npf, const int nfe, const int ncu, const int nf, const int offset) 
+void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const int npf, const int nfe, const int ncu, const int nf, const int offset) 
 {
     int nfe1 = nfe-1;
     int nfe2 = 2*(nfe-1);
@@ -1543,7 +1704,7 @@ inline void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const i
     });
 }
 
-inline void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const int npf, const int nfe, const int ncu, const int nf) 
+void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const int npf, const int nfe, const int ncu, const int nf) 
 {
     int nfe1 = 2*nfe-1;
     int nfe2 = 2*(nfe-1);
@@ -1559,7 +1720,7 @@ inline void ApplyFace2Face(dstype* Rf, const dstype* Rh, const int* f2f, const i
     });
 }
 
-inline void GetBoundaryNodes(dstype* uh, const dstype* udg, const int* boufaces, const int ngf, const int nfe, const int ne, const int nc, const int nfaces) 
+void GetBoundaryNodes(dstype* uh, const dstype* udg, const int* boufaces, const int ngf, const int nfe, const int ne, const int nc, const int nfaces) 
 {
     int N = ngf*nfaces*nc;
     int M = ngf*nfe*ne;
@@ -1574,7 +1735,7 @@ inline void GetBoundaryNodes(dstype* uh, const dstype* udg, const int* boufaces,
 }
 
 
-inline void PutBoundaryNodes(dstype* udg, const dstype* uh, const int* boufaces, const int ngf, const int nfe, const int ne, const int nc, const int nfaces) 
+void PutBoundaryNodes(dstype* udg, const dstype* uh, const int* boufaces, const int ngf, const int nfe, const int ne, const int nc, const int nfaces) 
 {
     int N = ngf*nfaces*nc;
     int M = ngf*nfe*ne;
@@ -1588,7 +1749,7 @@ inline void PutBoundaryNodes(dstype* udg, const dstype* uh, const int* boufaces,
     });
 }
 
-inline void PutFaceNodes(dstype* udg, const dstype* uh, const int* facecon, const int npf, const int ncu, const int npe, const int nc, const int f1, const int f2)
+void PutFaceNodes(dstype* udg, const dstype* uh, const int* facecon, const int npf, const int ncu, const int npe, const int nc, const int f1, const int f2)
 {
     int nf = f2-f1;
     int ndf = npf*nf;
@@ -1618,7 +1779,7 @@ inline void PutFaceNodes(dstype* udg, const dstype* uh, const int* facecon, cons
     });                        
 }
 
-inline void assembleMatrixE(dstype* E, const dstype* Etmp, const int* facecon, const int* f2e, const int npf, const int npe, const int nfe, const int f1, const int f2)
+void assembleMatrixE(dstype* E, const dstype* Etmp, const int* facecon, const int* f2e, const int npf, const int npe, const int nfe, const int f1, const int f2)
 {
     int nf = f2-f1;    
     int N = npf*npf*nf;    
@@ -1647,7 +1808,7 @@ inline void assembleMatrixE(dstype* E, const dstype* Etmp, const int* facecon, c
     });                        
 }
 
-inline void assembleMatrixE(dstype* E, const dstype* Etmp, const int* perm, const int npf, const int npe, const int nfe, const int ne)
+void assembleMatrixE(dstype* E, const dstype* Etmp, const int* perm, const int npf, const int npe, const int nfe, const int ne)
 {    
     int M = npe*npf*nfe;
     int N = npf*npf*nfe*ne;    
@@ -1663,7 +1824,7 @@ inline void assembleMatrixE(dstype* E, const dstype* Etmp, const int* perm, cons
     });                        
 }
 
-inline void assembleRu(dstype* Ru, const dstype* Rutmp, const int* perm, const int npe, const int ndf, const int ne)
+void assembleRu(dstype* Ru, const dstype* Rutmp, const int* perm, const int npe, const int ndf, const int ne)
 {        
     int N = ndf*ne;    
     Kokkos::parallel_for("assembleRu", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -1674,7 +1835,7 @@ inline void assembleRu(dstype* Ru, const dstype* Rutmp, const int* perm, const i
     });                        
 }
 
-inline void assembleMatrixBD(dstype* D, const dstype* Dtmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
+void assembleMatrixBD(dstype* D, const dstype* Dtmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
 {        
     int M = npe*npe;    
     int N = npf*npf*nfe*ne;    
@@ -1693,7 +1854,7 @@ inline void assembleMatrixBD(dstype* D, const dstype* Dtmp, const int* perm, con
 
 // npf*npf*nfe*ne*ncu*ncu -> npf*nfe*npe*ne*ncu*ncu
 // assembleMatrixGK(res.K, Dtmp, mesh.perm, npe, npf, nfe, ne*ncu*ncu);
-inline void assembleMatrixGK(dstype* K, const dstype* Ktmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
+void assembleMatrixGK(dstype* K, const dstype* Ktmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe; 
     int M = npf*nfe*npe;    
@@ -1710,7 +1871,7 @@ inline void assembleMatrixGK(dstype* K, const dstype* Ktmp, const int* perm, con
     });                        
 }
 
-inline void assembleMatrixF(dstype* F, const dstype* Ftmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
+void assembleMatrixF(dstype* F, const dstype* Ftmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
 {        
     int M = npe*npf;
     int K = M*nfe;    
@@ -1727,7 +1888,7 @@ inline void assembleMatrixF(dstype* F, const dstype* Ftmp, const int* perm, cons
     });                        
 }
 
-inline void assembleMatrixH(dstype* H, const dstype* Htmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
+void assembleMatrixH(dstype* H, const dstype* Htmp, const int* perm, const int npe, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int L = ndf*npf;  
@@ -1745,7 +1906,7 @@ inline void assembleMatrixH(dstype* H, const dstype* Htmp, const int* perm, cons
 }
 
 // npf*npf*nfaces*ncu12*ncu -> ncu12*npf*npe*ncu*nfaces        
-inline void assembleMatrixKint(dstype* udg, const dstype* uh, const int* boufaces, const int* perm, const int npe, const int npf, const int nfe, const int ncu12, const int ncu, const int nfaces)
+void assembleMatrixKint(dstype* udg, const dstype* uh, const int* boufaces, const int* perm, const int npe, const int npf, const int nfe, const int ncu12, const int ncu, const int nfaces)
 {
     int N = npf*npf*nfaces*ncu12*ncu; 
     int M2 = ncu12*npf;
@@ -1767,7 +1928,7 @@ inline void assembleMatrixKint(dstype* udg, const dstype* uh, const int* bouface
 }
 
 // npf*npf*nfaces*ncu12*ncq ->  npf*npe*nfaces*ncu12*ncq
-inline void assembleMatrixGint(dstype* udg, const dstype* uh, const int* boufaces, const int* perm, const int npe, const int npf, const int nfe, const int ncu12, const int ncq, const int nfaces)
+void assembleMatrixGint(dstype* udg, const dstype* uh, const int* boufaces, const int* perm, const int npe, const int npf, const int nfe, const int ncu12, const int ncq, const int nfaces)
 {
     int N = npf*npf*nfaces*ncu12*ncq; 
     int M2 = npf*npe;
@@ -1789,7 +1950,7 @@ inline void assembleMatrixGint(dstype* udg, const dstype* uh, const int* bouface
 }
 
 // npf*npf*nfaces*ncu12*ncu -> ncu12*npf*ncu*npf*nfe*nfaces        
-inline void assembleMatrixHint(dstype* udg, const dstype* uh, const int* boufaces, const int npe, const int npf, const int nfe, const int ncu12, const int ncu, const int nfaces)
+void assembleMatrixHint(dstype* udg, const dstype* uh, const int* boufaces, const int npe, const int npf, const int nfe, const int ncu12, const int ncu, const int nfaces)
 {
     int N = npf*npf*nfaces*ncu12*ncu; 
     int M2 = ncu12*npf;
@@ -1810,7 +1971,7 @@ inline void assembleMatrixHint(dstype* udg, const dstype* uh, const int* bouface
 }
 
 // npe*npe*ne*ncu*ncu -> npe*ncu*npe*ncu*ne
-inline void schurMatrixD(dstype* D, const dstype* Dtmp,  const int npe, const int ncu, const int ne)
+void schurMatrixD(dstype* D, const dstype* Dtmp,  const int npe, const int ncu, const int ne)
 {        
     int M = npe*npe;    
     int L = npe*npe*ne;
@@ -1830,7 +1991,7 @@ inline void schurMatrixD(dstype* D, const dstype* Dtmp,  const int npe, const in
 }
 
 // [npe*npe*ne*ncu*ncu] x [npe*npe*ne] -> npe*ncu*npe*ncu*ne
-inline void schurMatrixBMinvC(dstype* D, const dstype *B, const dstype *MinvC, dstype scalar, const int npe, const int ncu, const int ne)
+void schurMatrixBMinvC(dstype* D, const dstype *B, const dstype *MinvC, dstype scalar, const int npe, const int ncu, const int ne)
 {        
     int M = npe*npe;    
     int L = npe*npe*ne;
@@ -1853,7 +2014,7 @@ inline void schurMatrixBMinvC(dstype* D, const dstype *B, const dstype *MinvC, d
 }
 
 // npe*(npf*nfe)*ne*(ncu*ncu) -> npe*(ncu*ncu)*(npf*nfe)*ne
-inline void schurMatrixF(dstype* F, const dstype* Ftmp,  const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixF(dstype* F, const dstype* Ftmp,  const int npe, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ncu2 = ncu*ncu;
     int ndf = npf*nfe;
@@ -1872,7 +2033,7 @@ inline void schurMatrixF(dstype* F, const dstype* Ftmp,  const int npe, const in
 }
 
 // [npe*npe*ne*(ncu*ncu)] x [npe*(npf*nfe)*ne] -> npe*(ncu*ncu)*(npf*nfe)*ne
-inline void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, dstype scalar, const int npe, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ncu2 = ncu*ncu;
     int ndf = npf*nfe;
@@ -1894,7 +2055,7 @@ inline void schurMatrixBMinvE(dstype* F, const dstype *B, const dstype *MinvE, d
 }
 
 // (npf*nfe)*npe*ne*ncu*ncu -> ncu*(npf*nfe)*npe*ncu*ne
-inline void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = npe*ndf;    
@@ -1915,7 +2076,7 @@ inline void schurMatrixK(dstype* K, const dstype* Ktmp,  const int npe, const in
 }
 
 // [(npf*nfe)*npe*ne*ncu*ncu] x [npe*npe*ne] -> ncu*(npf*nfe)*npe*ncu*ne
-inline void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int Q = npe*npe;
@@ -1940,7 +2101,7 @@ inline void schurMatrixGMinvC(dstype* K, const dstype *G, const dstype *MinvC, d
 }
 
 // (npf*nfe)*(npf*nfe)*ne*ncu*ncu -> ncu*(npf*nfe)*ncu*(npf*nfe)*ne
-inline void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = ndf*ndf;    
@@ -1961,7 +2122,7 @@ inline void schurMatrixH(dstype* H, const dstype* Htmp,  const int ncu12, const 
 }
 
 // [(npf*nfe)*npe*ne*ncu*ncu] x [npe*(npf*nfe)*ne] -> ncu*(npf*nfe)*ncu*(npf*nfe)*ne
-inline void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int M = ndf*npe;    
@@ -1984,7 +2145,7 @@ inline void schurMatrixGMinvE(dstype* H, const dstype *G, const dstype *MinvE, d
     });                        
 }
 
-inline void schurMatrixGintMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
+void schurMatrixGintMinvE(dstype* H, const dstype *G, const dstype *MinvE, dstype scalar, const int npe, const int ncu12, const int ncu, const int npf, const int nfe, const int ne)
 {        
     int ndf = npf*nfe;
     int Q = npe*ndf;
@@ -2009,7 +2170,7 @@ inline void schurMatrixGintMinvE(dstype* H, const dstype *G, const dstype *MinvE
 }
 
 // npe*ne*ncu-> npe*ncu*ne
-inline void schurVectorRu(dstype* Ru, const dstype* Rutmp,  const int npe, const int ncu, const int ne)
+void schurVectorRu(dstype* Ru, const dstype* Rutmp,  const int npe, const int ncu, const int ne)
 {            
     int L = npe*ne;    
     int N = npe*ncu*ne;    
@@ -2023,7 +2184,7 @@ inline void schurVectorRu(dstype* Ru, const dstype* Rutmp,  const int npe, const
 }
 
 // ndf*ne*ncu-> ncu*ndf*ne
-inline void schurVectorRh(dstype* Rh, const dstype* Rhtmp,  const int ndf, const int ncu, const int ne)
+void schurVectorRh(dstype* Rh, const dstype* Rhtmp,  const int ndf, const int ncu, const int ne)
 {            
     int L = ndf*ne;    
     int N = ndf*ncu*ne;    
@@ -2036,7 +2197,7 @@ inline void schurVectorRh(dstype* Rh, const dstype* Rhtmp,  const int ndf, const
     });                        
 }
 
-inline void PutFaceNodes(dstype* udg, const dstype* uh, const int* rowe2f1, const int* cole2f1, const int* ent2ind1,
+void PutFaceNodes(dstype* udg, const dstype* uh, const int* rowe2f1, const int* cole2f1, const int* ent2ind1,
         const int* rowe2f2, const int* cole2f2, const int* ent2ind2, const int npf, const int npe, const int nc, const int e1, const int e2, const int opts)
 {
     int ne = e2-e1;
@@ -2093,7 +2254,7 @@ inline void PutFaceNodes(dstype* udg, const dstype* uh, const int* rowe2f1, cons
     }
 }
 
-inline void ApplyXx4(dstype* rg, const dstype* sg, const dstype* fg, const dstype* Xx, const dstype* jac, const int nge, const int nd, const int ncu, const int ne)
+void ApplyXx4(dstype* rg, const dstype* sg, const dstype* fg, const dstype* Xx, const dstype* jac, const int nge, const int nd, const int ncu, const int ne)
 {
     int M = nge*ne;
     int N = M*ncu;
@@ -2118,7 +2279,7 @@ inline void ApplyXx4(dstype* rg, const dstype* sg, const dstype* fg, const dstyp
     });    
 }
 
-inline void ApplyXxJac(dstype* rg, const dstype* sg, const dstype* fg, const dstype* Xx, const dstype* jac, const int nge, const int nd, const int ncu, const int ne)
+void ApplyXxJac(dstype* rg, const dstype* sg, const dstype* fg, const dstype* Xx, const dstype* jac, const int nge, const int nd, const int ncu, const int ne)
 {
     int M = nge*ne;
     int N = M*ncu;
@@ -2143,7 +2304,7 @@ inline void ApplyXxJac(dstype* rg, const dstype* sg, const dstype* fg, const dst
     });    
 }
 
-inline void ApplyXxJac(dstype* rg, const dstype* sg_udg, const dstype* fg_udg, const dstype* Xx, const dstype* jac, const int nge, const int nd, const int ncu, const int nc, const int ne)
+void ApplyXxJac(dstype* rg, const dstype* sg_udg, const dstype* fg_udg, const dstype* Xx, const dstype* jac, const int nge, const int nd, const int ncu, const int nc, const int ne)
 {
     int M = nge*ne;
     int L = M*ncu;
@@ -2174,7 +2335,7 @@ inline void ApplyXxJac(dstype* rg, const dstype* sg_udg, const dstype* fg_udg, c
 }
 
 // (nge * ne * ncu) x (nge * ne) x (npe * nge) -> (npe * ncu * ne) 
-inline void RuSource(dstype* Ru, const dstype* sg, const dstype* jac, const dstype* testshap, const int nge, const int npe, const int ncu, const int ne)
+void RuSource(dstype* Ru, const dstype* sg, const dstype* jac, const dstype* testshap, const int nge, const int npe, const int ncu, const int ne)
 {
     int N = npe*ncu*ne;
     int M = nge*ne;
@@ -2192,7 +2353,7 @@ inline void RuSource(dstype* Ru, const dstype* sg, const dstype* jac, const dsty
 }
 
 // (nge * ne * ncu * nd) x (nge * ne * nd * nd) x (npe * nge * nd) -> (npe * ncu * ne) 
-inline void RuFlux(dstype* Ru, const dstype* fg, const dstype* Xx, const dstype* testshapderiv, const int nge, const int npe, const int ncu,  int nd, const int ne)
+void RuFlux(dstype* Ru, const dstype* fg, const dstype* Xx, const dstype* testshapderiv, const int nge, const int npe, const int ncu,  int nd, const int ne)
 {
     int N = npe*ncu*ne;
     int M = nge*ne;
@@ -2217,7 +2378,7 @@ inline void RuFlux(dstype* Ru, const dstype* fg, const dstype* Xx, const dstype*
 }
 
 // (nge * ne * ncu * nc) x (nge * ne) x (npe * nge) x (nge * npe) -> (npe * ncu * npe * nc * ne) 
-inline void JuSource(dstype* Ju, const dstype* sg_udg, const dstype* jac, const dstype* testshap, const dstype* trialshap, const int nge, const int npe, const int ncu, const int nc, const int ne)
+void JuSource(dstype* Ju, const dstype* sg_udg, const dstype* jac, const dstype* testshap, const dstype* trialshap, const int nge, const int npe, const int ncu, const int nc, const int ne)
 {
     int N = npe*ncu*ne;
     int M = nge*ne;
@@ -2238,7 +2399,7 @@ inline void JuSource(dstype* Ju, const dstype* sg_udg, const dstype* jac, const 
     });    
 }
 
-inline void ApplyXx3(dstype* sg, const dstype* ug, const dstype* Xx, const int nge, const int nd, const int ncu, const int ne)
+void ApplyXx3(dstype* sg, const dstype* ug, const dstype* Xx, const int nge, const int nd, const int ncu, const int ne)
 {
     int M = nge*ne;
     int N = M*ncu;
@@ -2257,7 +2418,7 @@ inline void ApplyXx3(dstype* sg, const dstype* ug, const dstype* Xx, const int n
     });    
 }
 
-inline void ApplyJacNormal(dstype* fqg, const dstype* uhg, const dstype* nlg, const dstype* jac, const int nga, const int ncu, const int nd, const int ngf)
+void ApplyJacNormal(dstype* fqg, const dstype* uhg, const dstype* nlg, const dstype* jac, const int nga, const int ncu, const int nd, const int ngf)
 {
     int N = nga*ncu;
     int M = ngf*ncu;
@@ -2272,7 +2433,7 @@ inline void ApplyJacNormal(dstype* fqg, const dstype* uhg, const dstype* nlg, co
     });            
 }
 
-inline void ApplyJacFhat(dstype* sg, const dstype* fhg, const dstype* jac, const int nga, const int ncu, const int ngf)
+void ApplyJacFhat(dstype* sg, const dstype* fhg, const dstype* jac, const int nga, const int ncu, const int ngf)
 {
     int M = ngf*ncu;
     int N = nga*ncu;
@@ -2285,7 +2446,7 @@ inline void ApplyJacFhat(dstype* sg, const dstype* fhg, const dstype* jac, const
     });
 }
 
-inline void ApplyDtcoef(dstype* sg_u, dstype* fg, dstype dtcoeff, const int nga, const int ncu)
+void ApplyDtcoef(dstype* sg_u, dstype* fg, dstype dtcoeff, const int nga, const int ncu)
 {    
     int N = nga*ncu;
     Kokkos::parallel_for("ApplyJac", N, KOKKOS_LAMBDA(const size_t idx) {
@@ -2295,7 +2456,7 @@ inline void ApplyDtcoef(dstype* sg_u, dstype* fg, dstype dtcoeff, const int nga,
     });
 }
 
-inline void ApplyJac(dstype* R, const dstype* jac, const int M, const int N)
+void ApplyJac(dstype* R, const dstype* jac, const int M, const int N)
 {
     // M = npe*ncr
     // N = npe*ncr*ne
@@ -2308,7 +2469,7 @@ inline void ApplyJac(dstype* R, const dstype* jac, const int M, const int N)
     });                        
 }
 
-inline void ApplyJacInv(dstype* R, const dstype* jac, const int M, const int N)
+void ApplyJacInv(dstype* R, const dstype* jac, const int M, const int N)
 {
     // M = npe*ncr
     // N = npe*ncr*ne
@@ -2321,7 +2482,7 @@ inline void ApplyJacInv(dstype* R, const dstype* jac, const int M, const int N)
     });                        
 }
 
-inline void ShapJac(dstype* shapjac, const dstype* shapegt, const dstype* jac, const int nge, const int npe, const int ne)
+void ShapJac(dstype* shapjac, const dstype* shapegt, const dstype* jac, const int nge, const int npe, const int ne)
 {
     int M = nge*npe;
     int N = nge*npe*ne;
@@ -2334,7 +2495,7 @@ inline void ShapJac(dstype* shapjac, const dstype* shapegt, const dstype* jac, c
     });    
 }
 
-inline void ElemGeom1D(dstype* jac, dstype* Xx, const dstype* Jg, const int ngv)
+void ElemGeom1D(dstype* jac, dstype* Xx, const dstype* Jg, const int ngv)
 {
     Kokkos::parallel_for("ElemGeom1D", ngv, KOKKOS_LAMBDA(const size_t i) {
         jac[i] = Jg[i];
@@ -2342,7 +2503,7 @@ inline void ElemGeom1D(dstype* jac, dstype* Xx, const dstype* Jg, const int ngv)
     });
 }
 
-inline void ElemGeom2D(dstype* jac, dstype* Xx11, dstype* Xx12, dstype* Xx21, dstype* Xx22,
+void ElemGeom2D(dstype* jac, dstype* Xx11, dstype* Xx12, dstype* Xx21, dstype* Xx22,
                  const dstype* Jg11, const dstype* Jg12, const dstype* Jg21, const dstype* Jg22, const int ngv)
 {
     Kokkos::parallel_for("ElemGeom2D", ngv, KOKKOS_LAMBDA(const size_t i) {
@@ -2354,7 +2515,7 @@ inline void ElemGeom2D(dstype* jac, dstype* Xx11, dstype* Xx12, dstype* Xx21, ds
     });
 }
 
-inline void ElemGeom3D(dstype* jac, dstype* Xx11, dstype* Xx12, dstype* Xx13, dstype* Xx21, 
+void ElemGeom3D(dstype* jac, dstype* Xx11, dstype* Xx12, dstype* Xx13, dstype* Xx21, 
                 dstype* Xx22, dstype* Xx23, dstype* Xx31, dstype* Xx32, dstype* Xx33,
                 const dstype* Jg11, const dstype* Jg12, const dstype* Jg13, const dstype* Jg21, const dstype* Jg22, 
                 const dstype* Jg23, const dstype* Jg31, const dstype* Jg32, const dstype* Jg33, const int ngv)
@@ -2375,7 +2536,7 @@ inline void ElemGeom3D(dstype* jac, dstype* Xx11, dstype* Xx12, dstype* Xx13, ds
     });
 }
 
-inline void FaceGeom1D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
+void FaceGeom1D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
 {       
     Kokkos::parallel_for("FaceGeom1D", na, KOKKOS_LAMBDA(const size_t i) {
         jacg[i] = 1.0;
@@ -2383,7 +2544,7 @@ inline void FaceGeom1D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na
     });
 }
 
-inline void FixNormal1D(dstype* nlg, const int* facecon, const int na)
+void FixNormal1D(dstype* nlg, const int* facecon, const int na)
 {       
     Kokkos::parallel_for("FixNormal1D", na, KOKKOS_LAMBDA(const size_t i) {
         if (facecon[2*i]==0)
@@ -2391,7 +2552,7 @@ inline void FixNormal1D(dstype* nlg, const int* facecon, const int na)
     });
 }
 
-inline void FixNormal1D(dstype* nlg, const int na)
+void FixNormal1D(dstype* nlg, const int na)
 {       
     Kokkos::parallel_for("FixNormal1D", na, KOKKOS_LAMBDA(const size_t i) {
         if (i%2 == 0)
@@ -2399,7 +2560,7 @@ inline void FixNormal1D(dstype* nlg, const int na)
     });
 }
 
-inline void FaceGeom2D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
+void FaceGeom2D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
 {       
     Kokkos::parallel_for("FaceGeom2D", na, KOKKOS_LAMBDA(const size_t i) {
         int j = i+na;
@@ -2409,7 +2570,7 @@ inline void FaceGeom2D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na
     });
 }
 
-inline void FaceGeom3D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
+void FaceGeom3D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na)
 {       
     int n11 = 0;
     int n21 = na;
@@ -2430,7 +2591,7 @@ inline void FaceGeom3D(dstype* jacg, dstype* nlg, const dstype* Jg, const int na
     });
 }
 
-inline void StgHomoTurb2D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+void StgHomoTurb2D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
 {	
     Kokkos::parallel_for("StgHomoTurb2D", M, KOKKOS_LAMBDA(const size_t m) {
         dstype un = 0.0;
@@ -2467,7 +2628,7 @@ inline void StgHomoTurb2D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, 
     });
 }
 
-inline void StgInflow2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+void StgInflow2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
 {
     StgHomoTurb2D(up, xdg, stgdata, uc, t, M, N);
 
@@ -2490,7 +2651,7 @@ inline void StgInflow2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype
     });
 }
 
-inline void StgHomoTurb3D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+void StgHomoTurb3D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, dstype t, int M, int N)
 {	
     Kokkos::parallel_for("StgHomoTurb3D", M, KOKKOS_LAMBDA(const size_t m) {
         dstype un = 0.0;
@@ -2533,7 +2694,7 @@ inline void StgHomoTurb3D(dstype *up, dstype *xdg, dstype *stgdata, dstype *uc, 
     });
 }
 
-inline void StgInflow3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+void StgInflow3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
 {
     StgHomoTurb3D(up, xdg, stgdata, uc, t, M, N);
 
@@ -2559,7 +2720,7 @@ inline void StgInflow3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype
     });
 }
 
-inline void StgInflowHDG(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd)
+void StgInflowHDG(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd)
 {
 	if (nd == 1) {
 	}
@@ -2571,7 +2732,7 @@ inline void StgInflowHDG(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstyp
     }
 }
 
-inline void StgInflowHDG(dstype *fb, dstype *fb_uq, dstype *fb_w, dstype* fb_uh, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd, int ncu, int nc, int ncw)
+void StgInflowHDG(dstype *fb, dstype *fb_uq, dstype *fb_w, dstype* fb_uh, dstype *up, dstype *xdg, dstype *vdg, dstype *uhg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd, int ncu, int nc, int ncw)
 {
 	if (nd == 1) {
 	}
@@ -2588,7 +2749,7 @@ inline void StgInflowHDG(dstype *fb, dstype *fb_uq, dstype *fb_w, dstype* fb_uh,
     if (ncw > 0) ArraySetValue(fb_w, 0.0, M*ncu*ncw);    
 }
 
-inline void StgInflowLDG2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+void StgInflowLDG2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
 {
     StgHomoTurb2D(up, xdg, stgdata, uc, t, M, N);
 
@@ -2611,7 +2772,7 @@ inline void StgInflowLDG2D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dst
     });
 }
 
-inline void StgInflowLDG3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
+void StgInflowLDG3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N)
 {
     StgHomoTurb3D(up, xdg, stgdata, uc, t, M, N);
 
@@ -2637,7 +2798,7 @@ inline void StgInflowLDG3D(dstype *fb, dstype *up, dstype *xdg, dstype *vdg, dst
     });
 }
 
-inline void StgInflowLDG(dstype *fb, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd)
+void StgInflowLDG(dstype *fb, dstype *xdg, dstype *vdg, dstype *param, dstype *stgdata, dstype *uc, dstype t, int M, int N, int nd)
 {
 	if (nd == 1) {
 	}

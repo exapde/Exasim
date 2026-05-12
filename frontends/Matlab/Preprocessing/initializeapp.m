@@ -88,6 +88,9 @@ app.matvectol = 1e-6;
 app.flag = [0 0];
 app.problem = [0 0];
 app.boundaryconditions = [0 0];
+app.wmModelIDs = [];
+app.wmBoundaries = [];
+app.wmDistances = [];
 app.stgib = [0 0];
 
 app.tau = 1.0; % stabilization parameters
@@ -104,7 +107,6 @@ app.visfilename = "dataout/output";   % filename for paraview output files
 app.metis = "mpmetis";
 app.gmsh = "gmsh";
 app.paraview = "paraview";
-
 
 
 

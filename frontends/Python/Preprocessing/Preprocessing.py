@@ -70,6 +70,24 @@ def preprocessing(app,mesh):
     # spec.loader.exec_module(pdemodel);
 
     app['boundaryconditions'] = mesh['boundarycondition'];
+    for key in ['wmModelIDs', 'wmBoundaries', 'wmDistances']:
+        if key not in app:
+            app[key] = array([]);
+        app[key] = array(app[key]).flatten('F');
+    nwm = len(app['wmModelIDs']);
+    if len(app['wmBoundaries']) != nwm or len(app['wmDistances']) != nwm:
+        sys.exit('app.wmModelIDs, app.wmBoundaries, and app.wmDistances must have the same length.')
+    if nwm > 0:
+        if any(app['wmModelIDs'] != round(app['wmModelIDs'])):
+            sys.exit('app.wmModelIDs must contain integer wall-model identifiers.')
+        if any(app['wmBoundaries'] != round(app['wmBoundaries'])) or any(app['wmBoundaries'] <= 0):
+            sys.exit('app.wmBoundaries must contain positive integer boundary-condition markers.')
+        if any(app['wmDistances'] <= 0):
+            sys.exit('app.wmDistances must contain positive off-wall distances.')
+        boundaryconditions = array(app['boundaryconditions']).flatten('F')
+        if len(boundaryconditions) > 0 and any(boundaryconditions != 0):
+            if any(~isin(app['wmBoundaries'], boundaryconditions)):
+                sys.exit('app.wmBoundaries must be present in mesh.boundarycondition.')
     app['uinf'] = app['externalparam'];
 
     nuinf = len(app['uinf']);

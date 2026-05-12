@@ -75,6 +75,32 @@ pdemodel = str2func(app.modelfile);
 pde = pdemodel();
 
 app.boundaryconditions = mesh.boundarycondition;
+if isfield(app, 'wmModelIDs') == 0, app.wmModelIDs = []; end
+if isfield(app, 'wmBoundaries') == 0, app.wmBoundaries = []; end
+if isfield(app, 'wmDistances') == 0, app.wmDistances = []; end
+app.wmModelIDs = app.wmModelIDs(:)';
+app.wmBoundaries = app.wmBoundaries(:)';
+app.wmDistances = app.wmDistances(:)';
+nwm = length(app.wmModelIDs);
+if length(app.wmBoundaries) ~= nwm || length(app.wmDistances) ~= nwm
+    error("app.wmModelIDs, app.wmBoundaries, and app.wmDistances must have the same length.");
+end
+if nwm > 0
+    if any(app.wmModelIDs ~= round(app.wmModelIDs))
+        error("app.wmModelIDs must contain integer wall-model identifiers.");
+    end
+    if any(app.wmBoundaries ~= round(app.wmBoundaries)) || any(app.wmBoundaries <= 0)
+        error("app.wmBoundaries must contain positive integer boundary-condition markers.");
+    end
+    if any(app.wmDistances <= 0)
+        error("app.wmDistances must contain positive off-wall distances.");
+    end
+    if ~isempty(app.boundaryconditions) && any(app.boundaryconditions(:) ~= 0)
+        if any(~ismember(app.wmBoundaries, app.boundaryconditions(:)'))
+            error("app.wmBoundaries must be present in mesh.boundarycondition.");
+        end
+    end
+end
 app.uinf = app.externalparam;
 nuinf = length(app.uinf);
 nparam = length(app.physicsparam);
@@ -439,4 +465,3 @@ mesh.telem = master.telem;
 mesh.tface = master.telem;
 mesh.xpe = master.xpe;
 mesh.xpf = master.xpf;
-

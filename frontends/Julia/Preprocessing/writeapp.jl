@@ -27,8 +27,9 @@ ndims[17] = app.nten;
 ndims[18] = app.nbqoi;
 ndims[19] = app.nvqoi;
 
+avparam = [app.avparam1[:]; app.avparam2[:]];
 
-nsize = zeros(20,1);
+nsize = zeros(30,1);
 nsize[1] = length(ndims[:]);
 nsize[2] = length(app.flag[:]);  # length of flag
 nsize[3] = length(app.problem[:]); # length of physics
@@ -43,6 +44,11 @@ nsize[11] = length(app.stgparam[:]);
 nsize[12] = length(app.stgib[:]);
 nsize[13] = length(app.vindx[:]);
 nsize[14] = length(app.dae_dt[:]);
+nsize[15] = length(app.interfacefluxmap[:]);
+nsize[16] = length(avparam[:]);
+nsize[17] = length(app.wmModelIDs[:]);
+nsize[18] = length(app.wmBoundaries[:]);
+nsize[19] = length(app.wmDistances[:]);
 
 # app.nsize = nsize;
 # app.ndims = ndims;
@@ -94,6 +100,21 @@ if nsize[13]>0
 end
 if nsize[14]>0
     write(fileID,app.dae_dt[:]);
+end
+if nsize[15]>0
+    write(fileID,Float64.(app.interfacefluxmap[:].-1));
+end
+if nsize[16]>0
+    write(fileID,Float64.(avparam[:]));
+end
+if nsize[17]>0
+    write(fileID,Float64.(app.wmModelIDs[:]));
+end
+if nsize[18]>0
+    write(fileID,Float64.(app.wmBoundaries[:]));
+end
+if nsize[19]>0
+    write(fileID,Float64.(app.wmDistances[:]));
 end
 
 if app.mutationflag == 1
