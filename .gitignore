@@ -62,8 +62,6 @@ text2code/text2code/.DS_Store
 text2code/text2code/.DS_Store
 *.zip
 /examples/tests
-backend/Model/BuiltIn
-/backend/Model/BuiltIn/
 backend/Model/cpuInitu.cpp
 backend/Model/HdgFbou.cpp
 backend/Model/HdgFbouonly.cpp
