@@ -12,6 +12,8 @@ static void KokkosInitudgTemplate(dstype* f, const dstype* xdg,
     (void)ne;
 
     Kokkos::parallel_for("Initudg", ng, KOKKOS_LAMBDA(const size_t i) {
+        constexpr int nd = Model::nd;
+        constexpr int nqu = Model::ncu * (1 + Model::nd);
         const int j = static_cast<int>(i % npe);
         const int elem = static_cast<int>(i / npe);
         dstype x[nd];

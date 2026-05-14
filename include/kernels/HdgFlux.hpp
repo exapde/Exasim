@@ -24,6 +24,11 @@ static void HdgFluxTemplate(dstype* f, dstype* f_udg, dstype* f_wdg,
     (void)ncw_runtime;
 
     Kokkos::parallel_for("HdgFlux", ng, KOKKOS_LAMBDA(const size_t i) {
+        constexpr int nd = Model::nd;
+        constexpr int ncu = Model::ncu;
+        constexpr int nc = ncu * (1 + nd);
+        constexpr int nco = Model::nco;
+        constexpr int ncw = Model::ncw;
         dstype x[nd];
         dstype uq[nc];
         dstype v[(nco > 0) ? nco : 1];
@@ -33,12 +38,8 @@ static void HdgFluxTemplate(dstype* f, dstype* f_udg, dstype* f_wdg,
 
         for (int k = 0; k < nd; ++k) x[k] = xdg[k * ng + i];
         for (int k = 0; k < nc; ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) {
-            for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        }
-        if constexpr (ncw > 0) {
-            for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
-        }
+        for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
 
         Model::flux(f_local, x, uq, v, w, param, uinf, time);
         for (int k = 0; k < ncu * nd; ++k) f[k * ng + i] = f_local[k];
@@ -46,11 +47,9 @@ static void HdgFluxTemplate(dstype* f, dstype* f_udg, dstype* f_wdg,
         Model::flux_jac_uq(f_uq, x, uq, v, w, param, uinf, time);
         for (int k = 0; k < ncu * nd * nc; ++k) f_udg[k * ng + i] = f_uq[k];
 
-        if constexpr (ncw > 0) {
-            dstype f_w[ncu * nd * ncw];
-            Model::flux_jac_w(f_w, x, uq, v, w, param, uinf, time);
-            for (int k = 0; k < ncu * nd * ncw; ++k) f_wdg[k * ng + i] = f_w[k];
-        }
+        dstype f_w[(ncu * nd * ncw > 0) ? ncu * nd * ncw : 1];
+        Model::flux_jac_w(f_w, x, uq, v, w, param, uinf, time);
+        for (int k = 0; k < ncu * nd * ncw; ++k) f_wdg[k * ng + i] = f_w[k];
     });
 }
 

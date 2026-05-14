@@ -28,6 +28,11 @@ static void KokkosFhatTemplate(dstype* f, const dstype* xdg,
     (void)ncw_runtime;
 
     Kokkos::parallel_for("Fhat", ng, KOKKOS_LAMBDA(const size_t i) {
+        constexpr int nd = Model::nd;
+        constexpr int ncu = Model::ncu;
+        constexpr int nc = ncu * (1 + nd);
+        constexpr int nco = Model::nco;
+        constexpr int ncw = Model::ncw;
         dstype x[nd];
         dstype uq1[nc];
         dstype uq2[nc];
@@ -45,17 +50,13 @@ static void KokkosFhatTemplate(dstype* f, const dstype* xdg,
             uq1[k] = udg1[k * ng + i];
             uq2[k] = udg2[k * ng + i];
         }
-        if constexpr (nco > 0) {
-            for (int k = 0; k < nco; ++k) {
-                v1[k] = odg1[k * ng + i];
-                v2[k] = odg2[k * ng + i];
-            }
+        for (int k = 0; k < nco; ++k) {
+            v1[k] = odg1[k * ng + i];
+            v2[k] = odg2[k * ng + i];
         }
-        if constexpr (ncw > 0) {
-            for (int k = 0; k < ncw; ++k) {
-                w1[k] = wdg1[k * ng + i];
-                w2[k] = wdg2[k * ng + i];
-            }
+        for (int k = 0; k < ncw; ++k) {
+            w1[k] = wdg1[k * ng + i];
+            w2[k] = wdg2[k * ng + i];
         }
         for (int k = 0; k < ncu; ++k) {
             uh[k] = uhg[k * ng + i];

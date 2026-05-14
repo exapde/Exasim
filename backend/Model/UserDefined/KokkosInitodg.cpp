@@ -12,6 +12,8 @@ static void KokkosInitodgTemplate(dstype* f, const dstype* xdg,
     (void)ne;
 
     Kokkos::parallel_for("Initodg", ng, KOKKOS_LAMBDA(const size_t i) {
+        constexpr int nd = Model::nd;
+        constexpr int nco = Model::nco;
         const int j = static_cast<int>(i % npe);
         const int elem = static_cast<int>(i / npe);
 
@@ -19,19 +21,17 @@ static void KokkosInitodgTemplate(dstype* f, const dstype* xdg,
             f[j + npe * k + npe * nco_runtime * elem] = 0.0;
         }
 
-        if constexpr (nco > 0) {
-            dstype x[nd];
-            dstype odg_local[nco];
+        dstype x[nd];
+        dstype odg_local[(nco > 0) ? nco : 1];
 
-            for (int k = 0; k < nd; ++k) x[k] = xdg[j + npe * k + npe * ncx * elem];
-            for (int k = 0; k < nco; ++k) odg_local[k] = 0.0;
+        for (int k = 0; k < nd; ++k) x[k] = xdg[j + npe * k + npe * ncx * elem];
+        for (int k = 0; k < nco; ++k) odg_local[k] = 0.0;
 
-            Model::initodg(odg_local, x, uinf, param);
+        Model::initodg(odg_local, x, uinf, param);
 
-            const int ncopy = (nco_runtime < nco) ? nco_runtime : nco;
-            for (int k = 0; k < ncopy; ++k) {
-                f[j + npe * k + npe * nco_runtime * elem] = odg_local[k];
-            }
+        const int ncopy = (nco_runtime < nco) ? nco_runtime : nco;
+        for (int k = 0; k < ncopy; ++k) {
+            f[j + npe * k + npe * nco_runtime * elem] = odg_local[k];
         }
     });
 }

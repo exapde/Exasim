@@ -29,28 +29,27 @@ static void KokkosEoSdwTemplate(dstype* f, const dstype* xdg,
     (void)npe;
     (void)ne;
 
-    if constexpr (ncw > 0) {
-        Kokkos::parallel_for("EoSdw", ng, KOKKOS_LAMBDA(const size_t i) {
-            dstype x[nd];
-            dstype uq[nc];
-            dstype v[(nco > 0) ? nco : 1];
-            dstype w[ncw];
-            dstype eos_dw_local[ncu * ncw];
+    Kokkos::parallel_for("EoSdw", ng, KOKKOS_LAMBDA(const size_t i) {
+        constexpr int nd = Model::nd;
+        constexpr int ncu = Model::ncu;
+        constexpr int nc = ncu * (1 + nd);
+        constexpr int nco = Model::nco;
+        constexpr int ncw = Model::ncw;
+        dstype x[nd];
+        dstype uq[nc];
+        dstype v[(nco > 0) ? nco : 1];
+        dstype w[(ncw > 0) ? ncw : 1];
+        dstype eos_dw_local[(ncu * ncw > 0) ? ncu * ncw : 1];
 
-            for (int k = 0; k < nd; ++k) x[k] = xdg[k * ng + i];
-            for (int k = 0; k < nc; ++k) uq[k] = udg[k * ng + i];
-            if constexpr (nco > 0) {
-                for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-            }
-            for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
+        for (int k = 0; k < nd; ++k) x[k] = xdg[k * ng + i];
+        for (int k = 0; k < nc; ++k) uq[k] = udg[k * ng + i];
+        for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
 
-            Model::eos_dw(eos_dw_local, x, uq, v, w, param, uinf, time);
+        Model::eos_dw(eos_dw_local, x, uq, v, w, param, uinf, time);
 
-            for (int k = 0; k < ncu * ncw; ++k) f[k * ng + i] = eos_dw_local[k];
-        });
-    } else {
-        (void)f; (void)xdg; (void)udg; (void)odg; (void)wdg; (void)uinf; (void)param;
-    }
+        for (int k = 0; k < ncu * ncw; ++k) f[k * ng + i] = eos_dw_local[k];
+    });
 }
 
 void KokkosEoSdw(dstype* f, const dstype* xdg, const dstype* udg, const dstype* odg, const dstype* wdg, const dstype* uinf, const dstype* param, const dstype time, const int modelnumber, const int ng, const int nc, const int ncu, const int nd, const int ncx, const int nco, const int ncw, const int nce, const int npe, const int ne)

@@ -30,6 +30,12 @@ static void KokkosMonitorTemplate(dstype* f, const dstype* xdg,
     (void)ne;
 
     Kokkos::parallel_for("Monitor", ng, KOKKOS_LAMBDA(const size_t i) {
+        constexpr int nd = Model::nd;
+        constexpr int ncu = Model::ncu;
+        constexpr int nc = ncu * (1 + nd);
+        constexpr int nco = Model::nco;
+        constexpr int ncw = Model::ncw;
+        constexpr int kMax = 16;
         dstype x[nd];
         dstype uq[nc];
         dstype v[(nco > 0) ? nco : 1];
@@ -39,12 +45,8 @@ static void KokkosMonitorTemplate(dstype* f, const dstype* xdg,
         for (int k = 0; k < kMax; ++k) out_local[k] = 0.0;
         for (int k = 0; k < nd; ++k) x[k] = xdg[k * ng + i];
         for (int k = 0; k < nc; ++k) uq[k] = udg[k * ng + i];
-        if constexpr (nco > 0) {
-            for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
-        }
-        if constexpr (ncw > 0) {
-            for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
-        }
+        for (int k = 0; k < nco; ++k) v[k] = odg[k * ng + i];
+        for (int k = 0; k < ncw; ++k) w[k] = wdg[k * ng + i];
 
         Model::monitor(out_local, x, uq, v, w, param, uinf, time);
 
