@@ -59,7 +59,7 @@ make text2code
 
 Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Python preprocessing. 
 
-### Build Exasim Executables
+### Build Exasim Libraries and Executables
 
 After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
