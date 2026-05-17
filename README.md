@@ -133,18 +133,47 @@ codegen, no autodiff — plain pointwise math + hand-written Jacobians.
 Minimum consumer (after `cmake --install build --prefix /opt/exasim`):
 
 ```cmake
+option(EXASIM_MPI "Link the MPI-enabled Exasim preprocessing library" ON)
+option(EXASIM_GPU "Link the GPU-enabled Exasim preprocessing library" OFF)
+
 find_package(Exasim REQUIRED)
-add_executable(my_solver main.cpp)
-target_link_libraries(my_solver PRIVATE
-    Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
+
+set(EXASIM_APP_LIBRARY_TARGET Exasim::cpuprelib)
+if(EXASIM_MPI)
+  set(EXASIM_APP_LIBRARY_TARGET Exasim::cpumpiprelib)
+endif()
+if(EXASIM_GPU)
+  if(EXASIM_MPI)
+    set(EXASIM_APP_LIBRARY_TARGET Exasim::gpumpiprelib)
+  else()
+    set(EXASIM_APP_LIBRARY_TARGET Exasim::gpuprelib)
+  endif()
+endif()
+
+add_executable(exasimapp main.cpp)
+target_include_directories(exasimapp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(exasimapp PRIVATE _KOKKOSKERNEL)
+if(EXASIM_MPI)
+  target_compile_definitions(exasimapp PRIVATE _MPI)
+endif()
+target_link_libraries(exasimapp PRIVATE Exasim::headers ${EXASIM_APP_LIBRARY_TARGET})
 ```
 
 ```cpp
-#include <exasim/run.hpp>
+#include "ExasimSolverSetup.hpp"
 #include "my_model.hpp"
+#include "modelprovider.hpp"
 
-int main(int argc, char** argv) {
-    return exasim::run<MyModel>(argc, argv);
+int main(int argc, char** argv)
+{
+#ifdef HAVE_MPI
+    MPI_Comm comm = MPI_COMM_WORLD;
+#else
+    MPI_Comm comm = MPI_COMM_NULL;
+#endif
+
+    ExasimSolver solver;
+    return RunExasimSolver(solver, argc, argv, comm);
 }
 ```
 
