@@ -19,49 +19,6 @@ After downloading the source code, please make sure that the name of the folder 
 
 To deploy, compile, and run Exasim on **HPC systems**, please follow the intructions in [the hpc manual](https://github.com/exapde/Exasim/blob/master/install/hpc.txt).
 
-## Header-only template-library authoring path (new)
-
-In addition to the existing `pdemodel.txt` + `text2code` codegen
-workflow, Exasim now supports a **header-only template-library** path
-where you write the PDE math directly as a C++ struct with
-`KOKKOS_INLINE_FUNCTION static` pointwise methods, and instantiate
-the FEM internals on it as `exasim::CSolution<MyModel>`. No DSL, no
-codegen, no autodiff — plain pointwise math + hand-written Jacobians.
-
-Minimum consumer (after `cmake --install build --prefix /opt/exasim`):
-
-```cmake
-find_package(Exasim REQUIRED)
-add_executable(my_solver main.cpp)
-target_link_libraries(my_solver PRIVATE
-    Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
-```
-
-```cpp
-#include <exasim/run.hpp>
-#include "my_model.hpp"
-
-int main(int argc, char** argv) {
-    return exasim::run<MyModel>(argc, argv);
-}
-```
-
-Documentation lives under [`docs/`](docs/) — start at
-[`docs/README.md`](docs/README.md) for the table of contents.
-
-Quick pointers:
-
-- [`tutorial/`](tutorial/) — solve Poisson 2D through every supported path; the worked walkthrough for picking among the PDE × Solver × Mesh combinations
-- [`docs/00-introduction.md`](docs/00-introduction.md) — what Exasim is and how the pieces fit together
-- [`docs/01-installation.md`](docs/01-installation.md) — per-platform install (macOS, Linux CPU, Linux + NVIDIA, Linux + AMD)
-- [`docs/02-model-contract.md`](docs/02-model-contract.md) — full reference for the `Model` C++ struct that the templated FEM internals consume
-- [`docs/03-internals/`](docs/03-internals/) — test harness, baseline format, architecture
-
-The legacy `pdemodel.txt` + `text2code` + `cput2cEXASIM` workflow stays
-fully supported. text2code now also emits a `my_model.hpp` for the
-templated path; both authoring paths produce the same struct shape and
-share one runtime body via `exasim::run<M>(argc, argv)`.
-
 ## Installation 
 
 Exasim needs Kokkos (required), Blas/Lapack libaries (required), MPI library (required), Gmesh for mesh generation (optional), METIS for mesh partitioning (optional), Paraview for visualization (optional), and CUDA Toolkit (optional) to run on Nvidia GPUs. 
@@ -107,11 +64,12 @@ Text2Code produces faster, cleaner code and removes the need for MATLAB/Julia/Py
 After installing Text2Code successfully, please procceed installing Exasim as follows
 ```
 cd Exasim/build
-cmake -D EXASIM_NOMPI=ON -D EXASIM_MPI=ON -D EXASIM_CUDA=OFF -D EXASIM_HIP=OFF -D WITH_TEXT2CODE=ON -D WITH_PARMETIS=ON ../install 
+cmake -DEXASIM_LIB=ON -DEXASIM_MPI=ON -DEXASIM_NOMPI=ON -DEXASIM_CUDA=OFF -DEXASIM_HIP=OFF -DWITH_PARMETIS=ON -DWITH_TEXT2CODE=ON ../install
 cmake --build .
+cmake --install . --prefix /path/to/Exasim
 ``` 
 
-EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. It will produce Exasim's executable programs in Exasim/build, which are **cput2cEXASIM** for CPU platform on one core, **cpumpit2cEXASIM** for CPU platform on many cores, **gput2cEXASIM** for CUDA/HIP platform on one GPU, and **gpumpit2cEXASIM** for CUDA/HIP platform on many GPUs. 
+EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. It will produce  It will produce Exasim's libraries in Exasim/lib and  Exasim's headers in Exasim/include. It will also produce Exasim's executable programs in Exasim/build, which are **cput2cEXASIM** for CPU platform on one core, **cpumpit2cEXASIM** for CPU platform on many cores, **gput2cEXASIM** for CUDA/HIP platform on one GPU, and **gpumpit2cEXASIM** for CUDA/HIP platform on many GPUs. 
 
 ## Examples
 
@@ -153,6 +111,49 @@ To run any example with Matlab, type the following line and hit return
 ```
 
 Exasim produces two folders in the `Exasim/build` directory. The `datain` folder contains input files which store the master, mesh and initial solution. The `dataout` folder contains the output files which store the numerical solution of the PDE model defined in the `pdeapp` script.
+
+## Header-only template-library authoring path (new)
+
+In addition to the existing `pdemodel.txt` + `text2code` codegen
+workflow, Exasim now supports a **header-only template-library** path
+where you write the PDE math directly as a C++ struct with
+`KOKKOS_INLINE_FUNCTION static` pointwise methods, and instantiate
+the FEM internals on it as `exasim::CSolution<MyModel>`. No DSL, no
+codegen, no autodiff — plain pointwise math + hand-written Jacobians.
+
+Minimum consumer (after `cmake --install build --prefix /opt/exasim`):
+
+```cmake
+find_package(Exasim REQUIRED)
+add_executable(my_solver main.cpp)
+target_link_libraries(my_solver PRIVATE
+    Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
+```
+
+```cpp
+#include <exasim/run.hpp>
+#include "my_model.hpp"
+
+int main(int argc, char** argv) {
+    return exasim::run<MyModel>(argc, argv);
+}
+```
+
+Documentation lives under [`docs/`](docs/) — start at
+[`docs/README.md`](docs/README.md) for the table of contents.
+
+Quick pointers:
+
+- [`tutorial/`](tutorial/) — solve Poisson 2D through every supported path; the worked walkthrough for picking among the PDE × Solver × Mesh combinations
+- [`docs/00-introduction.md`](docs/00-introduction.md) — what Exasim is and how the pieces fit together
+- [`docs/01-installation.md`](docs/01-installation.md) — per-platform install (macOS, Linux CPU, Linux + NVIDIA, Linux + AMD)
+- [`docs/02-model-contract.md`](docs/02-model-contract.md) — full reference for the `Model` C++ struct that the templated FEM internals consume
+- [`docs/03-internals/`](docs/03-internals/) — test harness, baseline format, architecture
+
+The legacy `pdemodel.txt` + `text2code` + `cput2cEXASIM` workflow stays
+fully supported. text2code now also emits a `my_model.hpp` for the
+templated path; both authoring paths produce the same struct shape and
+share one runtime body via `exasim::run<M>(argc, argv)`.
 
 ## Publications
 [1] Vila-Pérez, J., Van Heyningen, R. L., Nguyen, N.-C., & Peraire, J. (2022). Exasim: Generating discontinuous Galerkin codes for numerical solutions of partial differential equations on graphics processors. SoftwareX, 20, 101212. https://doi.org/10.1016/j.softx.2022.101212
