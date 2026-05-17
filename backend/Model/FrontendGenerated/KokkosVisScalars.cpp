@@ -5,7 +5,7 @@ void KokkosVisScalars(dstype* f, const dstype* xdg, const dstype* udg, const dst
 		dstype udg2 = udg[1*ng+i];
 		dstype udg3 = udg[2*ng+i];
 		f[0*ng+i] = udg1;
-		f[1*ng+i] = udg2+udg3;
+		f[1*ng+i] = udg2 + udg3;
 	});
 }
 

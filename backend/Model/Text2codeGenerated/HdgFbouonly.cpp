@@ -3,6 +3,8 @@ void HdgFbouonly1(dstype* f, const dstype* x, const dstype* uq, const dstype* v,
 
   Kokkos::parallel_for("FbouHdg", N, KOKKOS_LAMBDA(const size_t i) {
     dstype uq0 = uq[0*N+i];
+    dstype uq1 = uq[1*N+i];
+    dstype uq2 = uq[2*N+i];
     dstype uq3 = uq[3*N+i];
     dstype uq4 = uq[4*N+i];
     dstype uq5 = uq[5*N+i];
@@ -24,32 +26,31 @@ void HdgFbouonly1(dstype* f, const dstype* x, const dstype* uq, const dstype* v,
     dstype mu2 = mu[2];
 
     dstype x0 = -1.0 + mu0;
-    dstype x1 = pow(uhat0, -2);
-    dstype x2 = 0.5*(x1*pow(uhat1, 2) + x1*pow(uhat2, 2));
-    dstype x3 = x0*(uhat3 - x2*uhat0);
-    dstype x4 = pow(uhat0, -1);
-    dstype x5 = x4*uq8;
-    dstype x6 = uq10 - x5*uhat2;
-    dstype x7 = x1*uhat2;
-    dstype x8 = uq9 - x5*uhat1;
-    dstype x9 = x1*uhat1;
-    dstype x10 = x0*uhat0;
-    dstype x11 = pow(mu1, -1);
-    dstype x12 = x1*x11*mu0/(x0*mu2);
-    dstype x13 = x4*uq4;
-    dstype x14 = uq5 - x13*uhat1;
+    dstype x1 = pow(uq0, -2);
+    dstype x2 = 0.5*(x1*pow(uq1, 2) + x1*pow(uq2, 2));
+    dstype x3 = x0*(uq3 - x2*uq0);
+    dstype x4 = pow(uq0, -1);
+    dstype x5 = x4*uq2;
+    dstype x6 = uq6 - x5*uq4;
+    dstype x7 = x1*uq2;
+    dstype x8 = x4*uq1;
+    dstype x9 = uq5 - x8*uq4;
+    dstype x10 = x1*uq1;
+    dstype x11 = x0*uq0;
+    dstype x12 = pow(mu1, -1);
+    dstype x13 = x1*x12*mu0/(x0*mu2);
+    dstype x14 = uq10 - x5*uq8;
     dstype x15 = x4*x14;
-    dstype x16 = x4*x6;
-    dstype x17 = x4*x11;
-    dstype x18 = 0.666666666666667*x17;
-    dstype x19 = x4*uhat3 + x4*x3;
-    dstype x20 = uq6 - x13*uhat2;
-    dstype x21 = x17*(x4*x20 + x4*x8);
+    dstype x16 = x4*x9;
+    dstype x17 = 0.666666666666667*x12;
+    dstype x18 = uq9 - x8*uq8;
+    dstype x19 = x12*(x4*x18 + x4*x6);
+    dstype x20 = x4*uq3 + x4*x3;
 
     f[0 * N + i] = -uhat0 + uq0;
     f[1 * N + i] = -uhat1;
     f[2 * N + i] = -uhat2;
-    f[3 * N + i] = n0*(x12*(x10*(uq7 - x2*uq4 - (x7*x20 + x9*x14)*uhat0) - x3*uq4) + x19*uhat1 + x21*uhat2 + (2*x15 - x16)*x18*uhat1) + n1*(x12*(x10*(uq11 - x2*uq8 - (x6*x7 + x8*x9)*uhat0) - x3*uq8) + x19*uhat2 + x21*uhat1 + (-x15 + 2*x16)*x18*uhat2) + tau0*(-uhat3 + uq3);
+    f[3 * N + i] = n0*(uq1*x20 + x13*(x11*(uq7 - uq0*(x6*x7 + x9*x10) - x2*uq4) - x3*uq4) + x5*x19 + (-x15 + 2*x16)*x8*x17) + n1*(uq2*x20 + x13*(x11*(uq11 - uq0*(x10*x18 + x7*x14) - x2*uq8) - x3*uq8) + x8*x19 + (2*x15 - x16)*x5*x17) + tau0*(-uhat3 + uq3);
   });
 }
 

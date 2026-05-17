@@ -9,11 +9,11 @@ void HdgFlux(dstype* f, dstype* f_udg, dstype* f_wdg, const dstype* xdg, const d
 		f[1*ng+i] = param1*udg3;
 		}
 		{
-		f_udg[0*ng+i] = 0.0;
-		f_udg[1*ng+i] = 0.0;
+		f_udg[0*ng+i] = 0;
+		f_udg[1*ng+i] = 0;
 		f_udg[2*ng+i] = param1;
-		f_udg[3*ng+i] = 0.0;
-		f_udg[4*ng+i] = 0.0;
+		f_udg[3*ng+i] = 0;
+		f_udg[4*ng+i] = 0;
 		f_udg[5*ng+i] = param1;
 		}
 	});

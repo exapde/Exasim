@@ -4,7 +4,7 @@ void KokkosQoIvolume(dstype* f, const dstype* xdg, const dstype* udg, const dsty
 		dstype xdg1 = xdg[0*ng+i];
 		dstype xdg2 = xdg[1*ng+i];
 		dstype udg1 = udg[0*ng+i];
-		f[0*ng+i] = pow(udg1-sin(xdg1*3.141592653589793)*sin(xdg2*3.141592653589793),2.0);
+		f[0*ng+i] = pow(udg1 - sin(M_PI*xdg1)*sin(M_PI*xdg2), 2);
 		f[1*ng+i] = udg1;
 	});
 }
