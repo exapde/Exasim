@@ -12,11 +12,24 @@ endif()
 
 project(exasim LANGUAGES CXX)
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 get_filename_component(EXASIM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 set(EXASIM_INCLUDE_DIR ${EXASIM_DIR}/include)
 set(EXASIM_LIB_DIR ${EXASIM_DIR}/lib)
 file(MAKE_DIRECTORY ${EXASIM_LIB_DIR})
 include_directories(${EXASIM_INCLUDE_DIR})
+set(EXASIM_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/Exasim")
+set(EXASIM_PACKAGE_VERSION "0.0.0")
+
+add_library(ExasimHeaders INTERFACE)
+add_library(Exasim::headers ALIAS ExasimHeaders)
+set_target_properties(ExasimHeaders PROPERTIES EXPORT_NAME headers)
+target_compile_features(ExasimHeaders INTERFACE cxx_std_17)
+target_include_directories(ExasimHeaders INTERFACE
+  $<BUILD_INTERFACE:${EXASIM_INCLUDE_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # Exasim's main program is located here  
 set(EXASIM_MAIN_DIR ${EXASIM_DIR}/backend/Main)
@@ -28,16 +41,10 @@ set(EXASIM_SOLVER_SOURCES ${EXASIM_MAIN_DIR}/ExasimSolver.cpp)
 
 function(add_exasim_static_library target output_name)
   add_library(${target} STATIC ${EXASIM_SOLVER_SOURCES})
-  target_include_directories(${target} PUBLIC ${EXASIM_INCLUDE_DIR})
-  set_target_properties(${target} PROPERTIES
-    OUTPUT_NAME ${output_name}
-    ARCHIVE_OUTPUT_DIRECTORY ${EXASIM_LIB_DIR})
-endfunction()
-
-function(add_exasim_kokkoskernel_static_library target output_name)
-  add_library(${target} STATIC ${EXASIM_SOLVER_SOURCES})
-  target_include_directories(${target} PUBLIC ${EXASIM_INCLUDE_DIR})
-  target_compile_definitions(${target} PUBLIC _KOKKOSKERNEL)
+  target_link_libraries(${target} PUBLIC ExasimHeaders)
+  target_include_directories(${target} PUBLIC
+    $<BUILD_INTERFACE:${EXASIM_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   set_target_properties(${target} PROPERTIES
     OUTPUT_NAME ${output_name}
     ARCHIVE_OUTPUT_DIRECTORY ${EXASIM_LIB_DIR})
@@ -49,10 +56,11 @@ function(add_exasim_executable_from_static target library_target)
   target_link_libraries(${target} PRIVATE ${library_target})
 endfunction()
 
-function(add_exasim_kokkoskernel_executable_from_static target library_target)
+function(add_exasim_preprocessing_executable_from_static target library_target)
   add_executable(${target} ${KOKKOSKERNEL_MAIN_SOURCES})
   target_include_directories(${target} PRIVATE ${EXASIM_INCLUDE_DIR})
   target_link_directories(${target} PRIVATE ${Model_LIB_DIR})
+  target_compile_definitions(${target} PRIVATE _KOKKOSKERNEL)
   if(KOKKOSKERNEL_HEADER)
     target_compile_definitions(${target} PRIVATE
       "EXASIM_KOKKOSKERNELS_HEADER=\"${KOKKOSKERNEL_HEADER}\"")
@@ -67,6 +75,9 @@ set(Model_LIB_DIR   ${EXASIM_LIB_DIR})
 
 # BuiltinModel shared libraries live here
 set(BuiltinModel_LIB_DIR   ${EXASIM_LIB_DIR})
+
+# ---- Option: build EXASIM variants that link text2code-generated libs ----
+option(EXASIM_LIB "Build and install static libraries only; skip all EXASIM executables" OFF)
 
 # ---- Option: build EXASIM variants that link text2code-generated libs ----
 option(WITH_TEXT2CODE "Build extra EXASIM executables that link text2code-generated dynamic libraries" OFF)
@@ -92,6 +103,11 @@ if(KOKKOSKERNEL_HEADER)
     message(FATAL_ERROR "KOKKOSKERNEL_HEADER does not exist: ${KOKKOSKERNEL_HEADER}")
   endif()
   set(WITH_KOKKOSKERNEL ON)
+endif()
+
+set(EXASIM_BUILD_PREPROCESSING_LIBS ${WITH_KOKKOSKERNEL})
+if(EXASIM_LIB)
+  set(EXASIM_BUILD_PREPROCESSING_LIBS ON)
 endif()
 
 # ---- Option: link METIS / ParMETIS / GKlib -------------------------------
@@ -133,20 +149,27 @@ function(link_metis target)
 
   # Includes
   target_include_directories(${target} PUBLIC
-    "${PARMETIS_INCLUDE_DIR}"
-    "${METIS_INCLUDE_DIR}"
-    "${GKLIB_INCLUDE_DIR}"
+    $<BUILD_INTERFACE:${PARMETIS_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${METIS_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${GKLIB_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
 
   # Library search paths (only if they exist, to avoid noisy warnings)
   if (EXISTS "${PARMETIS_LIBRARY_DIR}")
-    target_link_directories(${target} PUBLIC "${PARMETIS_LIBRARY_DIR}")
+    target_link_directories(${target} PUBLIC
+      $<BUILD_INTERFACE:${PARMETIS_LIBRARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}>)
   endif()
   if (EXISTS "${METIS_LIBRARY_DIR}")
-    target_link_directories(${target} PUBLIC "${METIS_LIBRARY_DIR}")
+    target_link_directories(${target} PUBLIC
+      $<BUILD_INTERFACE:${METIS_LIBRARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}>)
   endif()
   if (EXISTS "${GKLIB_LIBRARY_DIR}")
-    target_link_directories(${target} PUBLIC "${GKLIB_LIBRARY_DIR}")
+    target_link_directories(${target} PUBLIC
+      $<BUILD_INTERFACE:${GKLIB_LIBRARY_DIR}>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}>)
   endif()
 
   # Link order: ParMETIS, METIS, GKlib
@@ -183,9 +206,11 @@ if(EXASIM_CUDA)
     target_compile_options(gpuEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
     target_link_libraries(gpuEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
     link_metis(gpuEXASIM_static)     # METIS
-    add_exasim_executable_from_static(gpuEXASIM gpuEXASIM_static)
+    if(NOT EXASIM_LIB)
+      add_exasim_executable_from_static(gpuEXASIM gpuEXASIM_static)
+    endif()
 
-    if(WITH_TEXT2CODE)
+    if(WITH_TEXT2CODE AND NOT EXASIM_LIB)
       add_executable(gput2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(gput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(gput2cEXASIM PRIVATE _CUDA _TEXT2CODE)
@@ -197,7 +222,7 @@ if(EXASIM_CUDA)
       set_target_properties(gput2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
 
-    if(WITH_BUILTINMODEL)
+    if(WITH_BUILTINMODEL AND NOT EXASIM_LIB)
       add_executable(gpubuiltinEXASIM ${BUILTIN_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(gpubuiltinEXASIM PRIVATE ${BuiltinModel_LIB_DIR})
       target_compile_definitions(gpubuiltinEXASIM PRIVATE _CUDA HAVE_BUILTINMODEL _BUILTINMODEL)
@@ -209,16 +234,18 @@ if(EXASIM_CUDA)
       set_target_properties(gpubuiltinEXASIM PROPERTIES BUILD_RPATH "${BuiltinModel_LIB_DIR}")
     endif()
 
-    if(WITH_KOKKOSKERNEL)
-      add_exasim_kokkoskernel_static_library(gpukkEXASIM_static gpukkEXASIM)
-      target_link_directories(gpukkEXASIM_static PUBLIC ${Model_LIB_DIR})
-      target_compile_definitions(gpukkEXASIM_static PUBLIC _CUDA)
-      target_compile_options(gpukkEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
-      target_link_libraries(gpukkEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
-      link_metis(gpukkEXASIM_static)
-      add_exasim_kokkoskernel_executable_from_static(gpukkEXASIM gpukkEXASIM_static)
-      target_compile_definitions(gpukkEXASIM PRIVATE _CUDA)
-      target_compile_options(gpukkEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+    if(EXASIM_BUILD_PREPROCESSING_LIBS)
+      add_exasim_static_library(gpupreEXASIM_static gpupreEXASIM)
+      target_link_directories(gpupreEXASIM_static PUBLIC ${Model_LIB_DIR})
+      target_compile_definitions(gpupreEXASIM_static PUBLIC _KOKKOSKERNEL _CUDA)
+      target_compile_options(gpupreEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      target_link_libraries(gpupreEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+      link_metis(gpupreEXASIM_static)
+      if(NOT EXASIM_LIB)
+        add_exasim_preprocessing_executable_from_static(gpupreEXASIM gpupreEXASIM_static)
+        target_compile_definitions(gpupreEXASIM PRIVATE _CUDA)
+        target_compile_options(gpupreEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      endif()
     endif()
   endif()
 
@@ -235,9 +262,11 @@ if(EXASIM_CUDA)
       target_link_libraries(gpumpiEXASIM_static PUBLIC
         Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${MPI_LIBRARIES})
       link_metis(gpumpiEXASIM_static)   # METIS
-      add_exasim_executable_from_static(gpumpiEXASIM gpumpiEXASIM_static)
+      if(NOT EXASIM_LIB)
+        add_exasim_executable_from_static(gpumpiEXASIM gpumpiEXASIM_static)
+      endif()
 
-      if(WITH_TEXT2CODE)
+      if(WITH_TEXT2CODE AND NOT EXASIM_LIB)
         add_executable(gpumpit2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(gpumpit2cEXASIM PRIVATE ${Model_LIB_DIR})
         target_compile_definitions(gpumpit2cEXASIM PRIVATE _MPI _CUDA _TEXT2CODE)
@@ -249,7 +278,7 @@ if(EXASIM_CUDA)
         set_target_properties(gpumpit2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
       endif()
 
-      if(WITH_BUILTINMODEL)
+      if(WITH_BUILTINMODEL AND NOT EXASIM_LIB)
         add_executable(gpumpibuiltinEXASIM ${BUILTIN_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(gpumpibuiltinEXASIM PRIVATE ${BuiltinModel_LIB_DIR})
         target_compile_definitions(gpumpibuiltinEXASIM PRIVATE _MPI _CUDA HAVE_BUILTINMODEL _BUILTINMODEL)
@@ -261,17 +290,19 @@ if(EXASIM_CUDA)
         set_target_properties(gpumpibuiltinEXASIM PROPERTIES BUILD_RPATH "${BuiltinModel_LIB_DIR}")
       endif()
 
-      if(WITH_KOKKOSKERNEL)
-        add_exasim_kokkoskernel_static_library(gpumpikkEXASIM_static gpumpikkEXASIM)
-        target_link_directories(gpumpikkEXASIM_static PUBLIC ${Model_LIB_DIR})
-        target_compile_definitions(gpumpikkEXASIM_static PUBLIC _MPI _CUDA)
-        target_compile_options(gpumpikkEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
-        target_link_libraries(gpumpikkEXASIM_static PUBLIC
+      if(EXASIM_BUILD_PREPROCESSING_LIBS)
+        add_exasim_static_library(gpumpipreEXASIM_static gpumpipreEXASIM)
+        target_link_directories(gpumpipreEXASIM_static PUBLIC ${Model_LIB_DIR})
+        target_compile_definitions(gpumpipreEXASIM_static PUBLIC _KOKKOSKERNEL _MPI _CUDA)
+        target_compile_options(gpumpipreEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+        target_link_libraries(gpumpipreEXASIM_static PUBLIC
           Kokkos::kokkos ${lapackblas_libraries} ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES} ${MPI_LIBRARIES})
-        link_metis(gpumpikkEXASIM_static)
-        add_exasim_kokkoskernel_executable_from_static(gpumpikkEXASIM gpumpikkEXASIM_static)
-        target_compile_definitions(gpumpikkEXASIM PRIVATE _MPI _CUDA)
-        target_compile_options(gpumpikkEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+        link_metis(gpumpipreEXASIM_static)
+        if(NOT EXASIM_LIB)
+          add_exasim_preprocessing_executable_from_static(gpumpipreEXASIM gpumpipreEXASIM_static)
+          target_compile_definitions(gpumpipreEXASIM PRIVATE _MPI _CUDA)
+          target_compile_options(gpumpipreEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+        endif()
       endif()
     else()
       message("MPI library is not found")
@@ -303,9 +334,11 @@ elseif(EXASIM_HIP)
     target_compile_options(gpuEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
     target_link_libraries(gpuEXASIM_static PUBLIC Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries})
     link_metis(gpuEXASIM_static)     # METIS
-    add_exasim_executable_from_static(gpuEXASIM gpuEXASIM_static)
+    if(NOT EXASIM_LIB)
+      add_exasim_executable_from_static(gpuEXASIM gpuEXASIM_static)
+    endif()
 
-    if(WITH_TEXT2CODE)
+    if(WITH_TEXT2CODE AND NOT EXASIM_LIB)
       add_executable(gput2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(gput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(gput2cEXASIM PRIVATE _HIP _TEXT2CODE)
@@ -315,7 +348,7 @@ elseif(EXASIM_HIP)
       set_target_properties(gput2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
 
-    if(WITH_BUILTINMODEL)
+    if(WITH_BUILTINMODEL AND NOT EXASIM_LIB)
       add_executable(gpubuiltinEXASIM ${BUILTIN_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(gpubuiltinEXASIM PRIVATE ${BuiltinModel_LIB_DIR})
       target_compile_definitions(gpubuiltinEXASIM PRIVATE _HIP HAVE_BUILTINMODEL _BUILTINMODEL)
@@ -327,16 +360,18 @@ elseif(EXASIM_HIP)
       set_target_properties(gpubuiltinEXASIM PROPERTIES BUILD_RPATH "${BuiltinModel_LIB_DIR}")
     endif()
 
-    if(WITH_KOKKOSKERNEL)
-      add_exasim_kokkoskernel_static_library(gpukkEXASIM_static gpukkEXASIM)
-      target_link_directories(gpukkEXASIM_static PUBLIC ${Model_LIB_DIR})
-      target_compile_definitions(gpukkEXASIM_static PUBLIC _HIP)
-      target_compile_options(gpukkEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
-      target_link_libraries(gpukkEXASIM_static PUBLIC Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries})
-      link_metis(gpukkEXASIM_static)
-      add_exasim_kokkoskernel_executable_from_static(gpukkEXASIM gpukkEXASIM_static)
-      target_compile_definitions(gpukkEXASIM PRIVATE _HIP)
-      target_compile_options(gpukkEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+    if(EXASIM_BUILD_PREPROCESSING_LIBS)
+      add_exasim_static_library(gpupreEXASIM_static gpupreEXASIM)
+      target_link_directories(gpupreEXASIM_static PUBLIC ${Model_LIB_DIR})
+      target_compile_definitions(gpupreEXASIM_static PUBLIC _KOKKOSKERNEL _HIP)
+      target_compile_options(gpupreEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      target_link_libraries(gpupreEXASIM_static PUBLIC Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries})
+      link_metis(gpupreEXASIM_static)
+      if(NOT EXASIM_LIB)
+        add_exasim_preprocessing_executable_from_static(gpupreEXASIM gpupreEXASIM_static)
+        target_compile_definitions(gpupreEXASIM PRIVATE _HIP)
+        target_compile_options(gpupreEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      endif()
     endif()
   endif()
 
@@ -352,9 +387,11 @@ elseif(EXASIM_HIP)
       target_compile_options(gpumpiEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
       target_link_libraries(gpumpiEXASIM_static PUBLIC Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${MPI_LIBRARIES})
       link_metis(gpumpiEXASIM_static)   # METIS
-      add_exasim_executable_from_static(gpumpiEXASIM gpumpiEXASIM_static)
+      if(NOT EXASIM_LIB)
+        add_exasim_executable_from_static(gpumpiEXASIM gpumpiEXASIM_static)
+      endif()
 
-      if(WITH_TEXT2CODE)
+      if(WITH_TEXT2CODE AND NOT EXASIM_LIB)
         add_executable(gpumpit2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(gpumpit2cEXASIM PRIVATE ${Model_LIB_DIR})
         target_compile_definitions(gpumpit2cEXASIM PRIVATE _MPI _HIP _TEXT2CODE)
@@ -366,7 +403,7 @@ elseif(EXASIM_HIP)
         set_target_properties(gpumpit2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
       endif()
 
-      if(WITH_BUILTINMODEL)
+      if(WITH_BUILTINMODEL AND NOT EXASIM_LIB)
         add_executable(gpumpibuiltinEXASIM ${BUILTIN_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(gpumpibuiltinEXASIM PRIVATE ${BuiltinModel_LIB_DIR})
         target_compile_definitions(gpumpibuiltinEXASIM PRIVATE _MPI _HIP HAVE_BUILTINMODEL _BUILTINMODEL)
@@ -378,16 +415,18 @@ elseif(EXASIM_HIP)
         set_target_properties(gpumpibuiltinEXASIM PROPERTIES BUILD_RPATH "${BuiltinModel_LIB_DIR}")
       endif()
 
-      if(WITH_KOKKOSKERNEL)
-        add_exasim_kokkoskernel_static_library(gpumpikkEXASIM_static gpumpikkEXASIM)
-        target_link_directories(gpumpikkEXASIM_static PUBLIC ${Model_LIB_DIR})
-        target_compile_definitions(gpumpikkEXASIM_static PUBLIC _MPI _HIP)
-        target_compile_options(gpumpikkEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
-        target_link_libraries(gpumpikkEXASIM_static PUBLIC Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${MPI_LIBRARIES})
-        link_metis(gpumpikkEXASIM_static)
-        add_exasim_kokkoskernel_executable_from_static(gpumpikkEXASIM gpumpikkEXASIM_static)
-        target_compile_definitions(gpumpikkEXASIM PRIVATE _MPI _HIP)
-        target_compile_options(gpumpikkEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+      if(EXASIM_BUILD_PREPROCESSING_LIBS)
+        add_exasim_static_library(gpumpipreEXASIM_static gpumpipreEXASIM)
+        target_link_directories(gpumpipreEXASIM_static PUBLIC ${Model_LIB_DIR})
+        target_compile_definitions(gpumpipreEXASIM_static PUBLIC _KOKKOSKERNEL _MPI _HIP)
+        target_compile_options(gpumpipreEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+        target_link_libraries(gpumpipreEXASIM_static PUBLIC Kokkos::kokkos hipblas rocblas ${HIP_LIBRARIES} ${lapackblas_libraries} ${MPI_LIBRARIES})
+        link_metis(gpumpipreEXASIM_static)
+        if(NOT EXASIM_LIB)
+          add_exasim_preprocessing_executable_from_static(gpumpipreEXASIM gpumpipreEXASIM_static)
+          target_compile_definitions(gpumpipreEXASIM PRIVATE _MPI _HIP)
+          target_compile_options(gpumpipreEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG -fno-unroll-loops)
+        endif()
       endif()
     else()
       message("MPI library is not found")
@@ -405,11 +444,13 @@ else()
     target_link_libraries(cpuEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries})
     target_compile_options(cpuEXASIM_static PRIVATE -std=c++17 -w -O2)
     link_metis(cpuEXASIM_static)    # METIS
-    add_exasim_executable_from_static(cpuEXASIM cpuEXASIM_static)
+    if(NOT EXASIM_LIB)
+      add_exasim_executable_from_static(cpuEXASIM cpuEXASIM_static)
+    endif()
     #target_compile_options(cpuEXASIM_static PRIVATE -std=c++17 -fsanitize=address,undefined -fno-omit-frame-pointer -g)
     #target_link_options(cpuEXASIM PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
 
-    if(WITH_TEXT2CODE)
+    if(WITH_TEXT2CODE AND NOT EXASIM_LIB)
       add_executable(cput2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(cput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(cput2cEXASIM PRIVATE _TEXT2CODE)
@@ -419,7 +460,7 @@ else()
       set_target_properties(cput2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
     endif()
 
-    if(WITH_BUILTINMODEL)
+    if(WITH_BUILTINMODEL AND NOT EXASIM_LIB)
       add_executable(cpubuiltinEXASIM ${BUILTIN_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(cpubuiltinEXASIM PRIVATE ${BuiltinModel_LIB_DIR})
       target_compile_definitions(cpubuiltinEXASIM PRIVATE HAVE_BUILTINMODEL _BUILTINMODEL)
@@ -429,14 +470,17 @@ else()
       set_target_properties(cpubuiltinEXASIM PROPERTIES BUILD_RPATH "${BuiltinModel_LIB_DIR}")
     endif()
 
-    if(WITH_KOKKOSKERNEL)
-      add_exasim_kokkoskernel_static_library(cpukkEXASIM_static cpukkEXASIM)
-      target_link_directories(cpukkEXASIM_static PUBLIC ${Model_LIB_DIR})
-      target_link_libraries(cpukkEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries})
-      target_compile_options(cpukkEXASIM_static PRIVATE -std=c++17 -w -O2)
-      link_metis(cpukkEXASIM_static)
-      add_exasim_kokkoskernel_executable_from_static(cpukkEXASIM cpukkEXASIM_static)
-      target_compile_options(cpukkEXASIM PRIVATE -std=c++17 -w -O2)
+    if(EXASIM_BUILD_PREPROCESSING_LIBS)
+      add_exasim_static_library(cpupreEXASIM_static cpupreEXASIM)
+      target_link_directories(cpupreEXASIM_static PUBLIC ${Model_LIB_DIR})
+      target_compile_definitions(cpupreEXASIM_static PUBLIC _KOKKOSKERNEL)
+      target_link_libraries(cpupreEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries})
+      target_compile_options(cpupreEXASIM_static PRIVATE -std=c++17 -w -O2)
+      link_metis(cpupreEXASIM_static)
+      if(NOT EXASIM_LIB)
+        add_exasim_preprocessing_executable_from_static(cpupreEXASIM cpupreEXASIM_static)
+        target_compile_options(cpupreEXASIM PRIVATE -std=c++17 -w -O2)
+      endif()
     endif()
   endif()
 
@@ -454,9 +498,11 @@ else()
       #target_link_options(cpumpiEXASIM PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)  
       target_link_libraries(cpumpiEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
       link_metis(cpumpiEXASIM_static)   # METIS
-      add_exasim_executable_from_static(cpumpiEXASIM cpumpiEXASIM_static)
+      if(NOT EXASIM_LIB)
+        add_exasim_executable_from_static(cpumpiEXASIM cpumpiEXASIM_static)
+      endif()
 
-      if(WITH_TEXT2CODE)
+      if(WITH_TEXT2CODE AND NOT EXASIM_LIB)
         add_executable(cpumpit2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(cpumpit2cEXASIM PRIVATE ${Model_LIB_DIR})
         target_compile_definitions(cpumpit2cEXASIM PRIVATE _MPI _TEXT2CODE)
@@ -466,7 +512,7 @@ else()
         set_target_properties(cpumpit2cEXASIM PROPERTIES BUILD_RPATH "${Model_LIB_DIR}")
       endif()
 
-      if(WITH_BUILTINMODEL)
+      if(WITH_BUILTINMODEL AND NOT EXASIM_LIB)
         add_executable(cpumpibuiltinEXASIM ${BUILTIN_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(cpumpibuiltinEXASIM PRIVATE ${BuiltinModel_LIB_DIR})
         target_compile_definitions(cpumpibuiltinEXASIM PRIVATE _MPI HAVE_BUILTINMODEL _BUILTINMODEL)
@@ -478,21 +524,113 @@ else()
         set_target_properties(cpumpibuiltinEXASIM PROPERTIES BUILD_RPATH "${BuiltinModel_LIB_DIR}")
       endif()
 
-      if(WITH_KOKKOSKERNEL)
-        add_exasim_kokkoskernel_static_library(cpumpikkEXASIM_static cpumpikkEXASIM)
-        target_link_directories(cpumpikkEXASIM_static PUBLIC ${Model_LIB_DIR})
-        target_compile_definitions(cpumpikkEXASIM_static PUBLIC _MPI)
-        target_compile_options(cpumpikkEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
-        target_link_libraries(cpumpikkEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
-        link_metis(cpumpikkEXASIM_static)
-        add_exasim_kokkoskernel_executable_from_static(cpumpikkEXASIM cpumpikkEXASIM_static)
-        target_compile_definitions(cpumpikkEXASIM PRIVATE _MPI)
-        target_compile_options(cpumpikkEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
+      if(EXASIM_BUILD_PREPROCESSING_LIBS)
+        add_exasim_static_library(cpumpipreEXASIM_static cpumpipreEXASIM)
+        target_link_directories(cpumpipreEXASIM_static PUBLIC ${Model_LIB_DIR})
+        target_compile_definitions(cpumpipreEXASIM_static PUBLIC _KOKKOSKERNEL _MPI)
+        target_compile_options(cpumpipreEXASIM_static PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
+        target_link_libraries(cpumpipreEXASIM_static PUBLIC Kokkos::kokkos ${lapackblas_libraries} ${MPI_LIBRARIES})
+        link_metis(cpumpipreEXASIM_static)
+        if(NOT EXASIM_LIB)
+          add_exasim_preprocessing_executable_from_static(cpumpipreEXASIM cpumpipreEXASIM_static)
+          target_compile_definitions(cpumpipreEXASIM PRIVATE _MPI)
+          target_compile_options(cpumpipreEXASIM PRIVATE -std=c++17 -w -ffast-math -O3 -DNDEBUG)
+        endif()
       endif()
     else()
       message("MPI library is not found")
     endif()
   endif()
+endif()
+
+set(EXASIM_EXPORT_TARGETS ExasimHeaders)
+set(EXASIM_PACKAGE_HAS_MPI OFF)
+
+macro(register_exasim_export_target target export_name requires_mpi)
+  if(TARGET ${target})
+    set_target_properties(${target} PROPERTIES EXPORT_NAME ${export_name})
+    list(APPEND EXASIM_EXPORT_TARGETS ${target})
+    if(${requires_mpi})
+      target_link_libraries(${target} PUBLIC MPI::MPI_CXX)
+      set(EXASIM_PACKAGE_HAS_MPI ON)
+    endif()
+  endif()
+endmacro()
+
+register_exasim_export_target(cpuEXASIM_static cpulib FALSE)
+register_exasim_export_target(cpumpiEXASIM_static cpumpilib TRUE)
+register_exasim_export_target(cpupreEXASIM_static cpuprelib FALSE)
+register_exasim_export_target(cpumpipreEXASIM_static cpumpiprelib TRUE)
+register_exasim_export_target(gpuEXASIM_static gpulib FALSE)
+register_exasim_export_target(gpumpiEXASIM_static gpumpilib TRUE)
+register_exasim_export_target(gpupreEXASIM_static gpuprelib FALSE)
+register_exasim_export_target(gpumpipreEXASIM_static gpumpiprelib TRUE)
+
+list(LENGTH EXASIM_EXPORT_TARGETS EXASIM_NUM_EXPORT_TARGETS)
+if(EXASIM_NUM_EXPORT_TARGETS EQUAL 1)
+  message(FATAL_ERROR "No Exasim static solver library target was built for packaging.")
+endif()
+
+configure_package_config_file(
+  ${EXASIM_DIR}/cmake/ExasimConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfig.cmake
+  INSTALL_DESTINATION ${EXASIM_CMAKE_INSTALL_DIR})
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfigVersion.cmake
+  VERSION ${EXASIM_PACKAGE_VERSION}
+  COMPATIBILITY AnyNewerVersion)
+
+install(TARGETS ${EXASIM_EXPORT_TARGETS}
+  EXPORT ExasimTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(DIRECTORY ${EXASIM_INCLUDE_DIR}/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+if(WITH_PARMETIS)
+  if(EXISTS "${METIS_INCLUDE_DIR}/metis.h")
+    install(FILES "${METIS_INCLUDE_DIR}/metis.h"
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  endif()
+  if(EXISTS "${PARMETIS_INCLUDE_DIR}/parmetis.h")
+    install(FILES "${PARMETIS_INCLUDE_DIR}/parmetis.h"
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  endif()
+  foreach(_metis_archive
+      "${PARMETIS_LIBRARY_DIR}/libparmetis.a"
+      "${METIS_LIBRARY_DIR}/libmetis.a"
+      "${GKLIB_LIBRARY_DIR}/libGKlib.a")
+    if(EXISTS "${_metis_archive}")
+      install(FILES "${_metis_archive}"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
+  endforeach()
+endif()
+
+install(EXPORT ExasimTargets
+  NAMESPACE Exasim::
+  DESTINATION ${EXASIM_CMAKE_INSTALL_DIR})
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/ExasimConfigVersion.cmake
+  DESTINATION ${EXASIM_CMAKE_INSTALL_DIR})
+
+export(EXPORT ExasimTargets
+  NAMESPACE Exasim::
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/ExasimTargets.cmake)
+
+if(NOT CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
+  set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
+  if(UNIX AND DEFINED ENV{HOME})
+    file(MAKE_DIRECTORY "$ENV{HOME}/.cmake")
+    file(MAKE_DIRECTORY "$ENV{HOME}/.cmake/packages")
+    file(MAKE_DIRECTORY "$ENV{HOME}/.cmake/packages/Exasim")
+  endif()
+  export(PACKAGE Exasim)
 endif()
 
 # ======================================================================
@@ -503,6 +641,8 @@ message(STATUS "==================== EXASIM CONFIGURATION ====================")
 message(STATUS "EXASIM_DIR                = ${EXASIM_DIR}")
 message(STATUS "EXASIM_INCLUDE_DIR        = ${EXASIM_INCLUDE_DIR}")
 message(STATUS "EXASIM_LIB_DIR            = ${EXASIM_LIB_DIR}")
+message(STATUS "EXASIM_LIB                = ${EXASIM_LIB}")
+message(STATUS "EXASIM_EXPORT_TARGETS       = ${EXASIM_EXPORT_TARGETS}")
 message(STATUS "EXASIM_CUDA               = ${EXASIM_CUDA}")
 message(STATUS "EXASIM_HIP                = ${EXASIM_HIP}")
 message(STATUS "EXASIM_MPI                = ${EXASIM_MPI}")
@@ -512,6 +652,7 @@ message(STATUS "EXASIM_TUOLUMNE           = ${EXASIM_TUOLUMNE}")
 message(STATUS "WITH_TEXT2CODE            = ${WITH_TEXT2CODE}")
 message(STATUS "WITH_BUILTINMODEL         = ${WITH_BUILTINMODEL}")
 message(STATUS "WITH_KOKKOSKERNEL         = ${WITH_KOKKOSKERNEL}")
+message(STATUS "EXASIM_BUILD_PREPROCESSING_LIBS = ${EXASIM_BUILD_PREPROCESSING_LIBS}")
 message(STATUS "KOKKOSKERNEL_HEADER       = ${KOKKOSKERNEL_HEADER}")
 if(KOKKOSKERNEL_HEADER)
   message(STATUS "EXASIM_KOKKOSKERNELS_HEADER = ${KOKKOSKERNEL_HEADER}")

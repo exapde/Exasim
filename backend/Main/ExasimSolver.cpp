@@ -33,7 +33,7 @@
 #endif
 
 #if defined(HAVE_TEXT2CODE) || defined(HAVE_BUILTINMODEL) || defined(HAVE_KOKKOSKERNEL)
-#define HAVE_SHARED_MODEL_LIB
+#define HAVE_BACKEND_PREPROCESSING
 #endif
 
 #ifdef _ENZYME
@@ -71,7 +71,7 @@ MPI_Comm EXASIM_COMM_WORLD = MPI_COMM_NULL;
 MPI_Comm EXASIM_COMM_LOCAL = MPI_COMM_NULL;
 #endif
 
-#ifdef HAVE_SHARED_MODEL_LIB
+#ifdef HAVE_BACKEND_PREPROCESSING
 #include <array>
 #include <regex>
 #include <unordered_map>
@@ -99,7 +99,7 @@ using namespace std;
 #include "../PointLocator/pointlocator.cpp"
 #include "../Solution/solution.cpp"
 
-#ifdef HAVE_SHARED_MODEL_LIB
+#ifdef HAVE_BACKEND_PREPROCESSING
 #include "../Preprocessing/preprocessing.cpp"
 #endif
 
@@ -468,7 +468,7 @@ int ExasimSolver::ParseInputs(int argc, char** argv)
     const bool preserveModelDefinitions =
         !builtinmodelID_.empty() || !model_abis_.empty();
 
-#ifdef HAVE_SHARED_MODEL_LIB
+#ifdef HAVE_BACKEND_PREPROCESSING
     if (argc < 2) {
         if (mpirank_ == 0) std::cerr << "Usage: ./Exasim <pdeapp.txt>\n";
         return 1;

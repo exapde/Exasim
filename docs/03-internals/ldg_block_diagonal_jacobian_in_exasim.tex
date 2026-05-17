@@ -1,0 +1,753 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\geometry{margin=1in}
+
+\title{Block-Diagonal Jacobian of the LDG Residual in Exasim}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. Summary}
+
+For the LDG path in Exasim, the exact block-diagonal Jacobian of
+
+\[
+J(U) = \frac{\partial R(U)}{\partial U}
+\]
+
+with $U$ the global vector of the degrees of freedom of $u_h$, is most
+naturally implemented as one dense element block per element:
+
+\[
+J_{\mathrm{diag}} = \operatorname{diag}(J_{11}, J_{22}, \dots, J_{N_e N_e}),
+\]
+
+where each block
+
+\[
+J_{KK} = \frac{\partial R_K}{\partial U_K}
+\]
+
+has size $(npe \cdot ncu) \times (npe \cdot ncu)$, with $R_K$ the residual
+rows belonging to element $K$.
+
+In the current Exasim backend, the cleanest exact implementation is not to
+derive and assemble a separate sparse Jacobian by hand, but to reuse the
+existing residual tangent path:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/residual.cpp}
+\item \texttt{backend/Discretization/qresidual.cpp}
+\item \texttt{backend/Discretization/uresidual.cpp}
+\item \texttt{backend/Discretization/getuhat.cpp}
+\item \texttt{backend/Discretization/matvec.cpp}
+\end{itemize}
+
+Specifically:
+
+\begin{itemize}[leftmargin=*]
+\item if Enzyme AD is enabled, assemble each diagonal block column-by-column
+using \texttt{dResidual(...)}
+\item otherwise, assemble each block column-by-column using
+\texttt{MatVec(...)} with finite differences
+\end{itemize}
+
+That approach automatically includes all LDG chain-rule contributions through:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{GetUhat(...)}
+\item \texttt{GetQ(...)}
+\item \texttt{GetW(...)}
+\item \texttt{GetAv(...)}
+\item \texttt{RuElem(...)}
+\item \texttt{RuFace(...)}
+\end{itemize}
+
+\section*{2. Assumptions}
+
+\begin{itemize}[leftmargin=*]
+\item $U$ contains only the DOFs of $u_h$, not the auxiliary variables $q$,
+$w$, or face trace \texttt{uh}.
+\item The residual $R(U)$ is exactly the one returned by
+\texttt{Residual(sol, res, app, driver\_abi, master, mesh, tmp, common, handle, backend)}
+in \texttt{backend/Discretization/residual.cpp}.
+\item Therefore $q$, \texttt{uh}, \texttt{wdg}, and optional AV-related fields
+are implicit functions of $U$, because \texttt{Residual(...)} recomputes them
+internally before assembling \texttt{res.Ru}.
+\item A ``block'' means one element block of size:
+\[
+n_{\mathrm{loc}} = npe \cdot ncu.
+\]
+\item The desired matrix is the exact block-diagonal of the full LDG Jacobian,
+not a simplified ``volume-only'' or ``element-local-only'' approximation.
+\item I am focusing on the LDG residual path, not the HDG Schur-complement
+system.
+\item I assume the block-diagonal Jacobian may later be inverted batched, for
+example for a block-Jacobi preconditioner.
+\end{itemize}
+
+\section*{3. Design reasoning}
+
+The key point is that the residual returned by \texttt{Residual(...)} is not
+just a function of the element-local $u$. It is a composite map:
+
+\[
+U \;\longmapsto\; \hat U(U), \; Q(U), \; W(U), \; AV(U) \;\longmapsto\; R(U).
+\]
+
+So the exact diagonal block must include all chain-rule paths created by the
+residual pipeline.
+
+\subsection*{A. Residual structure used by \texttt{Residual(...)}}
+
+In serial, the LDG residual pipeline is:
+
+\begin{enumerate}[leftmargin=*]
+\item \texttt{GetUhat(...)}
+\item \texttt{GetQ(...)}
+\item \texttt{GetW(...)} if \texttt{common.ncw > 0}
+\item \texttt{GetAv(...)} if AV is active and unfrozen
+\item \texttt{RuElem(...)}
+\item \texttt{RuFace(...)}
+\item \texttt{PutFaceNodes(...)}
+\item final scaling by \texttt{-1} and optionally \texttt{1/common.dtfactor}
+\end{enumerate}
+
+This is in \texttt{backend/Discretization/residual.cpp}.
+
+So if I define the raw assembled residual before the final sign/time scaling by
+$\widetilde R(U)$, then the residual returned by \texttt{Residual(...)} is
+
+\[
+R(U) = \alpha \, \widetilde R(U),
+\]
+
+with
+
+\[
+\alpha =
+\begin{cases}
+-1, & \text{steady case},\\[4pt]
+-\dfrac{1}{\texttt{common.dtfactor}}, & \text{time-dependent case}.
+\end{cases}
+\]
+
+Therefore each diagonal block is
+
+\[
+J_{KK} = \alpha \, \frac{\partial \widetilde R_K}{\partial U_K}.
+\]
+
+That final scalar factor must be included.
+
+\subsection*{B. Element-block definition}
+
+Let $U_K \in \mathbb{R}^{n_{\mathrm{loc}}}$ be the $u_h$ DOFs of element $K$,
+with
+
+\[
+n_{\mathrm{loc}} = npe \cdot ncu.
+\]
+
+Let $R_K(U)$ be the residual entries in \texttt{res.Ru} associated with
+element $K$. Then
+
+\[
+J_{KK} = \frac{\partial R_K}{\partial U_K}.
+\]
+
+This is the exact diagonal block. It keeps all dependence of the residual rows
+of element $K$ on the DOFs of the same element $K$, while discarding all
+derivatives with respect to DOFs from other elements.
+
+\subsection*{C. Chain rule through the LDG pipeline}
+
+The raw residual for element $K$ can be viewed schematically as
+
+\[
+\widetilde R_K(U)
+=
+\widetilde R^{\mathrm{elem}}_K\big(U_K, Q_K(U), W_K(U), AV_K(U)\big)
++
+\sum_{f \subset \partial K}
+\widetilde R^{\mathrm{face}}_{Kf}
+\big(U, Q(U), W(U), \hat U(U)\big).
+\]
+
+Hence the exact diagonal block is
+
+\[
+\frac{\partial \widetilde R_K}{\partial U_K}
+=
+\frac{\partial \widetilde R^{\mathrm{elem}}_K}{\partial U_K}
++
+\frac{\partial \widetilde R^{\mathrm{elem}}_K}{\partial Q_K}\frac{\partial Q_K}{\partial U_K}
++
+\frac{\partial \widetilde R^{\mathrm{elem}}_K}{\partial W_K}\frac{\partial W_K}{\partial U_K}
++
+\frac{\partial \widetilde R^{\mathrm{elem}}_K}{\partial AV_K}\frac{\partial AV_K}{\partial U_K}
++
+\sum_{f \subset \partial K}
+\frac{\partial \widetilde R^{\mathrm{face}}_{Kf}}{\partial U_K}^{\mathrm{total}}.
+\]
+
+The face contribution expands further into:
+
+\[
+\frac{\partial \widetilde R^{\mathrm{face}}_{Kf}}{\partial U_K}^{\mathrm{total}}
+=
+\frac{\partial \widetilde R^{\mathrm{face}}_{Kf}}{\partial U_{K,f}}
++
+\frac{\partial \widetilde R^{\mathrm{face}}_{Kf}}{\partial Q_{K,f}}
+\frac{\partial Q_{K,f}}{\partial U_K}
++
+\frac{\partial \widetilde R^{\mathrm{face}}_{Kf}}{\partial W_{K,f}}
+\frac{\partial W_{K,f}}{\partial U_K}
++
+\frac{\partial \widetilde R^{\mathrm{face}}_{Kf}}{\partial \hat U_f}
+\frac{\partial \hat U_f}{\partial U_K}.
+\]
+
+This is the correct mathematical content of the diagonal block in Exasim.
+
+\subsection*{D. Contribution from \texttt{GetUhat(...)}}
+
+\texttt{GetUhat(...)} is in \texttt{backend/Discretization/getuhat.cpp}.
+
+For LDG:
+
+\begin{itemize}[leftmargin=*]
+\item on interior faces, \texttt{sol.uh} is copied from one side's $u$
+\item on boundary faces, \texttt{sol.uh} is produced by \texttt{UbouDriver(...)}
+\end{itemize}
+
+Therefore the derivative
+
+\[
+\frac{\partial \hat U_f}{\partial U_K}
+\]
+
+can be nonzero for:
+
+\begin{itemize}[leftmargin=*]
+\item the element that owns the copied interior-face trace
+\item any boundary face of element $K$
+\end{itemize}
+
+This derivative is implemented in the tangent path by:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{GetdUhat(...)}
+\item \texttt{dUhatBlock(...)}
+\end{itemize}
+
+in the same file.
+
+That means the exact diagonal block must include the way a perturbation in
+$U_K$ changes \texttt{uh} first, and then changes face residuals and
+$q$-recovery through that \texttt{uh}.
+
+\subsection*{E. Contribution from \texttt{GetQ(...)}}
+
+\texttt{GetQ(...)} is in \texttt{backend/Discretization/residual.cpp}.
+
+It computes $q$ by:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{RqElem(...)}
+\item \texttt{RqFace(...)}
+\item \texttt{PutFaceNodes(...)}
+\item \texttt{ApplyMinv(...)}
+\item \texttt{ArrayInsert(...)} into \texttt{sol.udg}
+\end{itemize}
+
+From the implementation in \texttt{backend/Discretization/qresidual.cpp}, the
+elementwise operator is
+
+\[
+Q_K = M_K^{-1}\left(C_K U_K - E_K \hat U_K + S^q_K\right),
+\]
+
+where:
+
+\begin{itemize}[leftmargin=*]
+\item $M_K$ is the local mass matrix inverse applied through
+\texttt{ApplyMinv(...)}
+\item $C_K$ is the element gradient operator from \texttt{RqElemBlock(...)}
+\item $E_K$ is the face lifting operator from \texttt{RqFaceBlock(...)}
+\item $S^q_K$ is the wave-only source contribution when
+\texttt{common.wave == 1}
+\end{itemize}
+
+Therefore the exact local derivative is
+
+\[
+\frac{\partial Q_K}{\partial U_K}
+=
+M_K^{-1}\left(
+C_K - E_K \frac{\partial \hat U_K}{\partial U_K}
+\right),
+\]
+
+plus any wave-specific term if active.
+
+In the current backend, this derivative is not assembled explicitly as a
+matrix in the LDG path. Instead it is applied as a tangent operator by:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{GetdQ(...)}
+\item \texttt{dRqElem(...)}
+\item \texttt{dRqFace(...)}
+\item \texttt{ApplyMinv(...)}
+\end{itemize}
+
+in \texttt{backend/Discretization/residual.cpp}.
+
+So \texttt{GetdQ(...)} is exactly the chain-rule implementation of
+$dQ/dU$.
+
+\subsection*{F. Contribution from \texttt{GetW(...)}}
+
+If \texttt{common.ncw > 0}, \texttt{GetW(...)} in
+\texttt{backend/Discretization/residual.cpp} computes the auxiliary field
+\texttt{wdg}.
+
+This can happen through:
+
+\begin{itemize}[leftmargin=*]
+\item explicit time/update formulas
+\item Newton solve of \texttt{Eos(w,u)=0}
+\item sourcew/DAE updates
+\end{itemize}
+
+Therefore the residual also contains a chain rule term
+
+\[
+\frac{\partial \widetilde R_K}{\partial W_K}\frac{\partial W_K}{\partial U_K}.
+\]
+
+This term is conceptually required in the exact block diagonal.
+
+However, the current AD tangent path in \texttt{dRuResidual(...)} contains:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{// TODO: DAE functionality not implemented yet}
+\end{itemize}
+
+So for cases with nontrivial $w$ evolution, the exactness of the AD-based
+block assembly depends on the specific \texttt{GetW(...)} branch. This is an
+important implementation limitation.
+
+\subsection*{G. Contribution from \texttt{RuElem(...)}}
+
+\texttt{RuElemBlock(...)} in \texttt{backend/Discretization/uresidual.cpp}
+computes the element-volume contribution.
+
+At Gauss points it evaluates:
+
+\begin{itemize}[leftmargin=*]
+\item time contribution
+\item \texttt{SourceDriver(...)}
+\item \texttt{FluxDriver(...)}
+\end{itemize}
+
+then applies geometry and basis testing through:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{ApplyXx4(...)}
+\item \texttt{Gauss2Node(...)}
+\end{itemize}
+
+So the elemental Jacobian contribution is
+
+\[
+\frac{\partial \widetilde R_K^{\mathrm{elem}}}{\partial U_K}
+=
+\frac{\partial \widetilde R_K^{\mathrm{elem}}}{\partial U_K}\Big|_{\text{direct}}
++
+\frac{\partial \widetilde R_K^{\mathrm{elem}}}{\partial Q_K}\frac{\partial Q_K}{\partial U_K}
++
+\frac{\partial \widetilde R_K^{\mathrm{elem}}}{\partial W_K}\frac{\partial W_K}{\partial U_K}
++
+\frac{\partial \widetilde R_K^{\mathrm{elem}}}{\partial AV_K}\frac{\partial AV_K}{\partial U_K}.
+\]
+
+In the current backend, this total directional derivative is implemented by:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{dRuElemBlock(...)}
+\end{itemize}
+
+which consumes:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{sol.dudg}, already containing \texttt{dq} inserted by
+\texttt{GetdQ(...)}
+\item \texttt{sol.dwdg} if available
+\item \texttt{sol.dodg} if AV is active
+\end{itemize}
+
+So \texttt{dRuElemBlock(...)} is already the exact elemental Jacobian action
+needed for each diagonal block column.
+
+\subsection*{H. Contribution from \texttt{RuFace(...)}}
+
+\texttt{RuFaceBlock(...)} in \texttt{backend/Discretization/uresidual.cpp}
+computes the face contribution by:
+
+\begin{itemize}[leftmargin=*]
+\item gathering \texttt{uh}, \texttt{udg}, \texttt{wdg} on faces
+\item interpolating to face Gauss points
+\item evaluating \texttt{FhatDriver(...)} on interior faces
+\item evaluating \texttt{FbouDriver(...)} on boundary faces
+\item applying \texttt{ApplyJacFhat(...)}
+\item projecting back by \texttt{Gauss2Node(...)}
+\end{itemize}
+
+Therefore the face Jacobian contribution for the diagonal block is
+
+\[
+\sum_{f \subset \partial K}
+\left(
+\frac{\partial \widetilde R_{Kf}}{\partial U_{K,f}}
++
+\frac{\partial \widetilde R_{Kf}}{\partial Q_{K,f}}\frac{\partial Q_{K,f}}{\partial U_K}
++
+\frac{\partial \widetilde R_{Kf}}{\partial W_{K,f}}\frac{\partial W_{K,f}}{\partial U_K}
++
+\frac{\partial \widetilde R_{Kf}}{\partial \hat U_f}\frac{\partial \hat U_f}{\partial U_K}
+\right).
+\]
+
+This total derivative is implemented by:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{dRuFaceBlock(...)}
+\end{itemize}
+
+which uses:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{sol.duh}
+\item \texttt{sol.dudg}
+\item \texttt{sol.dwdg}
+\end{itemize}
+
+So again, the exact diagonal-block action is already available through the
+tangent residual path.
+
+\subsection*{I. Why the exact diagonal block should be assembled from \texttt{dResidual(...)}}
+
+This is the most important implementation decision.
+
+Because LDG in Exasim recomputes:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{uh}
+\item \texttt{q}
+\item \texttt{w}
+\item AV
+\end{itemize}
+
+inside \texttt{Residual(...)}, the exact diagonal block is not just the local
+derivative of \texttt{RuElemBlock(...)} with respect to the local nodal $u$.
+
+It must include all implicit dependencies created by the preprocessing steps
+inside \texttt{Residual(...)}.
+
+Therefore, if the goal is the exact block diagonal of the Jacobian of the
+actual residual returned by \texttt{Residual(...)}, the safest implementation
+is:
+
+\begin{itemize}[leftmargin=*]
+\item seed a local basis vector in $u$
+\item run \texttt{dResidual(...)} or \texttt{MatVec(...)}
+\item extract only the same-element residual rows
+\end{itemize}
+
+That is exact by construction for the implemented residual.
+
+\section*{4. Proposed implementation}
+
+\subsection*{A. Affected files}
+
+The implementation should be built around these files:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/residual.cpp}
+\item \texttt{backend/Discretization/qresidual.cpp}
+\item \texttt{backend/Discretization/uresidual.cpp}
+\item \texttt{backend/Discretization/getuhat.cpp}
+\item \texttt{backend/Discretization/matvec.cpp}
+\end{itemize}
+
+\subsection*{B. Data structure for the block-diagonal matrix}
+
+Let
+
+\[
+n_{\mathrm{loc}} = npe \cdot ncu.
+\]
+
+Store the diagonal blocks as a dense batched array:
+
+\[
+BJ \in \mathbb{R}^{n_{\mathrm{loc}} \times n_{\mathrm{loc}} \times ne1},
+\]
+
+where \texttt{ne1} is the number of owned elements whose residual rows are in
+\texttt{res.Ru}.
+
+In code terms this should be a flat array of length:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{nloc * nloc * common.ne1}
+\end{itemize}
+
+stored element-block by element-block, column-major within each block so it is
+immediately compatible with batched BLAS/LAPACK-style inversion.
+
+\subsection*{C. Exact assembly algorithm using \texttt{dResidual(...)}}
+
+This is the recommended exact implementation when Enzyme AD is available.
+
+For each owned element $K$:
+
+\begin{enumerate}[leftmargin=*]
+\item Define local block size
+\[
+n_{\mathrm{loc}} = npe \cdot ncu.
+\]
+
+\item For each local column $j = 0, \dots, n_{\mathrm{loc}}-1$:
+\begin{itemize}[leftmargin=*]
+\item zero all tangent fields:
+\begin{itemize}[leftmargin=*]
+\item \texttt{sol.dudg}
+\item \texttt{sol.dwdg} if used
+\item \texttt{sol.duh}
+\item \texttt{sol.dodg} if AV is active
+\item \texttt{res.dRu}
+\item \texttt{res.dRq}
+\item \texttt{res.dRh}
+\end{itemize}
+\item place a unit seed in \texttt{sol.dudg} corresponding to the $j$-th
+\texttt{u} DOF of element $K$
+\item call:
+\begin{itemize}[leftmargin=*]
+\item \texttt{dResidual(sol, res, app, driver\_abi, master, mesh, tmp, common, handle, backend)}
+\end{itemize}
+\item extract the element-residual slice of \texttt{res.dRu} corresponding to
+element $K$
+\item store that slice as column $j$ of the dense block $J_{KK}$
+\end{itemize}
+\end{enumerate}
+
+This works because \texttt{dResidual(...)} already performs:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{GetdUhat(...)}
+\item \texttt{GetdQ(...)}
+\item \texttt{GetdAv(...)}
+\item \texttt{dRuElem(...)}
+\item \texttt{dRuFace(...)}
+\end{itemize}
+
+and applies the final residual scaling.
+
+So each call returns exactly:
+
+\[
+J(U)\,e^{(K,j)},
+\]
+
+and extracting the rows of element $K$ gives precisely the column $j$ of
+$J_{KK}$.
+
+\subsection*{D. Exact assembly algorithm using \texttt{MatVec(...)}}
+
+If Enzyme AD is not available, use the same column-by-column procedure but
+replace \texttt{dResidual(...)} with:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{MatVec(...)}
+\end{itemize}
+
+from \texttt{backend/Discretization/matvec.cpp}.
+
+For each seed vector $e^{(K,j)}$:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{MatVec(...)} returns $J(U)e^{(K,j)}$ using either:
+\begin{itemize}[leftmargin=*]
+\item first-order finite difference
+\item second-order finite difference
+\end{itemize}
+\item then extract the same-element residual rows and store the column
+\end{itemize}
+
+This is more expensive and approximate, but it differentiates the actual
+\texttt{Residual(...)} pipeline and therefore includes all implemented
+couplings.
+
+\subsection*{E. Practical column-seeding detail}
+
+The seed must be inserted only into the $u$ components of \texttt{sol.dudg},
+not into $q$ or other fields.
+
+That means:
+
+\begin{itemize}[leftmargin=*]
+\item within element $K$
+\item within the \texttt{udg} layout
+\item only the first \texttt{ncu} components per node are seeded
+\end{itemize}
+
+All $q$-component tangent entries must start from zero and be generated by
+\texttt{GetdQ(...)}.
+
+This is essential. Otherwise the result is not $\partial R/\partial U$, but a
+derivative with independently perturbed $q$.
+
+\subsection*{F. Optional inversion for block-Jacobi use}
+
+If the goal is a block-Jacobi preconditioner, after assembling the blocks one
+can invert them batched:
+
+\[
+J_{KK}^{-1}, \qquad K = 1,\dots,ne1.
+\]
+
+This can reuse the same batched inversion pattern already used elsewhere in
+Exasim for dense small blocks.
+
+The natural storage layout is chosen specifically so that a single batched
+inversion call can process all element blocks.
+
+\subsection*{G. Why this is better than hand-assembling a separate LDG Jacobian first}
+
+A manual Jacobian assembly would need to reproduce every chain-rule dependency
+already encoded in \texttt{Residual(...)}, including:
+
+\begin{itemize}[leftmargin=*]
+\item interior/boundary \texttt{uh} construction
+\item local $q$-recovery
+\item local $w$-recovery
+\item AV differentiation
+\item face orientation details
+\item sign/time scaling
+\end{itemize}
+
+That is possible, but it is much more invasive and easier to get wrong.
+
+Using \texttt{dResidual(...)} or \texttt{MatVec(...)} avoids duplicating solver
+logic and guarantees consistency with the actual residual definition.
+
+\section*{5. Risks or numerical concerns}
+
+\begin{itemize}[leftmargin=*]
+\item The AD path is not fully general for all $w$/DAE branches. In
+\texttt{backend/Discretization/residual.cpp}, \texttt{dRuResidual(...)}
+explicitly notes:
+\begin{itemize}[leftmargin=*]
+\item \texttt{TODO: DAE functionality not implemented yet}
+\end{itemize}
+\item Therefore:
+\begin{itemize}[leftmargin=*]
+\item AD-based block assembly is exact only for the branches actually covered
+by the tangent implementation
+\item FD-based \texttt{MatVec(...)} is more complete, but approximate
+\end{itemize}
+\item Finite-difference block assembly is expensive:
+\begin{itemize}[leftmargin=*]
+\item $n_{\mathrm{loc}}$ residual evaluations per element block
+\item or one global \texttt{MatVec(...)} per local column if done naively
+\end{itemize}
+\item Finite-difference quality depends on:
+\begin{itemize}[leftmargin=*]
+\item \texttt{common.matvecTol}
+\item \texttt{common.matvecOrder}
+\end{itemize}
+\item For interface elements in MPI, the exact diagonal block still requires
+the MPI tangent/residual path, because face terms depend on exchanged neighbor
+states even when only the diagonal rows are kept.
+\item If AV is active and unfrozen, the exact block diagonal of the residual
+must include \texttt{GetAv(...)} differentiation. Omitting that gives a
+different Jacobian.
+\item A hand-derived ``element-only'' approximation will generally miss
+orientation-dependent face-trace effects from \texttt{GetUhat(...)}.
+\end{itemize}
+
+\section*{6. Verification plan}
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Column test against \texttt{dResidual(...)}}
+\begin{itemize}[leftmargin=*]
+\item Pick an element $K$ and a random local vector $z_K$.
+\item Form a global seed $z$ supported only on element $K$.
+\item Compute $y = Jz$ with \texttt{dResidual(...)}.
+\item Extract the element-$K$ rows of $y$.
+\item Compare with $J_{KK} z_K$ from the assembled dense block.
+\end{itemize}
+
+\item \textbf{Finite-difference spot check}
+\begin{itemize}[leftmargin=*]
+\item For a few local columns $j$, compare the assembled column against:
+\[
+\frac{R(U + \varepsilon e^{(K,j)}) - R(U)}{\varepsilon}
+\]
+restricted to the element-$K$ residual rows.
+\end{itemize}
+
+\item \textbf{Boundary and interior element checks}
+\begin{itemize}[leftmargin=*]
+\item Test one boundary element and one interior element.
+\item This verifies both:
+\begin{itemize}[leftmargin=*]
+\item \texttt{FbouDriver(...)}
+\item \texttt{FhatDriver(...)}
+\item \texttt{UbouDriver(...)}
+\end{itemize}
+\end{itemize}
+
+\item \textbf{Physics toggles}
+\begin{itemize}[leftmargin=*]
+\item Verify separately for:
+\begin{itemize}[leftmargin=*]
+\item \texttt{common.tdep = 0}
+\item \texttt{common.tdep = 1}
+\item \texttt{common.ncq = 0} and \texttt{> 0}
+\item \texttt{common.ncw = 0} and a case with \texttt{ncw > 0}
+\item AV frozen and unfrozen
+\end{itemize}
+\end{itemize}
+
+\item \textbf{Residual-consistency check}
+\begin{itemize}[leftmargin=*]
+\item Confirm the assembled block includes the final residual scaling by
+\texttt{-1} and \texttt{1/common.dtfactor} exactly as in \texttt{Residual(...)}.
+\end{itemize}
+
+\item \textbf{Performance sanity}
+\begin{itemize}[leftmargin=*]
+\item Measure cost per element block.
+\item If explicit block assembly is too expensive, keep the same mathematical
+definition but consider:
+\begin{itemize}[leftmargin=*]
+\item assembling blocks only when the nonlinear state changes significantly
+\item or using the block assembly only for preconditioner setup, not every
+Krylov iteration
+\end{itemize}
+\end{itemize}
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,561 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\geometry{margin=1in}
+
+\title{Implementation of the LDG Method in Exasim}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{1. Summary}
+
+Exasim implements the LDG method by rewriting the PDE into a first-order
+system, recovering the auxiliary gradient variable $q$ locally, then
+assembling the $u$ residual from element-volume and face-flux terms. The
+core LDG path is in:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/residual.cpp}
+\item \texttt{backend/Discretization/qresidual.cpp}
+\item \texttt{backend/Discretization/uresidual.cpp}
+\item \texttt{backend/Discretization/getuhat.cpp}
+\item \texttt{backend/Discretization/geometry.cpp}
+\end{itemize}
+
+The PDE-specific terms in the weak formulation are injected through the
+model-driver layer in:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Model/ModelDispatch/model\_drivers\_abi.cpp}
+\end{itemize}
+
+\section*{2. Assumptions}
+
+\begin{itemize}[leftmargin=*]
+\item I am describing the LDG residual implementation, not the HDG global
+trace-system implementation.
+\item The PDE is written in first-order form with unknowns $u$ and $q$, where
+$q$ represents gradients or gradient-like auxiliary variables.
+\item I use the Exasim code sign conventions as implemented in the residual
+assembly. These are equivalent to standard LDG weak forms, but the algebraic
+residual may be written with the opposite overall sign from a textbook
+presentation.
+\item Arrays are stored in Exasim's flattened column-major style and are
+evaluated by:
+\begin{itemize}[leftmargin=*]
+\item gather nodal data
+\item interpolate to Gauss points
+\item evaluate model terms
+\item apply metric/Jacobian factors
+\item project back to nodal residuals
+\end{itemize}
+\item $w$ in Exasim may also denote an additional algebraic/auxiliary field
+\texttt{wdg}; that is separate from the usual test function notation. Below I
+will use $v$ and $\phi$ for test functions.
+\end{itemize}
+
+\section*{3. Design reasoning}
+
+A standard LDG formulation for a diffusion-type or mixed first-order PDE is:
+
+\begin{align*}
+q - \nabla u &= 0, \\
+u_t + \nabla \cdot F(u,q,o,w) &= S(u,q,o,w).
+\end{align*}
+
+A typical elementwise weak form is:
+
+\begin{itemize}[leftmargin=*]
+\item $q$ equation:
+\[
+(q, v)_K + (u, \nabla \cdot v)_K - \langle \hat{u}, v \cdot n \rangle_{\partial K} = 0
+\]
+\item $u$ equation:
+\[
+(u_t, \phi)_K + (S, \phi)_K + (F, \nabla \phi)_K - \langle \hat{f}, \phi \rangle_{\partial K} = 0
+\]
+\end{itemize}
+
+Exasim implements each of these terms explicitly.
+
+\subsection*{A. High-level LDG execution order}
+
+For the $u$ residual, Exasim does the following in
+\texttt{backend/Discretization/residual.cpp}:
+
+\begin{enumerate}[leftmargin=*]
+\item \texttt{GetUhat(...)}
+\item \texttt{GetQ(...)} if \texttt{common.ncq > 0}
+\item \texttt{GetW(...)} if \texttt{common.ncw > 0}
+\item \texttt{RuElem(...)}
+\item \texttt{RuFace(...)}
+\end{enumerate}
+
+So the LDG structure is:
+
+\begin{itemize}[leftmargin=*]
+\item build face trace/boundary states
+\item recover local gradient variable $q$
+\item optionally recover algebraic field $w$
+\item assemble the $u$ residual
+\end{itemize}
+
+That is the core LDG implementation pattern in Exasim.
+
+\subsection*{B. Implementation of the weak $q$ equation}
+
+This is handled in \texttt{backend/Discretization/qresidual.cpp}.
+
+\paragraph{Term 1: $(u, \nabla \cdot v)_K$}
+
+Implemented in \texttt{RqElemBlock(...)}.
+
+What the code does:
+
+\begin{itemize}[leftmargin=*]
+\item gathers element nodal $u$ from \texttt{sol.udg}
+\item interpolates $u$ from nodal points to Gauss points with
+\texttt{Node2Gauss(...)}
+\item applies geometric transformation with \texttt{ApplyXx3(...)}
+\item projects back to element nodes with \texttt{Gauss2Node(...)}
+\end{itemize}
+
+Interpretation:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{Node2Gauss(...)} evaluates $u_h$ at quadrature points
+\item \texttt{ApplyXx3(...)} applies the mapped derivative operators through
+the metric tensor \texttt{Xx}
+\item \texttt{Gauss2Node(...)} performs the quadrature-weighted test-function
+contraction back to the discrete residual basis
+\end{itemize}
+
+So \texttt{RqElemBlock(...)} is the implementation of the volume term
+$(u, \nabla \cdot v)_K$.
+
+\paragraph{Term 2: $\langle \hat{u}, v \cdot n \rangle_{\partial K}$}
+
+Implemented in \texttt{RqFaceBlock(...)}.
+
+What the code does:
+
+\begin{itemize}[leftmargin=*]
+\item gathers face values of \texttt{uh} with \texttt{GetElemNodes(...)}
+\item interpolates face \texttt{uh} to face Gauss points with
+\texttt{Node2Gauss(...)}
+\item applies \texttt{jac * n} with \texttt{ApplyJacNormal(...)}
+\item projects back to the nodal residual with \texttt{Gauss2Node(...)}
+\end{itemize}
+
+This is exactly the discrete face integral of the LDG gradient equation.
+
+\paragraph{Term 3: $(q, v)_K$}
+
+Exasim does not assemble this as a separate explicit mass-matrix term in
+\texttt{RqElemBlock}. Instead, after building the right-hand side
+contributions from the volume and face terms, it applies the inverse mass
+matrix in \texttt{GetQ(...)} inside
+\texttt{backend/Discretization/residual.cpp}:
+
+\begin{itemize}[leftmargin=*]
+\item face contributions are scattered into the element residual by
+\texttt{PutFaceNodes(...)}
+\item \texttt{ApplyMinv(...)} applies the local inverse mass matrix
+\end{itemize}
+
+This is the discrete realization of solving:
+
+\[
+M q = RHS
+\]
+
+for each element, where $M$ is the element mass matrix from $(q, v)_K$.
+
+So in Exasim:
+
+\begin{itemize}[leftmargin=*]
+\item $(q, v)_K$ is implemented through the local mass inverse
+\texttt{ApplyMinv(...)}
+\item $(u, \nabla \cdot v)_K$ is implemented by \texttt{RqElemBlock(...)}
+\item $\langle \hat{u}, v \cdot n \rangle_{\partial K}$ is implemented by
+\texttt{RqFaceBlock(...)}
+\end{itemize}
+
+After that, the recovered $q$ is inserted into \texttt{sol.udg} with
+\texttt{ArrayInsert(...)}.
+
+Important structural point:
+
+\begin{itemize}[leftmargin=*]
+\item in LDG, $q$ is local and recovered elementwise
+\item it is not a globally coupled trace unknown
+\end{itemize}
+
+\subsection*{C. Construction of $\hat{u}$ in LDG}
+
+This is handled in \texttt{backend/Discretization/getuhat.cpp}.
+
+\texttt{GetUhat(...)} builds the face state \texttt{sol.uh}.
+
+\paragraph{Interior faces}
+
+For \texttt{ib == 0}, the code copies interior face data from
+\texttt{sol.udg} into \texttt{sol.uh}.
+
+Interpretation:
+
+\begin{itemize}[leftmargin=*]
+\item LDG in Exasim does not solve a global trace equation for $\hat{u}$
+\item $\hat{u}$ is just the face state passed into the numerical flux machinery
+\end{itemize}
+
+\paragraph{Boundary faces}
+
+For \texttt{ib != 0}, the code:
+
+\begin{itemize}[leftmargin=*]
+\item computes face geometry with \texttt{FaceGeom1D/2D/3D(...)}
+\item gathers boundary-side \texttt{udg} and \texttt{odg}
+\item calls \texttt{UbouDriver(...)}
+\item writes the boundary trace into \texttt{sol.uh}
+\end{itemize}
+
+So the boundary trace $\hat{u}$ is entirely supplied by the user/model
+boundary operator.
+
+This is the implementation of the boundary data entering the LDG weak form.
+
+\subsection*{D. Implementation of the weak $u$ equation}
+
+This is handled in \texttt{backend/Discretization/uresidual.cpp}.
+
+\paragraph{Term 1: time term $(u_t, \phi)_K$}
+
+In \texttt{RuElemBlock(...)}, for time-dependent problems Exasim forms a
+time-source-like contribution using \texttt{sol.sdg} and the time
+discretization factor:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{ArrayAXPBY(...)} forms something equivalent to
+\texttt{sdg - dtfactor * u}
+\item if \texttt{common.tdfunc == 1}, \texttt{TdfuncDriver(...)} modifies this
+term
+\end{itemize}
+
+So the temporal weak term is implemented as part of the element source
+assembly rather than as a separate conceptual block.
+
+\paragraph{Term 2: source term $(S, \phi)_K$}
+
+Also in \texttt{RuElemBlock(...)}:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{SourceDriver(...)} evaluates the PDE source at Gauss points
+\end{itemize}
+
+This source is then combined into the element integrand before projection back
+to nodal residuals.
+
+So $(S, \phi)_K$ is implemented by:
+
+\begin{itemize}[leftmargin=*]
+\item Gauss-point evaluation through \texttt{SourceDriver(...)}
+\item element integration through \texttt{ApplyXx4(...)} and
+\texttt{Gauss2Node(...)}
+\end{itemize}
+
+\paragraph{Term 3: flux volume term $(F, \nabla \phi)_K$}
+
+Still in \texttt{RuElemBlock(...)}:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{FluxDriver(...)} evaluates the physical flux
+$F(u,q,o,w)$ at Gauss points
+\item \texttt{ApplyXx4(...)} applies the metric/Jacobian transformation and
+contracts with basis gradients
+\item \texttt{Gauss2Node(...)} accumulates the result into the nodal residual
+\end{itemize}
+
+This is the discrete implementation of the LDG volume flux term.
+
+So in Exasim:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{FluxDriver(...)} gives the PDE-specific flux
+\item \texttt{ApplyXx4(...)} gives the mapped weak derivative action
+\item \texttt{Gauss2Node(...)} completes the quadrature-based residual assembly
+\end{itemize}
+
+\subsection*{E. Implementation of the face term $\langle \hat{f}, \phi \rangle_{\partial K}$}
+
+This is handled in \texttt{RuFaceBlock(...)} in
+\texttt{backend/Discretization/uresidual.cpp}.
+
+What the code does:
+
+\begin{itemize}[leftmargin=*]
+\item gathers \texttt{uh}, interior/exterior \texttt{udg}, and optional
+\texttt{wdg} on faces
+\item interpolates them to face Gauss points with \texttt{Node2Gauss(...)}
+\item for interior faces:
+\begin{itemize}[leftmargin=*]
+\item calls \texttt{FhatDriver(...)}
+\end{itemize}
+\item for boundary faces:
+\begin{itemize}[leftmargin=*]
+\item calls \texttt{FbouDriver(...)}
+\end{itemize}
+\item multiplies by face Jacobian with \texttt{ApplyJacFhat(...)}
+\item projects back with \texttt{Gauss2Node(...)}
+\end{itemize}
+
+Interpretation:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{FhatDriver(...)} is the interior numerical flux term of LDG
+\item \texttt{FbouDriver(...)} is the boundary numerical flux term of LDG
+\end{itemize}
+
+This is exactly the implementation of $\langle \hat{f}, \phi \rangle_{\partial K}$.
+
+\subsection*{F. How $\hat{f}$ is built}
+
+The most important PDE-dependent LDG face term is in
+\texttt{backend/Model/ModelDispatch/model\_drivers\_abi.cpp}.
+
+\texttt{FhatDriver(...)} has two modes.
+
+\paragraph{Mode 1: external/provider numerical flux}
+
+If \texttt{common.extFhat == 1}, Exasim directly calls:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{abi.KokkosFhat(...)}
+\end{itemize}
+
+That means the model/provider supplies the full numerical trace flux.
+
+\paragraph{Mode 2: Exasim-built LDG flux}
+
+Otherwise, Exasim builds the numerical flux itself:
+
+\begin{enumerate}[leftmargin=*]
+\item compute left and right physical fluxes via \texttt{FluxDriver(...)}
+\item average them with \texttt{AverageFlux(...)}
+\item form the normal component with \texttt{AverageFluxDotNormal(...)}
+\item add stabilization via:
+\begin{itemize}[leftmargin=*]
+\item \texttt{abi.KokkosStab(...)} if \texttt{common.extStab >= 1}
+\item or built-in \texttt{AddStabilization1/2/3(...)}
+\end{itemize}
+\end{enumerate}
+
+So the LDG numerical flux term is implemented as:
+
+\begin{itemize}[leftmargin=*]
+\item average normal physical flux
+\item plus stabilization/jump penalty
+\end{itemize}
+
+That is the concrete code realization of the numerical flux in the weak face
+integral.
+
+\subsection*{G. Geometry and quadrature operators}
+
+All volume and face weak terms rely on geometry computed in:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/geometry.cpp}
+\end{itemize}
+
+\texttt{ElemGeom(...)} computes:
+
+\begin{itemize}[leftmargin=*]
+\item physical Gauss-point coordinates \texttt{xg}
+\item metric terms \texttt{Xx}
+\item element Jacobian \texttt{jac}
+\end{itemize}
+
+\texttt{FaceGeom(...)} computes:
+
+\begin{itemize}[leftmargin=*]
+\item face coordinates
+\item normals \texttt{nlg}
+\item face Jacobians
+\end{itemize}
+
+These are consumed by:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{ApplyXx3(...)}
+\item \texttt{ApplyXx4(...)}
+\item \texttt{ApplyJacNormal(...)}
+\item \texttt{ApplyJacFhat(...)}
+\end{itemize}
+
+So every weak-form term is implemented in the standard finite-element
+sequence:
+
+\begin{itemize}[leftmargin=*]
+\item reference-to-physical geometry map
+\item Gauss-point evaluation
+\item metric/Jacobian scaling
+\item quadrature projection back to nodal residuals
+\end{itemize}
+
+\subsection*{H. Optional auxiliary field $w$}
+
+Exasim can also carry an auxiliary variable $w$ through \texttt{GetW(...)} in
+\texttt{backend/Discretization/residual.cpp}.
+
+This is not part of the core LDG $u$-$q$ structure, but it modifies source and
+flux evaluations when \texttt{common.ncw > 0}.
+
+Then:
+
+\begin{itemize}[leftmargin=*]
+\item \texttt{SourceDriver(...)} and \texttt{FluxDriver(...)} can depend on $w$
+\item the Jacobian assembly also includes $w$-coupling corrections
+\end{itemize}
+
+For a basic LDG description, this is an extension layer, not the essential
+structure.
+
+\section*{4. Proposed implementation}
+
+The clean way to understand Exasim's LDG implementation is this mapping from
+weak form to code:
+
+\begin{itemize}[leftmargin=*]
+\item $q$ equation
+\begin{itemize}[leftmargin=*]
+\item $(q, v)_K$
+\begin{itemize}[leftmargin=*]
+\item local mass inversion in \texttt{GetQ(...)} via \texttt{ApplyMinv(...)}
+\end{itemize}
+\item $(u, \nabla \cdot v)_K$
+\begin{itemize}[leftmargin=*]
+\item \texttt{RqElemBlock(...)} in \texttt{backend/Discretization/qresidual.cpp}
+\end{itemize}
+\item $\langle \hat{u}, v \cdot n \rangle_{\partial K}$
+\begin{itemize}[leftmargin=*]
+\item \texttt{RqFaceBlock(...)} in \texttt{backend/Discretization/qresidual.cpp}
+\end{itemize}
+\end{itemize}
+\item face trace construction
+\begin{itemize}[leftmargin=*]
+\item interior $\hat{u}$
+\begin{itemize}[leftmargin=*]
+\item copied from face $u$ in \texttt{GetUhat(...)}
+\end{itemize}
+\item boundary $\hat{u}$
+\begin{itemize}[leftmargin=*]
+\item \texttt{UbouDriver(...)} in
+\texttt{backend/Model/ModelDispatch/model\_drivers\_abi.cpp}
+\end{itemize}
+\end{itemize}
+\item $u$ equation
+\begin{itemize}[leftmargin=*]
+\item $(u_t, \phi)_K$
+\begin{itemize}[leftmargin=*]
+\item time-source assembly in \texttt{RuElemBlock(...)}
+\end{itemize}
+\item $(S, \phi)_K$
+\begin{itemize}[leftmargin=*]
+\item \texttt{SourceDriver(...)} in \texttt{RuElemBlock(...)}
+\end{itemize}
+\item $(F, \nabla \phi)_K$
+\begin{itemize}[leftmargin=*]
+\item \texttt{FluxDriver(...)} plus \texttt{ApplyXx4(...)} in
+\texttt{RuElemBlock(...)}
+\end{itemize}
+\item $\langle \hat{f}, \phi \rangle_{\partial K}$
+\begin{itemize}[leftmargin=*]
+\item \texttt{FhatDriver(...)} or \texttt{FbouDriver(...)} in
+\texttt{RuFaceBlock(...)}
+\end{itemize}
+\end{itemize}
+\item geometry support
+\begin{itemize}[leftmargin=*]
+\item element metrics and Jacobians
+\begin{itemize}[leftmargin=*]
+\item \texttt{ElemGeom(...)}
+\end{itemize}
+\item face normals and Jacobians
+\begin{itemize}[leftmargin=*]
+\item \texttt{FaceGeom(...)}
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\section*{5. Risks or numerical concerns}
+
+\begin{itemize}[leftmargin=*]
+\item The biggest source of confusion is sign convention. The textbook weak
+form and the algebraic residual in Exasim may differ by an overall sign, but
+the code comments in \texttt{qresidual.cpp} and \texttt{uresidual.cpp} make the
+implemented structure clear.
+\item \texttt{uh} in LDG is not an HDG global trace unknown in Exasim. It is a
+face state used to construct numerical fluxes and boundary data.
+\item The model-driver layer is critical: the mathematical LDG terms are
+generic, but the actual PDE content is injected only through:
+\begin{itemize}[leftmargin=*]
+\item \texttt{FluxDriver(...)}
+\item \texttt{SourceDriver(...)}
+\item \texttt{FhatDriver(...)}
+\item \texttt{FbouDriver(...)}
+\item \texttt{UbouDriver(...)}
+\item \texttt{TdfuncDriver(...)}
+\end{itemize}
+\item If \texttt{ncw > 0}, the implementation includes extra algebraic couplings
+beyond the basic LDG $u$-$q$ structure.
+\item For Jacobian-level analysis, the corresponding matrix assembly files such
+as \texttt{backend/Discretization/qequation.cpp} and
+\texttt{backend/Discretization/uequation.cpp} matter, but they are not the
+primary residual-level LDG path.
+\end{itemize}
+
+\section*{6. Verification plan}
+
+To verify this interpretation in the codebase:
+
+\begin{enumerate}[leftmargin=*]
+\item Start from \texttt{backend/Discretization/residual.cpp} and trace:
+\begin{itemize}[leftmargin=*]
+\item \texttt{GetUhat(...)}
+\item \texttt{GetQ(...)}
+\item \texttt{RuElem(...)}
+\item \texttt{RuFace(...)}
+\end{itemize}
+\item For the weak $q$ equation, inspect:
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/qresidual.cpp}
+\end{itemize}
+\item For the weak $u$ equation, inspect:
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Discretization/uresidual.cpp}
+\end{itemize}
+\item For the numerical flux and boundary terms, inspect:
+\begin{itemize}[leftmargin=*]
+\item \texttt{backend/Model/ModelDispatch/model\_drivers\_abi.cpp}
+\end{itemize}
+\item For a concrete PDE, test the interpretation on a simple example such as
+Poisson in first-order form and confirm:
+\begin{itemize}[leftmargin=*]
+\item $q$ is recovered locally
+\item $u$ residual receives volume flux, source, and face flux terms
+\item boundary data enters through \texttt{UbouDriver(...)} and
+\texttt{FbouDriver(...)}
+\end{itemize}
+\end{enumerate}
+
+\end{document}

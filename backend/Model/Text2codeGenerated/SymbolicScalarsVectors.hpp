@@ -28,7 +28,6 @@ public:
     std::vector<Expression> eta;
     std::vector<Expression> w;
     std::vector<Expression> tau;
-    std::vector<Expression> uext;
 
     // vector sizes
     int szx;
@@ -40,7 +39,6 @@ public:
     int szeta;
     int szw;
     int sztau;
-    int szuext;
     bool exasim;
 
     std::vector<bool> outputfunctions;

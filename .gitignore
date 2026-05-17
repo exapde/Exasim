@@ -322,3 +322,4 @@ lib/libcpukkEXASIM.a
 lib/libcpumpiEXASIM.a
 lib/libcpumpikkEXASIM.a
 lib/libt2cmodelserial.dylib
+/apps/poisson/poisson3d/build2

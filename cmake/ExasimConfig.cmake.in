@@ -1,31 +1,48 @@
 @PACKAGE_INIT@
 
-# ExasimConfig.cmake.in — installed CMake config for Exasim's
-# header-only template library.
+# ExasimConfig.cmake.in — installed CMake config for Exasim.
 #
 # Downstream consumer:
 #
 #     find_package(Exasim REQUIRED)
-#     find_package(Kokkos REQUIRED)
-#     find_package(MPI REQUIRED)
 #     add_executable(my_solver main.cpp)
 #     target_link_libraries(my_solver PRIVATE
-#         Exasim::headers Kokkos::kokkos MPI::MPI_CXX)
+#         Exasim::headers Exasim::cpumpiprelib)
 #
-# The Exasim::headers target is INTERFACE-only — it adds the include
-# directory and propagates these find_dependency calls. The user's TU
-# (main.cpp, plus my_model.hpp the user writes or text2code generates)
-# pulls in <exasim/discretization.hpp>, <exasim/solver.hpp>,
-# <exasim/solution.hpp>, etc., and instantiates them on the user's
-# Model type.
+# The package exports:
+#   - Exasim::headers      (INTERFACE include target)
+#   - Exasim::cpulib       (libcpuEXASIM.a, when built)
+#   - Exasim::cpumpilib    (libcpumpiEXASIM.a, when built)
+#   - Exasim::cpuprelib    (libcpupreEXASIM.a, when built)
+#   - Exasim::cpumpiprelib (libcpumpipreEXASIM.a, when built)
+#   - Exasim::gpulib       (libgpuEXASIM.a, when built)
+#   - Exasim::gpumpilib    (libgpumpiEXASIM.a, when built)
+#   - Exasim::gpuprelib    (libgpupreEXASIM.a, when built)
+#   - Exasim::gpumpiprelib (libgpumpipreEXASIM.a, when built)
 #
-# This config does NOT find Kokkos/MPI/BLAS for you — those are runtime
-# choices (which Kokkos build, which MPI implementation, etc.) the
-# downstream project's CMakeLists is in a better position to make. The
-# Exasim::headers target only requires they're findable; if they're
-# missing, link errors at the user's link step will name the symbol.
+# Each exported library target carries the transitive link interface of its
+# solver variant. Kokkos is always required; MPI is required whenever any
+# exported MPI library variant is present in the package.
 
 include(CMakeFindDependencyMacro)
+
+set(_EXASIM_KOKKOS_DIR "@Kokkos_DIR@")
+if(NOT TARGET Kokkos::kokkos)
+  if(EXISTS "${_EXASIM_KOKKOS_DIR}/KokkosConfig.cmake")
+    find_package(Kokkos REQUIRED CONFIG
+      PATHS "${_EXASIM_KOKKOS_DIR}"
+      NO_DEFAULT_PATH)
+  elseif(EXISTS "${_EXASIM_KOKKOS_DIR}/lib/cmake/Kokkos/KokkosConfig.cmake")
+    find_package(Kokkos REQUIRED CONFIG
+      PATHS "${_EXASIM_KOKKOS_DIR}/lib/cmake/Kokkos"
+      NO_DEFAULT_PATH)
+  else()
+    find_dependency(Kokkos REQUIRED)
+  endif()
+endif()
+if(@EXASIM_PACKAGE_HAS_MPI@)
+  find_dependency(MPI REQUIRED)
+endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/ExasimTargets.cmake")
 
