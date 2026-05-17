@@ -69,7 +69,7 @@ cmake --build .
 cmake --install . --prefix /path/to/Exasim
 ``` 
 
-EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. It will produce  It will produce Exasim's libraries in Exasim/lib and  Exasim's headers in Exasim/include. It will also produce Exasim's executable programs in Exasim/build, which are **cput2cEXASIM** for CPU platform on one core, **cpumpit2cEXASIM** for CPU platform on many cores, **gput2cEXASIM** for CUDA/HIP platform on one GPU, and **gpumpit2cEXASIM** for CUDA/HIP platform on many GPUs. 
+EXASIM_CUDA=ON switches to the CUDA backend (ensure kokkos/buildcuda exists). Similarly, EXASIM_HIP=ON switches to the HIP backend. It will produce Exasim's libraries in Exasim/lib and  Exasim's headers in Exasim/include. It will also produce Exasim's executable programs in Exasim/build, which are **cput2cEXASIM** for CPU platform on one core, **cpumpit2cEXASIM** for CPU platform on many cores, **gput2cEXASIM** for CUDA/HIP platform on one GPU, and **gpumpit2cEXASIM** for CUDA/HIP platform on many GPUs. 
 
 ## Examples
 
@@ -89,6 +89,15 @@ mpirun -np $N /path/to/Exasim/build/gpumpit2cEXASIM pdeapp.txt    (if you run on
 ```
 
 where N is the number of processors. Make sure to set MPI and GPU environment variables appropriately on your system. 
+
+Alternatively, compile main.cpp to generate exasimapp and run it as follows
+
+```
+cd /path/to/Exasim/apps/<example>
+cmake -B build
+cmake --build build
+mpirun -np 4 build/exasimapp pdeapp.txt
+```
 
 ### Exasim/examples
 
