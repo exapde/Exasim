@@ -623,16 +623,6 @@ export(EXPORT ExasimTargets
   NAMESPACE Exasim::
   FILE ${CMAKE_CURRENT_BINARY_DIR}/ExasimTargets.cmake)
 
-if(NOT CMAKE_EXPORT_NO_PACKAGE_REGISTRY)
-  set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
-  if(UNIX AND DEFINED ENV{HOME})
-    file(MAKE_DIRECTORY "$ENV{HOME}/.cmake")
-    file(MAKE_DIRECTORY "$ENV{HOME}/.cmake/packages")
-    file(MAKE_DIRECTORY "$ENV{HOME}/.cmake/packages/Exasim")
-  endif()
-  export(PACKAGE Exasim)
-endif()
-
 # ======================================================================
 #  Summary of EXASIM configuration
 # ======================================================================
