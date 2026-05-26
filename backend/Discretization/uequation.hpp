@@ -394,8 +394,9 @@ inline void uEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &ap
         ArraySetValue(fhb_uh, 0.0, ngb*ncu*ncu);
         if (ncw > 0) ArraySetValue(fhb_w, 0.0, ngb*ncu*ncw);      
         if (ibc+1 == 1000) {
+            dstype *stgparamdata = (common.stgchem == 1) ? app.uinf : app.physicsparam;
             StgInflowHDG(fhb, fhb_uq, fhb_w, fhb_uh, res.K, xgb, ogb, uhb, 
-                         app.physicsparam, app.stgdata, app.stgparam, common.time, 
+                         stgparamdata, app.stgdata, app.stgparam, common.time, 
                          ngb, common.stgNmode, nd, ncu, nc, ncw, common.stgchem);
         } else {     
           if (common.ncuext > 0 && sol.szuext > 0 && (ibc+1 == common.FextCall)) {
@@ -1010,8 +1011,11 @@ inline void RuEquationElemFaceBlock(solstruct &sol, resstruct &res, appstruct &a
           //wEquation<M>(wgb, xgb, ugb, ogb, wsb, Rb, app, common, ngb, backend);
         }
         
-        if (ibc+1 == 1000) StgInflowHDG(fhb, &tmp.tempg[n8], xgb, ogb, uhb, app.physicsparam, app.stgdata, 
-                                 app.stgparam, common.time, ngb, common.stgNmode, nd, common.stgchem);          
+        if (ibc+1 == 1000) {
+          dstype *stgparamdata = (common.stgchem == 1) ? app.uinf : app.physicsparam;
+          StgInflowHDG(fhb, &tmp.tempg[n8], xgb, ogb, uhb, stgparamdata, app.stgdata, 
+                                 app.stgparam, common.time, ngb, common.stgNmode, nd, common.stgchem);
+        }
         else {
           if (common.ncuext > 0 && sol.szuext > 0  && (ibc+1 == common.FextCall)) {
             ArrayExtract(Rb, sol.uext, ngf, common.nextfaces[common.nbe1], common.ncuext, 0, ngf, common.nextfaces[jth], common.nextfaces[jth+1], 0, common.ncuext);  
