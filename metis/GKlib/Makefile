@@ -62,7 +62,7 @@ ifneq ($(cputype), x86_64)
     CONFIG_FLAGS += -DNO_X86=$(cputype)
 endif
 ifeq ($(systype), Darwin)
-    sysroot = $(shell $(cc) -print-sysroot || echo not-set)
+    sysroot = $(shell (command -v xcrun >/dev/null 2>&1 && xcrun --show-sdk-path) || ($(cc) -print-sysroot 2>/dev/null) || echo not-set)
     ifneq ($(sysroot), not-set)
 	CONFIG_FLAGS += -DCMAKE_OSX_SYSROOT=$(sysroot)
     endif

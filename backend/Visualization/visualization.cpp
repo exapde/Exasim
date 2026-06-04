@@ -292,8 +292,10 @@ public:
         if (rank == 0) {
             std::vector<std::string> pieces;
             pieces.reserve(nranks);
-            for (int r = 0; r < nranks; ++r)
-                pieces.push_back(base_name + rank_tag(r) + ".vtu");
+            for (int r = 0; r < nranks; ++r) {
+                const std::filesystem::path piece = base_name + rank_tag(r) + ".vtu";
+                pieces.push_back(piece.filename().generic_string());
+            }
             write_pvtu(base_name, pieces, scalar_names, vector_names, tensor_names, ntc);
         }
     }
@@ -519,4 +521,3 @@ private:
         if (!os) throw std::runtime_error("Error writing PVTU file.");
     }
 };
-
