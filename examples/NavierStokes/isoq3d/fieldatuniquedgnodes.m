@@ -14,7 +14,7 @@ elseif nd == 2
 elseif nd == 3
   x = dgnodes1(:,1,:);
   y = dgnodes1(:,2,:);
-  z = dgnodes1(:,2,:);
+  z = dgnodes1(:,3,:);
   p = [x(:) y(:) z(:)];    
 end
 

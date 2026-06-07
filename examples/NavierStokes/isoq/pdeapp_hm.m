@@ -39,7 +39,8 @@ pde.preconditioner = 1;
 pdehm.ppdegree = 1;          % degree of polynomial preconditioner
 pdehm.RBdim = 0;
 
-meshhm = mkmesh_isoq(pdehm.porder);
+%meshhm = mkmesh_isoq(pdehm.porder);
+meshhm = mkmesh_isoq2d2(pdehm.porder, 1e-3);
 meshhm.boundarycondition = [1;1;1;1]; 
 
 [~,cgelcon,rowent2elem,colent2elem,~] = mkcgent2dgent(meshhm.dgnodes,1e-8);
