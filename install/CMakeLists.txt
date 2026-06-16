@@ -122,6 +122,26 @@ set(T2C_CPU_LIB  t2cmodelserial)
 set(T2C_CUDA_LIB t2cmodelcuda)
 set(T2C_HIP_LIB  t2cmodelhip)
 
+# Check which text2code shared libraries already exist so we can skip
+# the *t2c* executables when the user has not yet run text2code on their
+# PDE model to produce them.  Without this guard the linker would fail
+# with "cannot find -lt2cmodelserial".
+set(EXASIM_HAS_T2C_CPU_LIB  FALSE)
+set(EXASIM_HAS_T2C_CUDA_LIB FALSE)
+set(EXASIM_HAS_T2C_HIP_LIB  FALSE)
+find_library(_T2C_CPU_LIB_PATH  ${T2C_CPU_LIB}  PATHS ${Model_LIB_DIR} NO_DEFAULT_PATH)
+find_library(_T2C_CUDA_LIB_PATH ${T2C_CUDA_LIB} PATHS ${Model_LIB_DIR} NO_DEFAULT_PATH)
+find_library(_T2C_HIP_LIB_PATH  ${T2C_HIP_LIB}  PATHS ${Model_LIB_DIR} NO_DEFAULT_PATH)
+if(_T2C_CPU_LIB_PATH)
+  set(EXASIM_HAS_T2C_CPU_LIB TRUE)
+endif()
+if(_T2C_CUDA_LIB_PATH)
+  set(EXASIM_HAS_T2C_CUDA_LIB TRUE)
+endif()
+if(_T2C_HIP_LIB_PATH)
+  set(EXASIM_HAS_T2C_HIP_LIB TRUE)
+endif()
+
 # logical names for builtin static libs (lib<name>.a)
 set(BM_CPU_LIB  builtinmodelserial)
 set(BM_CUDA_LIB builtinmodelcuda)
@@ -316,7 +336,7 @@ if(EXASIM_CUDA)
       add_exasim_executable_from_static(gpuEXASIM gpuEXASIM_static)
     endif()
 
-    if(WITH_TEXT2CODE)
+    if(WITH_TEXT2CODE AND EXASIM_HAS_T2C_CUDA_LIB)
       add_executable(gput2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(gput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(gput2cEXASIM PRIVATE _CUDA _TEXT2CODE)
@@ -360,7 +380,7 @@ if(EXASIM_CUDA)
         add_exasim_executable_from_static(gpumpiEXASIM gpumpiEXASIM_static)
       endif()
 
-      if(WITH_TEXT2CODE)
+      if(WITH_TEXT2CODE AND EXASIM_HAS_T2C_CUDA_LIB)
         add_executable(gpumpit2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(gpumpit2cEXASIM PRIVATE ${Model_LIB_DIR})
         target_compile_definitions(gpumpit2cEXASIM PRIVATE _MPI _CUDA _TEXT2CODE)
@@ -421,7 +441,7 @@ elseif(EXASIM_HIP)
       add_exasim_executable_from_static(gpuEXASIM gpuEXASIM_static)
     endif()
 
-    if(WITH_TEXT2CODE)
+    if(WITH_TEXT2CODE AND EXASIM_HAS_T2C_HIP_LIB)
       add_executable(gput2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
       target_link_directories(gput2cEXASIM PRIVATE ${Model_LIB_DIR})
       target_compile_definitions(gput2cEXASIM PRIVATE _HIP _TEXT2CODE)
@@ -462,7 +482,7 @@ elseif(EXASIM_HIP)
         add_exasim_executable_from_static(gpumpiEXASIM gpumpiEXASIM_static)
       endif()
 
-      if(WITH_TEXT2CODE)
+      if(WITH_TEXT2CODE AND EXASIM_HAS_T2C_HIP_LIB)
         add_executable(gpumpit2cEXASIM ${T2C_MAIN_SOURCES} ${EXASIM_SOLVER_SOURCES})
         target_link_directories(gpumpit2cEXASIM PRIVATE ${Model_LIB_DIR})
         target_compile_definitions(gpumpit2cEXASIM PRIVATE _MPI _HIP _TEXT2CODE)
@@ -518,7 +538,7 @@ else()
     #target_compile_options(cpuEXASIM_static PRIVATE -std=c++20 -fsanitize=address,undefined -fno-omit-frame-pointer -g)
     #target_link_options(cpuEXASIM PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
 
-    if(WITH_TEXT2CODE)
+    if(WITH_TEXT2CODE AND EXASIM_HAS_T2C_CPU_LIB)
       add_exasim_model_executable(cput2cEXASIM
         MAIN_SOURCES ${T2C_MAIN_SOURCES} LIB_DIR ${Model_LIB_DIR} MODEL_LIB ${T2C_CPU_LIB}
         DEFINES _TEXT2CODE OPTIONS -std=c++20 -w -O2)
@@ -556,7 +576,7 @@ else()
         add_exasim_executable_from_static(cpumpiEXASIM cpumpiEXASIM_static)
       endif()
 
-      if(WITH_TEXT2CODE)
+      if(WITH_TEXT2CODE AND EXASIM_HAS_T2C_CPU_LIB)
         add_exasim_model_executable(cpumpit2cEXASIM
           MAIN_SOURCES ${T2C_MAIN_SOURCES} LIB_DIR ${Model_LIB_DIR} MODEL_LIB ${T2C_CPU_LIB}
           DEFINES _MPI _TEXT2CODE OPTIONS -std=c++20 -w -ffast-math -O3 -DNDEBUG
@@ -890,6 +910,9 @@ message(STATUS "EXASIM_NOMPI              = ${EXASIM_NOMPI}")
 message(STATUS "EXASIM_TUOLUMNE           = ${EXASIM_TUOLUMNE}")
 
 message(STATUS "WITH_TEXT2CODE            = ${WITH_TEXT2CODE}")
+message(STATUS "T2C CPU library found     = ${EXASIM_HAS_T2C_CPU_LIB}")
+message(STATUS "T2C CUDA library found    = ${EXASIM_HAS_T2C_CUDA_LIB}")
+message(STATUS "T2C HIP library found     = ${EXASIM_HAS_T2C_HIP_LIB}")
 message(STATUS "WITH_KOKKOSKERNEL         = ${WITH_KOKKOSKERNEL}")
 message(STATUS "EXASIM_BUILD_PREPROCESSING_LIBS = ${EXASIM_BUILD_PREPROCESSING_LIBS}")
 message(STATUS "KOKKOSKERNEL_HEADER       = ${KOKKOSKERNEL_HEADER}")
