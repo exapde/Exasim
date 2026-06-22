@@ -10,11 +10,16 @@ def writeapp(app,filename):
     app['problem'] = array(app['problem']);
     app['factor'] = array(app['factor']);
     app['solversparam'] = array(app['solversparam']);
+    if 'stgchem' not in app:
+        app['stgchem'] = 0;
+    for key in ['coupledinterface', 'coupledcondition', 'coupledboundarycondition', 'AVdistfunction']:
+        if key not in app:
+            app[key] = 0;
 
     appname = 0;
     tmp = array([app['tdep'], app['wave'], app['linearproblem'], app['debugmode'], app['matvecorder'], app['GMRESortho'], app['preconditioner'], app['precMatrixType'], app['NLMatrixType'], app['runmode'], app['tdfunc'], app['source'], app['modelnumber'], app['extFhat'], app['extUhat'], app['extStab'], app['subproblem']]);
     app['flag'] =  concatenate([tmp,app['flag']]);
-    tmp = array([app['hybrid'], appname, app['temporalscheme'], app['torder'], app['nstage'], app['convStabMethod'], app['diffStabMethod'], app['rotatingFrame'], app['viscosityModel'], app['SGSmodel'], app['ALE'], app['AV'], app['linearsolver'], app['NLiter'], app['linearsolveriter'], app['GMRESrestart'], app['RBdim'], app['saveSolFreq'], app['saveSolOpt'], app['timestepOffset'], app['stgNmode'], app['saveSolBouFreq'], app['ibs'], app['dae_steps'], app['saveResNorm'], app['AVsmoothingIter'], app['frozenAVflag'], app['ppdegree']]);
+    tmp = array([app['hybrid'], appname, app['temporalscheme'], app['torder'], app['nstage'], app['convStabMethod'], app['diffStabMethod'], app['rotatingFrame'], app['viscosityModel'], app['SGSmodel'], app['ALE'], app['AV'], app['linearsolver'], app['NLiter'], app['linearsolveriter'], app['GMRESrestart'], app['RBdim'], app['saveSolFreq'], app['saveSolOpt'], app['timestepOffset'], app['stgNmode'], app['saveSolBouFreq'], app['ibs'], app['dae_steps'], app['saveResNorm'], app['AVsmoothingIter'], app['frozenAVflag'], app['ppdegree'], app['coupledinterface'], app['coupledcondition'], app['coupledboundarycondition'], app['AVdistfunction'], app['stgchem']]);
     app['problem'] = concatenate([tmp, app['problem']]);
     tmp = array([app['time'], app['dae_alpha'], app['dae_beta'], app['dae_gamma'], app['dae_epsilon']])    
     app['factor'] = concatenate([tmp, app['factor']]);

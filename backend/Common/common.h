@@ -1701,6 +1701,7 @@ struct commonstruct {
     Int saveRestart=200;  // number of time steps to save the solution for restarting
     Int timestepOffset=0; // timestep offset to restart the simulation 
     Int stgNmode=0;       // number of synthetic turbulence generation modes
+    Int stgchem=0;        // synthetic turbulence inflow chemistry flag
     Int tdfunc;           // time-derivative function flag
     Int source;           // source function flag
     Int modelnumber;      // model number

@@ -48,6 +48,7 @@ def initializeapp(version):
     app['linearproblem'] = 0;
     app['debugmode'] = 0;
     app['stgNmode'] = 0;
+    app['stgchem'] = 0;
     app['porder'] = 1;
     app['pgauss'] = 2;
     app['temporalscheme'] = 0;
@@ -60,6 +61,7 @@ def initializeapp(version):
     app['SGSmodel'] = 0;
     app['ALE'] = 0;
     app['AV'] = 0;
+    app['AVdistfunction'] = 0;
     app['nonlinearsolver'] = 0;
     app['linearsolver'] = 0;
     app['NLiter'] = 20;
@@ -92,6 +94,9 @@ def initializeapp(version):
     app['flag'] = [0, 0];
     app['problem'] = [0, 0];
     app['boundaryconditions'] = [0, 0];
+    app['coupledinterface'] = 0;
+    app['coupledcondition'] = 0;
+    app['coupledboundarycondition'] = 0;
     app['wmModelIDs'] = numpy.array([]);
     app['wmBoundaries'] = numpy.array([]);
     app['wmDistances'] = numpy.array([]);

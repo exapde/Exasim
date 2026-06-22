@@ -64,6 +64,7 @@ def initializepde(version):
     pde['subproblem'] = 0;
     pde['debugmode'] = 0;
     pde['stgNmode'] = 0;
+    pde['stgchem'] = 0;
     pde['porder'] = 1;
     pde['pgauss'] = 2;
     pde['temporalscheme'] = 0;
@@ -76,6 +77,7 @@ def initializepde(version):
     pde['SGSmodel'] = 0;
     pde['ALE'] = 0;
     pde['AV'] = 0;
+    pde['AVdistfunction'] = 0;
     pde['AVsmoothingIter'] = 2;
     pde['frozenAVflag'] = 1;
     pde['nonlinearsolver'] = 0;
@@ -114,6 +116,9 @@ def initializepde(version):
     pde['flag'] = [0, 0];
     pde['problem'] = [0, 0];
     pde['boundaryconditions'] = [0, 0];
+    pde['coupledinterface'] = 0;
+    pde['coupledcondition'] = 0;
+    pde['coupledboundarycondition'] = 0;
     pde['wmModelIDs'] = numpy.array([]);
     pde['wmBoundaries'] = numpy.array([]);
     pde['wmDistances'] = numpy.array([]);

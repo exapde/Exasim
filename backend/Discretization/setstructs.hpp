@@ -184,6 +184,7 @@ inline void setcommonstruct(commonstruct &common, appstruct &app, masterstruct &
     common.coupledcondition = app.problem[29]; 
     common.coupledboundarycondition = app.problem[30];
     common.AVdistfunction = app.problem[31];
+    common.stgchem = (app.nsize[2] > 32) ? app.problem[32] : 0;
     
     common.RBcurrentdim = 0; // current dimension of the reduced basis space
     common.RBremovedind = 0; // the vector to be removed from the RB space and replaced with new vector

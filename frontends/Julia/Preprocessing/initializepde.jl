@@ -51,6 +51,7 @@ mutable struct PDEStruct
     subproblem::IntP; # flag for subproblem
     debugmode::IntP; # flag for debug mode
     stgNmode::IntP; # number of synthetic turbulence generation modes
+    stgchem::IntP; # synthetic turbulence inflow chemistry flag
 
     porder::IntP; # polymnomial degree
     pgauss::IntP; # Gauss quadrature polynomial degree
@@ -64,6 +65,7 @@ mutable struct PDEStruct
     SGSmodel::IntP; # flag for SGS model
     ALE::IntP; # flag for ALE
     AV::IntP; # flag for artificial viscosity
+    AVdistfunction::IntP; # artificial-viscosity distance-function flag
     AVsmoothingInter::IntP; # number of times AV field is smoothed
     frozenAVflag::IntP; # flag for frozen AV
     nonlinearsolver::IntP; # flag for nonlinear solver (Newton default)
@@ -91,6 +93,9 @@ mutable struct PDEStruct
     extFhat::IntP;
     extUhat::IntP;
     extStab::IntP;
+    coupledinterface::IntP;
+    coupledcondition::IntP;
+    coupledboundarycondition::IntP;
     saveResNorm::IntP; # option for how the solution be saved: 0 -> u only, 1 -> u and q
 
     time::FloatP; # starting time (usually 0, however >0 if restarting from the saved solution)
@@ -211,6 +216,7 @@ function initializepde(version)
     pde.subproblem = 0;
     pde.debugmode = 0;
     pde.stgNmode = 0;
+    pde.stgchem = 0;
     pde.porder = 1;
     pde.pgauss = 2;
     pde.temporalscheme = 0;
@@ -223,6 +229,7 @@ function initializepde(version)
     pde.SGSmodel = 0;
     pde.ALE = 0;
     pde.AV = 0;
+    pde.AVdistfunction = 0;
     pde.AVsmoothingInter = 2;
     pde.frozenAVflag = 1;
     pde.nonlinearsolver = 0;
@@ -249,6 +256,9 @@ function initializepde(version)
     pde.extFhat = 0;
     pde.extUhat = 0;
     pde.extStab = 0;
+    pde.coupledinterface = 0;
+    pde.coupledcondition = 0;
+    pde.coupledboundarycondition = 0;
     pde.saveResNorm = 0;
 
     pde.time = 0.0;
